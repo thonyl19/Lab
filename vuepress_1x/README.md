@@ -1,5 +1,5 @@
 ## 重點摘要
-#### Study
+#### Study by
 > https://v0.vuepress.vuejs.org/zh/guide/
 
 #### [快速上手](https://v0.vuepress.vuejs.org/zh/guide/getting-started.html#%E5%85%A8%E5%B1%80%E5%AE%89%E8%A3%85)
