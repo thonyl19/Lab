@@ -22,6 +22,6 @@
 > - [yaml 和其他 試例](Markdown拓展/yaml.md)
 > - [Json 試例](Markdown拓展/json.md)
 > - :no_bell: [markdown - lineNumbers](Markdown拓展/lineNumbers-err.md)
-> - :electric_plug: [markdown-it](https://github.com/markdown-it/markdown-it.md)
+> - :electric_plug: [markdown-it](https://github.com/markdown-it/)
 > 
 #### []()
