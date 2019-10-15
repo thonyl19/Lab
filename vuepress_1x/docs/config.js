@@ -1,11 +1,20 @@
 module.exports = {
-    configureWebpack: {
-      resolve: {
-        alias: {
-          'img': '../docs/static/img/'
-        }
+  locales:{
+    '/':{
+      lang:'zh-cn',
+      title: "Hello VuePress",
+      description: "Just playing around",
+    }
+  },
+  configureWebpack: {
+    resolve: {
+      alias: {
+        img: "../docs/static/img/"
       }
-    },
-    title: 'Hello VuePress',
-    description: 'Just playing around'
+    }
+  },
+
+  markdown: {
+    lineNumbers: true
   }
+};
