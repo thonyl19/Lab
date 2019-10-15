@@ -19,9 +19,9 @@
 > - 資料夾內的 README.md 文件，会被自动编译为 index.html
 > - 如果指向的路徑沒有指定文件, 雖然預設會讀取 index.html ,但如果路徑結尾沒有設定 / ,則會產生 404 的錯誤 
 > - 路徑跳轉的配置方式,如同 本 README.md 中配置.
-> - [yaml 和其他 試例](Markdown拓展/yaml)
-> - [Json 試例](Markdown拓展/json)
-> - :no_bell: [markdown - lineNumbers](Markdown拓展/lineNumbers-err)
-> - :electric_plug: [markdown-it](https://github.com/markdown-it/markdown-it)
+> - [yaml 和其他 試例](Markdown拓展/yaml.md)
+> - [Json 試例](Markdown拓展/json.md)
+> - :no_bell: [markdown - lineNumbers](Markdown拓展/lineNumbers-err.md)
+> - :electric_plug: [markdown-it](https://github.com/markdown-it/markdown-it.md)
 > 
 #### []()

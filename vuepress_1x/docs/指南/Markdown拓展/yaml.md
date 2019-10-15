@@ -1,6 +1,7 @@
 ---
 title: TTTT
 home: true
+heroText: "Springfield Dim Sum -- YAML mode"
 ---
 
 ```
