@@ -31,13 +31,13 @@ heroText: Springfield Dim Sum
 This is a tip
 :::
 
-::: warning
+::: warning 注意
 This is a warning
 :::
 
-::: danger STOP
-This is a dangerous warning
-:::
+> ::: danger :fire:STOP
+> - This is a dangerous warning
+> :::
 
 ## 代碼區塊的高亮
 ``` js{4}
