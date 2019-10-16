@@ -10,7 +10,7 @@
 
 #### [基本配置](https://v0.vuepress.vuejs.org/zh/guide/basic-config.html#%E9%85%8D%E7%BD%AE%E6%96%87%E4%BB%B6)
 
-#### [静態资源](https://v0.vuepress.vuejs.org/zh/guide/assets.html#%E7%9B%B8%E5%AF%B9%E8%B7%AF%E5%BE%84) / 
+#### [静態资源](https://v0.vuepress.vuejs.org/zh/guide/assets.html#%E7%9B%B8%E5%AF%B9%E8%B7%AF%E5%BE%84) 
 > - configureWebpack
 > - $withBase
 > - :no_bell: [有問題還未排除的試例](基礎路徑/)
@@ -24,4 +24,9 @@
 > - :no_bell: [markdown - lineNumbers](Markdown拓展/lineNumbers-err.md)
 > - :electric_plug: [markdown-it](https://github.com/markdown-it/)
 > 
+#### [在 Markdown 中 使用 Vue](https://vuepress.vuejs.org/zh/guide/using-vue.html) 
+> - [模板语法 / 使用组件 / Badge](Markdown_Vue/)
+> - :electric_plug: 瀏覽器的 API 訪問限制
+> - 
+
 #### []()
