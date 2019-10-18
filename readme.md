@@ -1,6 +1,10 @@
 ## My Study Lab
 >個人對各項新技術學習的集成,每個單元以分枝做為區隔劃分
->   - [vuepress 1.x](https://github.com/thonyl19/Lab/tree/vuepress_1x/vuepress_1x)
->   - [vue_2x](https://github.com/thonyl19/Lab/tree/vue_2x/vue_2x)
->   - [vue_SSR_2x](https://github.com/thonyl19/Lab/tree/vue_SSR_2x/vue_SSR_2x)
-
+>   - :runner: [vuepress 1.x](https://github.com/thonyl19/Lab/tree/vuepress_1x/vuepress_1x)
+>   - :hourglass_flowing_sand: [vue_2x](https://github.com/thonyl19/Lab/tree/vue_2x/vue_2x)
+>   - :hourglass_flowing_sand: [vue_SSR_2x](https://github.com/thonyl19/Lab/tree/vue_SSR_2x/vue_SSR_2x)
+>
+>
+>
+>
+> ###### 註：:runner:進行中 :hourglass_flowing_sand:下階段目標   
