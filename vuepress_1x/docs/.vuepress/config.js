@@ -1,5 +1,6 @@
-let themeConfig_i18n = {
-  locales: {
+//themeConfig_i18n
+let locales = {
+  
     '/': {
       selectText: '選擇語言',
       label: '中文',
@@ -43,7 +44,6 @@ let themeConfig_i18n = {
         '/zh/nested/': [/* ... */]
       }
     }
-  }
 };
 module.exports = {
   locales:{
@@ -65,7 +65,10 @@ module.exports = {
       }
     }
   },
-  themeConfig: themeConfig_i18n,
+  themeConfig: {
+    locales
+    , lastUpdated: 'Last Updated'
+  },
   markdown: {
     lineNumbers: true
   }
