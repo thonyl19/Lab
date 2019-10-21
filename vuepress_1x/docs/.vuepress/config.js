@@ -1,6 +1,5 @@
 //themeConfig_i18n
 let locales = {
-  
     '/': {
       selectText: '選擇語言',
       label: '中文',
@@ -66,8 +65,16 @@ module.exports = {
     }
   },
   themeConfig: {
+    search: true,
+    searchMaxSuggestions: 10,
+    displayAllHeaders: true,
     locales
     , lastUpdated: 'Last Updated'
+        // 默认是 false, 设置为 true 来启用
+    ,editLinks: true
+    // 默认为 "Edit this page"
+    ,editLinkText: 'GitHub'
+    ,lastUpdated: 'Last Updated'
   },
   markdown: {
     lineNumbers: true
