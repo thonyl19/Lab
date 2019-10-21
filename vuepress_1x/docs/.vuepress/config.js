@@ -71,10 +71,12 @@ module.exports = {
     locales
     , lastUpdated: 'Last Updated'
         // 默认是 false, 设置为 true 来启用
-    ,editLinks: true
+    , repo: 'thonyl19/Lab'
+    , docsBranch: 'vuepress_1x/vuepress_1x/docs'
+    , editLinks: true
     // 默认为 "Edit this page"
-    ,editLinkText: 'GitHub'
-    ,lastUpdated: 'Last Updated'
+    , editLinkText: 'GitHub'
+    , lastUpdated: 'Last Updated'
   },
   markdown: {
     lineNumbers: true
