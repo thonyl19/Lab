@@ -6,14 +6,15 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
 using netCoreMvc_22.Models;
+//using MovieContext = netCoreMvc_22.B04.MovieContext;
 
 namespace netCoreMvc_22.Controllers
 {
     public class MoviesController : Controller
     {
-        private readonly MvcMovieContext _context;
+        private readonly MovieContext _context;
 
-        public MoviesController(MvcMovieContext context)
+        public MoviesController(MovieContext context)
         {
             _context = context;
         }

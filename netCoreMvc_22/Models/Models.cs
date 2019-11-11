@@ -2,7 +2,7 @@ using Microsoft.EntityFrameworkCore;
 
 namespace netCoreMvc_22.Models
 {
-    public class Movie:B03.Movie
+    public class Movie:B04._Movie
     {
         
     }

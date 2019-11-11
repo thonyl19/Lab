@@ -22,11 +22,20 @@
 > - 建立 Welcome 頁面,和練習  Razor - for 用法 
 	
 ### [B04-新增模型](https://docs.microsoft.com/zh-tw/aspnet/core/tutorials/first-mvc-app/adding-model?view=aspnetcore-2.2&tabs=visual-studio)
-> - 以下套件都有版本對應上的問題, 所以必須搭配對應版本,不然執行時會報錯
+> - 建立資料類別 - DataModel
+> - 建立 DataModel 的 DBContext
+> - 設置 資料庫連接字串
+> - 安裝必要的 NuGet 套件, 需注意的是套件版本對應上的問題, 如果直接照官網的指令 run 一定會出錯,必須搭配對應版本
 ```
-	dotnet tool install --global dotnet-aspnet-codegenerator --version 2.2
 	dotnet add package Microsoft.EntityFrameworkCore.SQLite -v 2.2.3
 	dotnet add package Microsoft.VisualStudio.Web.CodeGeneration.Design -v 2.2.0
+	dotnet tool install --global dotnet-aspnet-codegenerator --version 2.2
+```
+> - 使用 Scaffold 自動生成基本頁面
+```
+	dotnet aspnet-codegenerator controller -name MoviesController -m Movie -dc MovieContext --relativeFolderPath Controllers --useDefaultLayout --referenceScriptLibraries
+
 ```
 > - 使用相依性插入容器，在 Startup.ConfigureServices 中註冊資料庫內容
 > - 建立 DataModel , DBContext  和其他串接設定 
+> - 強型別模型和 @model 關鍵字
