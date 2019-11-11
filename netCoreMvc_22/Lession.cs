@@ -8,7 +8,7 @@ namespace netCoreMvc_22
     {
         public class controller:Controller 
         {
-            public string Index()
+            public virtual string Index()
             {
                 return "This is my default action...";
             }
@@ -24,6 +24,29 @@ namespace netCoreMvc_22
             public string Welcome(string name, int numTimes = 1)
             {
                 return HtmlEncoder.Default.Encode($"Hello {name}, NumTimes is: {numTimes}");
+            }
+        }
+    }
+
+    public class B03
+    {
+        /// <summary>
+        /// 因為 B03.Index 跟  B02.Index 的回傳值不一樣,無法用複寫的方式做成漸近式的範例,
+        /// 所以只能另外建立
+        /// </summary>
+        public class controller:Controller
+        {
+            public IActionResult Index()
+            {
+                return View();
+            }
+
+            public IActionResult Welcome(string name, int numTimes = 1)
+            {
+                ViewData["Message"] = "Hello " + name;
+                ViewData["NumTimes"] = numTimes;
+
+                return View();
             }
         }
     }

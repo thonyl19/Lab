@@ -8,7 +8,7 @@ using netCoreMvc_22.Models;
 
 namespace netCoreMvc_22.Controllers
 {
-    public class HelloWorldController:B02.controller{
+    public class HelloWorldController:B03.controller{
  
     }
     
