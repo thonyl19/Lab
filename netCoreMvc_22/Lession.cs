@@ -1,5 +1,6 @@
 using System;
 using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
 using System.Linq;
 using System.Text.Encodings.Web;
 using Microsoft.AspNetCore.Hosting;
@@ -72,9 +73,9 @@ namespace netCoreMvc_22
             public string Title { get; set; }
 
             [DataType(DataType.Date)]
-            public DateTime ReleaseDate { get; set; }
+            public virtual DateTime ReleaseDate { get; set; }
             public string Genre { get; set; }
-            public decimal Price { get; set; }
+            public virtual decimal Price { get; set; }
         }
 
         public static void Main_CreateDbIfNotExists(IWebHost host)
@@ -138,4 +139,15 @@ namespace netCoreMvc_22
 
     }
 
+    public class B06{
+        public class _Movie:B04._Movie
+        {
+            [Display(Name = "Release Date")]
+            [DataType(DataType.Date)]
+            public override DateTime ReleaseDate { get; set; }
+
+            [Column(TypeName = "decimal(18, 2)")]
+            public override decimal Price { get; set; }
+        }
+    }
 }

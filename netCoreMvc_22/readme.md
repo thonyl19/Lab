@@ -31,6 +31,7 @@
 	dotnet add package Microsoft.VisualStudio.Web.CodeGeneration.Design -v 2.2.0
 	dotnet tool install --global dotnet-aspnet-codegenerator --version 2.2
 ```
+> - [DB Browser for SQLite 工具下載](https://sqlitebrowser.org/dl/)
 > - 使用 Scaffold 自動生成基本頁面
 ```
 	dotnet aspnet-codegenerator controller -name MoviesController -m Movie -dc MovieContext --relativeFolderPath Controllers --useDefaultLayout --referenceScriptLibraries
@@ -39,3 +40,12 @@
 > - 使用相依性插入容器，在 Startup.ConfigureServices 中註冊資料庫內容
 > - 建立 DataModel , DBContext  和其他串接設定 
 > - 強型別模型和 @model 關鍵字
+
+### [B05-使用資料庫](https://docs.microsoft.com/zh-tw/aspnet/core/tutorials/first-mvc-app/working-with-sql?view=aspnetcore-2.2&tabs=visual-studio)
+> - 這章節的相關程序己於 B04 中實作.
+
+### [B06-控制器動作與檢視](https://docs.microsoft.com/zh-tw/aspnet/core/tutorials/first-mvc-app/controller-methods-views?view=aspnetcore-2.2)
+> - [DataAnnotations](https://docs.microsoft.com/zh-tw/aspnet/mvc/overview/older-versions/mvc-music-store/mvc-music-store-part-6) - 資料註解 , 用 屬性類別 (Attribute ,Property) 來定義資料物件的中繼資料 (Metadata)
+> - [Tag Helpers ](https://docs.microsoft.com/zh-tw/aspnet/core/mvc/views/tag-helpers/intro?view=aspnetcore-2.2)- 標籤協助程式
+> Bind 屬性
+> ValidateAntiForgeryToken - 是用來防範要求偽造
