@@ -10,20 +10,38 @@ using netCoreMvc_22.Models;
 
 namespace netCoreMvc_22.Controllers
 {
-    public class MoviesController : Controller
+    public class MoviesController : B07.MoviesController
     {
-        private readonly MovieContext _context;
+        public MoviesController(MovieContext context) : base(context)
+        {
+        }
+    }
 
-        public MoviesController(MovieContext context)
+
+    /// <summary>
+    /// 以下的 Code 是以 aspnet-codegenerator 生成的,但為了 方便 By課程做漸近式的修改,
+    ///     故而將整個 Code 抽離成 _base
+    /// </summary>
+    public class _MoviesController : Controller
+    {
+        internal readonly MovieContext _context;
+        
+        public _MoviesController(MovieContext context)
         {
             _context = context;
         }
 
-        // GET: Movies
-        public async Task<IActionResult> Index()
+        /// <summary>
+        /// Def. export movie list
+        /// </summary>
+        /// <returns></returns>
+        public virtual async Task<IActionResult> Index()
         {
             return View(await _context.Movie.ToListAsync());
         }
+
+
+
 
         // GET: Movies/Details/5
         public async Task<IActionResult> Details(int? id)
@@ -150,4 +168,6 @@ namespace netCoreMvc_22.Controllers
             return _context.Movie.Any(e => e.Id == id);
         }
     }
+
+
 }

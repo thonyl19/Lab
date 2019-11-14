@@ -1,15 +1,21 @@
 using System;
+using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 using System.Linq;
 using System.Text.Encodings.Web;
+using System.Threading.Tasks;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using netCoreMvc_22.Models;
+using netCoreMvc_22.Controllers;
+using System.Web;
+using Microsoft.AspNetCore.Routing;
 
 namespace netCoreMvc_22
 {
@@ -59,6 +65,10 @@ namespace netCoreMvc_22
             }
         }
     }
+
+    /// <summary>
+    /// 新增模型
+    /// </summary>
     public class B04
     {
         internal static void ConfigureServices_IocDBContext(IServiceCollection services, IConfiguration configuration)
@@ -139,6 +149,9 @@ namespace netCoreMvc_22
 
     }
 
+    /// <summary>
+    /// 控制器動作與檢視
+    /// </summary>
     public class B06{
         public class _Movie:B04._Movie
         {
@@ -148,6 +161,130 @@ namespace netCoreMvc_22
 
             [Column(TypeName = "decimal(18, 2)")]
             public override decimal Price { get; set; }
+        }
+    }
+
+    /// <summary>
+    /// 新增搜尋
+    /// </summary>
+    public class B07{
+
+        public class MoviesController : _MoviesController
+        {
+            public MoviesController(MovieContext context) : base(context)
+            {
+            }
+
+            public override async Task<IActionResult> Index()
+            {
+                
+                var a = HttpUtility.ParseQueryString(this.Request.QueryString.ToString());
+                var b1 = a.AllKeys.ToDictionary(k => k, k => a[k]);
+                // var b2 = this.Request.Query.Keys.ToDictionary(k=>k,k=>this.Request.Query[k].ToString());
+                var c1 = new RouteValueDictionary(b1);
+                // var c2 = new RouteValueDictionary(b2);
+
+                //B071
+                //return RedirectToActionPermanent(nameof(Index_Search),c1);
+                //return RedirectToAction(nameof(Index_Search),c1);
+                
+                //B072
+                //return RedirectToAction(nameof(Index_Id));
+
+                //B073
+                return RedirectToAction(nameof(Index_GenreVM),c1);
+            }
+
+
+            /// <summary>
+            /// B071 
+            /// </summary>
+            /// <param name="searchString"></param>
+            /// <returns></returns>
+            public async Task<IActionResult> Index_Search(string searchString)
+            {
+                var movies = from m in _context.Movie
+                            select m;
+
+                if (!String.IsNullOrEmpty(searchString))
+                {
+                    movies = movies.Where(s => s.Title.Contains(searchString));
+                }
+
+                return View("B071", await movies.ToListAsync());
+            }
+
+
+            /// <summary>
+            /// B072 
+            /// </summary>
+            /// <param name="id"></param>
+            /// <returns></returns>
+            public async Task<IActionResult> Index_Id(string id)
+            {
+                var movies = from m in _context.Movie
+                            select m;
+
+                if (!String.IsNullOrEmpty(id))
+                {
+                    movies = movies.Where(s => s.Title.Contains(id));
+                }
+
+                return View("Index", await movies.ToListAsync());
+            }
+
+
+            /// <summary>
+            /// B073 - MovieGenreViewModel
+            /// </summary>
+            /// <param name="movieGenre"></param>
+            /// <param name="searchString"></param>
+            /// <returns></returns>
+            public async Task<IActionResult> Index_GenreVM(string movieGenre, string searchString)
+            {
+                // Use LINQ to get list of genres.
+                IQueryable<string> genreQuery = from m in _context.Movie
+                                                orderby m.Genre
+                                                select m.Genre;
+
+                var movies = from m in _context.Movie
+                            select m;
+
+                if (!string.IsNullOrEmpty(searchString))
+                {
+                    movies = movies.Where(s => s.Title.Contains(searchString));
+                }
+
+                if (!string.IsNullOrEmpty(movieGenre))
+                {
+                    movies = movies.Where(x => x.Genre == movieGenre);
+                }
+
+                var movieGenreVM = new MovieGenreViewModel
+                {
+                    Genres = new SelectList(await genreQuery.Distinct().ToListAsync()),
+                    Movies = await movies.ToListAsync()
+                };
+
+                return View("B073",movieGenreVM);
+            }
+
+            [HttpPost]
+            public string Index(string searchString, bool notUsed)
+            {
+                return "From [HttpPost]Index: filter on " + searchString;
+            }
+
+
+
+        }
+        
+        public class _MovieGenreViewModel
+        {
+            public List<Movie> Movies { get; set; }
+            public SelectList Genres { get; set; }
+            public string MovieGenre { get; set; }
+            public string SearchString { get; set; }
         }
     }
 }

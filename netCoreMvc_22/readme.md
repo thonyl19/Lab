@@ -47,5 +47,11 @@
 ### [B06-控制器動作與檢視](https://docs.microsoft.com/zh-tw/aspnet/core/tutorials/first-mvc-app/controller-methods-views?view=aspnetcore-2.2)
 > - [DataAnnotations](https://docs.microsoft.com/zh-tw/aspnet/mvc/overview/older-versions/mvc-music-store/mvc-music-store-part-6) - 資料註解 , 用 屬性類別 (Attribute ,Property) 來定義資料物件的中繼資料 (Metadata)
 > - [Tag Helpers ](https://docs.microsoft.com/zh-tw/aspnet/core/mvc/views/tag-helpers/intro?view=aspnetcore-2.2)- 標籤協助程式
-> Bind 屬性
-> ValidateAntiForgeryToken - 是用來防範要求偽造
+> - Bind 屬性
+> - ValidateAntiForgeryToken - 是用來防範要求偽造
+
+### [B07-新增搜尋](https://docs.microsoft.com/zh-tw/aspnet/core/tutorials/first-mvc-app/search?view=aspnetcore-2.2)
+> - MoviesController.Index(id)  的用法
+> - MoviesController.Index(searchString)  的用法
+> - 增加 SearchString 查詢欄位 (B071)
+> - 新增依內容類型搜尋 - MovieGenreViewModel (B073)
