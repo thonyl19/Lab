@@ -2,15 +2,17 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using System.Web;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
+using Microsoft.AspNetCore.Routing;
 using Microsoft.EntityFrameworkCore;
 using netCoreMvc_22.Models;
 //using MovieContext = netCoreMvc_22.B04.MovieContext;
 
 namespace netCoreMvc_22.Controllers
 {
-    public class MoviesController : B07.MoviesController
+    public class MoviesController : B08.MoviesController
     {
         public MoviesController(MovieContext context) : base(context)
         {
@@ -25,7 +27,19 @@ namespace netCoreMvc_22.Controllers
     public class _MoviesController : Controller
     {
         internal readonly MovieContext _context;
+
+        public const string movie_Bind =  "Id,Title,ReleaseDate,Genre,Price,Rating";
         
+        internal RouteValueDictionary routerValue{
+            get{
+                var a = HttpUtility.ParseQueryString(this.Request.QueryString.ToString());
+                var b1 = a.AllKeys.ToDictionary(k => k, k => a[k]);
+                return new RouteValueDictionary(b1);
+            }
+
+        }       
+        
+
         public _MoviesController(MovieContext context)
         {
             _context = context;
@@ -72,7 +86,7 @@ namespace netCoreMvc_22.Controllers
         // more details see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Create([Bind("Id,Title,ReleaseDate,Genre,Price")] Movie movie)
+        public virtual async Task<IActionResult> Create([Bind(movie_Bind)] Movie movie)
         {
             if (ModelState.IsValid)
             {
@@ -104,7 +118,7 @@ namespace netCoreMvc_22.Controllers
         // more details see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Edit(int id, [Bind("Id,Title,ReleaseDate,Genre,Price")] Movie movie)
+        public virtual async Task<IActionResult> Edit(int id, [Bind(movie_Bind)] Movie movie)
         {
             if (id != movie.Id)
             {

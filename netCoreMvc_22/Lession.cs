@@ -99,45 +99,12 @@ namespace netCoreMvc_22
                 {
                     var context = services.GetRequiredService<MovieContext>();
                     context.Database.EnsureCreated();
-                    
-                    
                     // DB has been seeded
-                    if (context.Movie.Any())  return;   
+                    if (context.Movie.Any())  return; 
 
-                    context.Movie.AddRange(
-                        new Movie
-                        {
-                            Title = "When Harry Met Sally",
-                            ReleaseDate = DateTime.Parse("1989-2-12"),
-                            Genre = "Romantic Comedy",
-                            Price = 7.99M
-                        },
-
-                        new Movie
-                        {
-                            Title = "Ghostbusters ",
-                            ReleaseDate = DateTime.Parse("1984-3-13"),
-                            Genre = "Comedy",
-                            Price = 8.99M
-                        },
-
-                        new Movie
-                        {
-                            Title = "Ghostbusters 2",
-                            ReleaseDate = DateTime.Parse("1986-2-23"),
-                            Genre = "Comedy",
-                            Price = 9.99M
-                        },
-
-                        new Movie
-                        {
-                            Title = "Rio Bravo",
-                            ReleaseDate = DateTime.Parse("1959-4-15"),
-                            Genre = "Western",
-                            Price = 3.99M
-                        }
-                    );
+                    B08.initMove(context.Movie);
                     context.SaveChanges();
+                    
                 }
                 catch (Exception ex)
                 {
@@ -145,6 +112,46 @@ namespace netCoreMvc_22
                     logger.LogError(ex, "An error occurred creating the DB.");
                 }
             }
+        }
+
+        /// <summary>
+        /// 資料庫初始化填值程序 
+        /// </summary>
+        /// <param name="Movie"></param>
+        public static void initMove(DbSet<Movie> Movie){
+            Movie.AddRange(
+                new Movie
+                {
+                    Title = "When Harry Met Sally",
+                    ReleaseDate = DateTime.Parse("1989-2-12"),
+                    Genre = "Romantic Comedy",
+                    Price = 7.99M
+                },
+
+                new Movie
+                {
+                    Title = "Ghostbusters ",
+                    ReleaseDate = DateTime.Parse("1984-3-13"),
+                    Genre = "Comedy",
+                    Price = 8.99M
+                },
+
+                new Movie
+                {
+                    Title = "Ghostbusters 2",
+                    ReleaseDate = DateTime.Parse("1986-2-23"),
+                    Genre = "Comedy",
+                    Price = 9.99M
+                },
+
+                new Movie
+                {
+                    Title = "Rio Bravo",
+                    ReleaseDate = DateTime.Parse("1959-4-15"),
+                    Genre = "Western",
+                    Price = 3.99M
+                }
+            );
         }
 
     }
@@ -285,6 +292,115 @@ namespace netCoreMvc_22
             public SelectList Genres { get; set; }
             public string MovieGenre { get; set; }
             public string SearchString { get; set; }
+        }
+    }
+
+    /// <summary>
+    /// 新增欄位
+    /// </summary>
+    public class B08{
+        public class _Movie:B06._Movie
+        {
+            public string Rating { get; set; }
+        }
+
+        /// <summary>
+        /// 資料庫初始化填值程序 
+        /// </summary>
+        /// <param name="Movie"></param>
+        public static void initMove(DbSet<Movie> Movie){
+            Movie.AddRange(
+                new Movie
+                {
+                    Title = "When Harry Met Sally",
+                    ReleaseDate = DateTime.Parse("1989-2-12"),
+                    Genre = "Romantic Comedy",
+                    Rating = "R",
+                    Price = 7.99M
+                },
+
+                new Movie
+                {
+                    Title = "Ghostbusters ",
+                    ReleaseDate = DateTime.Parse("1984-3-13"),
+                    Genre = "Comedy",
+                    Rating = "R",
+                    Price = 8.99M
+                },
+
+                new Movie
+                {
+                    Title = "Ghostbusters 2",
+                    ReleaseDate = DateTime.Parse("1986-2-23"),
+                    Genre = "Comedy",
+                    Rating = "R",
+                    Price = 9.99M
+                },
+
+                new Movie
+                {
+                    Title = "Rio Bravo",
+                    ReleaseDate = DateTime.Parse("1959-4-15"),
+                    Genre = "Western",
+                    Rating = "R",
+                    Price = 3.99M
+                }
+            );
+        }
+
+        public class MoviesController : _MoviesController
+        {
+            public MoviesController(MovieContext context) : base(context)
+            {
+            }
+
+            public override async Task<IActionResult> Index()
+            {
+                //B081
+                return RedirectToAction(nameof(Index_GenreVM),this.routerValue);
+            }
+
+ 
+
+            /// <summary>
+            /// B081 - Rating
+            /// </summary>
+            /// <param name="movieGenre"></param>
+            /// <param name="searchString"></param>
+            /// <returns></returns>
+            public async Task<IActionResult> Index_GenreVM(string movieGenre, string searchString)
+            {
+                // Use LINQ to get list of genres.
+                IQueryable<string> genreQuery = from m in _context.Movie
+                                                orderby m.Genre
+                                                select m.Genre;
+
+                var movies = from m in _context.Movie
+                            select m;
+
+                if (!string.IsNullOrEmpty(searchString))
+                {
+                    movies = movies.Where(s => s.Title.Contains(searchString));
+                }
+
+                if (!string.IsNullOrEmpty(movieGenre))
+                {
+                    movies = movies.Where(x => x.Genre == movieGenre);
+                }
+
+                var movieGenreVM = new MovieGenreViewModel
+                {
+                    Genres = new SelectList(await genreQuery.Distinct().ToListAsync()),
+                    Movies = await movies.ToListAsync()
+                };
+
+                return View("B081",movieGenreVM);
+            }
+
+  
+
+
+
         }
     }
 }

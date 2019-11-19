@@ -55,3 +55,9 @@
 > - MoviesController.Index(searchString)  的用法
 > - 增加 SearchString 查詢欄位 (B071)
 > - 新增依內容類型搜尋 - MovieGenreViewModel (B073)
+
+
+### [B08-新增欄位](https://docs.microsoft.com/zh-tw/aspnet/core/tutorials/first-mvc-app/new-field?view=aspnetcore-2.2&tabs=visual-studio)
+> - 新增 Rating 屬性
+> - 修改相應的 Create , Edit 等頁面 
+> - Bind() 的值改為常數 以便覆用
