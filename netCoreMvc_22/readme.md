@@ -61,3 +61,6 @@
 > - 新增 Rating 屬性
 > - 修改相應的 Create , Edit 等頁面 
 > - Bind() 的值改為常數 以便覆用
+
+### [B09-新增驗證](https://docs.microsoft.com/zh-tw/aspnet/core/tutorials/first-mvc-app/validation?view=aspnetcore-2.2)
+> - 使用 DataType 屬性
