@@ -64,3 +64,8 @@
 
 ### [B09-新增驗證](https://docs.microsoft.com/zh-tw/aspnet/core/tutorials/first-mvc-app/validation?view=aspnetcore-2.2)
 > - 使用 DataType 屬性
+
+
+
+### [B10-檢查 Details 與 Delete 方法](https://docs.microsoft.com/zh-tw/aspnet/core/tutorials/first-mvc-app/details?view=aspnetcore-2.2)
+> - 路由名稱 不能使用 多載寫法 的解決方案
