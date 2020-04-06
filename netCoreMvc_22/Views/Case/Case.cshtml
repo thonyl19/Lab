@@ -1,0 +1,30 @@
+@{
+    var arr = new string[] { "1", "2" };
+}
+
+
+@{
+    foreach (string i in arr)
+    {
+        switch (i)
+        {
+            case "1":
+                // Use the text block below to separate html elements from code
+                <text>
+                    <h1>1</h1>
+                </text>
+                break;  // Always break each case
+            case "2":
+                <text>
+                    <h1>2</h1>
+                </text>
+                break;
+            case "3":
+                <text>
+                    <h1>WTF Site</h1>
+                </text>
+                break;
+        }
+    }
+
+}

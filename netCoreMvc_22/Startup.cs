@@ -10,6 +10,8 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.FileProviders;
+using System.IO;
 
 namespace netCoreMvc_22
 {
@@ -61,6 +63,12 @@ namespace netCoreMvc_22
                     name: "default",
                     template: "{controller=Home}/{action=Index}/{id?}");
             });
+            // app.UseStaticFiles(new StaticFileOptions
+            // {
+            //     FileProvider = new PhysicalFileProvider(
+            //     Path.Combine(Directory.GetCurrentDirectory(), "MyHtmlFiles")),
+            //     RequestPath = "/myfiles"
+            // });
         }
     }
 }

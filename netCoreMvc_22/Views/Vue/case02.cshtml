@@ -1,0 +1,32 @@
+@{
+    ViewData["Title"] = "Vue Page";
+}
+<script src="https://unpkg.com/vue"></script>
+<script src="~/lib/http-vue-loader.js"></script>
+<h1>@ViewData["Title"]</h1>
+<h1>範例 - 路由取值範例 </h1>
+<ul>
+  <li>@Url.Content("~/lib/vurSrc/my-component.htm")</li>
+  <li>@Url.Content("/lib/vurSrc/my-component.htm")</li>
+  <li>@Url.Content("./lib/vurSrc/my-component.htm")</li>
+</ul>
+
+
+<div id="my-app">
+  <my-component v-bind:child="test"></my-component>
+</div>
+
+<script type="text/javascript">
+  new Vue({
+    el: '#my-app',
+    data(){
+        return {
+            test:'@ViewData["Title"]'
+        }
+    },
+    components: {
+      'my-component': httpVueLoader('@Url.Content("/lib/vurSrc/my-component.htm")')
+      
+    }
+  });
+</script>

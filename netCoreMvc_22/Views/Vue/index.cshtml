@@ -1,0 +1,25 @@
+@{
+    ViewData["Title"] = "Vue Page";
+}
+<script src="https://unpkg.com/vue"></script>
+<script src="~/lib/http-vue-loader.js"></script>
+<h1>@ViewData["Title"]</h1>
+<h1>範例 - MVC 的值代入 Vue 並透過 props 將值傳入 component</h1>
+
+<div id="my-app">
+  <my-component v-bind:child="test"></my-component>
+</div>
+
+<script type="text/javascript">
+  new Vue({
+    el: '#my-app',
+    data(){
+        return {
+            test:'@ViewData["Title"]'
+        }
+    },
+    components: {
+      'my-component': httpVueLoader('./lib/vurSrc/my-component.htm')
+    }
+  });
+</script>

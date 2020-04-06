@@ -1,0 +1,44 @@
+@{
+    Layout = null;
+}
+ <script src="https://unpkg.com/vue"></script>
+<script src="~/lib/http-vue-loader.js"></script>
+<h1>範例 -  submit </h1>
+      @using(Html.BeginForm("case03","Vue",FormMethod.Post)){
+    
+          <!--裡面待會要放TextBox-->
+          <div>
+              <input type="text" name="strMsg" />
+
+          </div>
+          
+          
+        <input type="submit" value="提交" />
+        <div>
+            剛剛輸入的值:@ViewData["showMsg"]
+        </div>
+    
+    }
+  
+ 
+ 
+<div id="my-app">
+  <my-component v-bind:child="test"></my-component>
+</div>
+
+ 
+
+<script type="text/javascript">
+  new Vue({
+    el: '#my-app',
+    data(){
+        return {
+            test:'@ViewData["Title"]'
+        }
+    },
+    components: {
+      'my-component': httpVueLoader('@Url.Content("/lib/vurSrc/my-component.htm")')
+      
+    }
+  });
+</script>

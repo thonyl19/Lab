@@ -1,0 +1,24 @@
+<template>
+    <div class="hello">Hello {{who}} -- child:{{child}}</div>
+</template>
+<script>
+module.exports = {
+    props:{
+        child:{
+        type:String,
+        default:""
+        },
+    },
+    data: function() {
+        return {
+            who: 'world'
+        }
+    }
+}
+</script>
+
+<style>
+.hello {
+    background-color: #ffe;
+}
+</style>

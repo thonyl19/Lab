@@ -1,0 +1,47 @@
+@{
+    Layout = null;
+    ViewData["test"] = "Vue Page";
+}
+<script src="https://unpkg.com/vue"></script>
+<script src="~/lib/http-vue-loader.js"></script>
+<script src="~/lib/jquery/dist/jquery.min.js"></script>
+<h1>範例 - </h1>
+      @using(Html.BeginForm("case03","Vue",FormMethod.Post)){
+    
+          <!--裡面待會要放TextBox-->
+          <div>
+            <input class="lbTest" type="text" name="strMsg" />
+              @* <input class="lbTest" type="text" name="strMsg" value='@ViewData["test"]' /> *@
+
+          </div>
+  }
+  
+ 
+ 
+<div id="my-app">
+   <input v-model="test" />
+</div>
+
+ 
+
+<script type="text/javascript">
+  new Vue({
+    el: '#my-app',
+    data(){
+        return {
+            test:'@ViewData["test"]'
+        }
+    },
+    methods: {
+ 
+    },
+    mounted() {
+        $('.lbTest').val(this.test);
+    },
+    watch: {
+      test(){
+        $('.lbTest').val(this.test);
+      }
+    },
+  });
+</script>
