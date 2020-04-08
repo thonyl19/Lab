@@ -7,18 +7,7 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace netCoreMvc_22.Controllers
 {
-    public class CaseController : Controller
+    public class CaseController : BaseController
     {
-        public IActionResult Index()
-        {
-            return View();
-        }
-
-        public IActionResult exViewData()
-        {
-            return View();
-        }
-        
-
     }
 }

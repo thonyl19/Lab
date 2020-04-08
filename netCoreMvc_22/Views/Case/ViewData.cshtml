@@ -5,11 +5,10 @@
     ViewData 本來就是 ViewDataDictionary ,所以可以使用這個方式取得 Keys 的列舉值,
         再對 ViewData 做逐一取值的動作
     */
-    var ViewData_Keys = ViewData.Keys;
+    ViewData.Add("A", FileMode.Create);
+    ViewData.Add("B", FileMode.Open);
 
-    var _list = new ViewDataDictionary(new {"A", FileMode.Create});
-    _list.Add("A", FileMode.Create);
-    , { "B", FileMode.Append } };
+    var _mode1 = Html.Partial("ViewData_Partial", null, ViewData);
 
     /*
     var _list = new ViewDataDictionary{ { "A", FileMode.Create }, { "B", FileMode.Append } };
@@ -23,8 +22,9 @@
         _mode1 是先將結果緩存在變數中,再指定的位置直接打印出來
         _mode2 則是一次式的完成 _mode1 的動作
     唯一共通的點就是,在打印點都必須使用 @ 開頭
-    @_mode1
-
-    _mode2
-    @Html.Partial(_PartialUrl, null, _list)
 *@
+<h3>mode1</h3>
+@_mode1
+
+<h3>mode2</h3>
+@Html.Partial("ViewData_Partial", null, ViewData)

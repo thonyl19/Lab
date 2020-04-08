@@ -1,0 +1,12 @@
+@using FileMode = System.IO.FileMode;
+
+@{
+    var ViewData_Keys = ViewData.Keys;
+}
+@*
+    這裡的寫法效果一樣,但只能擇一,無法混用
+        _mode1 是先將結果緩存在變數中,再指定的位置直接打印出來
+        _mode2 則是一次式的完成 _mode1 的動作
+    唯一共通的點就是,在打印點都必須使用 @ 開頭
+*@
+@ViewData_Keys.Count
