@@ -10,23 +10,12 @@
 ```
 npm i koa -D
 ```
-### Config 範例
-執行方式 
-```
-    .\config$ run {example.js}
-```
-#### 基本用例 
+
+### 基本用例 
     (base_server.js)[./config/base_server.js]
 
 ### Cascading
     (base_server.js)[./config/ex_Cascading.js]
-
-### RESTful API 
-    Ref
-    [koa2实现restful api](https://juejin.im/post/5b1c870e5188257d8f0f22a6)
-    需要搭配 
-        \router\index.js
-        \controllers\users\UserController.js
 
 ### app.listen（...）
 
