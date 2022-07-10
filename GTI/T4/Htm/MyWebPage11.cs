@@ -7,7 +7,7 @@
 //     程式碼，則會遺失變更。
 // </auto-generated>
 // ------------------------------------------------------------------------------
-namespace UnitTestProject.T4
+namespace UnitTestProject.T4.Htm
 {
     using System.Linq;
     using System.Text;
@@ -18,9 +18,9 @@ namespace UnitTestProject.T4
     /// Class to produce the template output
     /// </summary>
     
-    #line 1 "P:\UnitTestProject\T4\RuntimeTextTemplate1.tt"
+    #line 1 "P:\MyLab\UnitTest\GTI\T4\Htm\MyWebPage1.tt"
     [global::System.CodeDom.Compiler.GeneratedCodeAttribute("Microsoft.VisualStudio.TextTemplating", "16.0.0.0")]
-    public partial class RuntimeTextTemplate1 : RuntimeTextTemplate1Base
+    public partial class MyWebPage1 : MyWebPage1Base
     {
 #line hidden
         /// <summary>
@@ -28,6 +28,38 @@ namespace UnitTestProject.T4
         /// </summary>
         public virtual string TransformText()
         {
+            this.Write("<h2>Sales figures</h2>\r\n<table>\r\n");
+            
+            #line 10 "P:\MyLab\UnitTest\GTI\T4\Htm\MyWebPage1.tt"
+ foreach (MyDataItem item in m_data.Items)
+   // m_data is declared in MyWebPageCode.cs
+   { 
+            
+            #line default
+            #line hidden
+            this.Write("      <tr><td> ");
+            
+            #line 13 "P:\MyLab\UnitTest\GTI\T4\Htm\MyWebPage1.tt"
+            this.Write(this.ToStringHelper.ToStringWithCulture(item.Name));
+            
+            #line default
+            #line hidden
+            this.Write(" </td>\r\n          <td> ");
+            
+            #line 14 "P:\MyLab\UnitTest\GTI\T4\Htm\MyWebPage1.tt"
+            this.Write(this.ToStringHelper.ToStringWithCulture(item.Value));
+            
+            #line default
+            #line hidden
+            this.Write(" </td></tr>\r\n");
+            
+            #line 15 "P:\MyLab\UnitTest\GTI\T4\Htm\MyWebPage1.tt"
+ } // end of foreach
+
+            
+            #line default
+            #line hidden
+            this.Write("</table>");
             return this.GenerationEnvironment.ToString();
         }
     }
@@ -39,7 +71,7 @@ namespace UnitTestProject.T4
     /// Base class for this transformation
     /// </summary>
     [global::System.CodeDom.Compiler.GeneratedCodeAttribute("Microsoft.VisualStudio.TextTemplating", "16.0.0.0")]
-    public class RuntimeTextTemplate1Base
+    public class MyWebPage1Base
     {
         #region Fields
         private global::System.Text.StringBuilder generationEnvironmentField;

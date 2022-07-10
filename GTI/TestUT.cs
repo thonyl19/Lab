@@ -8,6 +8,7 @@ using System.IO;
 using System.Text;
 using System.Text.RegularExpressions;
 using System.Xml.Serialization;
+using static BLL.MES.WIPInjectServices;
 
 namespace UnitTestProject.TestUT
 {
@@ -459,6 +460,23 @@ namespace UnitTestProject.TestUT
 			}
 			return this.Write(new string[] { strMsg }, FilePathName);
 		}
+
+        public static string _tmpTxt(bool isRead=false)
+        {
+			var _file = ts_Log("_tmp.txt");
+			if (isRead == false) return _file;
+			return Read(_file);
+		}
+		public static T _tmpTxtToJson<T>(string AutoWriteTo = null)
+		{
+			var _data = _tmpTxt(true);
+			T _obj = JsonConvert.DeserializeObject<T>(_data, FileApp.json_options);
+			if (AutoWriteTo!=null && _obj != null) {
+				FileApp.WriteSerializeJson(_obj, AutoWriteTo);
+			}
+			return _obj;
+
+		}
 	}
 
 
@@ -483,6 +501,27 @@ namespace UnitTestProject.TestUT
 				return this._dbc;
 			}
 		}
+
+		internal void _DBTest(Action<ITxnBase> fn, bool isTransMode = false)
+		{
+			if (isTransMode)
+			{
+				TxnBase.LzDBTrans_t(txn =>
+				{
+					fn(txn);
+					return txn.result;
+				});
+			}
+			else {
+				TxnBase.LzDBQuery(txn =>
+				{
+					fn(txn);
+					return txn.result;
+				});
+			}
+		}
+		
+ 
 
 		internal FileApp _file = new FileApp();
 	}

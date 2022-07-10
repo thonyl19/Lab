@@ -14,6 +14,7 @@ using Genesis.Library.BLL.MES.AutoGenerate;
 using Genesis.Library.BLL.MES.DataViews;
 using MDL.MES;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
+using Newtonsoft.Json;
 using OfficeOpenXml;
 using System;
 using System.Collections.Generic;
@@ -29,9 +30,14 @@ using System.IO;
 using System.Linq;
 using System.Linq.Dynamic.Core;
 using System.Linq.Expressions;
+using System.Transactions;
 using System.Web.UI.WebControls;
 using UnitTestProject.TestUT;
+using static BLL.MES.WIPInjectServices;
 using static BLL.MES.WIPServices;
+using static Genesis.Gtimes.Transaction.WIP.WIPTransaction;
+using static Genesis.Gtimes.WIP.LotUtility;
+
 using mdl = MDL.MES;
 using vDbCtx = MDL.MESContext;
 
@@ -68,6 +74,8 @@ namespace UnitTestProject
 			}
 
 
+ 
+			
 		}
 
 		[TestMethod]
@@ -216,6 +224,34 @@ namespace UnitTestProject
 					})
 					.ToList();
 
+		}
+
+		[TestMethod]
+		public void t_SQL_TransactionScope()
+		{
+			using (var dbContext = new MDL.MESContext())
+			{
+				/*
+				 https://dotblogs.com.tw/asdtey/2009/09/27/10793
+			
+					dbContext.Database.Connection.Open();
+					dbContext.Database.Connection.BeginTransaction(System.Data.IsolationLevel.ReadUncommitted);
+					//在這一段 掛掉 ,原因不理解
+					var x = dbContext.WP_WO.Count();
+				 */
+
+				using (TransactionScope ts = new TransactionScope(TransactionScopeOption.Required
+					, new TransactionOptions() { IsolationLevel = System.Transactions.IsolationLevel.ReadUncommitted }))
+				{
+					var users = dbContext.WP_WO.Count();
+				}
+				//using (var transaction = dbContext.Database.BeginTransaction(System.Data.IsolationLevel.ReadUncommitted))
+				//{
+				//	//var _sql = $@"SELECT top 1 * from WP_WO";
+				//	//var _r = transaction.Query(_sql, transaction)
+				//	//		.ToList();
+				//}
+			}
 		}
 
 		[TestMethod]
@@ -1406,6 +1442,9 @@ SELECT 	LOT.ROUTE_VER_SID,
 		}
 
 
+
+
+
 		/// <summary>
 		/// 
 		/// </summary>
@@ -1500,6 +1539,17 @@ SELECT 	LOT.ROUTE_VER_SID,
 		}
 
 
+        [TestMethod]
+        public void t_fn()
+        {
+			new TxnBase("test", this.DBC)
+				.Exec((_txn)=>{
+					var t = _txn.EFQuery<WP_LOT_WAFER_MAPPING>().Reads(c => c.LOT == "WO_T074_001").ToList();
+				});
+
+		}
+
+
 		[TestMethod]
 		public void t_Process_PosiMap_cmd_CHANGE_SERIAL()
 		{
@@ -1549,6 +1599,56 @@ SELECT 	LOT.ROUTE_VER_SID,
 		}
 
 
+        [TestMethod]
+        public void t_CountWaferBy_SHIP_CASSETTE()
+        {
+			//var x = WIPServices.CountWaferBy_SHIP_CASSETTE("TEST");
+
+
+			string[] SHIP_CASSETTEs = new string[] {"Test", "WO_T074_001" 
+			//	,"WO_T074_001.01"
+			};
+			var _list = SHIP_CASSETTEs.ToList();
+			using (var DBCon = new MDL.MESContext())
+			{
+				using (TransactionScope ts = new TransactionScope(TransactionScopeOption.Required
+								, new TransactionOptions() { IsolationLevel = System.Transactions.IsolationLevel.ReadUncommitted }))
+				{
+        //            var g1 = (from m0 in SHIP_CASSETTEs//.AsQueryable()
+        //                      join m1 in DBCon.WP_LOT_WAFER_MAPPING
+        //                        on m0 equals m1.LOT into m01
+								//group m0 by m0 into m02
+        //                      from m11 in m02.DefaultIfEmpty()
+        //                      select new { m0, counts = m02.Count() }
+        //                        );
+        //            var g11 = g1.ToDictionary(o=>o.m0);
+
+                    var g2 = (from m0 in DBCon.WP_LOT_WAFER_MAPPING
+							  where SHIP_CASSETTEs.Contains(m0.LOT)
+							  group m0 by m0.LOT into m10
+							  select new {m10.Key,counts = m10.Count()}
+							).ToDictionary(o => o.Key, o => o.counts);
+
+                    var g3 = (from m0 in SHIP_CASSETTEs
+                              join m1 in g2
+								on m0 equals m1.Key into m01
+                              from m11 in m01.DefaultIfEmpty()
+                              select new { m0, counts =  m11.Value}
+                            );
+					//var g31 = g3.ToDictionary(o => o.Key, o => o.counts); 
+					var g31 = g3.ToList(); 
+                    //var tt = (from m11 in g1.DefaultIfEmpty()
+                    //		  group m0 by m0 into m12
+                    //		  select new { m12.Key, counts = m12.Count() })
+                    //		.ToDictionary(o => o.Key, o => o.counts);
+
+                }
+			}
+
+
+		}
+
+
 		[TestMethod]
 		public void t_Process_PosiMap_cmd_CHANGE_SERIAL1()
 		{
@@ -1580,7 +1680,148 @@ SELECT 	LOT.ROUTE_VER_SID,
 			}
 
 		}
+
+
+		[TestMethod]
+		public void _EFQuery()
+		{
+			_DBTest((tx) =>
+			{
+				var r = tx.EFQuery<WP_LOT_WAFER_MAPPING>().GetByID("GTI22031515092145349");
+			});
+		}
+
+
+
+		[TestMethod]
+		public void _isMulitSubID()
+		=> TxnBase.LzDBQuery((tx) =>
+		{
+			var lot = tx.GetLotInfo("GTI22031515091645302");
+			var r = lot.isMulitSubID();
+			lot.isMulitSubID("T");
+
+			return tx.result;
+		});
+
+		[TestMethod]
+		public void _UpdateCommandBuilder()
+		=> _DBTest((tx) =>
+		{
+			UpdateCommandBuilder update = new UpdateCommandBuilder(tx.DBC, "WP_LOT");
+			update.UpdateColumn("ATTRIBUTE_35", "Test")
+					.WhereAnd("LOT_SID", "GTI22031515091645302");
+			
+			//tx.Sqlcmd.Commands.Add(update.GetCommand());
+			//tx.DoTranCurSqlCmd();
+			
+			tx.DoTransaction(update.GetCommand());
+
+		},true);
+
+		[TestMethod]
+		public void t_LotChangeAttributeTxn()
+		=> TxnBase.LzDBTrans_t((tx) =>
+		{
+			var lot = tx.GetLotInfo("GTI22031515091645302");
+			var _txn = new LotChangeAttributeTxn(lot, "ATTRIBUTE_35", lot.ATTRIBUTE_35, "A");
+			tx.DoTransaction(_txn);
+			//lot.ReLoad();
+			return tx.result;
+		});
+
+
+		public void _x()
+		{
+			var columns = new List<Column>() {
+				new Column("BATCH_NO", "LotBatchNo", ""),
+				new Column("BATCH_SEQ", null),
+				new Column("IS_BATCH_ENABLE", "F")
+			};
+
+		}
+
+		
+
+		
+
+		//private static IDbCommand UpdateLotAttribute(ITxnBase Txn, LotInfo lot, List<Column> modifyColumns)
+		//{
+		//	if (lot == null || lot.IsExist == false || string.IsNullOrEmpty(lot.SID) || string.IsNullOrEmpty(lot.LOT))
+		//		throw new Exception("TXN-0001 : Lot is not exist.");
+
+		//	var update = new UpdateCommandBuilder(Txn.DBC, "WP_LOT_WAFER_MAPPING");
+		//	for (int i = 0; i < modifyColumns.Count; i++)
+		//	{
+		//		update.UpdateColumn(modifyColumns[i].ColumnName, modifyColumns[i].OldValue, modifyColumns[i].NewValue);
+		//	}
+		//	//update.UpdateColumn(""
+		//	update.WhereAnd("LOT_SID", lot.SID);
+		//	update.WhereAnd("UPDATE_DATE", lot.UPDATE_DATE);
+		//	return update.GetCommand();
+		//}
+
+		[TestMethod]
+		public void _處理轉換欄位()
+		=> _DBTest((txn) =>
+		{
+			var parameters = new List<IDbDataParameter>();
+			var sql = @"  
+                    --INSERT INTO WP_LOT_WAFER_MAPPING_TRACE
+                    SELECT 	
+		                    :WAFER_MAPPING_HIST_SID AS WAFER_MAPPING_HIST_SID,
+		                    LOT_SID AS　LOT_SID,
+                            LOT AS LOT,
+		                    LOT_SID AS OLD_LOT_SID, 
+		                    :ACTION_LINK_SID AS ACTION_LINK_SID, 
+		                    'ModifyGrade' AS ACTION,
+		                    :APPLICATION_NAME AS APPLICATION_NAME,
+		                    :ACTION_REASON AS ACTION_REASON,
+		                    SERIAL_STATUS AS OLD_STATUS,
+		                    SERIAL_STATUS AS NEW_STATUS,
+		                    SERIAL_NUMBER AS OLD_SERIAL_NUMBER,
+		                    SERIAL_NUMBER AS NEW_SERIAL_NUMBER,
+		                    :USER AS CREATE_USER,
+		                    :DATE AS CREATE_DATE,
+                            :ROUTE_VER_OPER_SID AS ROUTE_VER_OPER_SID,
+                            :OPERATION AS OPERATION,
+		                    :ACTION_DESCRIPTION AS ACTION_DESCRIPTION
+                    FROM 	WP_LOT_WAFER_MAPPING
+                    WHERE  	SERIAL_NUMBER_ID = 'CrystalGrowth_WO01-01.06.8'
+							  ;
+                ";
+
+			DBC.AddCommandParameter(parameters, "WAFER_MAPPING_HIST_SID", DBC.GetSID());
+			DBC.AddCommandParameter(parameters, "ACTION_LINK_SID", txn.LinkSID);
+			DBC.AddCommandParameter(parameters, "APPLICATION_NAME", txn.ApplicationName);
+			DBC.AddCommandParameter(parameters, "ACTION_REASON", "ACTION_REASON");
+			DBC.AddCommandParameter(parameters, "ACTION_DESCRIPTION", "ACTION_DESCRIPTION");
+			DBC.AddCommandParameter(parameters, "ROUTE_VER_OPER_SID", "ROUTE_VER_OPER_SID");
+			DBC.AddCommandParameter(parameters, "OPERATION", "OPERATION");
+
+			DBC.AddCommandParameter(parameters, "GRADE", "GRADE");
+			DBC.AddCommandParameter(parameters, "USER", txn.UserNo);
+			DBC.AddCommandParameter(parameters, "DATE", txn.ExeTime);
+			DBC.AddCommandParameter(parameters, "SERIAL_NUMBER_ID", "SERIAL_NUMBER_ID");
+
+			var r = txn.DBC.Select(sql, parameters);
+			var l = new List<string>();
+            foreach (var el in r.Columns)
+            {
+				l.Add(el.ToString());
+            }
+
+			var c = string.Join(",", l.ToArray());
+
+
+
+
+
+		},true);
+
 	}
+
+ 
 }
 
  

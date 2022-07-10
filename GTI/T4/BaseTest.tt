@@ -1,0 +1,23 @@
+﻿<# //https://dotblogs.com.tw/wasichris/2015/01/17/148128 #>
+<#@ output extension=".txt" #>
+<#@ template language="C#" #>
+<#@ assembly name="System.Core" #>
+<#@ import namespace="System.Linq" #>
+<#@ import namespace="System.Text" #>
+<#@ import namespace="System.Collections.Generic" #>
+<#@ include file="EF.Utility.CS.ttinclude"#>
+<html><body>
+ The date and time now is: <#= DateTime.Now #>
+</body></html>
+
+<#
+for (int i = 0; i < 12; i++) 
+{
+   WriteLine(i.ToString());
+} 
+
+for (int i = 0; i < 12; i++) 
+{ 
+#>編號: <#= i.ToString() #>
+<# } 
+#>
