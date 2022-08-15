@@ -1,0 +1,367 @@
+﻿@Html.Partial("~/Areas/WIP/Views/LotInfo.cshtml")
+
+<div id="app">
+	<div>
+		<h2>Case1</h2>
+		<el-button @@click="Case1">Case1</el-button>
+		<x-ver-modify :dialog_visable.sync="dialog1"
+					  :Switch="act_Switch"
+					  :SetDefault="act_Default">
+			<div class="form-group">
+				<label for="exampleInputEmail1">@RES.BLL.Face.RouteCode</label>
+				<input class="form-control" placeholder="@RES.BLL.Face.RouteCode" required="required" type="text" readonly="readonly">
+			</div>
+
+			<div class="form-group">
+				<label for="exampleInputEmail1">@RES.BLL.Face.ROUTE</label>
+				<input class="form-control" placeholder="@RES.BLL.Face.ROUTE" required="required" type="text" readonly="readonly">
+			</div>
+		</x-ver-modify>
+	</div>
+
+</div>
+
+<script type="text/x-template" id="xtpl-ver-modify">
+	<el-dialog :append-to-body="true"
+			   :visible.sync="dialog_visable"
+			   width="40rem"
+			   class="ver-modify"
+			   :show-close="false"
+			   center>
+		<label slot="title">
+			版本管理
+		</label>
+		@*<el-row>
+			<el-col :span="12">
+				<el-button-group>
+					<el-button type="primary" icon="el-icon-view" title="檢視"></el-button>
+				</el-button-group>
+				<el-button-group>
+					<el-button type="primary" icon="el-icon-plus" title="新增版本">
+					</el-button>
+				</el-button-group>
+			</el-col>
+		</el-row>*@
+		@*<slot>
+			body
+		</slot>*@
+		<div class="form-group">
+			<label for="exampleInputEmail1">@RES.BLL.Face.DefaultVersion</label>
+			<input class="form-control" placeholder="@RES.BLL.Face.DefaultVersion" required="required" type="text" readonly="readonly">
+		</div>
+		<div class="form-group">
+			<label for="exampleInputEmail1">@RES.BLL.Face.MAXVersion</label>
+			<input class="form-control" placeholder="@RES.BLL.Face.MAXVersion" required="required" type="text" readonly="readonly">
+		</div>
+
+		<div class="form-group">
+			<div>
+				<label>@RES.BLL.Face.Version</label>
+				<el-button type="success" size="small" round>
+					<i class="fa fa-eye"></i> 檢視
+				</el-button>
+				<el-button type="success" size="small" round>
+					<i class="fa fa-plus"></i> 新增版本
+				</el-button>
+			</div>
+			<div class="input-group">
+				<x-reason-select ref="version"
+								 required
+								 :values.sync="ver.values"
+								 :options="ver.options"
+								 :selectize_ops="ver.sets"
+								 :is_formcontrol="true">
+				</x-reason-select>
+				<div class="input-group-addon switch" @@click="act_Switch">
+					<input type="checkbox" v-model="current_ver.en" />
+					<span></span>
+				</div>
+				<i class="input-group-addon fa fa-flag fa-2x btn"
+				   title=@RES.BLL.Face.FunctionBarDefaultButton
+				   :class="isDef"
+				   @@click="act_Default"></i>
+			</div>
+		</div>
+		<span slot="footer" class="dialog-footer">
+			<el-button @@click="dialog_visable = false">@RES.BLL.Face.FunctionBarExitButton</el-button>
+		</span>
+	</el-dialog>
+</script>
+
+
+
+@section Scripts {
+    @Scripts.Render(eBundle.selectize_JS)
+    @Scripts.Render(eBundle.Vue_MES)
+    @Scripts.Render(eBundle.elUI_JS)
+}
+
+<script>
+	$(() => {
+		Vue.component('x-ver-modify', {
+			data() {
+
+				return {
+					lb_Description: '@RES.BLL.Face.Description',
+					lblREASON_NO: '@RES.BLL.Face.lblREASON_NO',
+					current_ver: {
+						ver: 3, en: false, def: true
+					},
+					ver: {
+						values: [3],
+						options: [
+							{ ver: 1, en: true, def: false },
+							{ ver: 2, en: false, def: false },
+							{ ver: 3, en: false, def: true }
+						],
+						sets: {
+							labelField: 'ver',
+							valueField: 'ver',
+							searchField: ['ver'],
+							tpl_def: `<i class="fa fa-flag def"/>`,
+							sortField: [{ field: 'ver', direction: 'asc' }],
+							render: {
+								option(data, escape) {
+									let { labelField, valueField, tpl_def } = this.settings;
+									let { def = false, en = false } = data;
+									var tpl_en = `<i class="fa fa-toggle-${en ? 'on' : 'off'}" />`;
+									return `
+										<div class="option ">
+											${escape(data[labelField])}${tpl_en}${def ? tpl_def : ''}
+										</div>
+									`;
+								},
+								item(data, escape) {
+									let { labelField, valueField } = this.settings;
+									return `<div class="item">${escape(data[labelField])}</div>`;
+								}
+							}
+						}
+
+					}
+				}
+			},
+			template: '#xtpl-ver-modify',
+			props: {
+				dialog_visable: {
+					type: Array,
+					default: false
+				},
+				Switch: {
+					type: Function,
+					default(cb) {
+						if (typeof (cb) == "function") cb();
+					}
+				},
+				SetDefault: {
+					type: Function,
+					default(cb) {
+						if (typeof (cb) == "function") cb();
+					}
+				}
+			},
+			computed: {
+				isDef() {
+					return this.current_ver.def ? 'def' : '';
+				}
+			},
+			watch: {
+				dialog_visable(val) {
+					this.$emit('update:dialog_visable', val);
+				},
+				'ver.values'() {
+					let [cur = null] = this.$refs.version.getSelectedRow();
+					if (cur != null) this.current_ver = cur;
+				},
+
+			},
+			methods: {
+				msg_(mode, cb) {
+					var _msg = '預設版本';
+					if (mode == 0) _msg = this.current_ver.en ? '停用' : '啟用';
+					this.$confirm(`請確認是否將此將版本變更為${_msg}`, '確認', {
+						confirmButtonText: '确定',
+						cancelButtonText: '取消',
+						type: 'warning'
+					}).then(() => {
+						if (typeof (cb) == "function") cb();
+					});
+				},
+				act_Switch() {
+					var _self = this;
+					this.msg_(0, () => {
+						_self.Switch(() => {
+							_self.current_ver.en = !_self.current_ver.en;
+							_self.renew();
+						})
+					});
+				},
+				act_Default() {
+					var _self = this;
+					if (_self.current_ver.def) return;
+					this.msg_(1, () => {
+						_self.SetDefault(() => {
+							_self.current_ver.def = true;
+							_self.renew(true);
+						})
+					});
+				},
+				renew(isSetDefault = false) {
+					var _self = this;
+					var _arr = [];
+					_.each(_self.ver.options, (el) => {
+						var isSame = el.ver == _self.current_ver.ver;
+						if (isSame) {
+							el = _self.current_ver;
+						} else {
+							if (isSetDefault) el.def = false;
+						};
+						let { $order = null } = el;
+						if ($order != null) el.$order = el.ver;
+						_arr.push(el);
+
+					});
+					_self.ver.options = _arr;
+				},
+			}
+		});
+		new Vue({
+			el: '#app',
+			data() {
+				return {
+					isShowLot: false,
+					hide: [],
+					hide_list: {
+						"STATUS": true,
+						"OPERATION": true,
+						"PRODUCT": true
+					},
+					dialog1: true
+				}
+			},
+			methods: {
+				Case1() {
+					this.dialog1 = true;
+				},
+				change() {
+					var _self = this;
+					var _arr = [];
+					for (key in _self.hide_list) {
+						var isShow = _self.hide_list[key];
+						if (isShow) _arr.push(key)
+					}
+					_self.hide = _arr;
+				}
+				, act_Switch(cb) {
+					if (typeof (cb) == "function") cb();
+				}
+				, act_Default(cb) {
+					if (typeof (cb) == "function") cb();
+				},
+			},
+
+		})
+	});
+</script>
+@section Styles {
+    @Styles.Render(eBundle.selectize_CSS)
+    @Styles.Render(eBundle.elUI_CSS)
+<style>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+	.ver-modify .el-dialog__header {
+		border-radius: 7px 7px 0px 0px;
+		background-color: #5d9cec;
+		padding: 13px !important;
+		color: #fff;
+		text-align: left;
+	}
+
+	.ver-modify .el-dialog__body {
+		padding: 15px;
+	}
+
+	.ver-modify .def,
+	.ver-modify .def:hover {
+		color: red;
+	}
+
+	.ver-modify .option i {
+		padding-left: 7px;
+	}
+
+	.ver-modify .el-dialog {
+		border-radius: 7px;
+	}
+</style>
+}

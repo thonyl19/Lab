@@ -1,0 +1,31 @@
+﻿@{
+	bool isSingleModel = (bool)ViewData["SingleModel"];
+
+	if (isSingleModel)
+	{
+		Layout = "~/Views/Shared/_LayoutSingle.cshtml";
+		@eBundle.QRender_CSS();
+		@eBundle.QRender_JS();
+	}
+}
+
+@Html.Partial("~/Areas/MES/Views/Shared/_edcGrid.cshtml")
+<div id="app">
+	{{dataSrc}}
+	<gt-edc-grid v-model="dataSrc" />
+</div>
+
+
+<script>
+	$(() => {
+		new Vue({
+			el: '#app',
+			data() {
+				return {
+					dataSrc: [{ "EDC_VER_PARA_SID": "GTI20052916532526944", "EDC_VER_SID": "GTI20052916532526942", "EDC_SID": "GTI20052916514826937", "EDC_NO": "IPQC_t01", "EDC_NAME": "IPQC_t01", "VERSION": 1.0, "EDC_PARA_SID": "GTI20050410471472882", "PARA_NO": "PLC01", "PARAMETER": "PLC01", "DATATYPE": "N", "TL": "10", "UCL": 15.0, "LCL": 5.0, "USL": 20.0, "LSL": 0.0, "CREATE_USER": "Admin", "CREATE_DATE": "2020-05-29 16:53:25", "UPDATE_USER": "Admin", "UPDATE_DATE": "2020-05-29 16:53:25", "SAMPLESIZE": 5.0, "THROW_SPC": "F", "EDC_THROW_SPC": "F", "TEST_POINT": 5.0, "MUST_INPUT": "T", "ITEM_SEQ": 1.0, "DISPLAY_POINT_NAME": null }, { "EDC_VER_PARA_SID": "GTI20052916532526945", "EDC_VER_SID": "GTI20052916532526942", "EDC_SID": "GTI20052916514826937", "EDC_NO": "IPQC_t01", "EDC_NAME": "IPQC_t01", "VERSION": 1.0, "EDC_PARA_SID": "GTI19012517260107206", "PARA_NO": "EDC013", "PARAMETER": "尺寸_功能區溢膠", "DATATYPE": "S", "TL": "0.020", "UCL": 0.0, "LCL": 0.0, "USL": 0.0, "LSL": 0.0, "CREATE_USER": "Admin", "CREATE_DATE": "2020-05-29 16:53:25", "UPDATE_USER": "Admin", "UPDATE_DATE": "2020-05-29 16:53:25", "SAMPLESIZE": 1.0, "THROW_SPC": "F", "EDC_THROW_SPC": "F", "TEST_POINT": 1.0, "MUST_INPUT": "T", "ITEM_SEQ": 2.0, "DISPLAY_POINT_NAME": null }, { "EDC_VER_PARA_SID": "GTI20052916532526944", "EDC_VER_SID": "GTI20052916532526942", "EDC_SID": "GTI20052916514826937", "EDC_NO": "IPQC_t01", "EDC_NAME": "IPQC_t01", "VERSION": 1.0, "EDC_PARA_SID": "GTI20050410471472882", "PARA_NO": "PLC01", "PARAMETER": "PLC01", "DATATYPE": "B", "TL": "10", "UCL": 15.0, "LCL": 5.0, "USL": 20.0, "LSL": 0.0, "CREATE_USER": "Admin", "CREATE_DATE": "2020-05-29 16:53:25", "UPDATE_USER": "Admin", "UPDATE_DATE": "2020-05-29 16:53:25", "SAMPLESIZE": 5.0, "THROW_SPC": "F", "EDC_THROW_SPC": "F", "TEST_POINT": 5.0, "MUST_INPUT": "T", "ITEM_SEQ": 1.0, "DISPLAY_POINT_NAME": null }],
+					msg: "baseTpl"
+				}
+			}
+		})
+	});
+</script>

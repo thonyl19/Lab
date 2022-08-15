@@ -1,0 +1,26 @@
+﻿@Html.AntiForgeryToken()
+<div id="app">
+	{{msg}}
+</div>
+
+@section Styles {
+	@Styles.Render(eBundle.elUI_CSS)
+}
+
+@section Scripts {
+	@Scripts.Render(eBundle.Vue_MES)
+	@Scripts.Render(eBundle.elUI_JS)
+}
+
+<script>
+	$(() => {
+		new Vue({
+			el: '#app',
+			data() {
+				return {
+					msg: "baseTpl"
+				}
+			}
+		})
+	});
+</script>

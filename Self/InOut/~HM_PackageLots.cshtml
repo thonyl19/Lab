@@ -1,0 +1,88 @@
+﻿@using System.Dynamic
+@model BLL.MES.DataViews.LotData
+@{
+	bool isSingleModel = (bool)ViewData["SingleModel"];
+	dynamic data = new ExpandoObject();
+	data.LOT="Test";
+	Model.CurrentLot = data;
+	if (isSingleModel)
+	{
+		Layout = "~/Views/Shared/_LayoutSingle.cshtml";
+	}
+}
+@eBundle.QRender_CSS()
+@eBundle.QRender_JS()
+@Html.Partial("~/Areas/MES/Views/WIP/Partial2/_zz_hm_package.cshtml")
+<pre>
+\Partial2\_posiMap.cshtml
+</pre>
+<div id="app">
+    <div class="panel b">
+        <el-checkbox v-model="is_checkin">is_checkin </el-checkbox>
+        <el-button @@click="chk_Valid">chk_Valid</el-button>
+        <cp-hm-package-lots ref="package" v-model="tableData" :is_checkin="is_checkin"></cp-hm-package-lots>
+        <el-button @@click="Add">Add Case</el-button>
+        <el-button @@click="Add_Case1">Add_己存在包材,但不同的LOT</el-button>
+        <el-button @@click="Add_Case2">Add_不存在包材</el-button>
+        <el-input type="textarea" v-model="c_input" rows="5"></el-input>
+        {{tableData}}
+    </div>
+</div>
+
+
+<script>
+    Vue.config.devtools = true;
+    $(() => {
+        var send_data = @Html.Raw(ViewData["result"] ?? "{}");
+        new Vue({
+            el: '#app',
+
+            data() {
+                return {
+                    is_checkin: false,
+                    tableData: { "GTI22061713333121272": [{ "UNIT": "片", "WO": "EB3N4B2B4505", "ROUTE_VER_OPER_SID": "GTI22061417585613847", "QUANTITY": 2, "WareHousingNo": null, "WAFER_MAPPING_SID": null, "LOT_SID": "GTI22061713333121272", "LOT": "tt", "ROOT_LOT_SID": "GTI22061713201621152", "PARENT_LOT_SID": null, "PREV_SEAIAL": null, "SERIAL_NUMBER": 1, "SERIAL_NUMBER_ID": "B4N420510111W", "SERIAL_STATUS": null, "CREATE_USER": null, "CREATE_DATE": null, "UPDATE_USER": null, "UPDATE_DATE": null, "SHIP_CASSETTE": "GTI22061713333121272", "GRADE": "A", }] },
+                    input: { "GTI22062311062331117": [{ "UNIT": "片", "WO": "EB3N4B2B4507", "ROUTE_VER_OPER_SID": "GTI22061417585513837", "QUANTITY": 10, "WareHousingNo": null, "WAFER_MAPPING_SID": null, "LOT_SID": "GTI22062311062331116", "LOT": "EB3N4B2B4507-01.07", "ROOT_LOT_SID": "GTI22062311062331116", "PARENT_LOT_SID": null, "PREV_SEAIAL": null, "SERIAL_NUMBER": 1, "SERIAL_NUMBER_ID": "B4N420510101I", "SERIAL_STATUS": null, "CREATE_USER": null, "CREATE_DATE": null, "UPDATE_USER": null, "UPDATE_DATE": null, "SHIP_CASSETTE": "GTI22062311062331117", "GRADE": "A" }] },
+                }
+            },
+            computed: {
+                c_input: {
+                    get() { return JSON.stringify(this.input, null, 4); },
+                    set(val) {
+                        this.input = JSON.parse(val);
+                    },
+                }
+            },
+            methods: {
+                chk_Valid() {
+                    this.$refs.package.chk_Valid();
+                },
+                Add() {
+                    debugger
+                    this.$refs.package.bind_table(this.input);
+                },
+                Add_Case1() {
+                    var Case = {
+                        "GTI22062311062331116": [{
+                            "UNIT": "片", "WO": "EB3N4B2B4507", "ROUTE_VER_OPER_SID": "GTI22061417585513837", "QUANTITY": 10, "WareHousingNo": null, "WAFER_MAPPING_SID": null, "LOT_SID": "GTI22062311062331116"
+                            , "LOT": "EB3N4B2B4507-01.17", "ROOT_LOT_SID": "GTI22062311062331116", "PARENT_LOT_SID": null, "PREV_SEAIAL": null, "SERIAL_NUMBER": 1, "SERIAL_NUMBER_ID": "B4N420510101I", "SERIAL_STATUS": null, "CREATE_USER": null, "CREATE_DATE": null, "UPDATE_USER": null, "UPDATE_DATE": null
+                            , "SHIP_CASSETTE": "GTI22062311062331116", "GRADE": "A"
+                        }]
+                    };
+                    this.$refs.package.bind_table(Case);
+                },
+                Add_Case2(){
+                    debugger
+                    var Case = {
+                        "GTI22062311062331117": [{
+                            "UNIT": "片", "WO": "EB3N4B2B4507", "ROUTE_VER_OPER_SID": "GTI22061417585513837", "QUANTITY": 10, "WareHousingNo": null, "WAFER_MAPPING_SID": null
+                            , "LOT_SID": "GTI22062311062331116"
+                            , "LOT": "不存在包材", "ROOT_LOT_SID": "GTI22062311062331116", "PARENT_LOT_SID": null, "PREV_SEAIAL": null, "SERIAL_NUMBER": 1, "SERIAL_NUMBER_ID": "B4N420510101I", "SERIAL_STATUS": null, "CREATE_USER": null, "CREATE_DATE": null, "UPDATE_USER": null, "UPDATE_DATE": null
+                            , "SHIP_CASSETTE": "GTI22062311062331117", "GRADE": "A"
+                        }]
+                    };
+                    this.$refs.package.bind_table(Case);
+                },
+            }
+        })
+    });
+</script>

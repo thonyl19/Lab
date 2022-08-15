@@ -1,0 +1,43 @@
+﻿@{
+}
+<h3>
+	@ViewBag.Title
+	<small></small>
+</h3>
+@Html.Partial("~/Areas/MES/Views/WIP/ZZ_Partial/_bin.cshtml")
+<div id="app">
+	<h1>檢視模式</h1>
+	<bin-input v-model="data"></bin-input>
+
+	<h1>新增模式</h1>
+	{{data1_add}}
+	<bin-input v-model="data1_add" :set_model="set_model"></bin-input>
+</div>
+@section Styles {
+	@Styles.Render(eBundle.elUI_CSS)
+}
+
+@section Scripts {
+	@Scripts.Render(eBundle.Vue_MES)
+	@Scripts.Render(eBundle.elUI_JS)
+}
+
+<script>
+	$(() => {
+		new Vue({
+			el: '#app',
+			data() {
+				return {
+					data: [{ "LOT_BIN_SID": 'ABC', "BIN": "1", "BIN_RVALUE": "aaa", "BIN_QTY": 1 }, { "BIN": "2", "BIN_RVALUE": "1a", "BIN_QTY": 5 }]
+					,
+					data1_add: [],
+					cfg: {},
+					set_model: {
+						PartInfo: { ATTRIBUTE_01: 'ATTRIBUTE_01' }
+					},
+
+				}
+			}
+		})
+	});
+</script>

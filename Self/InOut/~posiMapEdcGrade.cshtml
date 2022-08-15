@@ -1,0 +1,555 @@
+﻿@using System.Dynamic
+@using Frame.Code
+@model BLL.MES.DataViews.LotData
+@{
+	bool isSingleModel = (bool)ViewData["SingleModel"];
+	dynamic data = new ExpandoObject();
+	data.LOT="Test";
+	Model.CurrentLot = data;
+	if (isSingleModel)
+	{
+		Layout = "~/Views/Shared/_LayoutSingle.cshtml";
+	}
+    object srcData = ((object)BLL.MES.Wafer_Services.QueryLotInfo(null, "test001-01.03").Data).ToJson(true);
+}
+@eBundle.QRender_CSS()
+@eBundle.QRender_JS()
+@Html.Partial("~/Areas/MES/Views/WIP/Partial2/_posiMapEDC.cshtml", @Model)
+@Html.Partial("~/Areas/MES/Views/Shared/_edc.cshtml")
+@Html.Partial("~/Areas/WIP/Views/Shared/_reason.cshtml")
+
+<pre>
+\Partial2\_posiMap.cshtml
+</pre>
+<div id="app">
+    <div class="panel b">
+        [readonly]<el-checkbox v-model="readonly"></el-checkbox>
+        [confirm]<el-checkbox v-model="confirm"></el-checkbox>
+        [highlight]<el-checkbox v-model="highlight"></el-checkbox>
+        [isPassEdcCheck-是否略過edc檢核]<el-checkbox v-model="isPassEdcCheck"></el-checkbox>
+        [is_grade]<el-checkbox v-model="is_grade"></el-checkbox>
+        [is_checkout]<el-checkbox v-model="is_checkout"></el-checkbox>
+        [IsUseCopeAllEDC]<el-checkbox v-model="IsUseCopeAllEDC"></el-checkbox>
+        <el-button @@click="Exec_1">確定</el-button>
+        <el-button @@click="Exec_2">模擬執行</el-button>
+        <el-button @@click="test">test</el-button>
+        <el-button @@click="chk_Grade">檢核Grade</el-button>
+        <el-button @@click="chk_Scrap(list)">檢核Scrap</el-button>
+        <el-button @@click="chk_EDCValuid">檢核Edc</el-button>
+        <cp-posi-map-edc-grade ref="posi"
+                               :reason_src="reason"
+                               :grade_list="GradeList"
+                               :list="c_posi_map"  
+                               :readonly="readonly" :confirm="confirm"
+                               :highlight="highlight"
+                               :is_grade="is_grade"
+                               :is_checkout="is_checkout"
+                               :box="box">
+            <template v-slot:default="{current}">
+                <gt-hr content="EDC">
+                    <edc-input ref="edc_input" v-model="current.src.EdcList">
+                        <template v-slot:head-area>
+                            <el-button type="primary" size="mini" plain
+                                       style="float:right;margin-right:1rem;" @@click="e_AutoCopy"
+                                       v-if="c_ShowAutoCopy">自動複製</el-button>
+                        </template>
+                        <a></a>
+                    </edc-input>
+                </gt-hr>
+            </template>
+        </cp-posi-map-edc-grade>
+    </div>
+    {{list['1']}}
+</div>
+
+
+<script>
+    Vue.config.devtools = true;
+    $(() => {
+        var send_data = @Html.Raw(ViewData["result"] ?? "{}");
+        var srcMO = _.range(1, 25).map((el) => { return [el]; });
+        var { PosiMap, EDC, CarrierInfo } = @Html.Raw(srcData ?? "{}");
+        var list = PosiMap || {
+            "1": {
+                "SID": "GTI22031515092745372",
+                "ROOT_SID": "GTI22030915340037695",
+                "PARENT_SID": null,
+                "PREV_SEAIAL": null,
+                "SN": 1,
+                "SN_ID": "CrystalGrowth_WO01-01.02.0",
+                "STATUS": null,
+                "REASON": null,
+                "ChangeFrom": null,
+                "val": "GTI22031515092745372",
+                "sts": "0",
+            },
+            "2": {
+                "SID": "GTI22031515092745373",
+                "ROOT_SID": "GTI22030915340037695",
+                "PARENT_SID": null,
+                "PREV_SEAIAL": null,
+                "SN": 2,
+                "SN_ID": "CrystalGrowth_WO01-01.02.1",
+                "STATUS": null,
+                "REASON": null,
+                "ChangeFrom": null,
+                "ChangeFromSN": 5,
+                "val": "GTI22031515092745373",
+                "sts": "0",
+
+            },
+            "3": {
+                "SID": "GTI22031515092745374",
+                "ROOT_SID": "GTI22030915340037695",
+                "PARENT_SID": null,
+                "PREV_SEAIAL": null,
+                "SN": 3,
+                "SN_ID": "CrystalGrowth_WO01-01.02.2",
+                "STATUS": null,
+                "REASON": null,
+                "ChangeFrom": null,
+                "val": "GTI22031515092745374",
+                "sts": "0"
+                ,
+            },
+            "4": {
+                "SID": "GTI22031515092745375",
+                "ROOT_SID": "GTI22030915340037695",
+                "PARENT_SID": null,
+                "PREV_SEAIAL": null,
+                "SN": 4,
+                "SN_ID": "CrystalGrowth_WO01-01.02.3",
+                "STATUS": null,
+                "REASON": null,
+                "ChangeFrom": null,
+                "val": "GTI22031515092745375",
+                "sts": "0"
+            },
+            "5": {
+                "SID": "GTI22031515092745376",
+                "ROOT_SID": "GTI22030915340037695",
+                "PARENT_SID": null,
+                "PREV_SEAIAL": null,
+                "SN": 5,
+                "SN_ID": "CrystalGrowth_WO01-01.02.4",
+                "STATUS": null,
+                "REASON": null,
+                "ChangeFrom": null,
+                "val": "GTI22031515092745376",
+                "sts": "0"
+                ,
+            },
+            "6": {
+                "SID": "GTI22031515092745377",
+                "ROOT_SID": "GTI22030915340037695",
+                "PARENT_SID": null,
+                "PREV_SEAIAL": null,
+                "SN": 6,
+                "SN_ID": "CrystalGrowth_WO01-01.02.5",
+                "STATUS": null,
+                "REASON": null,
+                "ChangeFrom": null,
+                "val": "GTI22031515092745377",
+                "sts": "0"
+            },
+        };
+        var data_input = EDC || [
+            {
+                "EdcVerSid": "GTI19040815103300013",
+                "EdcParameterSid": "GTI19040815002800001",
+                "Display": "TestBool",
+                "DataType": "B",
+                "MustInput": "F",
+                "InputCount": 3,
+                "ItemName": "TestBool",
+                "ItemNo": "Test001",
+                "DispayPointName": "A,B,C",
+                "DispayPointNameList": [
+                    "Aaaaa",
+                    "Bbbbbb",
+                    "Ccccc"
+                ],
+                "QCItemSID": "GTI19040815002800001",
+                "UCL": 0,
+                "USL": 0,
+                "TL": "F",
+                "LCL": 0,
+                "LSL": 0,
+                "require": false,
+                "DataTypeDisplay": "布林",
+                "InputValueList": [
+                    {
+                        "Aaaaa": ""
+                    },
+                    {
+                        "Bbbbbb": "Y"
+                    },
+                    {
+                        "Ccccc": "N"
+                    }
+                ]
+            },
+            {
+                "EdcVerSid": "GTI19040815103300013",
+                "EdcParameterSid": "GTI19040815015300007",
+                "Display": "string",
+                "DataType": "S",
+                "MustInput": "F",
+                "InputCount": 1,
+                "ItemName": "string",
+                "ItemNo": "test003",
+                "DispayPointName": "A",
+                "DispayPointNameList": [
+                    "Aaaaa"
+                ],
+                "QCItemSID": "GTI19040815015300007",
+                "UCL": 0,
+                "USL": 0,
+                "TL": "T",
+                "LCL": 0,
+                "LSL": -10,
+                "require": false,
+                "DataTypeDisplay": "字串",
+                "InputValueList": [
+                    {
+                        "Aaaaa": ""
+                    }
+                ]
+            },
+            {
+                "EdcVerSid": "GTI19040815103300013",
+                "EdcParameterSid": "GTI19040815013900006",
+                "Display": "Display",
+                "DataType": "N",
+                "MustInput": "T",
+                "InputCount": 1,
+                "ItemName": "數值,負數值測試",
+                "ItemNo": "Test002",
+                "DispayPointName": "A",
+                "DispayPointNameList": [
+                    "Aaaaaa", "Bbbbb"
+                ],
+                "QCItemSID": "GTI19040815013900006",
+                "UCL": 100,
+                "USL": 150,
+                "TL": "50",
+                "LCL": -10,
+                "LSL": -10,
+                "require": true,
+                "DataTypeDisplay": "數值,負數值測試",
+                "InputValueList": [
+                    {
+                        "Aaaaa": ""
+                    }
+                ]
+            },
+            {
+                "EdcVerSid": "GTI19040815103300013",
+                "EdcParameterSid": "GTI19040815013900006",
+                "Display": "Display",
+                "DataType": "N",
+                "MustInput": "T",
+                "InputCount": 1,
+                "ItemName": "單邊null",
+                "ItemNo": "Test002",
+                "DispayPointName": "A",
+                "DispayPointNameList": [
+                    "Aaaaaa", "Bbbbb"
+                ],
+                "QCItemSID": "GTI19040815013900006",
+                "UCL": 100,
+                "USL": 150,
+                "TL": "50",
+                "LCL": null,
+                "LSL": null,
+                "require": true,
+                "DataTypeDisplay": "下限null",
+                "InputValueList": [
+                    {
+                        "Aaaaa": ""
+                    }
+                ]
+            },
+            {
+                "EdcVerSid": "GTI19040815103300013",
+                "EdcParameterSid": "GTI19040815013900006",
+                "Display": "Display",
+                "DataType": "N",
+                "MustInput": "T",
+                "InputCount": 1,
+                "ItemName": "單邊null",
+                "ItemNo": "Test002",
+                "DispayPointName": "A",
+                "DispayPointNameList": [
+                    "Aaaaaa", "Bbbbb"
+                ],
+                "QCItemSID": "GTI19040815013900006",
+                "UCL": null,
+                "USL": null,
+                "TL": "50",
+                "LCL": 100,
+                "LSL": 150,
+                "require": true,
+                "DataTypeDisplay": "上限null",
+                "InputValueList": [
+                    {
+                        "Aaaaa": ""
+                    }
+                ]
+            }
+        ]
+
+        new Vue({
+            el: '#app',
+            provide() {
+                return {
+                    rootEl: this,
+                };
+            },
+            data() {
+                return {
+                    data_input,
+                    value: '',
+                    tab_idx: '位置',
+                    readonly: false,
+                    confirm: true,
+                    highlight: false,
+                    is_grade: false,
+                    is_checkout: false,
+                    IsUseCopeAllEDC: false,
+                    srcMO,
+                    list,
+                    cfg: {
+                        title: '',
+                        fixedTip: 2
+                    },
+                    box: CarrierInfo,
+                    isChange: false,
+                    isGradeChg: false,
+                    isPassEdcCheck: false,
+                    GradeList:@Html.Raw(BLL.MES.DDLServices.ddl_Parameter("Grade").ToJson(true)),
+                reason: [{ "RefKey": null, "SID": "GTI11110115550180956", "No": "other", "Value": "GTI11110115550180956", "Display": "其他", "StatusSid": null, "Status": null, "FromNum": 0, "INum": 0, "Attr01": null, "Attr02": null, "Attr03": null }, { "RefKey": null, "SID": "GTI20101919411379902", "No": "R.C01-0002", "Value": "GTI20101919411379902", "Display": "ALD.鎳銅片變形", "StatusSid": null, "Status": null, "FromNum": 0, "INum": 0, "Attr01": null, "Attr02": null, "Attr03": null }, { "RefKey": null, "SID": "GTI20101919423979906", "No": "R.C01-0004", "Value": "GTI20101919423979906", "Display": "ALD.鎳片壓傷", "StatusSid": null, "Status": null, "FromNum": 0, "INum": 0, "Attr01": null, "Attr02": null, "Attr03": null }, { "RefKey": null, "SID": "GTI20101919425979908", "No": "R.C01-0005", "Value": "GTI20101919425979908", "Display": "ALD.晶片溢錫", "StatusSid": null, "Status": null, "FromNum": 0, "INum": 0, "Attr01": null, "Attr02": null, "Attr03": null }, { "RefKey": null, "SID": "GTI20101919431879910", "No": "R.C01-0006", "Value": "GTI20101919431879910", "Display": "ALD.鎳片溢錫", "StatusSid": null, "Status": null, "FromNum": 0, "INum": 0, "Attr01": null, "Attr02": null, "Attr03": null }, { "RefKey": null, "SID": "GTI20101919415579904", "No": "R.C01-0003", "Value": "GTI20101919415579904", "Display": "ALD.晶片壓傷", "StatusSid": null, "Status": null, "FromNum": 0, "INum": 0, "Attr01": null, "Attr02": null, "Attr03": null }, { "RefKey": null, "SID": "GTI21050518014931812", "No": "111", "Value": "GTI21050518014931812", "Display": "111", "StatusSid": null, "Status": null, "FromNum": 0, "INum": 0, "Attr01": null, "Attr02": null, "Attr03": null }, { "RefKey": null, "SID": "GTI21081615532603712", "No": "1123", "Value": "GTI21081615532603712", "Display": "1123", "StatusSid": null, "Status": null, "FromNum": 0, "INum": 0, "Attr01": null, "Attr02": null, "Attr03": null }]
+
+            }
+        },
+            mounted() {
+            var _self = this;
+            _.each(this.list, el => {
+                _self.$set(el, 'EdcList', _.cloneDeep(data_input));
+            })
+        },
+            computed: {
+            c_posi_map() {
+                var arr = _.merge({}, this.list);
+                return arr;
+            },
+            c_currentPOSI() {
+                let { current } = this.$refs.posi;
+                return current || { sn: -1 };
+            },
+            c_ShowAutoCopy() {
+                return this.IsUseCopeAllEDC && this.c_currentPOSI.sn == 1;
+            },
+            c_test() {
+                let { posi_map = {} } = this.$refs;
+                return posi_map?.current || {};
+            },
+            c_list: {
+                get() {
+                    return JSON.stringify(this.list);
+                },
+                set(val) {
+                    try {
+                        var r = JSON.parse(val);
+                        this.list = r;
+                        this.$refs.posi_map.Bind();
+                    } catch (e) {
+
+                    }
+                }
+                },
+                c_IsGrade() {
+                    //let { IsGrade = false } = this.Setting.CheckOutSet;
+                    return this.is_grade;
+                },
+        },
+            methods: {
+            Exec_1() {
+                this.posi_confirm();
+            },
+            Exec_2() {
+                var _self = this;
+                if (_self.chk_Grade()) return;
+                if (_self.chk_Scrap()) return;
+                if (_self.chk_EDCValuid()) return;
+                alert('check is invalid');
+            },
+            EDC_check(src) {
+                var _self = this;
+                if (src == null) return true;
+                let isErr = src.some(d => {
+                    if (d.mustInput === "T") {
+                        return d.InputValueList.some(val => {
+                            let key = Object.keys(val);
+                            if (val[key] === null || val[key] === '') {
+                                var isBoolen = d.DataType == 'B';
+                                if (isBoolen) {
+                                    val[key] = "N";
+                                } else {
+                                    _self.$alert(`${d.ItemName} - 為必填項目`
+                                        , 'EDC 檢核', {
+                                        type: 'warning'
+                                    });
+                                    return true;
+                                }
+                            }
+                        });
+                    }
+                });
+                return !isErr;
+            },
+            chk_EDCValuid() {
+                //var _list = this.send_data.PosiMap;
+                var _list = this.$refs.posi.srcPOSI;
+                var _check = this.EDC_check;
+                var chkValuid = _.every(_list, (point, key) => {
+                    let { EdcList } = point.src;
+                    var chkValuid = _check(EdcList);
+                    return chkValuid;
+                })
+                console.log({ chk_EDCValuid: chkValuid })
+                return chkValuid;
+            },
+            chk_Grade() {
+                var _self = this;
+                if (this.c_IsGrade == false) return true;
+                //var _list = this.send_data.PosiMap;
+                var _list = this.list;
+                var isErr = _.some(_list, (el) => {
+                    switch (el.STATUS) {
+                        case "Scrap":
+                        case "Hold":
+                            return false;
+                            break;
+                        default:
+                            return _self.$UT.isNullEmpty(el.GRADE);
+                            break;
+                    }
+                });
+                if (isErr) {
+                    var msg = '等級必須選取!';
+                    _self.$alert(msg, '提示', {
+                        type: 'warning'
+                    })
+                }
+                return isErr;
+            },
+
+            chk_Scrap(list) {
+                var _self = this;
+                var _list = list || this.send_data.PosiMap;
+                var isErr = _.some(_list, (el, key) => {
+                    switch (el.STATUS) {
+                        case "Scrap":
+                            var r = _self.$UT.isNullEmpty(el.REASON);
+                            if (r) {
+                                var msg = 'Wafer 報廢必須輸入原因碼!';
+                                _self.$alert('@RES.BLL.Message.PleaseSelectReason', '提示', {
+                                    type: 'warning'
+                                })
+                            }
+                            return r;
+                            break;
+                        default:
+                            return false;
+                            break;
+                    }
+                })
+                return isErr;
+            },
+            e_AutoCopy() {
+                var _self = this;
+                this.$confirm('是否將當前 EDC 資訊複寫到全部項目?', '自動複製', {
+                    type: 'warning'
+                }).then(() => {
+                    var obj = _self.$refs.posi.list;
+                    var src = _.cloneDeep(obj['1'].EdcList);
+                    _.each(obj, el => {
+                        _self.$set(el, 'EdcList', _.cloneDeep(src));
+                    })
+                }).catch(() => {
+
+                });
+            },
+
+            CheckPointChange(current) {
+                let { EdcList } = current.src;
+                if (this.isPassEdcCheck || EdcList == null) return true;
+                var r = this.$refs.edc_input.check();
+                console.log({ check_point_change: r });
+                return r;
+            },
+            posi_confirm() {
+                /*
+                 * 只檢核 scrap 是否沒有輸入原因碼, 和 Grade 的設定
+                 * EDC 的 檢核需另外處理
+                 */
+                if (this.chk_Scrap(this.$refs.posi.list) == false) {
+                    this.list = this.$refs.posi.list;
+                    //this.send_data.PosiMap = this.$refs.posi.list;
+                    //this.dialogVisible = false;
+                    //this.c_isChange = false;
+                }
+                //var _self = this;
+                //var _list = this.$refs.posi.srcPOSI;
+                //var chkScrapValuid = _.every(_list, (point, key) => {
+                //    let { isScrapValid = true } = point;
+                //    if (isScrapValid == false) {
+                //        point.Focus();
+                //        var msg = '報廢必須輸入原因碼!';
+                //        _self.$alert('@RES.BLL.Message.PleaseSelectReason', '提示', {
+                //            type: 'warning'
+                //        })
+                //    }
+                //    return isScrapValid;
+                //});
+
+                //if (chkScrapValuid) {
+                //    //this.send_data.PosiMap = this.$refs.posi.list;
+                //    this.list = this.$refs.posi.list;
+                //    //this.dialogVisible = false;
+                //    //this.c_isChange = false;
+                //}
+
+            },
+            handleClick() { },
+            filterData() { },
+            test() {
+                setTimeout(() => {
+                    var d = [
+                        {
+                            "element": ".gt-form",
+                            "popover": {
+                                "title": "輸入方式",
+                                "description": "可以選擇 [載具編號] 或 [批號] 執行查詢,查詢方式為 輸入完整資訊後,按 Enter "
+                            },
+                        },
+                        {
+                            "element": ".fa.fa-repeat",
+                            "popover": {
+                                "title": "輸入方式",
+                                "description": "可以選擇 [載具編號] 或 [批號] 執行查詢,查詢方式為 輸入完整資訊後,按 Enter "
+                            },
+                        }];
+                    var driver = new Driver();
+                    driver.defineSteps(d);
+                    driver.start();
+                }, 500);
+                this.$nextTick(() => {
+
+                })
+            }
+        }
+        })
+    });
+</script>

@@ -1,0 +1,7 @@
+﻿@using Frame.Code;
+@{
+	var _r = new BLL.PMS.PMSRepairServices().getPMSRepairInfo("GTI21081714145906007");
+}
+<div>
+	@Html.Raw(_r.ToJson(true));
+</div>

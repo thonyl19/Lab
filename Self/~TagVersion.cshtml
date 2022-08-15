@@ -1,0 +1,226 @@
+﻿@{
+	bool isSingleModel = (bool)ViewData["SingleModel"];
+
+	if (isSingleModel)
+	{
+		Layout = "~/Views/Shared/_LayoutSingle.cshtml";
+		@eBundle.QRender_CSS();
+		@eBundle.QRender_JS();
+	}
+}
+
+<div id="app">
+    <h3>一般應用</h3>
+    <gt-tag-version v-model="row"></gt-tag-version>
+    <h3>表格內應用</h3>
+    <el-table empty-text=" "
+              style="width: 100%"
+              @@sort-change="sort_change"
+              :data="grid.data"
+              :default-sort="{prop: 'CREATE_DATE', order: 'ascending'}">
+        <el-table-column label="操作" min-width="60">
+            <template slot-scope="scope">
+                <el-tooltip class="item" effect="dark" content="@Face.QUERY" placement="right">
+                    <el-button size="mini" type="success" icon="el-icon-search" circle
+                               title="@Face.QUERY" @@click="rowQueryClick(scope.$index, scope.row)"
+                               gt-test="row_query">
+                    </el-button>
+                </el-tooltip>
+            </template>
+        </el-table-column>
+        <el-table-column label="啟用時間" sortable min-width="90">
+            <template slot-scope="scope">
+                <gt-split-data v-model="scope.row.ENABLE_TIME" moment="moment" format="YYYY-MM-DD"></gt-split-data>
+            </template>
+        </el-table-column>
+        <el-table-column label="停用時間" sortable min-width="90">
+            <template slot-scope="scope">
+                <gt-split-data v-model="scope.row.DISABLE_TIME" moment="moment" format="YYYY-MM-DD"></gt-split-data>
+            </template>
+        </el-table-column>
+        <el-table-column label="流程名稱" prop="ROUTE" sortable min-width="180">
+        </el-table-column>
+        <el-table-column label="版本" prop="VERSION" sortable min-width="180">
+        </el-table-column>
+        <el-table-column prop="OPERATION" label="工作站" sortable min-width="140"></el-table-column>
+        <el-table-column min-width="90"
+                         label="@Face.EnableStatus" sortable>
+            <template slot-scope="scope">
+                {{$UT.parse_Enable(scope.row.ENABLE_FLAG)}}
+            </template>
+        </el-table-column>
+        <el-table-column prop="WO" label="工單" sortable></el-table-column>
+        <el-table-column prop="LOT" label="批號" sortable></el-table-column>
+        <el-table-column prop="PARTNO" label="料號" sortable></el-table-column>
+        <el-table-column min-width="90"
+                         label="@RES.BLL.Face.CREATE_DATE"
+                         sortable="custom" :sort-orders="$UT.sort_order">
+            <template slot-scope="scope">
+                <el-tooltip :content="scope.row.CREATE_USER" placement="top" effect="light">
+                    <gt-split-data v-model="scope.row.CREATE_DATE"></gt-split-data>
+                </el-tooltip>
+            </template>
+        </el-table-column>
+    </el-table>
+    <el-table empty-text=" "
+              style="width: 100%"
+              @@sort-change="sort_change"
+              :data="grid.data"
+              :default-sort="{prop: 'CREATE_DATE', order: 'ascending'}">
+        <el-table-column label="操作" min-width="60">
+            <template slot-scope="scope">
+                <el-tooltip class="item" effect="dark" content="@Face.QUERY" placement="right">
+                    <el-button size="mini" type="success" icon="el-icon-search" circle
+                               title="@Face.QUERY" @@click="rowQueryClick(scope.$index, scope.row)"
+                               gt-test="row_query">
+                    </el-button>
+                </el-tooltip>
+            </template>
+        </el-table-column>
+        <el-table-column label="啟用時間" sortable min-width="90">
+            <template slot-scope="scope">
+                <gt-split-data v-model="scope.row.ENABLE_TIME" moment="moment" format="YYYY-MM-DD"></gt-split-data>
+            </template>
+        </el-table-column>
+        <el-table-column label="停用時間" sortable min-width="90">
+            <template slot-scope="scope">
+                <gt-split-data v-model="scope.row.DISABLE_TIME" moment="moment" format="YYYY-MM-DD"></gt-split-data>
+            </template>
+        </el-table-column>
+        <el-table-column label="流程名稱" sortable min-width="180">
+            <template slot-scope="scope">
+                <gt-tag-version v-model="scope.row" class="list"></gt-tag-version>
+            </template>
+        </el-table-column>
+        <el-table-column prop="OPERATION" label="工作站" sortable min-width="140"></el-table-column>
+        <el-table-column min-width="90"
+                         label="@Face.EnableStatus" sortable>
+            <template slot-scope="scope">
+                {{$UT.parse_Enable(scope.row.ENABLE_FLAG)}}
+            </template>
+        </el-table-column>
+        <el-table-column prop="WO" label="工單" sortable></el-table-column>
+        <el-table-column prop="LOT" label="批號" sortable></el-table-column>
+        <el-table-column prop="PARTNO" label="料號" sortable></el-table-column>
+        <el-table-column min-width="90"
+                         label="@RES.BLL.Face.CREATE_DATE"
+                         sortable="custom" :sort-orders="$UT.sort_order">
+            <template slot-scope="scope">
+                <el-tooltip :content="scope.row.CREATE_USER" placement="top" effect="light">
+                    <gt-split-data v-model="scope.row.CREATE_DATE"></gt-split-data>
+                </el-tooltip>
+            </template>
+        </el-table-column>
+    </el-table>
+</div>
+
+
+<script>
+	$(() => {
+		new Vue({
+			el: '#app',
+			data() {
+				return {
+					row: {
+						ROUTE: 'ROUTE',
+                        VERSION:2.5
+					},
+					msg: "baseTpl",
+                    grid: {
+                        data: [ {
+                                "FUTURE_HOLD_SETTINGS_SID": "GTI21102816185594759",
+                                "ENABLE_TIME": "2021-10-28 16:18:00",
+                                "DISABLE_TIME": "9999-01-01 23:00:00",
+                                "OPER_TYPE": "R",
+                                "OPER_SID": "GTI20121214143861657",
+                                "WO_SID": null,
+                                "WO": null,
+                                "LOT_SID": null,
+                                "LOT": null,
+                                "PARTNO_TYPE": "P",
+                                "PARTNO_SID": null,
+                                "HOLD_TYPE": "A",
+                                "REASON_SID": "GTI20101919474579932",
+                                "ENABLE_FLAG": "T",
+                                "REASONGROUP_SID": "GTI21051111193533294",
+                                "REASON_NO": "R.C01-0017",
+                                "REASON": "ALD.裁切壓傷",
+                                "FUTURE_HOLD_DESCRIPTION": null,
+                                "CREATE_USER": "Admin",
+                                "CREATE_DATE": "2021-10-28 16:18:55",
+                                "ROUTE_SID": "GTI20110415300080362",
+                                "ROUTE_NO": "C020-03L",
+                                "ROUTE": "SMD_TF系列2920系列_L",
+                                "ROUTE_VER_SID": "GTI20121214120761560",
+                                "VERSION": 3,
+                                "OPERATION_NO": "C02-0070",
+                                "OPERATION": "冷熱衝擊",
+                                "PARTNO": null,
+                                "PART_NAME": null,
+                                "UPDATE_USER": "Admin",
+                                "UPDATE_DATE": "2021-10-28 16:18:55"
+                            },
+                            {
+                                "FUTURE_HOLD_SETTINGS_SID": "GTI21102816185594759",
+                                "ENABLE_TIME": "2021-10-28 16:18:00",
+                                "DISABLE_TIME": "9999-01-01 23:00:00",
+                                "OPER_TYPE": "R",
+                                "OPER_SID": "GTI20121214143861657",
+                                "WO_SID": null,
+                                "WO": null,
+                                "LOT_SID": null,
+                                "LOT": null,
+                                "PARTNO_TYPE": "P",
+                                "PARTNO_SID": null,
+                                "HOLD_TYPE": "A",
+                                "REASON_SID": "GTI20101919474579932",
+                                "ENABLE_FLAG": "T",
+                                "REASONGROUP_SID": "GTI21051111193533294",
+                                "REASON_NO": "R.C01-0017",
+                                "REASON": "ALD.裁切壓傷",
+                                "FUTURE_HOLD_DESCRIPTION": null,
+                                "CREATE_USER": "Admin",
+                                "CREATE_DATE": "2021-10-28 16:18:55",
+                                "ROUTE_SID": "GTI20110415300080362",
+                                "ROUTE_NO": "C020-03L",
+                                "ROUTE": "SMD_TF系列2920系列_L",
+                                "ROUTE_VER_SID": "GTI20121214120761560",
+                                "VERSION": null,
+                                "OPERATION_NO": "C02-0070",
+                                "OPERATION": "冷熱衝擊",
+                                "PARTNO": null,
+                                "PART_NAME": null,
+                                "UPDATE_USER": "Admin",
+                                "UPDATE_DATE": "2021-10-28 16:18:55"
+                            }],
+                        pageSize: 10,
+                        pageIdx: 1,
+                        row_count: 0,
+                        Sort: {
+                            Name: "CREATE_DATE",
+                            isAsc: true
+                        },
+                        Conditions: {},
+                        Page: {
+                            Index: 1,
+                            Size: 10,
+                        },
+                        get query_rule() {
+                            {
+                                let { Conditions, Sort, Page } = this;
+                                return {
+                                    Conditions, Sort, Page
+                                }
+                            }
+                        }
+                    },
+				}
+			}
+		})
+	});
+</script>
+<style>
+    .gt-tag-list dl {
+        -webkit-filter: opacity(.65);
+    }
+</style>

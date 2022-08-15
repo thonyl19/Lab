@@ -1,0 +1,168 @@
+﻿@Html.Partial("~/Areas/MES/Views/Shared/_opers_ddl.cshtml")
+@Html.Partial("~/Areas/MES/Views/WIP/ZZ_Partial/_rework.cshtml")
+
+
+<div id="app">
+	<div>
+		<h2>Case1--基本使用</h2>
+		{{ddl_case1.values}}
+		<x-opers-ddl :values.sync="ddl_case1.values" />
+	</div>
+
+	<div>
+		<h2>Case2--變更設定,改取回 Display 欄位值和選取兩個</h2>
+		{{ddl_case2.values}}
+		<x-opers-ddl ref="ddl_2" :values.sync="ddl_case2.values"
+					 :selectize_ops="ddl_case2.ops "></x-opers-ddl>
+		<button @@click="Case2_1">getSelectedRow()</button>
+		<button @@click="Case2_2">api_AllOpers()</button>
+		{{ddl_case2.tmpData}}
+	</div>
+	<h2>Case3-1 chg_opper</h2>
+	<div class="row">
+		<vue-selectize-chg-opper ref="ddl_3"
+								 :i18n="i18n"
+								 old_operation="test"
+								 v-model="ddl_case3.value1"
+								 :selectize_ops="ddl_case3.ops"></vue-selectize-chg-opper>
+	</div>
+	{{test(this.$refs.ddl_3)}}
+	<h2>Case3-2 使用 rework-input</h2>
+	<rework-input ref="ddl_4" :i18n="i18n"
+				  old_operation="test"
+				  :options="ddl_case3.src"
+				  v-model="ddl_case3.value2"
+				  :selectize_ops="ddl_case3.ops"></rework-input>
+	{{ddl_case3.value2}}
+
+</div>
+@section Styles {
+	@Styles.Render(eBundle.selectize_CSS)
+	@Styles.Render(eBundle.elUI_CSS)
+}
+
+
+@section Scripts {
+	@Scripts.Render(eBundle.selectize_JS)
+	@Scripts.Render(eBundle.Vue_MES)
+	@Scripts.Render(eBundle.elUI_JS)
+}
+
+<script>
+	$(() => {
+		new Vue({
+			el: '#app',
+			data() {
+				return {
+					ddl_case1: {
+						values: [],
+					},
+					ddl_case2: {
+						values: [],
+						ops: {
+							valueField: 'Display',
+							maxItems: 2
+						},
+						tmpData: []
+					},
+					ddl_case3: {
+						values1: [],
+						values2: [],
+						src:[
+								  {
+									"SID": "GTI20091612080907042",
+									"OPER": "OPER",
+									"OPER_NO": "OPER_NO",
+									"ROUTE": null,
+									"ROUTE_NO": "ROUTE_NO",
+									"Status": "1",
+									"INum": 0
+								  },
+								  {
+									"SID": "GTI20091612114107049",
+									"OPER": null,
+									"OPER_NO": null,
+									"ROUTE": null,
+									"ROUTE_NO": null,
+									"Status": "2",
+									"INum": 0
+								  },
+								  {
+									"SID": "GTI20091612120207050",
+									"OPER": null,
+									"OPER_NO": null,
+									"ROUTE": null,
+									"ROUTE_NO": null,
+									"Status": "3",
+									"INum": 0
+								  }
+								],
+						ops: {
+							tagField: 'SID',
+							labelField: 'OPER_NO',
+							valueField: 'SID',
+							searchField: ['OPER_NO', 'No', 'SID'],
+							tpl_tag(data, tagField, escape) {
+								if (!tagField) return '';
+								return `<span class="label label-primary">${escape(data[tagField])}</span> `;
+							},
+							render: {
+								option(data, escape) {
+									debugger
+									let { labelField, valueField, tagField, tpl_tag } = this.settings;
+									return `
+										<div class="option"><H5>${tpl_tag(data, tagField, escape)}${escape(data[labelField])}<i class="fa fa-info-circle" aria-hidden="true"></i></H5></div>
+									`;
+								},
+								item(data, escape) {
+									let { labelField, valueField, tagField, tpl_tag } = this.settings;
+									return `<div class="item"><H5>${tpl_tag(data, tagField, escape)}${escape(data[labelField])}<i class="fa fa-info-circle" aria-hidden="true"></i></H5></div>`;
+								}
+							}
+						},
+                    },
+					i18n: {
+						Face: {
+							'OPERATION': '@RES.BLL.Face.OPERATION',
+							'OLD_OPERATION': '@RES.BLL.Face.OLD_OPERATION',
+							'NEW_OPERATION': '@RES.BLL.Face.NEW_OPERATION'
+						},
+						Message: {
+							'PleaseScanTheBarcodeOrUseKeywords': '@RES.BLL.Message.PleaseScanTheBarcodeOrUseKeywords'
+						}
+					}
+				}
+			},
+
+			methods: {
+				Case2_1() {
+					let { ddl_2 } = this.$refs;
+					if (ddl_2 != null) {
+						this.ddl_case2.tmpData = ddl_2.get_$el().getSelectedRow();
+
+					}
+				},
+				Case2_2() {
+					var _self = this;
+					let { ddl_2 } = this.$refs;
+					if (ddl_2 != null) {
+						ddl_2.api_AllOpers((data) => {
+							_self.ddl_case2.tmpData = data;
+						})
+					}
+				},
+				Case3() {
+					var _self = this;
+					let { ddl_3 } = this.$refs;
+					if (ddl_3 == null) return false;
+					return ddl_3.getSelectedRow();
+				},
+				test(ddl) {
+					if (ddl == null) return false;
+					return ddl.getSelectedRow();
+				}
+			}
+
+		})
+	});
+</script>

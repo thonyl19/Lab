@@ -1,0 +1,185 @@
+﻿@{
+    bool isSingleModel = (bool)ViewData["SingleModel"];
+
+    if (isSingleModel)
+    {
+        Layout = "~/Views/Shared/_LayoutSingle.cshtml";
+        @eBundle.QRender_CSS();
+        @eBundle.QRender_JS();
+    }
+}
+
+@Scripts.Render("~/bundles/parsley")
+@Html.Partial("~/Areas/MES/Views/WIP/Partial2/_collectAttr.cshtml")
+<div id="app">
+    <button @@click="Case1">測試-Cfg.Title 切換</button>
+    <button @@click="MUST_INPUT">測試MUST_INPUT</button>
+    <button @@click="Submit">submit</button>
+    <form id="Form1">
+        <collect-attr ref="ddl_4" :i18n="i18n"
+                      :options="ddl_case3.src"
+                      v-model="grid_data"
+                      :cfg="cfg"></collect-attr>
+        {{grid_data}}
+    </form>
+</div>
+
+
+<script>
+	$(() => {
+		new Vue({
+			el: '#app',
+			data() {
+                return {
+                    debug_val:true,
+                    grid_data: [
+                        {
+                            "PF_MODIFY_COLUMN_LIST_SID": "GTI20102009505681343",
+                            "DB_TABLE": "WP_LOT",
+                            "DB_COLUMN_NAME": "ATTRIBUTE_10",
+                            "DB_COLUMN_DATA_TYPE": "STRING",
+                            "DATA_TYPE_CHECK_FORMAT": "0",
+                            "DB_COLUMN_DISPLAY_HINT": "Rework Judge",
+                            "FACE_ID": "LOT_LIST_ATTRIBUTE_10",
+                            "DESCRIPTION": "",
+                            "OPER_SID": "GTI20101309004108383",
+                            "OPERATION_NO": "C04-0020",
+                            "OPERATION": "STD01",
+							"MUST_INPUT": "T",
+                            "FACE": "文字",
+							"VIEW_TYPE": "el-input",
+							"Value":""
+						},
+                        {
+                            "PF_MODIFY_COLUMN_LIST_SID": "GTI20102009505681343",
+                            "DB_TABLE": "WP_LOT",
+                            "DB_COLUMN_NAME": "ATTRIBUTE_10",
+                            "DB_COLUMN_DATA_TYPE": "STRING",
+                            "DATA_TYPE_CHECK_FORMAT": "0",
+                            "DB_COLUMN_DISPLAY_HINT": "Rework Judge",
+                            "FACE_ID": "LOT_LIST_ATTRIBUTE_10",
+                            "DESCRIPTION": "",
+                            "OPER_SID": "GTI20101309004108383",
+                            "OPERATION_NO": "C04-0020",
+                            "OPERATION": "STD01",
+                            "MUST_INPUT": "T",
+                            "FACE": "數字",
+                            "VIEW_TYPE": "gt-input-number",
+                            "Value": ""
+						},
+                        {
+                            "PF_MODIFY_COLUMN_LIST_SID": "GTI20102009505681343",
+                            "DB_TABLE": "WP_LOT",
+                            "DB_COLUMN_NAME": "ATTRIBUTE_10",
+                            "DB_COLUMN_DATA_TYPE": "STRING",
+                            "DATA_TYPE_CHECK_FORMAT": "0",
+                            "DB_COLUMN_DISPLAY_HINT": "Rework Judge",
+                            "FACE_ID": "LOT_LIST_ATTRIBUTE_10",
+                            "DESCRIPTION": "",
+                            "OPER_SID": "GTI20101309004108383",
+                            "OPERATION_NO": "C04-0020",
+                            "OPERATION": "STD01",
+                            "MUST_INPUT": null,
+                            "FACE": "日期",
+                            "VIEW_TYPE": "gt-el-date-picker",
+                            "Value": ""
+                        }, {
+                            "PF_MODIFY_COLUMN_LIST_SID": "GTI20102009505681343",
+                            "DB_TABLE": "WP_LOT",
+                            "DB_COLUMN_NAME": "ATTRIBUTE_10",
+                            "DB_COLUMN_DATA_TYPE": "STRING",
+                            "DATA_TYPE_CHECK_FORMAT": "0",
+                            "DB_COLUMN_DISPLAY_HINT": "因為 gt-el-date-picker 原件無法支援動態變更 required ,所以必須獨立測試",
+                            "FACE_ID": "LOT_LIST_ATTRIBUTE_10",
+                            "DESCRIPTION": "",
+                            "OPER_SID": "GTI20101309004108383",
+                            "OPERATION_NO": "C04-0020",
+                            "OPERATION": "STD01",
+                            "MUST_INPUT": "T",
+                            "FACE": "日期-MUST_INPUT",
+                            "VIEW_TYPE": "gt-el-date-picker",
+                            "Value": ""
+                        },
+                        {
+                            "PF_MODIFY_COLUMN_LIST_SID": "GTI20102009505681343",
+                            "DB_TABLE": "WP_LOT",
+                            "DB_COLUMN_NAME": "ATTRIBUTE_10",
+                            "DB_COLUMN_DATA_TYPE": "STRING",
+                            "DATA_TYPE_CHECK_FORMAT": "0",
+                            "DB_COLUMN_DISPLAY_HINT": "Rework Judge",
+                            "FACE_ID": "LOT_LIST_ATTRIBUTE_10",
+                            "DESCRIPTION": "",
+                            "OPER_SID": "GTI20101309004108383",
+                            "OPERATION_NO": "C04-0020",
+                            "OPERATION": "STD01",
+                            "MUST_INPUT": "T",
+                            "FACE": "布林",
+                            "VIEW_TYPE": "gt-input-bool",
+                            "Value": ""
+                        },
+                    ],
+					ddl_case3: {
+						values1: [],
+						values2: [],
+						src:[{"SID":"GTI20101409450002611","Status":"O","TO_OPER_CATEGORY":"O","OPERATION":"熱烘烤","OPERATION_NO":"B040.01","OPER_SID":"GTI20020714333001285","ROUTE":"ReWork01","ROUTE_VER_SID":"GTI20101318275702518","ROUTE_NO":"ReWork01"},{"SID":"GTI20101409454602612","Status":"R","TO_OPER_CATEGORY":"R","OPERATION":"切割","OPERATION_NO":"C02000-0030","OPER_SID":"GTI20091014210205213","ROUTE":"重工流程測試","ROUTE_VER_SID":"GTI20091610074707007","ROUTE_NO":"R001"},{"SID":"GTI20101409454602612","Status":"","TO_OPER_CATEGORY":"R","OPERATION":"切割","OPERATION_NO":"C02000-0030","OPER_SID":"GTI20091014210205213","ROUTE":"重工流程測試","ROUTE_VER_SID":"GTI20091610074707007","ROUTE_NO":"R001"}],
+						ops: {
+							tagField: 'SID',
+							labelField: 'OPER_NO',
+							valueField: 'SID',
+							searchField: ['OPER_NO', 'No', 'SID'],
+							tpl_tag(data, tagField, escape) {
+								if (!tagField) return '';
+								return `<span class="label label-primary">${escape(data[tagField])}</span> `;
+							},
+							render: {
+								option(data, escape) {
+
+									let { labelField, valueField, tagField, tpl_tag } = this.settings;
+									return `
+										<div class="option"><H5>${tpl_tag(data, tagField, escape)}${escape(data[labelField])}<i class="fa fa-info-circle" aria-hidden="true"></i></H5></div>
+									`;
+								},
+								item(data, escape) {
+									let { labelField, valueField, tagField, tpl_tag } = this.settings;
+									return `<div class="item"><H5>${tpl_tag(data, tagField, escape)}${escape(data[labelField])}<i class="fa fa-info-circle" aria-hidden="true"></i></H5></div>`;
+								}
+							}
+						},
+                    },
+					i18n: {
+						Face: {
+							'OPERATION': '@RES.BLL.Face.OPERATION',
+							'OLD_OPERATION': '@RES.BLL.Face.OLD_OPERATION',
+							'NEW_OPERATION': '@RES.BLL.Face.NEW_OPERATION'
+						},
+						Message: {
+							'PleaseScanTheBarcodeOrUseKeywords': '@RES.BLL.Message.PleaseScanTheBarcodeOrUseKeywords'
+						}
+					},
+                    cfg: null,
+                    testIdx: 0
+				}
+			},
+            methods: {
+                MUST_INPUT() {
+                    debugger
+                    var val = ([null, 'T', 'F'])[this.testIdx % 3];
+                    _.each(this.grid_data, el => {
+                        el.MUST_INPUT = val;
+                    });
+                    this.testIdx++;
+                },
+                Submit() {
+                    $('#Form1').parsley().validate();
+                },
+				Case1() {
+					var _arg = this.cfg == null
+						? {Title:'後端定義 Title'}
+						: null
+						;
+					this.$set(this,'cfg', _arg);
+				},
+			}
+		})
+	});
+</script>

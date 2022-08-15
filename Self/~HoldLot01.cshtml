@@ -1,0 +1,99 @@
+﻿@{
+    ViewBag.Title = RES.BLL.Face.LOTHOLD;
+    ViewBag.FunctionName = RES.BLL.Face.LOTHOLD;
+}
+<h3>
+    @ViewBag.Title
+    <small></small>
+</h3>
+
+<div id="app">
+    <div class="toolbar">
+        <div class="btn-group">
+            <el-button type="primary" class="btn"
+                       icon="el-icon-caret-right"
+                       :disabled="exec_disabled">
+                @RES.BLL.Face.FunctionBarOKButton
+            </el-button>
+        </div>
+    </div>
+    <div class="panel b">
+        <div class="panel-body row">
+            <div class="form-group col-lg-6 has-success  has-feedback">
+                <label>@RES.BLL.Face.LotNo</label>
+                <input ref="LOT" class="form-control" type="text" v-model="CurrentLot.LOT"
+                       placeholder="@RES.BLL.Message.PleaseInputLot"
+                       v-on:keyup.enter="Query(CurrentLot.LOT)" />
+            </div>
+            <div class="form-group col-lg-12">
+                <label>@RES.BLL.Face.Description</label>
+                <textarea rows="5" class="form-control" v-model="description"></textarea>
+            </div>
+        </div>
+    </div>
+</div>
+@section Styles {
+    @Styles.Render(eBundle.elUI_CSS)
+
+}
+
+@section Scripts {
+    @Scripts.Render(eBundle.Vue_MES)
+    @Scripts.Render(eBundle.elUI_JS)
+}
+
+<script>
+    //https://element.eleme.cn/
+    //https://element.eleme.cn/#/zh-CN/component/table
+    $(() => {
+        new Vue({
+            el: '#app',
+            data() {
+                return {
+                    CurrentLot: {
+                        LOT:'201-20121129-35'
+                    },
+                    options:[] ,
+                    reason: [],
+                    description: "",
+                    exec_disabled: true,
+                }
+            },
+            methods: {
+
+                Init_UI() {
+                    this.reason = [];
+                    this.description = "";
+                    this.HoldInfoList = [];
+                },
+                Query(LOT) {
+                    var _self = this;
+                    _self.Init_UI();
+                    _self.exec_disabled = true;
+
+                    var _ajax = {
+                        url: "@Url.Action("GetData", new { area = "WIP" })",
+                        type:'get',
+                        param: {
+                            Lot:LOT,
+                            FunName: "HoldLot"
+                        },
+                        success(res) {
+                            let { Success, CurrentLot ,ReasonList,HoldInfoList=[]} = res;
+                            if (CurrentLot != null && CurrentLot.IsExist) {
+                                _self.exec_disabled = false;
+                                _self.CurrentLot = CurrentLot;
+                                _self.options = ReasonList;
+                                _self.HoldInfoList = HoldInfoList;
+                            }
+                            else {
+                                //_self.$refs.lotinfo.err_NotFind();
+                            }
+                        }
+                    };
+                    $.submitForm(_ajax);
+                }
+            }
+        })
+    });
+</script>

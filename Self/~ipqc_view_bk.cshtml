@@ -1,0 +1,125 @@
+﻿@{
+	bool isSingleModel = (bool)ViewData["SingleModel"];
+
+	if (isSingleModel)
+	{
+		Layout = "~/Views/Shared/_LayoutSingle.cshtml";
+		@eBundle.QRender_CSS();
+		@eBundle.QRender_JS();
+	}
+}
+@Html.AntiForgeryToken()
+@Html.Partial("~/Areas/MES/Views/Shared/_edc.cshtml")
+
+<div id="app">
+	<div><br /><el-checkbox v-model="readonly" />readonly</div>
+	<el-tabs v-model="tab" type="border-card">
+		<el-tab-pane :label="i18n.基本資訊" name="A">
+			<div class="form-horizontal gt-form">
+				<gt-form-col :label="i18n.流程" v-model="form.流程" :readonly="readonly"></gt-form-col>
+				<gt-form-col :label="i18n.流程版本" v-model="form.流程版本" :readonly="readonly"></gt-form-col>
+				<gt-form-col :label="i18n.總批數" v-model="form.總批數" :readonly="readonly"></gt-form-col>
+				<gt-form-col :label="i18n.總數量">
+					<div class="input-group ">
+						<input type="text" class="form-control" :disabled="readonly" />
+						<span class="input-group-addon" style="min-width: 130px;">{{form.單位}}</span>
+					</div>
+				</gt-form-col>
+				<gt-form-col :label="i18n.判定結果" :layout_mode="case_sty">
+					<el-radio v-model="form.判定結果" label="T" :disabled="readonly">{{i18n.合格}}</el-radio>
+					<el-radio v-model="form.判定結果" label="F" :disabled="readonly">{{i18n.不合格}}</el-radio>
+				</gt-form-col>
+				<gt-form-col :label="i18n.備註">
+					<el-input type="textarea" v-model="form.備註" :disabled="readonly">
+				</gt-form-col>
+			</div>
+		</el-tab-pane>
+		<el-tab-pane :label="i18n.批號資訊" name="B">
+			<el-table :data="tableData"
+					  style="width: 100%">
+				<el-table-column prop="date"
+								 :label="i18n.批號"
+								 width="180">
+				</el-table-column>
+				<el-table-column prop="name"
+								 :label="i18n.數量"
+								 width="180">
+				</el-table-column>
+				<el-table-column prop="address"
+								 :label="i18n.工單編號">
+				</el-table-column>
+				<el-table-column prop="address"
+								 :label="i18n.料號">
+				</el-table-column>
+			</el-table>
+		</el-tab-pane>
+		<el-tab-pane :label="i18n.檢驗項目資訊" name="C">
+			<edc-input v-model="data_input" :cfg.sync="cfg" :readonly="readonly"></edc-input>
+		</el-tab-pane>
+	</el-tabs>
+</div>
+
+<script>
+	$(() => {
+		var data_input = [
+			{
+				"EdcVerSid": "GTI19040815103300013",
+				"EdcParameterSid": "GTI19040815002800001",
+				"Display": "TestBool",
+				"DataType": "B",
+				"MustInput": "F",
+				"InputCount": 3,
+				"ItemName": "TestBool",
+				"ItemNo": "Test001",
+				"DispayPointName": "A,B,C",
+				"DispayPointNameList":
+					["Aaaaa", "Bbbbbb", "Ccccc"],
+				"QCItemSID": "GTI19040815002800001",
+				"UCL": 0,
+				"USL": 0,
+				"TL": "F",
+				"LCL": 0,
+				"LSL": 0,
+				"require": false,
+				"DataTypeDisplay": "布林",
+				"InputValueList":
+					[{ "inputval": "" }, { "inputval": "" }, { "inputval": "" }]
+			}
+		]
+		new Vue({
+			el: '#app',
+			data() {
+				return {
+					readonly: false,
+					tab: 'A',
+					form: {
+					},
+					data_input,
+					cfg: {
+						title: '',
+						fixedTip: 1
+					},
+					tableData: [],
+					i18n: {
+						基本資訊: '基本資訊',
+						流程: '流程',
+						流程版本: '流程版本',
+						總批數: '總批數',
+						總數量: '總數量',
+						判定結果: '判定結果',
+						合格: '合格',
+						不合格: '不合格',
+						備註: '備註',
+						批號資訊: '批號資訊',
+						檢驗項目資訊: '檢驗項目資訊',
+						批號: '批號',
+						工單編號: '工單編號',
+						料號: '料號',
+						數量: '數量',
+					},
+					case_sty: { filed: 'form-control-static col-lg-8 col-sm-9 col-xs-12' }
+				}
+			}
+		})
+	});
+</script>

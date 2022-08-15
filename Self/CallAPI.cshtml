@@ -1,0 +1,93 @@
+﻿<!DOCTYPE html>
+
+<html>
+<head>
+	<meta name="viewport" content="width=device-width" />
+	<title>CallAPI顯示良率</title>
+	<meta name="referrer" content="no-referrer" />
+</head>
+<body>
+	<div>
+		<canvas id="example" width="400" height="200"></canvas>
+
+	</div>
+
+
+	@section Scripts {
+		@Scripts.Render("~/bundles/EasyPie")
+		@Scripts.Render("~/bundles/sparklines")
+		@Scripts.Render("~/bundles/flot")
+		@Scripts.Render("~/bundles/moment")
+		@Scripts.Render("~/bundles/demoFlot")
+		@Scripts.Render("~/bundles/demoDashboard")
+		@Scripts.Render(eBundle.c3_JS, eBundle.char_JS, eBundle.Vue_MES, eBundle.elUI_JS)
+
+<script>
+	$(function () {
+
+		//取得WIP在製量
+		//http://118.163.52.55/GTiReport/api/Report/wip?searchCondition.selectLotStatus=Run
+		//http://118.163.52.55/GenesisNewMes/api/loginSSO
+		//http://localhost:59394/GenesisNewMes/api/SystemRegister
+
+
+
+
+		$.submitForm({
+			url: "http://118.163.52.55/GTiReport/api/Report/wip",
+			type: "get",
+			async: false,
+			//sendHeader: function (xhr) {
+			//	xhr.setRequestHeader('tokenKey', '95d0a410af459d738d0dd6ae934b38ef');
+			//},
+			param: { "selectLotStatus": "Run" },
+			success: function (data) {
+				//整理將資料填入Chart中
+				var labels = data.map(function (e) {
+					return e.OPERATION;
+				});
+				var showData = data.map(function (e) {
+					return e.QUANTITY;
+				});;
+
+
+				var ctx = document.getElementById("example"),
+					example = new Chart(ctx, {
+						// 參數設定[註1]
+						type: "bar", // 圖表類型
+						data: {
+							labels: labels, // 標題
+							datasets: [{
+								label: "WIP在製", // 標籤
+								data: showData, // 資料
+								backgroundColor: "#00FF00",
+								//backgroundColor: [ // 背景色
+								//	"#FF0000",
+								//	"#00FF00",
+								//	"#0000FF",
+								//],
+								borderWidth: 1 // 外框寬度
+							}]
+						}
+					});
+
+
+			},
+
+		})
+
+
+
+
+
+	})
+
+</script>
+
+	}
+
+
+
+</body>
+
+</html>

@@ -1,0 +1,118 @@
+﻿@using System.Dynamic
+@model BLL.MES.DataViews.LotData
+@{
+	bool isSingleModel = (bool)ViewData["SingleModel"];
+	dynamic data = new ExpandoObject();
+	data.LOT="Test";
+	Model.CurrentLot = data;
+	if (isSingleModel)
+	{
+		Layout = "~/Views/Shared/_LayoutSingle.cshtml";
+	}
+}
+@eBundle.QRender_CSS()
+@eBundle.QRender_JS()
+@Html.Partial("~/Areas/MES/Views/WIP/Partial2/_posiMapEDC.cshtml", @Model)
+<pre>
+\Partial2\_posiMap.cshtml
+</pre>
+<div id="app">
+    <div class="panel b">
+        <cp-wafer-grad v-model="GradeList" :grade_list="GradeList"></cp-wafer-grad>
+    </div>
+    {{GradeList}}
+</div>
+
+
+<script>
+    Vue.config.devtools = true;
+    $(() => {
+        var send_data = @Html.Raw(ViewData["result"] ?? "{}");
+        var srcMO = _.range(1, 25).map((el) => { return [el]; });
+        new Vue({
+            el: '#app',
+            provide() {
+                return {
+                    rootEl: this,
+                };
+            },
+            data() {
+                return {
+                    value: '',
+                    tab_idx: '位置',
+                    readonly: false,
+                    confirm: true,
+                    highlight: false,
+                    srcMO,
+                    
+                    cfg: {
+                        title: '',
+                        fixedTip: 2
+                    },
+                    isChange: false,
+                    isGradeChg: false,
+                    isPassEdcCheck: false,
+                    GradeList:@Html.Raw(Json.Encode(BLL.MES.DDLServices.ddl_Parameter("Grade"))),
+                    package:[],
+                }
+            },
+            computed: {
+                c_test() {
+                    let { posi_map = {} } = this.$refs;
+                    return posi_map?.current || {};
+                },
+                c_list: {
+                    get() {
+                        return JSON.stringify(this.list);
+                    },
+                    set(val) {
+                        try {
+                            debugger
+                            var r = JSON.parse(val);
+                            this.list = r;
+                            this.$refs.posi_map.Bind();
+                        } catch (e) {
+
+                        }
+                    }
+                }
+            },
+            methods: {
+                //提供 PosiMapEDC  處理 point 變動 註點時,做 edc 檢核
+                CheckPointChange(current) {
+                    if (this.isPassEdcCheck) return true;
+                    var r = this.$refs.edc_input.check();
+                    console.log({ check_point_change: r });
+                    return r;
+                },
+                handleClick() { },
+                filterData() { },
+                test() {
+                    setTimeout(() => {
+                        var d = [
+                            {
+                                "element": ".gt-form",
+                                "popover": {
+                                    "title": "輸入方式",
+                                    "description": "可以選擇 [載具編號] 或 [批號] 執行查詢,查詢方式為 輸入完整資訊後,按 Enter "
+                                },
+                            },
+                            {
+                                "element": ".fa.fa-repeat",
+                                "popover": {
+                                    "title": "輸入方式",
+                                    "description": "可以選擇 [載具編號] 或 [批號] 執行查詢,查詢方式為 輸入完整資訊後,按 Enter "
+                                },
+                            }];
+                        var driver = new Driver();
+                        driver.defineSteps(d);
+                        driver.start();
+                    }, 500);
+                    this.$nextTick(() => {
+
+                    })
+                }
+            }
+        })
+    });
+</script>

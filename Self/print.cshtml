@@ -1,0 +1,40 @@
+﻿@{
+	bool isSingleModel = (bool)ViewData["SingleModel"];
+
+	if (isSingleModel)
+	{
+		Layout = "~/Views/Shared/_LayoutSingle.cshtml";
+		@eBundle.QRender_CSS();
+		@eBundle.QRender_JS();
+	}
+}
+
+
+<div id="app">
+	<button class="btn btn-primary" @@click="print">test</button>
+</div>
+
+
+<script>
+	$(() => {
+		new Vue({
+			el: '#app',
+			data() {
+				return {
+					msg: "baseTpl"
+				}
+			},
+			methods: {
+				print() {
+					var arg = {
+						title: 'title',
+						//content: `@Url.Action("Item_Single")`,
+						content:'http://localhost:59394/GenesisNewMes/HTMLContext/RunCardHistory?lotNumber=WO0-20200210-00001',
+						shadeClose: false,
+					}
+					this.$UT.layer(arg);
+				}
+			}
+		})
+	});
+</script>

@@ -1,0 +1,148 @@
+﻿@{
+	ViewBag.Title = @Genesis.Common.PageBaseInfo.getCurrentResource("UI 規範02").RESOURCE_NAME;
+	bool isSingleModel = (bool)ViewData["SingleModel"];
+
+	if (isSingleModel) Layout = "~/Views/Shared/_LayoutSingle.cshtml";
+}
+<h3>
+	@ViewBag.Title
+	<small><a href="https://genesisoffice365.sharepoint.com/:o:/r/sites/GTiMES50/_layouts/15/WopiFrame.aspx?sourcedoc={7175ca3d-ef9b-447d-a677-837671fc502f}&action=edit&wd=target%28UI%2Eone%7C0DA210C6%2DA155%2D4147%2DABA6%2DF995FD827BC6%2F%E8%A1%A8%E6%A0%BC%E5%92%8C%E8%A1%A8%E5%96%AE%E6%8C%89%E9%88%95%7C0CC9E426%2D0716%2D41A4%2DB99C%2DA3628E7E79E5%2F%29onenote%3Ahttps%3A%2F%2Fgenesisoffice365%2Esharepoint%2Ecom%2Fsites%2FGTiMES50%2FSiteAssets%2FGTiMES%205%2E0%20%E9%96%8B%E7%99%BC%20%E7%AD%86%E8%A8%98%E6%9C%AC%2FUI%2Eone#%E8%A1%A8%E6%A0%BC%E5%92%8C%E8%A1%A8%E5%96%AE%E6%8C%89%E9%88%95&section-id={0DA210C6-A155-4147-ABA6-F995FD827BC6}&page-id={0CC9E426-0716-41A4-B99C-A3628E7E79E5}&end" target="_blank">參考文件</a></small>
+</h3>
+@eBundle.QRender_CSS()
+@eBundle.QRender_JS()
+@Html.AntiForgeryToken()
+<div id="app" v-cloak class="m-sm">
+	<div Area-ToolBar class="toolbar mb-sm">
+		@Html.Partial("UI_SPEC_02_ToolBar")
+	</div>
+	<div class="panel b">
+		<div class="panel-body">
+			<div class="row form-horizontal gt-form">
+				<gt-lot-query label="lot-query" :callback="lot_Query"></gt-lot-query>
+			</div>
+			<div class="col-lg-12 jqgrid-responsive mb-lg">
+				<el-button type="danger" size="mini" @@click="RemoveAll" round
+						   :disabled="disabled">{{i18n.清除全部}}</el-button>
+				<el-table :data="DetailList"
+						  empty-text=" "
+						  style="width: 100%">
+					<el-table-column fixed="left" prop="SID" label="@RES.Partial.normal.remove" width="100px;">
+						<template slot-scope="scope">
+							<el-button size="small"
+									   v-on:click="Remove(scope.$index)"
+									   type="danger"
+									   icon="el-icon-delete"
+									   circle></el-button>
+						</template>
+					</el-table-column>
+
+					<el-table-column prop="LOT"
+									 label="@RES.BLL.Face.Lot">
+					</el-table-column>
+					<el-table-column prop="WO"
+									 label="@RES.BLL.Face.WO">
+					</el-table-column>
+					<el-table-column prop="ROUTE"
+									 label="@RES.BLL.Face.ROUTE">
+					</el-table-column>
+					<el-table-column prop="QUANTITY"
+									 label="@RES.BLL.Face.QUANTITY">
+					</el-table-column>
+
+
+					<el-table-column prop="OPERTAION"
+									 label="@RES.BLL.Face.OPERATION">
+					</el-table-column>
+					<el-table-column label="@RES.BLL.Face.CREATE_DATE">
+						<template slot-scope="scope">
+							<el-tooltip :content="scope.row.CREATE_USER" placement="top" effect="light">
+								<gt-split-data v-model="scope.row.CREATE_DATE"></gt-split-data>
+							</el-tooltip>
+						</template>
+					</el-table-column>
+					<el-table-column label="@RES.BLL.Face.UPDATE_DATE">
+						<template slot-scope="scope">
+							<el-tag type="success" size="mini">{{scope.row.UPDATE_USER}}</el-tag>
+							<gt-split-data v-model="scope.row.UPDATE_DATE"></gt-split-data>
+						</template>
+					</el-table-column>
+
+				</el-table>
+			</div>
+
+		</div>
+	</div>
+</div>
+@section Styles {
+	@Styles.Render(eBundle.elUI_CSS)
+}
+
+@section Scripts {
+	@Scripts.Render(eBundle.Vue_MES)
+	@Scripts.Render(eBundle.elUI_JS)
+}
+
+<script>
+	$(() => {
+		new Vue({
+			el: '#app',
+			data() {
+				return {
+					msg: "baseTpl",
+                    DetailList: [{
+                        LOT_SID: "GTI20091014503005402", LOT: "WO_-20200910-00002", QUANTITY: "15", OPERTAION: "OPERTAION", BATCH_NO: "", UPDATE_DATE:"2020-11-20 09:08:39"}],
+					//TODO-i18n:
+					i18n: {
+						msg_RemoveAll: "請確認是否清除全部資料",
+						msg_RemoveRow: "請確認是否刪除這筆資料",
+						msg_Exec: "請確認是否執行",
+						清除全部: '清除全部'
+					}
+				}
+			},
+			computed: {
+				disabled() {
+					return this.DetailList.length == 0;
+				}
+			},
+			methods: {
+				Exec() {
+					var title = this.i18n.msg_Exec;
+					var _self = this;
+					var _ops = this.$Alert.genConfirm({ title });
+					Swal.fire(_ops).then(result => {
+						let { value } = result;
+						if (value) {
+							//$.submitForm(_ajax);
+						}
+					});
+				},
+				lot_Query(data) {
+					this.DetailList.push(data);
+				},
+				RemoveAll() {
+					var title = this.i18n.msg_RemoveAll;
+					var _self = this;
+					var _ops = this.$Alert.genConfirm({ title });
+					Swal.fire(_ops).then(result => {
+						let { value } = result;
+						if (value) {
+							_self.DetailList = [];
+						}
+					});
+				},
+				Remove(row_idx) {
+					var title = this.i18n.msg_RemoveRow;
+					var _self = this;
+					var _ops = this.$Alert.genConfirm({ title });
+					Swal.fire(_ops).then(result => {
+						let { value } = result;
+						if (value) {
+							_self.DetailList.splice(row_idx, 1);
+						}
+					});
+				}
+			}
+		})
+	});
+</script>

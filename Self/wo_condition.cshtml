@@ -1,0 +1,75 @@
+﻿@{
+	bool isSingleModel = (bool)ViewData["SingleModel"];
+
+	if (isSingleModel)
+	{
+		Layout = "~/Views/Shared/_LayoutSingle.cshtml";
+		@eBundle.QRender_CSS();
+		@eBundle.QRender_JS();
+	}
+}
+
+@Html.Partial("~/Areas/MES/Views/Shared/_wo_condition.cshtml")
+<div id="app">
+	<button @@click="exec1">exec1</button>
+	<div>[form]{{form}}</div>
+	<div>[query_CD]{{query_CD}}</div>
+	<gti-wo-contion ref="wo_cd"
+					v-model="form"
+					:opt_src="opt_src"
+					:i18n="i18n">
+		<gt-form-col v-model="form.ZZ" label="after"></gt-form-col>
+	</gti-wo-contion>
+	<div class="clearfix hidden-xs"></div>
+
+	<el-button @@click="dialogTableVisible=true">子視窗</el-button>
+	<el-dialog title="子視窗" :visible.sync="dialogTableVisible">
+		<gti-wo-contion v-model="form1">
+		</gti-wo-contion>
+		<div class="clearfix hidden-xs"></div>
+	</el-dialog>
+
+</div>
+
+
+<script>
+	$(() => {
+		new Vue({
+			el: '#app',
+			data() {
+				return {
+					msg: "baseTpl",
+					form: {
+						WO: '',
+						STATUS: '',
+						WO_LINE_SID: '',
+						PRIORITY: '',
+						PARTNO: '',
+						ROUTE: '',
+						ZZ: '',
+					},
+					form1: {
+						PARTNO: '',
+						ROUTE: '',
+						PRIORITY: '',
+					},
+					opt_src: {
+						WO_LINE_SID: [{ "RefKey": null, "SID": "GTI20092409541509670", "No": "SMD", "Value": "GTI20092409541509670", "Display": "SMD", "StatusSid": null, "Status": null, "FromNum": 0.0, "INum": 0.0 }, { "RefKey": null, "SID": "GTI20092409541509671", "No": "SMD-L", "Value": "GTI20092409541509671", "Display": "SMD-L", "StatusSid": null, "Status": null, "FromNum": 0.0, "INum": 0.0 }, { "RefKey": null, "SID": "GTI20092409541509672", "No": "TCB", "Value": "GTI20092409541509672", "Display": "TCB", "StatusSid": null, "Status": null, "FromNum": 0.0, "INum": 0.0 }, { "RefKey": null, "SID": "GTI20092409541509673", "No": "TCB-L", "Value": "GTI20092409541509673", "Display": "TCB-L", "StatusSid": null, "Status": null, "FromNum": 0.0, "INum": 0.0 }, { "RefKey": null, "SID": "GTI20092414143209936", "No": "RLD", "Value": "GTI20092414143209936", "Display": "RLD", "StatusSid": null, "Status": null, "FromNum": 0.0, "INum": 0.0 }, { "RefKey": null, "SID": "GTI20092514270110497", "No": "TVS", "Value": "GTI20092514270110497", "Display": "TVS", "StatusSid": null, "Status": null, "FromNum": 0.0, "INum": 0.0 }, { "RefKey": null, "SID": "GTI20092514270710498", "No": "TSS", "Value": "GTI20092514270710498", "Display": "TSS", "StatusSid": null, "Status": null, "FromNum": 0.0, "INum": 0.0 }],
+					},
+					i18n: {
+						ZZ: 'ZZ'
+					},
+					dialogTableVisible: false,
+					query_CD: null
+				}
+			},
+			methods: {
+				exec1() {
+					let { wo_cd } = this.$refs;
+					if (wo_cd == null) return {};
+					this.query_CD = wo_cd.get_Conditions();
+				}
+			}
+		})
+	});
+</script>

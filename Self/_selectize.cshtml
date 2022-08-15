@@ -1,0 +1,206 @@
+﻿@{
+	ViewBag.Title = @Genesis.Common.PageBaseInfo.getCurrentResource("UI 規範04").RESOURCE_NAME;
+	bool isSingleModel = (bool)ViewData["SingleModel"];
+	if (isSingleModel) Layout = "~/Views/Shared/_LayoutSingle.cshtml";
+
+}
+@eBundle.QRender_CSS()
+@eBundle.QRender_JS()
+<div id="app">
+	<el-switch v-model="readonly"
+			   active-color="#13ce66"
+			   inactive-color="#ff4949"
+			   active-text="ViewMode"
+			   inactive-text="EditMode">
+	</el-switch>
+	測試檢核錯誤<input type="checkbox" v-model="isErr" />
+	<h3>vue-selectize</h3>
+	<div class="form-horizontal gt-form">
+		<div class="row">
+			<gt-form-col label="基本用法">
+				<vue-selectize v-model="form.F"
+							   :options="ddl_ops" :readonly="readonly" />
+			</gt-form-col>
+			<gt-form-col label="render_sty">
+				<vue-selectize v-model="form.F" render_sty="GTIMES"
+							   :options="ddl_ops" />
+			</gt-form-col>
+		</div>
+	</div>
+
+	<div class="row form-horizontal gt-form">
+		<gt-form-col label="基本使用" :value.sync="form.A" :readonly="readonly" prompt_sty="has-req"></gt-form-col>
+		<gt-form-col label="ddl-group-para 1型">
+			<x-ddl-group-para :value.number.sync="form.B"
+							  group_no="WO-Priority"
+							  :readonly="readonly">
+			</x-ddl-group-para>
+		</gt-form-col>
+		<gt-form-col label="ddl-group-para 2型" prompt_sty="has-req is-err">
+			<x-ddl-group-para :value.number.sync="form.C"
+							  :input_value.number.sync="form.D"
+							  group_no="WO-Priority"
+							  :readonly="readonly">
+			</x-ddl-group-para>
+		</gt-form-col>
+		<gt-form-col label="ddl-dyn-load" :prompt_sty="`has-req ${isErr? 'is-err':''}`">
+			<x-ddl-dyn-load :value.sync="form.E" :readonly="readonly" />
+		</gt-form-col>
+		<gt-form-col label="vue-selectize-dynquery">
+			<vue-selectize-dynquery :value.sync="form.E" required
+									:readonly="readonly"
+									:options="options" />
+		</gt-form-col>
+		<gt-form-col label="vue-selectize-group-para">
+			<vue-selectize-group-para v-model="form.F"
+									  :readonly="readonly"
+									  group_no="WO-Priority" />
+		</gt-form-col>
+		<gt-form-col label="vue-selectize-group-para">
+			<vue-selectize-group-para v-model="form.F" :input_value.sync="form.F"
+									  :readonly="readonly"
+									  group_no="WO-Priority" />
+		</gt-form-col>
+
+		<gt-form-col label="dll api">
+			<vue-selectize-dllapi v-model="form.F" action="LINE" />
+		</gt-form-col>
+	</div>
+
+	<h3>x-ddl-group-para -- 己棄用,留做參考</h3>
+	<div class="row">
+
+		<gt-form-col label="Case1--基本使用">
+			<x-ddl-group-para :value.number.sync="ddl_case1.values" group_no="WO-Priority" :readonly="readonly" />
+
+		</gt-form-col>
+		<gt-form-col label="Case1--單位應用">
+			<x-ddl-group-para :value.number.sync="ddl_case2.values"
+							  :input_value.sync="ddl_case2.values"
+							  group_no="WO-Priority"
+							  :readonly="readonly">
+			</x-ddl-group-para>
+		</gt-form-col>
+		<gt-form-col label="Case2--addon">
+			<x-ddl-group-para :values.sync="ddl_case1.values" group_no="WO-Priority" :readonly="readonly">
+				<template slot="addon">
+					<span class="input-group-btn btn">test</span>
+				</template>
+			</x-ddl-group-para>
+		</gt-form-col>
+	</div>
+
+</div>
+@section Styles {
+	@Styles.Render(eBundle.selectize_CSS)
+	@Styles.Render(eBundle.elUI_CSS)
+}
+
+
+@section Scripts {
+	@Scripts.Render(eBundle.selectize_JS)
+	@Scripts.Render(eBundle.Vue_MES)
+	@Scripts.Render(eBundle.elUI_JS)
+}
+
+<script>
+	$(() => {
+		new Vue({
+			el: '#app',
+			data() {
+				return {
+					isErr: false,
+					options: [
+						{ No: 'brian@thirdroute.com', Display: 'Brian Reavis', tt: 'A' },
+						{ No: 'nikola@tesla.com', Display: 'Nikola Tesla', tt: 'B' },
+						{ No: 'someone@gmail.com', Display: 'name', tt: 'C' }
+					],
+					form: {
+						A: '',
+						B: 'B',
+						C: '單位',
+						D: '12456',
+						E: 'A',
+						F: '',
+					},
+					readonly: false,
+					ddl_case1: {
+						values: '',
+						options: [],
+						ops: {
+							valueField: 'PARTNO_SID',
+							labelField: "PART_NAME",
+							searchField: ['PARA_DSER', 'PARAMETER_NO', 'PARTNO'],
+							render: {
+								option(data, escape) {
+									let { labelField, valueField } = this.settings;
+									return `
+												<div class="option"><h5 style="overflow:hidden;white-space:nowrap;text-overflow:ellipsis;"><span class="label label-primary">${escape(data['PARTNO'])}</span> ${escape(data[labelField])}</h5></div>
+											`;
+								},
+								item(data, escape) {
+									let { labelField, valueField } = this.settings;
+									return `<div class="item" style="overflow:hidden;white-space:nowrap;text-overflow:ellipsis;"><h5><span class="label label-primary">${escape(data['PARTNO'])}</span> ${escape(data[labelField])}<h5></div>`;
+								}
+							}
+						},
+					},
+					ddl_case2: {
+						values: 5678,
+						ops: {
+							valueField: 'Display',
+							maxItems: 2
+						},
+						tmpData: []
+					},
+					ddl_ops: [{ "SID": "aaid", "No": "aa", "Value": null, "Display": "a線別", "StatusSid": null, "Status": null, "INum": 0.0 }, { "SID": "bbid", "No": "bb", "Value": null, "Display": "b線別", "StatusSid": null, "Status": null, "INum": 0.0 }]
+				}
+			},
+
+			methods: {
+				Case2_1() {
+					let { ddl_2 } = this.$refs;
+					if (ddl_2 != null) {
+						this.ddl_case2.tmpData = ddl_2.get_$el().getSelectedRow();
+
+					}
+				},
+				Case2_2() {
+					var _self = this;
+					let { ddl_2 } = this.$refs;
+					if (ddl_2 != null) {
+						ddl_2.api_AllOpers((data) => {
+							_self.ddl_case2.tmpData = data;
+						})
+					}
+				},
+				api_test(val, cb) {
+					var PRODUCT_SID = "GTI12090317332700014";
+					var _self = this;
+					var url = _self.$URL.chg_Path('MES/WorkOrder/PartNoVersion', { PRODUCT_SID, PARTNO: val });
+					var _ajax = {
+						url,
+						type: 'get',
+						success(data) {
+							if (data == null) {
+								_self.$Alert.Err('Data Not Find!!');
+								return;
+							}
+							switch (typeof (cb)) {
+								case "function":
+									_self.ddl_case1.options = data;
+									cb(data);
+									break;
+								case "boolean":
+									//tode
+									break;
+							}
+
+						}
+					};
+					$.submitForm(_ajax);
+				}
+			}
+
+		})
+	});</script>

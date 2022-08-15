@@ -1,0 +1,38 @@
+﻿@using System.Dynamic
+@model BLL.MES.DataViews.LotData
+@{
+	bool isSingleModel = (bool)ViewData["SingleModel"];
+	dynamic data = new ExpandoObject();
+	data.LOT="Test";
+	Model.CurrentLot = data;
+	if (isSingleModel)
+	{
+		Layout = "~/Views/Shared/_LayoutSingle.cshtml";
+		@eBundle.QRender_CSS();
+		@eBundle.QRender_JS();
+	}
+}
+
+@Html.Partial("~/Areas/MES/Views/WIP/Partial2/_multiSelectUsers.cshtml", @Model)
+<pre>
+\Partial2\_selectUsers.cshtml
+</pre>
+<div id="app">
+	<multi-select-users ref="multiUserScope" v-model="send_data.user_list" :set_model="send_data"></multi-select-users>
+</div>
+
+
+<script>
+	$(() => {
+        var send_data = @Html.Raw(ViewData["result"] ?? "{}");
+        console.log(send_data);
+		new Vue({
+			el: '#app',
+			data() {
+				return {
+                    send_data
+				}
+			}
+		})
+	});
+</script>

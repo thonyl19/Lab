@@ -1,0 +1,131 @@
+﻿@{
+	ViewBag.Title = @Genesis.Common.PageBaseInfo.getCurrentResource("baseTpl").RESOURCE_NAME;
+}
+<h3>
+	@ViewBag.Title
+</h3>
+@Html.Partial("~/Areas/MES/Views/Shared/_edcGrid.v1.cshtml")
+
+@Html.AntiForgeryToken()
+@section Styles {
+	@Styles.Render(eBundle.elUI_CSS)
+}
+
+@section Scripts {
+	@Scripts.Render(eBundle.Vue_MES)
+	@Scripts.Render(eBundle.elUI_JS)
+}
+
+<div id="app">
+    [is_change]{{is_change}}
+    <el-switch v-model="EditMode"
+               active-color="#13ce66"
+               inactive-color="#ff4949"
+               active-text="FullEdit"
+               inactive-text="OneEdit">
+    </el-switch>
+    <gt-edc-grid v-model="edcData" :test_mode="EditMode" :is_change.sync="is_change"></gt-edc-grid>
+    {{edcData}}
+</div>
+
+<script>
+	$(() => {
+		Vue.config.devtools = true;
+
+		new Vue({
+			el: '#app',
+			data() {
+				return {
+                    EditMode: false,
+                    is_change:false,
+                    edcData: [
+                        {
+                            "EDC_VER_PARA_SID": "GTI20102213392967647",
+                            "EDC_VER_SID": "GTI20102213392967645",
+                            "EDC_SID": "GTI20102112055101406",
+                            "EDC_NO": "EDCTtest",
+                            "EDC_NAME": "EDCTtest",
+                            "VERSION": 2,
+                            "EDC_PARA_SID": "1A371138-0F3C-402E-972D-4292CDAD6E64",
+                            "PARA_NO": "EDC_003",
+                            "PARAMETER": "0402溝槽深度_003",
+                            "DATATYPE": "B",
+                            "TL": "0.023",
+                            "UCL": 0.025,
+                            "LCL": 0.01,
+                            "USL": 0.03,
+                            "LSL": 0.015,
+                            "CREATE_USER": "Admin",
+                            "CREATE_DATE": "2020-10-22 13:39:29",
+                            "UPDATE_USER": "Admin",
+                            "UPDATE_DATE": "2020-10-22 13:39:29",
+                            "SAMPLESIZE": 10,
+                            "THROW_SPC": "F",
+                            "EDC_THROW_SPC": "F",
+                            "TEST_POINT": 10,
+                            "MUST_INPUT": "T",
+                            "ITEM_SEQ": 10,
+                            "DISPLAY_POINT_NAME": "A"
+                        },
+                        {
+                            "EDC_VER_PARA_SID": "GTI20102213392967648",
+                            "EDC_VER_SID": "GTI20102213392967645",
+                            "EDC_SID": "GTI20102112055101406",
+                            "EDC_NO": "EDCTtest",
+                            "EDC_NAME": "EDCTtest",
+                            "VERSION": 2,
+                            "EDC_PARA_SID": "GTI20101115142607789",
+                            "PARA_NO": "EDC-SMD-A003",
+                            "PARAMETER": "0805P110TF(P11661070)B尺寸",
+                            "DATATYPE": "S",
+                            "TL": "1.4",
+                            "UCL": 1.5,
+                            "LCL": 1.2,
+                            "USL": null,
+                            "LSL": null,
+                            "CREATE_USER": "Admin",
+                            "CREATE_DATE": "2020-10-22 13:39:29",
+                            "UPDATE_USER": "Admin",
+                            "UPDATE_DATE": "2020-10-22 13:39:29",
+                            "SAMPLESIZE": 5,
+                            "THROW_SPC": "F",
+                            "EDC_THROW_SPC": "F",
+                            "TEST_POINT": 5,
+                            "MUST_INPUT": "T",
+                            "ITEM_SEQ": 20,
+                            "DISPLAY_POINT_NAME": "A"
+                        },
+                        {
+                            "EDC_VER_PARA_SID": "GTI20102213392967649",
+                            "EDC_VER_SID": "GTI20102213392967645",
+                            "EDC_SID": "GTI20102112055101406",
+                            "EDC_NO": "EDCTtest",
+                            "EDC_NAME": "EDCTtest",
+                            "VERSION": 2,
+                            "EDC_PARA_SID": "GTI20102113532401671",
+                            "PARA_NO": "E.C05-A01-024",
+                            "PARAMETER": "(P)22610460镍片 A尺寸",
+                            "DATATYPE": "N",
+                            "TL": "5.1",
+                            "UCL": 5.15,
+                            "LCL": 5.05,
+                            "USL": null,
+                            "LSL": null,
+                            "CREATE_USER": "Admin",
+                            "CREATE_DATE": "2020-10-22 13:39:29",
+                            "UPDATE_USER": "Admin",
+                            "UPDATE_DATE": "2020-10-22 13:39:29",
+                            "SAMPLESIZE": 2,
+                            "THROW_SPC": "F",
+                            "EDC_THROW_SPC": "F",
+                            "TEST_POINT": 2,
+                            "MUST_INPUT": "T",
+                            "ITEM_SEQ": 30,
+                            "DISPLAY_POINT_NAME": "A"
+                        }
+                    ]
+				}
+			}
+		})
+	});
+</script>

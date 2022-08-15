@@ -1,0 +1,346 @@
+﻿@using System.Dynamic
+@model BLL.MES.DataViews.LotData
+@{
+	bool isSingleModel = (bool)ViewData["SingleModel"];
+	dynamic data = new ExpandoObject();
+	data.LOT="Test";
+	Model.CurrentLot = data;
+	if (isSingleModel)
+	{
+		Layout = "~/Views/Shared/_LayoutSingle.cshtml";
+	}
+}
+@eBundle.QRender_CSS()
+@eBundle.QRender_JS()
+@Html.Partial("~/Areas/MES/Views/WIP/Partial2/_posiMapEDC.cshtml", @Model)
+@Html.Partial("~/Areas/MES/Views/Shared/_edc.cshtml")
+@Html.Partial("~/Areas/WIP/Views/Shared/_reason.cshtml")
+
+<pre>
+\Partial2\_posiMap.cshtml
+</pre>
+<div id="app">
+    <div class="panel b">
+        [readonly]<el-checkbox v-model="readonly"></el-checkbox>
+        [confirm]<el-checkbox v-model="confirm"></el-checkbox>
+        [highlight]<el-checkbox v-model="highlight"></el-checkbox>
+        <el-button @@click="test">test</el-button>
+        <cp-posi-map-edc ref="posi_map"
+                         :list.sync="list" :src_mo="srcMO"
+                         :readonly="readonly" :confirm="confirm" :highlight="highlight"
+                         >
+            <gt-hr content="EDC">
+                <edc-input v-model="data_input" :cfg.sync="cfg" :readonly="readonly">
+                    <h3 v-if="isTest">自定義抬頭</h3>
+                </edc-input>
+            </gt-hr>
+        </cp-posi-map-edc>
+    </div>
+    {{list}}
+</div>
+
+
+<script>
+    Vue.config.devtools = true;
+    $(() => {
+        var data_input = [
+            {
+                "EdcVerSid": "GTI19040815103300013",
+                "EdcParameterSid": "GTI19040815002800001",
+                "Display": "TestBool",
+                "DataType": "B",
+                "MustInput": "F",
+                "InputCount": 3,
+                "ItemName": "TestBool",
+                "ItemNo": "Test001",
+                "DispayPointName": "A,B,C",
+                "DispayPointNameList": [
+                    "Aaaaa",
+                    "Bbbbbb",
+                    "Ccccc"
+                ],
+                "QCItemSID": "GTI19040815002800001",
+                "UCL": 0,
+                "USL": 0,
+                "TL": "F",
+                "LCL": 0,
+                "LSL": 0,
+                "require": false,
+                "DataTypeDisplay": "布林",
+                "InputValueList": [
+                    {
+                        "Aaaaa": ""
+                    },
+                    {
+                        "Bbbbbb": "Y"
+                    },
+                    {
+                        "Ccccc": "N"
+                    }
+                ]
+            },
+            {
+                "EdcVerSid": "GTI19040815103300013",
+                "EdcParameterSid": "GTI19040815015300007",
+                "Display": "string",
+                "DataType": "S",
+                "MustInput": "F",
+                "InputCount": 1,
+                "ItemName": "string",
+                "ItemNo": "test003",
+                "DispayPointName": "A",
+                "DispayPointNameList": [
+                    "Aaaaa"
+                ],
+                "QCItemSID": "GTI19040815015300007",
+                "UCL": 0,
+                "USL": 0,
+                "TL": "T",
+                "LCL": 0,
+                "LSL": -10,
+                "require": false,
+                "DataTypeDisplay": "字串",
+                "InputValueList": [
+                    {
+                        "Aaaaa": ""
+                    }
+                ]
+            },
+            {
+                "EdcVerSid": "GTI19040815103300013",
+                "EdcParameterSid": "GTI19040815013900006",
+                "Display": "Display",
+                "DataType": "N",
+                "MustInput": "T",
+                "InputCount": 1,
+                "ItemName": "數值,負數值測試",
+                "ItemNo": "Test002",
+                "DispayPointName": "A",
+                "DispayPointNameList": [
+                    "Aaaaaa", "Bbbbb"
+                ],
+                "QCItemSID": "GTI19040815013900006",
+                "UCL": 100,
+                "USL": 150,
+                "TL": "50",
+                "LCL": -10,
+                "LSL": -10,
+                "require": true,
+                "DataTypeDisplay": "數值,負數值測試",
+                "InputValueList": [
+                    {
+                        "Aaaaa": ""
+                    }
+                ]
+            },
+            {
+                "EdcVerSid": "GTI19040815103300013",
+                "EdcParameterSid": "GTI19040815013900006",
+                "Display": "Display",
+                "DataType": "N",
+                "MustInput": "T",
+                "InputCount": 1,
+                "ItemName": "單邊null",
+                "ItemNo": "Test002",
+                "DispayPointName": "A",
+                "DispayPointNameList": [
+                    "Aaaaaa", "Bbbbb"
+                ],
+                "QCItemSID": "GTI19040815013900006",
+                "UCL": 100,
+                "USL": 150,
+                "TL": "50",
+                "LCL": null,
+                "LSL": null,
+                "require": true,
+                "DataTypeDisplay": "下限null",
+                "InputValueList": [
+                    {
+                        "Aaaaa": ""
+                    }
+                ]
+            },
+            {
+                "EdcVerSid": "GTI19040815103300013",
+                "EdcParameterSid": "GTI19040815013900006",
+                "Display": "Display",
+                "DataType": "N",
+                "MustInput": "T",
+                "InputCount": 1,
+                "ItemName": "單邊null",
+                "ItemNo": "Test002",
+                "DispayPointName": "A",
+                "DispayPointNameList": [
+                    "Aaaaaa", "Bbbbb"
+                ],
+                "QCItemSID": "GTI19040815013900006",
+                "UCL": null,
+                "USL": null,
+                "TL": "50",
+                "LCL": 100,
+                "LSL": 150,
+                "require": true,
+                "DataTypeDisplay": "上限null",
+                "InputValueList": [
+                    {
+                        "Aaaaa": ""
+                    }
+                ]
+            }
+        ]
+        var send_data = @Html.Raw(ViewData["result"] ?? "{}");
+        var srcMO = _.range(1, 25).map((el) => { return [el]; });
+        new Vue({
+            el: '#app',
+            data() {
+                return {
+                    data_input,
+                    value: '',
+                    tab_idx: '位置',
+                    readonly: false,
+                    confirm: true,
+                    highlight: false,
+                    srcMO,
+                    list: {
+                        "1": {
+                            "SID": "GTI22031515092745372",
+                            "ROOT_SID": "GTI22030915340037695",
+                            "PARENT_SID": null,
+                            "PREV_SEAIAL": null,
+                            "SN": 1,
+                            "SN_ID": "CrystalGrowth_WO01-01.02.0",
+                            "STATUS": null,
+                            "REASON": null,
+                            "ChangeFrom": null,
+                            "val": "GTI22031515092745372",
+                            "sts": "0"
+                        },
+                        "2": {
+                            "SID": "GTI22031515092745373",
+                            "ROOT_SID": "GTI22030915340037695",
+                            "PARENT_SID": null,
+                            "PREV_SEAIAL": null,
+                            "SN": 2,
+                            "SN_ID": "CrystalGrowth_WO01-01.02.1",
+                            "STATUS": null,
+                            "REASON": null,
+                            "ChangeFrom": null,
+                            "ChangeFromSN": 5,
+                            "val": "GTI22031515092745373",
+                            "sts": "0"
+                        },
+                        "3": {
+                            "SID": "GTI22031515092745374",
+                            "ROOT_SID": "GTI22030915340037695",
+                            "PARENT_SID": null,
+                            "PREV_SEAIAL": null,
+                            "SN": 3,
+                            "SN_ID": "CrystalGrowth_WO01-01.02.2",
+                            "STATUS": null,
+                            "REASON": null,
+                            "ChangeFrom": null,
+                            "val": "GTI22031515092745374",
+                            "sts": "0"
+                        },
+                        "4": {
+                            "SID": "GTI22031515092745375",
+                            "ROOT_SID": "GTI22030915340037695",
+                            "PARENT_SID": null,
+                            "PREV_SEAIAL": null,
+                            "SN": 4,
+                            "SN_ID": "CrystalGrowth_WO01-01.02.3",
+                            "STATUS": null,
+                            "REASON": null,
+                            "ChangeFrom": null,
+                            "val": "GTI22031515092745375",
+                            "sts": "0"
+                        },
+                        "5": {
+                            "SID": "GTI22031515092745376",
+                            "ROOT_SID": "GTI22030915340037695",
+                            "PARENT_SID": null,
+                            "PREV_SEAIAL": null,
+                            "SN": 5,
+                            "SN_ID": "CrystalGrowth_WO01-01.02.4",
+                            "STATUS": null,
+                            "REASON": null,
+                            "ChangeFrom": null,
+                            "val": "GTI22031515092745376",
+                            "sts": "0"
+                        },
+                        "6": {
+                            "SID": "GTI22031515092745377",
+                            "ROOT_SID": "GTI22030915340037695",
+                            "PARENT_SID": null,
+                            "PREV_SEAIAL": null,
+                            "SN": 6,
+                            "SN_ID": "CrystalGrowth_WO01-01.02.5",
+                            "STATUS": null,
+                            "REASON": null,
+                            "ChangeFrom": null,
+                            "val": "GTI22031515092745377",
+                            "sts": "0"
+                        },
+
+
+                    },
+                    cfg: {
+                        title: '',
+                        fixedTip: 2
+                    },
+                    reason: [{ "RefKey": null, "SID": "GTI11110115550180956", "No": "other", "Value": "GTI11110115550180956", "Display": "其他", "StatusSid": null, "Status": null, "FromNum": 0, "INum": 0, "Attr01": null, "Attr02": null, "Attr03": null }, { "RefKey": null, "SID": "GTI20101919411379902", "No": "R.C01-0002", "Value": "GTI20101919411379902", "Display": "ALD.鎳銅片變形", "StatusSid": null, "Status": null, "FromNum": 0, "INum": 0, "Attr01": null, "Attr02": null, "Attr03": null }, { "RefKey": null, "SID": "GTI20101919423979906", "No": "R.C01-0004", "Value": "GTI20101919423979906", "Display": "ALD.鎳片壓傷", "StatusSid": null, "Status": null, "FromNum": 0, "INum": 0, "Attr01": null, "Attr02": null, "Attr03": null }, { "RefKey": null, "SID": "GTI20101919425979908", "No": "R.C01-0005", "Value": "GTI20101919425979908", "Display": "ALD.晶片溢錫", "StatusSid": null, "Status": null, "FromNum": 0, "INum": 0, "Attr01": null, "Attr02": null, "Attr03": null }, { "RefKey": null, "SID": "GTI20101919431879910", "No": "R.C01-0006", "Value": "GTI20101919431879910", "Display": "ALD.鎳片溢錫", "StatusSid": null, "Status": null, "FromNum": 0, "INum": 0, "Attr01": null, "Attr02": null, "Attr03": null }, { "RefKey": null, "SID": "GTI20101919415579904", "No": "R.C01-0003", "Value": "GTI20101919415579904", "Display": "ALD.晶片壓傷", "StatusSid": null, "Status": null, "FromNum": 0, "INum": 0, "Attr01": null, "Attr02": null, "Attr03": null }, { "RefKey": null, "SID": "GTI21050518014931812", "No": "111", "Value": "GTI21050518014931812", "Display": "111", "StatusSid": null, "Status": null, "FromNum": 0, "INum": 0, "Attr01": null, "Attr02": null, "Attr03": null }, { "RefKey": null, "SID": "GTI21081615532603712", "No": "1123", "Value": "GTI21081615532603712", "Display": "1123", "StatusSid": null, "Status": null, "FromNum": 0, "INum": 0, "Attr01": null, "Attr02": null, "Attr03": null }]
+                }
+            },
+            computed: {
+                c_test() {
+                    let { posi_map = {} } = this.$refs;
+                    return posi_map?.current || {};
+                },
+                c_list: {
+                    get() {
+                        return JSON.stringify(this.list);
+                    },
+                    set(val) {
+                        try {
+                            debugger
+                            var r = JSON.parse(val);
+                            this.list = r;
+                            this.$refs.posi_map.Bind();
+                        } catch (e) {
+
+                        }
+                    }
+                }
+            },
+            methods: {
+                handleClick() { },
+                filterData() { },
+                test() {
+                    setTimeout(() => {
+                        var d = [
+                            {
+                                "element": ".gt-form",
+                                "popover": {
+                                    "title": "輸入方式",
+                                    "description": "可以選擇 [載具編號] 或 [批號] 執行查詢,查詢方式為 輸入完整資訊後,按 Enter "
+                                },
+                            },
+                            {
+                                "element": ".fa.fa-repeat",
+                                "popover": {
+                                    "title": "輸入方式",
+                                    "description": "可以選擇 [載具編號] 或 [批號] 執行查詢,查詢方式為 輸入完整資訊後,按 Enter "
+                                },
+                            }];
+                        var driver = new Driver();
+                        driver.defineSteps(d);
+                        driver.start();
+                    }, 500);
+                    this.$nextTick(() => {
+                        
+                    })
+                }
+            }
+        })
+    });
+</script>

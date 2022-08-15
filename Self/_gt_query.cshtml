@@ -1,0 +1,49 @@
+﻿@model Genesis.Library.BLL.MES.DataViews.WAFER_MAPPING
+@{
+    bool isSingleModel = (bool)ViewData["SingleModel"];
+
+    if (isSingleModel)
+    {
+        Layout = "~/Views/Shared/_LayoutSingle.cshtml";
+    }
+}
+@eBundle.QRender_CSS()
+@eBundle.QRender_JS()
+@Scripts.Render("~/bundles/parsley")
+<div id="app">
+	<div class="panel b">
+		<div class="panel-body form-horizontal gt-form">
+			<h3>gt-query </h3>
+			<gt-query label="api 模式" v-model="case1" api="api/info/lot"></gt-query>
+			<gt-query label="自定義查詢程序" v-model="case1" :query_func="query_func"></gt-query>
+		</div>
+	</div>
+
+	
+
+</div>
+
+
+<script>
+	$(() => {
+		new Vue({
+			el: '#app',
+			data() {
+				return {
+					case1: '',
+					case22: '',
+					i18n_t: {
+						Yes: '開啟',
+						No: '關閉',
+					}
+				}
+			},
+			methods: {
+				query_func(key) {
+					alert(`自定義查詢程序 ${key}`);
+				}
+			}
+
+		})
+	});
+</script>

@@ -1,0 +1,84 @@
+﻿@{
+	bool isSingleModel = (bool)ViewData["SingleModel"];
+
+	if (isSingleModel)
+	{
+		Layout = "~/Views/Shared/_LayoutSingle.cshtml";
+		@eBundle.QRender_CSS();
+		@eBundle.QRender_JS();
+	}
+}
+
+
+<div id="app">
+	{{ddl_case3.value2}}
+	<rework-input ref="ddl_4" :i18n="i18n"
+				  old_operation="test"
+				  :options="ddl_case3.src"
+				  v-model="ddl_case3.value2"
+				  :cfg="cfg"></rework-input>
+	<button @@click="Case1">測試-Cfg.Title 切換</button>
+</div>
+
+@Html.Partial("~/Areas/MES/Views/WIP/ZZ_Partial/_rework.cshtml")
+
+<script>
+	$(() => {
+		new Vue({
+			el: '#app',
+			data() {
+				return {
+					//{ "CheckInSet": { "IsShowEdcView": false }, "CheckOutSet": { "IsShowSplit": true, "SplitType": "Out", "IsPrintLabel": false, "IsLotSplitQTY": false, "IsSplitBIN": false, "IsPackage": false, "IsReWork": true, "IsReWork_cfg": { "Title": "分批重工站" } }, "AnySet": { "IsMultiLotSpitEqps": false, "IsOperationWorkingTimeSummery": true, "IsWarehousingOp": false, "IsOperationWoBin": false, "IsOperationWoPlate": false } }
+					ddl_case3: {
+						values1: [],
+						values2: [],
+						src:[{"SID":"GTI20101409450002611","Status":"O","TO_OPER_CATEGORY":"O","OPERATION":"熱烘烤","OPERATION_NO":"B040.01","OPER_SID":"GTI20020714333001285","ROUTE":"ReWork01","ROUTE_VER_SID":"GTI20101318275702518","ROUTE_NO":"ReWork01"},{"SID":"GTI20101409454602612","Status":"R","TO_OPER_CATEGORY":"R","OPERATION":"切割","OPERATION_NO":"C02000-0030","OPER_SID":"GTI20091014210205213","ROUTE":"重工流程測試","ROUTE_VER_SID":"GTI20091610074707007","ROUTE_NO":"R001"},{"SID":"GTI20101409454602612","Status":"","TO_OPER_CATEGORY":"R","OPERATION":"切割","OPERATION_NO":"C02000-0030","OPER_SID":"GTI20091014210205213","ROUTE":"重工流程測試","ROUTE_VER_SID":"GTI20091610074707007","ROUTE_NO":"R001"}],
+						ops: {
+							tagField: 'SID',
+							labelField: 'OPER_NO',
+							valueField: 'SID',
+							searchField: ['OPER_NO', 'No', 'SID'],
+							tpl_tag(data, tagField, escape) {
+								if (!tagField) return '';
+								return `<span class="label label-primary">${escape(data[tagField])}</span> `;
+							},
+							render: {
+								option(data, escape) {
+									
+									let { labelField, valueField, tagField, tpl_tag } = this.settings;
+									return `
+										<div class="option"><H5>${tpl_tag(data, tagField, escape)}${escape(data[labelField])}<i class="fa fa-info-circle" aria-hidden="true"></i></H5></div>
+									`;
+								},
+								item(data, escape) {
+									let { labelField, valueField, tagField, tpl_tag } = this.settings;
+									return `<div class="item"><H5>${tpl_tag(data, tagField, escape)}${escape(data[labelField])}<i class="fa fa-info-circle" aria-hidden="true"></i></H5></div>`;
+								}
+							}
+						},
+                    },
+					i18n: {
+						Face: {
+							'OPERATION': '@RES.BLL.Face.OPERATION',
+							'OLD_OPERATION': '@RES.BLL.Face.OLD_OPERATION',
+							'NEW_OPERATION': '@RES.BLL.Face.NEW_OPERATION'
+						},
+						Message: {
+							'PleaseScanTheBarcodeOrUseKeywords': '@RES.BLL.Message.PleaseScanTheBarcodeOrUseKeywords'
+						}
+					},
+					cfg:null,
+				}
+			},
+			methods: {
+				Case1() {
+					var _arg = this.cfg == null
+						? {Title:'後端定義 Title'}
+						: null
+						;
+					this.$set(this,'cfg', _arg);
+				},
+			}
+		})
+	});
+</script>

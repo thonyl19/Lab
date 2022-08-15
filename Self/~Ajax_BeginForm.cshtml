@@ -1,0 +1,59 @@
+﻿@{
+	/*
+	https://jeffprogrammer.wordpress.com/2015/10/30/asp-net-mvc-ajaxhelper/
+	https://codertw.com/%E5%89%8D%E7%AB%AF%E9%96%8B%E7%99%BC/386292/
+	*/
+
+}
+@model MDL.MES.AD_LOG
+@{
+	bool isSingleModel = (bool)ViewData["SingleModel"];
+
+	if (isSingleModel)
+	{
+		Layout = "~/Views/Shared/_LayoutSingle.cshtml";
+		@eBundle.QRender_CSS();
+		@eBundle.QRender_JS();
+	}
+}
+@section Scripts {
+	@*這一段一定要包進去 ,不然會出錯*@
+	<script src='https://ajax.aspnetcdn.com/ajax/jquery.unobtrusive-ajax/3.2.5/jquery.unobtrusive-ajax.min.js'></script>
+}
+
+<div id="app">
+	@using (Ajax.BeginForm("API", "CodeExamp", null, new AjaxOptions { HttpMethod = "GET", }))
+	{
+		<div>
+			<input type="hidden" id="hidden2" name="hidden2" />
+			@Html.HiddenFor(m => m.TARGET_TABLE)
+			@Html.LabelFor(m => m.FUN_NAME)
+			@Html.TextBoxFor(m => m.FUN_NAME)
+			@Html.ValidationMessageFor(m => m.FUN_NAME)
+		</div>
+
+
+		<input type="submit" value="Save" id="btnSave" name="ButtonType" />
+		<input type="submit" value="Next" id="btnNext" name="ButtonType" />
+		@Html.AntiForgeryToken()
+	}
+</div>
+
+
+<script>
+	$(() => {
+		new Vue({
+			el: '#app',
+			data() {
+				return {
+					msg: "baseTpl"
+				}
+			},
+			methods: {
+				Exec() {
+
+				}
+			}
+		})
+	});
+</script>

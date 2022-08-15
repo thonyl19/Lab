@@ -1,0 +1,73 @@
+﻿@{
+	ViewBag.Title = @Genesis.Common.PageBaseInfo.getCurrentResource("Case2").RESOURCE_NAME;
+}
+<h3>
+	@ViewBag.Title
+</h3>
+<div id="app">
+	<h3> Case 2-1 v-for 和動態新增刪除 </h3>
+	<button v-on:click="Exec1">Exec1</button>
+	<table border="1">
+		<tr>
+			<th>List</th>
+		</tr>
+		<tr v-for="(item,idx) in items">
+			<td>this is item-{{idx}} <button @@click="Del(idx)">X</button></td>
+		</tr>
+	</table>
+
+	<h3> Case 2-2 動態樣式</h3>
+	<input type="text" v-model="str_list" />
+	<button @@click="Exec2">Exec2</button>
+	<div>[items1]{{items1}}</div>
+	<ul v-for="(item,idx) in items1">
+		<li :style="idx%2==0?'color:red':''">{{idx}} <input type="text" v-model="item.value" /> <button v-on:click="Del_1(idx)">X</button></li>
+	</ul>
+
+</div>
+
+@section Styles {
+	@Styles.Render(eBundle.elUI_CSS)
+
+}
+
+@section Scripts {
+	@Scripts.Render(eBundle.Vue_MES)
+	@Scripts.Render(eBundle.elUI_JS)
+}
+
+<script>
+	$(() => {
+		new Vue({
+			el: '#app',
+			data() {
+				return {
+					msg: "baseTpl",
+					items: [],
+					items1: [],
+					str_list: '1,2,3'
+				}
+			},
+			methods: {
+				Exec1() {
+					this.counts++;
+					this.items.push(this.counts);
+				},
+				Del(idx) {
+					this.items.splice(idx, 1);
+				},
+				Del_1(idx) {
+					this.items1.splice(idx, 1);
+				},
+				Exec2() {
+					var _self = this;
+					var _arr = _self.str_list.split(',');
+					_self.items1 = [];
+					for (idx in _arr) {
+						_self.items1.push({ idx, el: _arr[idx], value: '' })
+					}
+				}
+			}
+		})
+	});
+</script>

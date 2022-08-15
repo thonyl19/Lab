@@ -1,0 +1,35 @@
+﻿@{
+	bool isSingleModel = (bool)ViewData["SingleModel"];
+
+	if (isSingleModel)
+	{
+		Layout = "~/Views/Shared/_LayoutSingle.cshtml";
+		@eBundle.QRender_CSS();
+		@eBundle.QRender_JS();
+	}
+}
+
+@Html.Partial("~/Areas/MES/Views/WIP/Partial2/_selectUsers.cshtml", @Model)
+<pre>
+\Partial2\_selectUsers.cshtml
+</pre>
+<div id="app">
+	<multi-select-users ref="multiUserScope" v-model="send_data.user_list" :set_model="$data"></multi-select-users>
+</div>
+
+
+<script>
+	$(() => {
+		new Vue({
+			el: '#app',
+			data() {
+				return {
+					$data: {},
+					send_data: {
+                        user_list:[]
+					}
+				}
+			}
+		})
+	});
+</script>

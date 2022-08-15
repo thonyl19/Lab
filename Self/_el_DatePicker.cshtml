@@ -1,0 +1,58 @@
+﻿@{
+	bool isSingleModel = (bool)ViewData["SingleModel"];
+
+	if (isSingleModel)
+	{
+		Layout = "~/Views/Shared/_LayoutSingle.cshtml";
+		@eBundle.QRender_CSS();
+		@eBundle.QRender_JS();
+	}
+}
+@Scripts.Render("~/bundles/parsley")
+<div id="app">
+    <form>
+        <h3>一般應用</h3>
+        <gt-form-col label="Test"  v-model="value1" required="true">
+        </gt-form-col>
+        <gt-form-col label="啟用時間" required>
+            <gt-el-date-picker type="datetime" class="el-date-fix" 
+                               value-format="yyyy-MM-dd HH:mm:dd"
+                               required
+                               v-model="value1">
+            </gt-el-date-picker>
+        </gt-form-col>
+        <gt-el-date-picker type="datetime" class="el-date-fix"
+                           value-format="yyyy-MM-dd HH:mm:dd" required
+                           v-model="value1"></gt-el-date-picker>
+
+        <el-button @@click="test">
+            test
+        </el-button>
+    </form>
+</div>
+
+
+<script>
+    $(() => {
+        new Vue({
+            el: '#app',
+            data() {
+                return {
+                    value1:''
+                }
+            },
+            methods:{
+                test() {
+                    debugger
+                    var x = $('form').parsley().validate();
+                    return false;
+                }
+            }
+        })
+    });
+</script>
+<style>
+    .gt-tag-list dl {
+        -webkit-filter: opacity(.65);
+    }
+</style>

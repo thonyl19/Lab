@@ -1,0 +1,120 @@
+﻿@{
+	ViewBag.Title = @Genesis.Common.PageBaseInfo.getCurrentResource("gt-toolbar").RESOURCE_NAME;
+	bool isSingleModel = (bool)ViewData["SingleModel"];
+
+	if (isSingleModel) Layout = "~/Views/Shared/_LayoutSingle.cshtml";
+}
+@eBundle.QRender_CSS()
+@eBundle.QRender_JS()
+@Html.AntiForgeryToken()
+<h3>
+	@ViewBag.Title
+	<small><a href="https://genesisoffice365.sharepoint.com/:o:/r/sites/GTiMES50/_layouts/15/WopiFrame.aspx?sourcedoc={7175ca3d-ef9b-447d-a677-837671fc502f}&action=edit&wd=target%28UI%2Eone%7C0DA210C6%2DA155%2D4147%2DABA6%2DF995FD827BC6%2Fgt%2Dtoolbar%7CE1159DE3%2D014D%2D41F0%2D9A07%2DE3809845F054%2F%29onenote%3Ahttps%3A%2F%2Fgenesisoffice365%2Esharepoint%2Ecom%2Fsites%2FGTiMES50%2FSiteAssets%2FGTiMES%205%2E0%20%E9%96%8B%E7%99%BC%20%E7%AD%86%E8%A8%98%E6%9C%AC%2FUI%2Eone#gt-toolbar&section-id={0DA210C6-A155-4147-ABA6-F995FD827BC6}&page-id={E1159DE3-014D-41F0-9A07-E3809845F054}&end" target="_blank">參考文件</a></small>
+</h3>
+<div id="app" v-cloak>
+	<h3>簡易模式</h3>
+	<gt-toolbar :enable.sync="enable"
+                :e_exec="fn"
+				:e_add="fn"
+				:e_save="fn"
+				:e_del="fn"
+				:e_query="fn"
+				:e_clear="fn"
+                 :is_change="is_change">
+	</gt-toolbar>
+	<h3>進階模式</h3>
+	<el-button @@click="fixed='top'">置頂</el-button>
+	<el-button @@click="fixed='bottom'">置底</el-button>
+	<el-button @@click="fixed=null">取消</el-button>
+	<el-button @@click="relative=!relative">相對模式:{{relative}}</el-button>
+	<el-button @@click="v_enable=!v_enable">Enable 顯示:{{v_enable}}</el-button>
+	<el-button @@click="e_save_enable=!e_save_enable">Save enable 顯示:{{e_save_enable}}</el-button>
+    <el-button @@click="e_save_visable=!e_save_visable">Save visable 顯示:{{e_save_visable}}</el-button>
+    <el-button @@click="bg_color=!bg_color">Background-color 顯示:{{bg_color}}</el-button>
+    <el-button @@click="is_change=!is_change">is_change 顯示:{{is_change}}</el-button>
+	<div>{{e_save}}</div>
+	<div>{{enable}}</div>
+	<div style="margin:1em;position:relative;" class="mark">
+		<gt-toolbar :fixed="fixed" :relative="relative"
+					:enable.sync="enable"
+					:e_add="add"
+					:e_save="e_save"
+                    :bg_color="bg_color"
+                    :is_change="is_change">
+		</gt-toolbar>
+		<div style="height:20rem;overflow:auto;" class="mark">
+			<h3 v-for="n in 100">{{n}}</h3>
+		</div>
+	</div>
+</div>
+@section Styles {
+	@Styles.Render(eBundle.elUI_CSS)
+}
+
+@section Scripts {
+	@Scripts.Render(eBundle.Vue_MES)
+	@Scripts.Render(eBundle.elUI_JS)
+}
+
+<script>
+    $(() => {
+        new Vue({
+            el: '#app',
+            data() {
+                return {
+                    fixed: 'top',
+                    relative: true,
+                    v_enable: true,
+                    e_save_enable: true,
+                    e_save_visable: true,
+                    bg_color: true,
+                    enable: false,
+                    is_change:false,
+                }
+            },
+            computed: {
+                disabled() {
+                    return this.DetailList.length == 0;
+                },
+                //以屬性模式設定 button 的相關行為
+                e_save() {
+                    return {
+                        visable: this.e_save_visable,
+                        enable: this.e_save_enable,
+                        fn: this.fn
+                    }
+                },
+                _enable: {
+                    get() {
+                        if (!this.v_enable) return null;
+                        return true;
+                    },
+                    set(val) {
+                        this.enable = val;
+                    }
+                }
+            },
+            watch: {
+                v_enable(val) {
+                    
+                    if (val == false) {
+                        this.enable = null;
+                        return;
+                    }
+                    this.enable = val;
+                },
+                enable(val) {
+                    alert(`enable[${val}]`);
+                }
+            },
+            methods: {
+                add() {
+                    alert('add');
+                },
+                fn() {
+                    alert(`[e_save_enable]${this.e_save_enable}`);
+                }
+            }
+        })
+    });
+</script>

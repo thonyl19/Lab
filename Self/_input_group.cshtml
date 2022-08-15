@@ -1,0 +1,47 @@
+﻿
+<div id="app">
+	<div class="row">
+		<h2>Case1--基本使用</h2>
+		<div>[get value]{{value_1}}</div>
+		<gt-input-group label="@RES.BLL.Face.LotNo"
+						v-model="value_1"
+						placeholder="placeholder"></gt-input-group>
+	</div>
+	<div class="row">
+		<h2>Case2--自定義物件</h2>
+		<div>[get value]{{value_2}}</div>
+		<gt-input-group label="@RES.BLL.Face.LotNo">
+			<input type="password"
+				   class="form-control"
+				   v-model="value_2">
+		</gt-input-group>
+	</div>
+
+</div>
+@section Styles {
+	@Styles.Render(eBundle.selectize_CSS)
+	@Styles.Render(eBundle.elUI_CSS)
+}
+
+
+@section Scripts {
+	@Scripts.Render(eBundle.selectize_JS)
+	@Scripts.Render(eBundle.Vue_MES)
+	@Scripts.Render(eBundle.elUI_JS)
+}
+
+<script>
+	$(() => {
+		new Vue({
+			el: '#app',
+			data() {
+				return {
+					value_1: '',
+					value_2: ''
+				}
+			},
+
+
+		})
+	});
+</script>

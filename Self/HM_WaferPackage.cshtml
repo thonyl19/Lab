@@ -1,0 +1,303 @@
+﻿@using System.Dynamic
+@{
+	bool isSingleModel = (bool)ViewData["SingleModel"];
+	if (isSingleModel)
+	{
+		Layout = "~/Views/Shared/_LayoutSingle.cshtml";
+	}
+}
+@eBundle.QRender_CSS()
+@eBundle.QRender_JS()
+@Html.Partial("~/Areas/MES/Views/WIP/Partial2/_posiMapEDC.cshtml")
+<pre>
+\Partial2\_posiMap.cshtml
+</pre>
+<div id="app">
+    <div class="panel b">
+        <el-button @@click="Exec">Exec</el-button>
+        <el-button @@click="Case0">單批同包</el-button>
+        <cp-wafer-package v-model="WafersPackage" :edit_grade="true" :is_test="true"
+                          :package_list="packageList"
+                          :grade_list="GradeList"></cp-wafer-package>
+    </div>
+    {{WafersPackage}}
+</div>
+
+
+<script>
+    Vue.config.devtools = true;
+    $(() => {
+        var send_data = @Html.Raw(ViewData["result"] ?? "{}")
+
+
+        new Vue({
+            el: '#app',
+            provide() {
+                return {
+                    rootEl: this,
+                };
+            },
+            data() {
+                return {
+                    value: '',
+                    tab_idx: '位置',
+                    readonly: false,
+                    confirm: true,
+                    highlight: false,
+
+                    cfg: {
+                        title: '',
+                        fixedTip: 2
+                    },
+                    isChange: false,
+                    isGradeChg: false,
+                    isPassEdcCheck: false,
+                    GradeList:@Html.Raw(Json.Encode(BLL.MES.DDLServices.ddl_Parameter("Grade"))),
+                    WafersPackage: [
+                                {
+                                    "WAFER_MAPPING_SID": "GTI22061713333221287",
+                                    "LOT_SID": "GTI22062117101425747",
+                                    "LOT": "EB3N4B2B4505-02.01.01",
+                                    "ROOT_LOT_SID": "GTI22061713201621152",
+                                    "PARENT_LOT_SID": "GTI22061713333121272",
+                                    "PREV_SEAIAL": -1,
+                                    "SERIAL_NUMBER": 1,
+                                    "SERIAL_NUMBER_ID": "B4N420510115W",
+                                    "SERIAL_STATUS": "Normal",
+                                    "CREATE_USER": "Admin",
+                                    "CREATE_DATE": "2022-06-17 13:33:32",
+                                    "UPDATE_USER": "Admin",
+                                    "UPDATE_DATE": "2022-06-22 14:14:32",
+                                    "SHIP_CASSETTE": "",
+                                    "GRADE": "A",
+                                    "MLOT_SID": null,
+                                    "WAREHOUSIN_NO": null
+                                },
+                                {
+                                    "WAFER_MAPPING_SID": "GTI22062311062631128",
+                                    "LOT_SID": "GTI22062311062331116",
+                                    "LOT": "EB3N4B2B4507-01.01",
+                                    "ROOT_LOT_SID": "GTI22062311062331116",
+                                    "PARENT_LOT_SID": null,
+                                    "PREV_SEAIAL": null,
+                                    "SERIAL_NUMBER": 1,
+                                    "SERIAL_NUMBER_ID": "B4N420510101I",
+                                    "SERIAL_STATUS": "Normal",
+                                    "CREATE_USER": "Admin",
+                                    "CREATE_DATE": "2022-06-23 11:06:27",
+                                    "UPDATE_USER": "Admin",
+                                    "UPDATE_DATE": "2022-06-23 11:06:27",
+                                    "SHIP_CASSETTE": null,
+                                    "GRADE": "A",
+                                    "MLOT_SID": "GTI22051014085261447",
+                                    "WAREHOUSIN_NO": null
+                                },
+                                {
+                                    "WAFER_MAPPING_SID": "GTI22062311062731129",
+                                    "LOT_SID": "GTI22062311062331116",
+                                    "LOT": "EB3N4B2B4507-01.01",
+                                    "ROOT_LOT_SID": "GTI22062311062331116",
+                                    "PARENT_LOT_SID": null,
+                                    "PREV_SEAIAL": null,
+                                    "SERIAL_NUMBER": 2,
+                                    "SERIAL_NUMBER_ID": "B4N420510102I",
+                                    "SERIAL_STATUS": "Normal",
+                                    "CREATE_USER": "Admin",
+                                    "CREATE_DATE": "2022-06-23 11:06:27",
+                                    "UPDATE_USER": "Admin",
+                                    "UPDATE_DATE": "2022-06-23 11:06:27",
+                                    "SHIP_CASSETTE": null,
+                                    "GRADE": "A",
+                                    "MLOT_SID": "GTI22051014085261447",
+                                    "WAREHOUSIN_NO": null
+                                },
+                                {
+                                    "WAFER_MAPPING_SID": "GTI22062311062731130",
+                                    "LOT_SID": "GTI22062311062331116",
+                                    "LOT": "EB3N4B2B4507-01.01",
+                                    "ROOT_LOT_SID": "GTI22062311062331116",
+                                    "PARENT_LOT_SID": null,
+                                    "PREV_SEAIAL": null,
+                                    "SERIAL_NUMBER": 3,
+                                    "SERIAL_NUMBER_ID": "B4N420510103I",
+                                    "SERIAL_STATUS": "Normal",
+                                    "CREATE_USER": "Admin",
+                                    "CREATE_DATE": "2022-06-23 11:06:27",
+                                    "UPDATE_USER": "Admin",
+                                    "UPDATE_DATE": "2022-06-23 11:06:27",
+                                    "SHIP_CASSETTE": null,
+                                    "GRADE": "A",
+                                    "MLOT_SID": "GTI22051014085261447",
+                                    "WAREHOUSIN_NO": null
+                                },
+                                {
+                                    "WAFER_MAPPING_SID": "GTI22062311062731131",
+                                    "LOT_SID": "GTI22062311062331116",
+                                    "LOT": "EB3N4B2B4507-01.01",
+                                    "ROOT_LOT_SID": "GTI22062311062331116",
+                                    "PARENT_LOT_SID": null,
+                                    "PREV_SEAIAL": null,
+                                    "SERIAL_NUMBER": 4,
+                                    "SERIAL_NUMBER_ID": "B4N420510104I",
+                                    "SERIAL_STATUS": "Normal",
+                                    "CREATE_USER": "Admin",
+                                    "CREATE_DATE": "2022-06-23 11:06:28",
+                                    "UPDATE_USER": "Admin",
+                                    "UPDATE_DATE": "2022-06-23 11:06:28",
+                                    "SHIP_CASSETTE": null,
+                                    "GRADE": "B",
+                                    "MLOT_SID": "GTI22051014085261447",
+                                    "WAREHOUSIN_NO": null
+                                },
+                                {
+                                    "WAFER_MAPPING_SID": "GTI22062311062731132",
+                                    "LOT_SID": "GTI22062311062331116",
+                                    "LOT": "EB3N4B2B4507-01.01",
+                                    "ROOT_LOT_SID": "GTI22062311062331116",
+                                    "PARENT_LOT_SID": null,
+                                    "PREV_SEAIAL": null,
+                                    "SERIAL_NUMBER": 5,
+                                    "SERIAL_NUMBER_ID": "B4N420510105I",
+                                    "SERIAL_STATUS": "Normal",
+                                    "CREATE_USER": "Admin",
+                                    "CREATE_DATE": "2022-06-23 11:06:28",
+                                    "UPDATE_USER": "Admin",
+                                    "UPDATE_DATE": "2022-06-23 11:06:28",
+                                    "SHIP_CASSETTE": null,
+                                    "GRADE": "B",
+                                    "MLOT_SID": "GTI22051014085261447",
+                                    "WAREHOUSIN_NO": null
+                                },
+                                {
+                                    "WAFER_MAPPING_SID": "GTI22062311062731133",
+                                    "LOT_SID": "GTI22062311062331116",
+                                    "LOT": "EB3N4B2B4507-01.01",
+                                    "ROOT_LOT_SID": "GTI22062311062331116",
+                                    "PARENT_LOT_SID": null,
+                                    "PREV_SEAIAL": null,
+                                    "SERIAL_NUMBER": 6,
+                                    "SERIAL_NUMBER_ID": "B4N420510106I",
+                                    "SERIAL_STATUS": "Normal",
+                                    "CREATE_USER": "Admin",
+                                    "CREATE_DATE": "2022-06-23 11:06:28",
+                                    "UPDATE_USER": "Admin",
+                                    "UPDATE_DATE": "2022-06-23 11:06:28",
+                                    "SHIP_CASSETTE": null,
+                                    "GRADE": "C",
+                                    "MLOT_SID": "GTI22051014085261447",
+                                    "WAREHOUSIN_NO": null
+                                },
+                                {
+                                    "WAFER_MAPPING_SID": "GTI22062311062831134",
+                                    "LOT_SID": "GTI22062311062331116",
+                                    "LOT": "EB3N4B2B4507-01.01",
+                                    "ROOT_LOT_SID": "GTI22062311062331116",
+                                    "PARENT_LOT_SID": null,
+                                    "PREV_SEAIAL": null,
+                                    "SERIAL_NUMBER": 7,
+                                    "SERIAL_NUMBER_ID": "B4N420510107I",
+                                    "SERIAL_STATUS": "Normal",
+                                    "CREATE_USER": "Admin",
+                                    "CREATE_DATE": "2022-06-23 11:06:28",
+                                    "UPDATE_USER": "Admin",
+                                    "UPDATE_DATE": "2022-06-23 11:06:28",
+                                    "SHIP_CASSETTE": null,
+                                    "GRADE": "C",
+                                    "MLOT_SID": "GTI22051014085261447",
+                                    "WAREHOUSIN_NO": null
+                                },
+
+                            ],
+
+                    packageList: [
+                        { "SHIP_CASSETTE_SID": "GTI22063011393950069", "SHIP_CASSETTE_NO": "TestA1", "CURRENT_CAPACITY": 2, "MAX_CAPACITY": 30, "CURRENT_LOT_SIZE": 0, "GRADE": "A", "CREATE_USER": "WebSignage", "CREATE_DATE": "2022-06-30T11:39:39", "UPDATE_USER": "Admin", "UPDATE_DATE": "2022-07-04T17:13:15", "Used": 21 }
+                       ,{ "SHIP_CASSETTE_SID": "GTI22063011393950061", "SHIP_CASSETTE_NO": "TestA2", "CURRENT_CAPACITY": 2, "MAX_CAPACITY": 30, "CURRENT_LOT_SIZE": 0, "GRADE": "A", "CREATE_USER": "WebSignage", "CREATE_DATE": "2022-06-30T11:39:39", "UPDATE_USER": "Admin", "UPDATE_DATE": "2022-07-04T17:13:15", "Used": 21 }
+                       ,{ "SHIP_CASSETTE_SID": "GTI22063011393950062", "SHIP_CASSETTE_NO": "TestB1", "CURRENT_CAPACITY": 2, "MAX_CAPACITY": 30, "CURRENT_LOT_SIZE": 0, "GRADE": "B", "CREATE_USER": "WebSignage", "CREATE_DATE": "2022-06-30T11:39:39", "UPDATE_USER": "Admin", "UPDATE_DATE": "2022-07-04T17:13:15", "Used": 21 }
+                       ,{ "SHIP_CASSETTE_SID": "GTI22063011393950063", "SHIP_CASSETTE_NO": "TestB2", "CURRENT_CAPACITY": 2, "MAX_CAPACITY": 30, "CURRENT_LOT_SIZE": 0, "GRADE": "B", "CREATE_USER": "WebSignage", "CREATE_DATE": "2022-06-30T11:39:39", "UPDATE_USER": "Admin", "UPDATE_DATE": "2022-07-04T17:13:15", "Used": 21 }
+                       ,{ "SHIP_CASSETTE_SID": "GTI22063011393950064", "SHIP_CASSETTE_NO": "TestC1", "CURRENT_CAPACITY": 2, "MAX_CAPACITY": 30, "CURRENT_LOT_SIZE": 0, "GRADE": "C", "CREATE_USER": "WebSignage", "CREATE_DATE": "2022-06-30T11:39:39", "UPDATE_USER": "Admin", "UPDATE_DATE": "2022-07-04T17:13:15", "Used": 21 }
+                       ,{ "SHIP_CASSETTE_SID": "GTI22063011393950065", "SHIP_CASSETTE_NO": "TestC2", "CURRENT_CAPACITY": 2, "MAX_CAPACITY": 30, "CURRENT_LOT_SIZE": 0, "GRADE": "C", "CREATE_USER": "WebSignage", "CREATE_DATE": "2022-06-30T11:39:39", "UPDATE_USER": "Admin", "UPDATE_DATE": "2022-07-04T17:13:15", "Used": 21 }
+                    ],
+                }
+            },
+            computed: {
+                c_test() {
+                    let { posi_map = {} } = this.$refs;
+                    return posi_map?.current || {};
+                },
+                c_list: {
+                    get() {
+                        return JSON.stringify(this.list);
+                    },
+                    set(val) {
+                        try {
+                            debugger
+                            var r = JSON.parse(val);
+                            this.list = r;
+                            this.$refs.posi_map.Bind();
+                        } catch (e) {
+
+                        }
+                    }
+                }
+            },
+            methods: {
+                //e單批同包
+                Case0() {
+                    debugger
+                    var r0 = this.WafersPackage[0];
+                    _.each(this.WafersPackage, el => {
+                        el.LOT_SID = r0.LOT_SID;
+                        el.LOT = r0.LOT;
+                        el.GRADE = r0.GRADE;
+                        el.SHIP_CASSETTE = r0.SHIP_CASSETTE;
+                    })
+                },
+                Exec() {
+                    debugger
+                    var _self = this;
+                    let { WafersPackage } = _self;
+                    _.each(WafersPackage, el => {
+                        el.PARENT_LOT_SID = "";
+                    });
+                    console.log({ WafersPackage });
+                    var param = { WafersPackage };
+                    param.isTest = 'T';
+                    var _ajax = {
+                        url: "@Genesis.Common.PageBaseInfo.GetBaseUrl()/api/info/SHIP_CASSETTE",
+                        type: 'post',
+                        automessage: true,
+                        param,
+                        success(res) {
+                            let { Data } = res;
+                            _.each(Data,el => {
+                                let { SERIAL_NUMBER_ID, SERIAL_NUMBER, ROOT_LOT_SID, PARENT_LOT_SID } = el;
+                                var _map = _.filter(_self.WafersPackage, { SERIAL_NUMBER_ID });
+                                if (_map) {
+                                    _map[0].ROOT_LOT_SID = SERIAL_NUMBER;
+                                    _map[0].PARENT_LOT_SID = PARENT_LOT_SID;
+                                    
+                                }
+                            })
+                            console.log(Data);
+                        }, error: function (XMLHttpRequest, textStatus, errorThrown) {
+                            debugger;
+                            alert(XMLHttpRequest.status);
+                            alert(XMLHttpRequest.readyState);
+                            alert(textStatus);
+                        },
+                    };
+                    $.submitForm(_ajax);
+                },
+                //提供 PosiMapEDC  處理 point 變動 註點時,做 edc 檢核
+                CheckPointChange(current) {
+                    if (this.isPassEdcCheck) return true;
+                    var r = this.$refs.edc_input.check();
+                    console.log({ check_point_change: r });
+                    return r;
+                },
+                handleClick() { },
+                filterData() { },
+            }
+        })
+    });
+</script>

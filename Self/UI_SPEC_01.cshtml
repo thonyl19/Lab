@@ -1,0 +1,38 @@
+﻿
+<h3>
+	UI 規範01
+	<small><a href="https://genesisoffice365.sharepoint.com/sites/GTiMES50/_layouts/15/Doc.aspx?sourcedoc={7175ca3d-ef9b-447d-a677-837671fc502f}&action=edit&wd=target%28UI.one%7C0da210c6-a155-4147-aba6-f995fd827bc6%2F%E5%BE%AA%E7%92%B0%E6%93%8D%E4%BD%9C%E7%9A%84%E7%A8%8B%E5%BC%8F%E8%A1%8C%E7%82%BA%E8%A6%8F%E7%AF%84%7Cf4a49dab-89ae-470c-ad1a-e392caf4fb8c%2F%29" target="_blank">參考文件</a></small>
+</h3>
+@Html.AntiForgeryToken()
+<div id="app">
+	<button @@click="Exec">Exec</button>
+</div>
+
+@section Styles {
+	@Styles.Render(eBundle.elUI_CSS)
+}
+
+@section Scripts {
+	@Scripts.Render(eBundle.Vue_MES)
+	@Scripts.Render(eBundle.elUI_JS)
+}
+
+<script>
+	$(() => {
+		new Vue({
+			el: '#app',
+			data() {
+				return {
+					msg: "baseTpl"
+				}
+			},
+			methods: {
+				Exec() {
+					this.$Alert.Success("@RES.BLL.Message.SaveSuccessful").then(() => {
+						location.replace(location.href);
+					})
+				}
+			}
+		})
+	});
+</script>

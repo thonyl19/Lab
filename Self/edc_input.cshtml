@@ -1,0 +1,336 @@
+﻿@{
+    
+}
+<h3>
+    @ViewBag.Title
+    <small></small>
+</h3>
+@Html.Partial("~/Areas/MES/Views/Shared/_edc.cshtml")
+<div id="app" v-cloak>
+    <label>title</label><input v-model="cfg.title" /><br />
+    顯示自定義抬頭<input type="checkbox" v-model="isTest" />
+    <el-button @@click="isChange=false"> [isChange]{{isChange}}</el-button>
+    <div>
+        <label>fixedTip</label>
+        <el-radio-group v-model.number="fixedTip">
+            <el-radio :label=1>浮動顯示</el-radio>
+            <el-radio :label=2>固定顯示</el-radio>
+        </el-radio-group>
+        <div>
+            <el-checkbox v-model="lock" />鎖定 tooltip 顯示模式
+            <el-checkbox v-model="readonly" />readonly
+            <el-button @@click="check">檢核資料</el-button>
+        </div>
+        <div><el-button @@click="QueryLog">載入Log</el-button></div>
+    </div>
+
+    <edc-input ref="edc" v-model="data_input" :cfg.sync="cfg" :readonly="readonly">
+        <template v-slot:head-area>
+            <el-button type="primary" size="small" plain style="float: right;margin-right:1rem;" @@click="e_copy">塞入自定義功能</el-button>
+        </template>
+        <h3 v-if="isTest">自定義抬頭</h3>
+    </edc-input>
+</div>
+@section Styles {
+    @Styles.Render(eBundle.elUI_CSS)
+}
+
+@section Scripts {
+    @Scripts.Render(eBundle.Vue_MES)
+    @Scripts.Render(eBundle.elUI_JS)
+}
+
+<script>
+    Vue.config.devtools = true;
+
+    $(() => {
+        var data_input = [
+            {
+                "EdcVerSid": "GTI19040815103300013",
+                "EdcParameterSid": "GTI19040815002800001",
+                "Display": "TestBool",
+                "DataType": "B",
+                "mustInput": "T",
+                "InputCount": 3,
+                "ItemName": "TestBool",
+                "ItemNo": "Test001",
+                "DispayPointName": "A,B,C",
+                "DispayPointNameList": [
+                    "Aaaaa",
+                    "Bbbbbb",
+                    "Ccccc"
+                ],
+                "QCItemSID": "GTI19040815002800001",
+                "UCL": 0,
+                "USL": 0,
+                "TL": "F",
+                "LCL": 0,
+                "LSL": 0,
+                "require": false,
+                "DataTypeDisplay": "布林",
+                "InputValueList": [
+                    {
+                        "Aaaaa": ""
+                    },
+                    {
+                        "Bbbbbb": "Y"
+                    },
+                    {
+                        "Ccccc": "N"
+                    }
+                ]
+            },
+            {
+                "EdcVerSid": "GTI19040815103300013",
+                "EdcParameterSid": "GTI19040815015300007",
+                "Display": "string",
+                "DataType": "S",
+                "mustInput": "T",
+                "InputCount": 1,
+                "ItemName": "string",
+                "ItemNo": "test003",
+                "DispayPointName": "A",
+                "DispayPointNameList": [
+                    "Aaaaa"
+                ],
+                "QCItemSID": "GTI19040815015300007",
+                "UCL": 0,
+                "USL": 0,
+                "TL": "T",
+                "LCL": 0,
+                "LSL": -10,
+                "require": false,
+                "DataTypeDisplay": "字串",
+                "InputValueList": [
+                    {
+                        "Aaaaa": ""
+                    }
+                ]
+            },
+            {
+                "EdcVerSid": "GTI19040815103300013",
+                "EdcParameterSid": "GTI19040815013900006",
+                "Display": "Display",
+                "DataType": "N",
+                "MustInput": "T",
+                "InputCount": 1,
+                "ItemName": "數值,負數值測試",
+                "ItemNo": "Test002",
+                "DispayPointName": "A",
+                "DispayPointNameList": [
+                    "Aaaaaa", "Bbbbb"
+                ],
+                "QCItemSID": "GTI19040815013900006",
+                "UCL": 100,
+                "USL": 150,
+                "TL": "50",
+                "LCL": -10,
+                "LSL": -10,
+                "require": true,
+                "DataTypeDisplay": "數值,負數值測試",
+                "InputValueList": [
+                    {
+                        "Aaaaa": ""
+                    }
+                ]
+            },
+            {
+                "EdcVerSid": "GTI19040815103300013",
+                "EdcParameterSid": "GTI19040815013900006",
+                "Display": "Display",
+                "DataType": "N",
+                "MustInput": "T",
+                "InputCount": 1,
+                "ItemName": "單邊null",
+                "ItemNo": "Test002",
+                "DispayPointName": "A",
+                "DispayPointNameList": [
+                    "Aaaaaa", "Bbbbb"
+                ],
+                "QCItemSID": "GTI19040815013900006",
+                "UCL": 100,
+                "USL": 150,
+                "TL": "50",
+                "LCL": null,
+                "LSL": null,
+                "require": true,
+                "DataTypeDisplay": "下限null",
+                "InputValueList": [
+                    {
+                        "Aaaaa": ""
+                    }
+                ]
+            },
+            {
+                "EdcVerSid": "GTI19040815103300013",
+                "EdcParameterSid": "GTI19040815013900006",
+                "Display": "Display",
+                "DataType": "N",
+                "MustInput": "T",
+                "InputCount": 1,
+                "ItemName": "單邊null",
+                "ItemNo": "Test002",
+                "DispayPointName": "A",
+                "DispayPointNameList": [
+                    "Aaaaaa", "Bbbbb"
+                ],
+                "QCItemSID": "GTI19040815013900006",
+                "UCL": null,
+                "USL": null,
+                "TL": "50",
+                "LCL": 100,
+                "LSL": 150,
+                "require": true,
+                "DataTypeDisplay": "上限null",
+                "InputValueList": [
+                    {
+                        "Aaaaa": ""
+                    }
+                ]
+            },
+            {
+                "EdcVerSid": "GTI19040815103300013z",
+                "EdcParameterSid": "GTI19040815013900006",
+                "Display": "Display",
+                "DataType": "D",
+                "MustInput": "T",
+                "InputCount": 1,
+                "ItemName": "治具參數",
+                "ItemNo": "Test002",
+                "DispayPointName": "A",
+                "DispayPointNameList": [
+                    "Aaaaaa", "Bbbbb"
+                ],
+                "QCItemSID": "GTI19040815013900006",
+                "UCL": 100,
+                "USL": 150,
+                "TL": "50",
+                "LCL": -10,
+                "LSL": -10,
+                "require": true,
+                "DataTypeDisplay": "治具參數",
+                "InputValueList": [
+                    {
+                        "Aaaaa": ""
+                    }
+                ]
+            },
+        ]
+        var _data_input = [
+            {
+                "EdcVerSid": "GTI20052916532526942",
+                "EdcParameterSid": null,
+                "QCItemSID": "GTI20092116354270602",
+                "DataType": "N",
+                "DataCount": 0.0,
+                "DispayPointName": "A,B,C,D,E",
+                "DispayPointNameList": null,
+                "ItemSid": "GTI20092116354270600",
+                "ItemNo": "PLC01",
+                "ItemName": "PLC01",
+                "mustInput": "T",
+                "UCL": 20.0,
+                "USL": 30.0,
+                "LCL": 5.0,
+                "LSL": 0.0,
+                "TL": "10",
+                "EDCSid": null,
+                "EDCThrowSpc": null,
+                "EDCVerParaSid": null,
+                "InputValueList": [
+                    { "A": "1" },
+                    { "B": "1" },
+                    { "C": "1" },
+                    { "D": "1" },
+                    { "E": "1" }
+                ]
+            },
+            {
+                "EdcVerSid": "GTI20052916532526942",
+                "EdcParameterSid": null,
+                "QCItemSID": "GTI20092116354270603",
+                "DataType": "N",
+                "DataCount": 0.0,
+                "DispayPointName": null,
+                "DispayPointNameList": null,
+                "ItemSid": "GTI20092116354270600",
+                "ItemNo": "EDC013",
+                "ItemName": "尺寸_功能區溢膠",
+                "mustInput": "T",
+                "UCL": 23.3,
+                "USL": 0.0,
+                "LCL": 23.000,
+                "LSL": 0,
+                "TL": "0",
+                "EDCSid": null,
+                "EDCThrowSpc": null,
+                "EDCVerParaSid": null,
+                "InputValueList": [{ "1": "1" }]
+            }
+        ]
+        new Vue({
+            provide() {
+                return {
+                    rootEl: this
+                }
+            },
+            el: '#app',
+            data() {
+                return {
+                    isTest: true,
+                    fixedTip: 2,
+                    lock: false,
+                    data_input
+                    ,
+                    cfg: {
+                        title: '',
+                        fixedTip: 2
+                    },
+                    readonly: false,
+                    isChange: false
+                }
+            },
+            watch: {
+                fixedTip() {
+                    this.cfg.fixedTip = (this.lock ? -1 : 1) * this.fixedTip;
+                },
+                lock() {
+                    this.cfg.fixedTip = (this.lock ? -1 : 1) * this.fixedTip;
+                },
+                'cfg.fixedTip'() {
+                    var x = Math.abs(this.cfg.fixedTip);
+                    if (this.fixedTip != x) {
+                        this.fixedTip = x;
+                    }
+                }
+            },
+            methods: {
+                check() {
+                    alert(this.$refs.edc.check());
+                },
+                e_copy(arr) {
+                    debugger
+                    this.$refs.edc.value = _data_input;
+                    //arr.slice(1, arr.lenght+1);
+                    //arr.concat(_data_input);
+                    //this.$emit('update', arr);
+                },
+                QueryLog(LOT) {
+                    var _self = this;
+                    var url = `@Url.Action(nameof(Genesis.Areas.Example.Controllers.ActController.EDC_API))`;
+                    var _ajax = {
+                        url,
+                        type: 'get',
+                        param: {LOT},
+                        automessage: false,
+                        success: _self.QueryLog_Success
+                    };
+                    $.submitForm(_ajax);
+                },
+                QueryLog_Success(res) {
+                    //let {{ Success}}
+                }
+            }
+        })
+    });
+</script>

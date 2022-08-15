@@ -1,0 +1,8 @@
+﻿@using Frame.Code;
+@{
+	var ddl_reason = BLL.Base.MESServices.GetFunReason($"LotCancelTerminated");
+}
+<div>
+	@ViewContext.RouteData.Values["action"]
+	@Html.Raw(ddl_reason.ToJson(true));
+</div>

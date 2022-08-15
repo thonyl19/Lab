@@ -1,0 +1,215 @@
+﻿@{
+	ViewBag.Title = @Genesis.Common.PageBaseInfo.getCurrentResource("Case5").RESOURCE_NAME;
+}
+<h3>
+	@ViewBag.Title
+	<small>此為舊套件的範例,之所以保留是為了演示 Vue處理連動的方式.新開發的程式一律請引用 <a href="/GenesisNewMes/Example/Act/test?name=reason_group">reason_group</a> </small>
+</h3>
+@Html.Partial("~/Areas/WIP/Views/Shared/_reason.cshtml")
+<div id="app">
+	<h3> Case 5 </h3>
+	第一層:{{reason1}}
+	<x-reason-select ref="reason1" placeholder="@RES.BLL.Message.PleaseScanTheBarcodeOrUseKeywords" required
+					 :values.sync="reason1"
+					 :options="options1"
+					 :selectize_ops="selectize_ops1">
+	</x-reason-select>
+	第二層:{{reason2}}
+	<x-reason-select ref="reason2" placeholder="@RES.BLL.Message.PleaseScanTheBarcodeOrUseKeywords" required
+					 v-model="reason2"
+					 :options="options2"
+					 :selectize_ops="selectize_ops2">
+	</x-reason-select>
+	<button @@click="exec_case5">清空</button>
+
+	<h3> Case 5-1 </h3>
+	<div>
+		[getSelectedRow()]{{case5_1}}
+	</div>
+	<button @@click="exec_case5_1">執行 reason2.getSelectedRow()</button>
+
+	<h3> Case 5-2 -- 測試多選和 Enter 找不到資料的情境 </h3>
+	<div>
+		<x-reason-select ref="reason3" placeholder="@RES.BLL.Message.PleaseScanTheBarcodeOrUseKeywords" required
+						 :values.sync="reason3.values"
+						 :options="reason3.options"
+						 :selectize_ops="reason3.ops"
+						 :event_enter="case5_2_event_enter">
+	</div>
+
+	<h3> Case 5-3 -- x-reason 原因碼組件用法 </h3>
+	<button @@click="exec_case5_3">測試觸發 err_REASON() </button>
+
+	<div class="panel b">
+		<div class="panel-body row">
+			<x-reason ref="reason4"
+					  :values.sync="reason4.values"
+					  :description.sync="reason4.description"
+					  :options="reason4.options"
+					  :selectize_ops="reason4.ops"></x-reason>
+		</div>
+	</div>
+</div>
+
+@section Styles {
+	@Styles.Render(eBundle.selectize_CSS)
+	@Styles.Render(eBundle.elUI_CSS)
+
+}
+
+@section Scripts {
+	@Scripts.Render(eBundle.selectize_JS)
+	@Scripts.Render(eBundle.Vue_MES)
+	@Scripts.Render(eBundle.elUI_JS)
+}
+
+<script>
+	https://selectize.github.io/selectize.js/
+	$(() => {
+		var baseData = {
+			listA: [{
+				date: '2016-05-02'
+			}, {
+				date: '2016-05-04'
+			}, {
+				date: '2016-05-01'
+			}],
+			listB: [{
+				date: '2016-05-02',
+				Lot: '王小虎1',
+				address: '上海市普陀区金沙江路 1518 弄'
+			}, {
+				date: '2016-05-04',
+				Lot: '王小虎2',
+				address: '上海市普陀区金沙江路 1517 弄'
+			}, {
+				date: '2016-05-01',
+				Lot: '王小虎3',
+				address: '上海市普陀区金沙江路 1519 弄'
+			}, {
+				date: '2016-05-03',
+				Lot: '王小虎4',
+				address: '上海市普陀区金沙江路 1516 弄'
+			}],
+		}
+		new Vue({
+			el: '#app',
+			data() {
+				return {
+					reason1: [],
+					options1: baseData.listA,
+					reason2: [],
+					options2: baseData.listB,
+					//selectize 設定參數,完全比照原生的設定方法
+					selectize_ops1: {
+						//指定顯示名稱的欄位
+						labelField: 'date',
+						//指定值的欄位
+						valueField: 'date',
+						//filter 功能會尋找的欄位
+						searchField: ['date'],
+						//自定義的 select option 顯示控制
+						render: {
+							option(data, escape) {
+								let { labelField, valueField } = this.settings;
+								return `
+												<div class="option">
+												<h5> <span class="label label-primary">${escape(data[valueField])}</span> </h5>
+												</div>
+											`;
+							},
+							item(data, escape) {
+								let { labelField, valueField } = this.settings;
+								return `<div class="item"><h5> <span class="label label-primary">${escape(data[valueField])}</span></h5></div>`;
+							},
+
+						},
+						onChange_(value) {
+							
+							if (!value.length) return;
+							var _self = this;
+							let { mainVue = null } = _self.settings;
+							if (mainVue != null) {
+								mainVue.filter_ops2(value);
+							}
+						},
+						mainVue: this
+					},
+					selectize_ops2: {
+						labelField: 'date',
+						valueField: 'Lot',
+						searchField: ['date', 'Lot'],
+					},
+
+					reason3: {
+						values: [],
+						options: baseData.listA,
+						description: '',
+						ops: {
+							//指定顯示名稱的欄位
+							labelField: 'date',
+							//指定值的欄位
+							valueField: 'date',
+							//filter 功能會尋找的欄位
+							searchField: ['date'],
+							maxItems: 2
+						}
+
+					},
+
+					case5_1: '',
+					reason4: {
+						values: [],
+						options: baseData.listA,
+						description: '',
+						ops: {
+							//指定顯示名稱的欄位
+							labelField: 'date',
+							//指定值的欄位
+							valueField: 'date',
+							//filter 功能會尋找的欄位
+							searchField: ['date'],
+						}
+
+					}
+				}
+			},
+			methods: {
+				filter_ops2(value) {
+					var _self = this;
+					_self.options2 = [];
+					baseData.listB.forEach(el => {
+						if (el.date == value) {
+							_self.options2.push(el);
+						}
+					})
+				},
+				exec_case5() {
+					this.reason1 = [];
+					this.reason2 = [];
+				},
+				exec_case5_1() {
+					this.case5_1 = this.$refs.reason2.getSelectedRow();
+				},
+
+				case5_2_event_enter(e, selObj) {
+					alert('這裡是自定義的處理事件！！');
+				},
+
+				exec_case5_3() {
+					this.$refs.reason4.err_REASON();
+				}
+			},
+			watch: {
+				reason1() {
+					
+					console.log('test');
+					var _self = this;
+					if (_self.reason1 === "") return;
+					_self.filter_ops2(_self.reason1);
+				}
+			}
+
+		})
+	});
+</script>

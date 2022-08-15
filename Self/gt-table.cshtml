@@ -1,0 +1,530 @@
+﻿@using MDL.MES
+@using Genesis.Areas.ADM.Controllers
+@{
+    ViewBag.Title = Genesis.Common.PageBaseInfo.getCurrentResource().RESOURCE_NAME;
+}
+@Html.AntiForgeryToken()
+@section Styles {
+    @Styles.Render(eBundle.jqDataTables_CSS)
+    @eBundle.QRender_CSS()
+}
+@section Scripts {
+    @Scripts.Render(eBundle.jqDataTables_JS)
+    @eBundle.QRender_JS()
+}
+
+<h3>
+    @ViewBag.Title
+</h3>
+<div id="app" v-cloak>
+    <div class="row">
+        <div class="col-3">
+            <h3>Draggable 1</h3>
+            <draggable class="list-group" :list="list1" group="people" @@change="log">
+                <div class="list-group-item"
+                     v-for="(element, index) in list1"
+                     :key="element.name">
+                    {{ element.name }} {{ index }}
+                </div>
+            </draggable>
+        </div>
+
+        <div class="col-3">
+            <h3>Draggable 2</h3>
+            <draggable class="list-group" :list="list2" group="people" @@change="log">
+                <div class="list-group-item"
+                     v-for="(element, index) in list2"
+                     :key="element.name">
+                    {{ element.name }} {{ index }}
+                </div>
+            </draggable>
+        </div>
+
+    </div>
+    <gt-toolbar :e_query="click_Query"
+                :e_add="Add"
+                :e_clear="Clear">
+    </gt-toolbar>
+
+    <div Area-Main class="panel b ">
+        <gt-searchcd active_names="1" class="gt-form form-horizontal">
+            @*<gt-form-col :label="i18n.SOP_NAME" prompt_sty="has-req" col_sty="col-lg-6 col-xs-12">
+                    <el-input v-model="form.SOP_NAME" placeholder="" :disabled="c_enable" required></el-input>
+                </gt-form-col>*@
+            <gt-form-col label="@RES.BLL.Face.EDCNO"
+                         v-model="form.@nameof(FC_EDC.EDC_NO)"
+                         :readonly="readonly">
+                <input type="text" :placeholder="i18n.PleaseInput" class="form-control" v-model.trim="form.@nameof(FC_EDC.EDC_NO)" :readonly="readonly" @@keyPress.enter="click_Query">
+            </gt-form-col>
+            <gt-form-col label="@RES.BLL.Face.EDCNAME"
+                         v-model="form.@nameof(FC_EDC.EDC_NAME)"
+                         :readonly="readonly">
+                <input type="text" :placeholder="i18n.PleaseInput" class="form-control" v-model.trim="form.@nameof(FC_EDC.EDC_NAME)" :readonly="readonly" @@keyPress.enter="click_Query">
+            </gt-form-col>
+            <gt-form-col label="@RES.BLL.Face.EDC_TYPE"
+                         v-model="form.@nameof(FC_EDC.EDC_TYPE)"
+                         :readonly="readonly">
+                <vue-selectize-dynquery v-model="form.@nameof(FC_EDC.EDC_TYPE)"
+                                        :options="ddlEDCType"
+                                        render_sty="GTIMES"
+                                        :icon_search="false" />
+            </gt-form-col>
+
+        </gt-searchcd>
+        <div class="row">
+            <gt-form-col label="">
+                <el-button type="primary" @@click="fnTest">@Face.FunctionBarAddItemButton</el-button>
+            </gt-form-col>
+        </div>
+        @*<el-table empty-text=" "
+                      style="width: 100%"
+                      @@sort-change="sort_change"
+                      :data="grid.grid_data"
+                      :default-sort="{prop: 'EDC_NO'}">
+
+                <template v-for="(header, idx) in headers" :key="idx">
+                    <template v-if="header==='xxx'">
+                        <el-table-column :label="i18n.操作" min-width="50">
+                            <template slot-scope="scope">
+                                <el-tooltip class="item" effect="dark" content="@Face.QUERY" placement="right">
+                                    <el-button size="mini" type="success" icon="el-icon-search" circle
+                                               title="@Face.QUERY" @@click="rowQueryClick(scope.$index, scope.row)">
+                                    </el-button>
+                                </el-tooltip>
+                            </template>
+                        </el-table-column>
+                    </template>
+                    <template v-else>
+                        <el-table-column :prop="header" :label="i18n[header]" sortable></el-table-column>
+                    </template>
+                </template>
+
+            </el-table>*@
+
+        <gt-table @@sort-change="sort_change"
+                  :data="grid.grid_data"
+                  :default-sort="{prop: 'DEFAULT_VERSION', order: 'descending'}"
+                  :headers="headers"
+				  :i18n="i18n">
+            <template #control>
+                <el-table-column :label="i18n.操作" min-width="50">
+                    <template slot-scope="scope">
+                        <el-tooltip class="item" effect="dark" content="@Face.QUERY" placement="right">
+                            <el-button size="mini" type="success" icon="el-icon-search" circle
+                                       title="@Face.QUERY" @@click="rowQueryClick(scope.$index, scope.row)">
+                            </el-button>
+                        </el-tooltip>
+                    </template>
+                </el-table-column>
+            </template>
+        </gt-table>
+
+        <el-pagination background
+                       @@size-change="e_SizeChange"
+                       @@current-change="e_CurrentChange"
+                       :current-page="grid.Page.Index"
+                       :page-sizes="[5,10,15]"
+                       :page-size="grid.Page.Size"
+                       layout="total, prev, pager, next, jumper"
+                       :total="grid.row_count">
+
+        </el-pagination>
+
+    </div>
+</div>
+<!-- CDNJS :: Sortable (https://cdnjs.com/) -->
+<script src="//cdn.jsdelivr.net/npm/sortablejs@1.8.4/Sortable.min.js"></script>
+<!-- CDNJS :: Vue.Draggable (https://cdnjs.com/) -->
+<script src="//cdnjs.cloudflare.com/ajax/libs/Vue.Draggable/2.20.0/vuedraggable.umd.min.js"></script>
+<script>
+	$(() => {
+
+			new Vue({
+				el: '#app',
+				data() {
+					return {
+                        headers: {
+                            'EDC_TYPE': { sortable: true },
+                            'EDC_NO': { sortable: false },
+                            'EDC_NAME': { sortable: false },
+                            'DEFAULT_VERSION': { sortable: false },
+                            'VERSION_DESCRIPTION': { sortable: false }
+						},
+                        list1: [
+                            { name: "John", id: 1 },
+                            { name: "Joao", id: 2 },
+                            { name: "Jean", id: 3 },
+                            { name: "Gerard", id: 4 }
+                        ],
+                        list2: [
+                            { name: "Juan", id: 5 },
+                            { name: "Edgard", id: 6 },
+                            { name: "Johnson", id: 7 }
+                        ],
+						//headers: [
+						//	{ prop: 'xxx', sortable: false },
+      //                      { prop: 'EDC_TYPE', sortable: false },
+      //                      { prop: 'EDC_NO', sortable: true },
+      //                      { prop: 'EDC_NAME', sortable: false },
+      //                      { prop: 'DEFAULT_VERSION', sortable: false },
+      //                      { prop: 'VERSION_DESCRIPTION', sortable: false },
+						//],
+						form: {
+                            EDC_NO: '',
+                            EDC_NAME: '',
+                            EDC_TYPE: ''
+						},
+						ddlEDCType: [],
+						//selectize_val: '',
+						grid: {
+							grid_data: [],
+							pageSize: 10,
+							pageIdx: 1,
+							row_count: 0,
+							Sort: {
+                                Name: "EDC_NO",
+								//isAsc: true
+							},
+							Conditions: {},
+							Page: {
+								Index: 1,
+								Size: 10,
+							},
+							get query_rule() {
+								{
+									let { Conditions, Sort, Page } = this;
+									return {
+										Conditions, Sort, Page
+									}
+								}
+							}
+						},
+						readonly: false,
+						layout_mode: {
+							label: 'col-lg-2 col-sm-3',
+							filed: 'col-lg-10 col-sm-9 '
+						},
+						//TODO-i18n
+						i18n: {
+                            EDC_TYPE: '@Face.EDC_TYPE',
+                            EDC_NO: '@Face.EDCNO',
+                            EDC_NAME: '@Face.EDCNAME',
+                            DEFAULT_VERSION: '@Face.DefaultVersion',
+                            VERSION_DESCRIPTION: '@Face.VersionDescription',
+
+							操作: '操作',
+							清除條件: '@Face.Clear',
+                            啟用狀態: '啟用狀態',
+							PopTitle: '工程參數群組維護',
+							PleaseInput: 'Please Inpute',
+                            PleaseSelect: 'Please Select'
+						}
+					}
+				},
+				components: {
+                    'draggable': vuedraggable,
+					'gt-table': {
+						template: `
+<el-table empty-text=" "
+            style="width: 100%"
+            @@sort-change="$emit('sort_change', null)"
+            :data="data"
+			v-bind="$attrs">
+    <slot name='control'>
+
+    </slot>
+    <template v-for="(header, idx) in c_headers" :key="idx">
+		<el-table-column :prop="header" :label="c_label(header)" :sortable="c_sortable(header)"></el-table-column>
+    </template>
+
+</el-table>
+`,
+						props: {
+							data: {
+                                type: Array,
+								default: []
+							},
+							headers: {
+                                type: [Array, Object]
+							},
+							i18n: {
+								type: Object,
+								default: {}
+                            }
+						},
+						computed: {
+							c_label() {
+								let self = this;
+								return (val) => {
+									if (self.headers[val])
+										return self.i18n[val] ?? val;
+									else
+                                        return val.prop;
+								};
+							},
+                            c_sortable() {
+                                let self = this;
+                                return (val) => {
+									if (self.headers[val])
+										return self.headers[val]['sortable'] ?? false;
+									else
+										return false;
+                                };
+							},
+							c_headers() {
+								let self = this;
+                                return Object.keys(self.headers);
+                            }
+                        }
+                    }
+                },
+				mounted() {
+                    const self = this;
+
+					const _ajax = {
+                        url: '@Url.Action(nameof(EDCController.GetEDCTypeList), new { area = "ADM", controller = "EDC" })?addEmptyItem=false',
+						type: 'get',
+						async: false,
+						success: function (data) {
+							//
+							self.ddlEDCType = data.Data;
+						}
+					};
+					$.submitForm(_ajax);
+
+
+      //              var swapArrayElements = function (arr, indexA, indexB) {
+      //                  var temp = arr[indexA];
+						////arr[indexA] = arr[indexB];
+						////arr[indexB] = temp;
+      //                  self.$set(arr, indexA, arr[indexB]);
+      //                  self.$set(arr, indexB, temp);
+      //              };
+
+      //              Array.prototype.swap = function (indexA, indexB) {
+      //                  swapArrayElements(this, indexA, indexB);
+      //              };
+
+					//Vue.nextTick(() => {
+					//	tableDragger(document.querySelector("#default-table table"))
+					//		.on('drop', (from, to, el, mode) => {
+					//			//console.log(`drop ${el.nodeName} from ${from} ${mode} to ${to} ${mode}`);
+					//			//el.__vue__.columns[2].property
+					//			//console.log(el);
+
+					//			let a = el.__vue__.columns[from].property;
+					//			let b = el.__vue__.columns[to].property;
+
+					//			self.headers.swap(from, to);
+     //                           //self.headers = ['EDC_NO', 'EDC_TYPE', 'EDC_NAME', 'DEFAULT_VERSION', 'VERSION_DESCRIPTION'];
+					//		});
+					//});
+				},
+				computed: {
+					//c_headers: {
+					//	get() {
+					//		return this.headers;
+					//	},
+					//	set(val) {
+					//		console.log(val)
+     //                   }
+     //               }
+                },
+				methods: {
+                    log: function (evt) {
+                        window.console.log(evt);
+                    },
+					fnTest() {
+						let self = this;
+
+      //                  var swapArrayElements = function (arr, indexA, indexB) {
+      //                      var temp = arr[indexA];
+      //                      arr[indexA] = arr[indexB];
+      //                      arr[indexB] = temp;
+      //                      //self.$set(arr, indexA, arr[indexB]);
+      //                      //self.$set(arr, indexB, temp);
+      //                  };
+
+      //                  Array.prototype.swap = function (indexA, indexB) {
+      //                      swapArrayElements(this, indexA, indexB);
+						//};
+
+						var swapObjectElements = function (obj, indexA, indexB) {
+							let new_obj = { ...obj };
+                            var temp = new_obj[indexA];
+                            new_obj[indexA] = new_obj[indexB];
+							new_obj[indexB] = temp;
+							return new_obj;
+                        };
+
+						//Object.prototype.swap = function (indexA, indexB) {
+      //                      return swapObjectElements(this, indexA, indexB);
+      //                  };
+
+                        var swapObjectElements = function (arr, indexA, indexB) {
+                            var temp = arr[indexA];
+                            //arr[indexA] = arr[indexB];
+                            //arr[indexB] = temp;
+                            self.$set(arr, indexA, arr[indexB]);
+                            self.$set(arr, indexB, temp);
+						};
+						//swapObjectElements(self.headers, 'EDC_TYPE', 'EDC_NAME');
+
+                        //console.log(`1: ${self.headers}`);
+						//var newObj = self.headers.swap('EDC_NO', 'EDC_NAME');
+                        var newObj = {
+                            'EDC_NO': { sortable: false },
+                            'EDC_NAME': { sortable: false },
+                            'DEFAULT_VERSION': { sortable: false },
+                            'EDC_TYPE': { sortable: true },
+                            'VERSION_DESCRIPTION': { sortable: false }
+                        };
+						self.headers = newObj;
+                        //console.log(`2: ${self.headers}`);
+					},
+                    //查詢事件
+                    click_Query() {
+						//
+						let Conditions = {
+                            condition: "AND",
+                            rules: []
+                        };
+                        //equal
+						//{ field: 'STATUS', type: "string", operator: "in", value: ["Release", "Create"] }
+
+                        _.each(this.form, (value, field) => {
+                            if (value != '') {
+								var _rule = { field, type: "string", operator: "in", value };
+								if (_.isString(value)) {
+									if (field === 'EDC_TYPE')
+                                        _rule.operator = "equal";
+									else
+										_rule.operator = "contains";
+									_rule.value = [value.trim()];
+                                }
+                                Conditions.rules.push(_rule);
+                            }
+                        });
+                        this.grid.Conditions = Conditions;
+                        this.query(1);
+                    },
+					// 查詢處理程序
+					query(pageIdx) {
+						let self = this;
+						self.grid.Page.Index = pageIdx;
+						let param = self.grid.query_rule;
+						let _ajax = {
+							url: '@Url.Action("QueryList", new { area = "ADM", controller = "EDC" })',
+							type: 'post',
+							param,
+							success: this.query_success
+						};
+						$.submitForm(_ajax);
+					},
+					// 查RES成功處理程序
+					query_success(res) {
+						//
+						let { Data, Code = null, Message, Success = false } = res;
+						if (Success) {
+							let { PageInfo, gridData } = Data || {};
+							this.grid.grid_data = gridData;
+							this.grid.row_count = PageInfo.RowCount;
+						} else {
+							var msg = Message != null
+								? Message
+								: '@BLL.InterFace.ErrCode.GenericErrorMessage'
+								;
+							this.$Alert.Err(msg);
+						}
+					},
+					//排序事件
+					sort_change(column) {
+						//
+						this.grid.Sort = {
+							Name: column.prop,
+							isAsc: column.order == "ascending"
+						}
+                        if (!this.grid.grid_data || this.grid.grid_data.length == 0) return;
+						this.query(1);
+					},
+                    e_SizeChange: function (size) {
+                        this.pagesize = size;
+                        this.query(1);
+                    },
+					// 換頁事件
+					e_CurrentChange: function (currentPage) {
+						this.query(currentPage);
+					},
+					Add() {
+						//
+						var arg = {
+							title: this.i18n.PopTitle,
+							content: `@Url.Action(nameof(EDCController.EDCData), new { area = "ADM", controller = "EDC" })`
+						}
+						this.$UT.layer(arg, this);
+					},
+					// 子視窗查詢程序
+					View(SID = "") {
+						if (SID != "") {
+							SID = `&SID=${SID}`;
+						}
+						//
+
+						var arg = {
+							title: '@RES.BLL.Face.WorderInfo',
+							content: `@Url.Action(nameof(EDCController.EDCData), new { area = "ADM", controller = "EDC" })?SingleMode=true${SID}`
+						}
+						this.$UT.layer(arg, this);
+					},
+					Clear() {
+						this.form.EDC_NO = '';
+						this.form.EDC_NAME = '';
+						this.form.EDC_TYPE = '';
+						//this.click_Query();
+					},
+					reload() {
+						this.query(this.grid.Page.Index);
+					},
+					DEL(SID) {
+						var title = `@RES.BLL.Message.DeleteRecordConfirm`;
+						var _ops = this.$Alert.genConfirm({ title });
+						var self = this;
+						Swal.fire(_ops).then(result => {
+							let { value } = result;
+							if (value) {
+								var url = '@Url.Action(nameof(EDCController.Delete), new { area = "ADM", controller = "EDC" })';
+								var _ajax = {
+									url,
+									param: { SID },
+									type: 'get',
+								    success(res) {
+										let { Success, Data, Message } = res;
+										if (Success) {
+											//
+											self.$Alert.Success('@RES.BLL.Message.DeleteSuccessfulmsg').then(() => {
+												self.reload();
+											});
+										} else {
+											self.$Alert.Warning(Message);
+										}
+									}
+								};
+								$.submitForm(_ajax);
+							}
+						});
+					},
+					rowQueryClick(index, row) {
+						 var arg = {
+							 title: this.i18n.PopTitle,
+                             content: `@Url.Action(nameof(EDCController.EDCData), new { area = "ADM", controller = "EDC" })?keyVal=${row.EDC_SID}`,
+							 /*area: ['70%','70%']*/
+						}
+						//
+						this.$UT.layer(arg, this);
+					}
+				}
+			});
+        Vue.config.devtools = true;
+		});
+
+</script>

@@ -1,0 +1,455 @@
+﻿@using System.Dynamic
+@{
+    bool isSingleModel = (bool)ViewData["SingleModel"];
+    dynamic data = new ExpandoObject();
+    data.LOT = "Test";
+    //Model.CurrentLot = data;
+    if (isSingleModel)
+    {
+        Layout = "~/Views/Shared/_LayoutSingle.cshtml";
+    }
+}
+@eBundle.QRender_CSS()
+@eBundle.QRender_JS()
+@Html.Partial("~/Areas/MES/Views/WIP/Partial2/_posiMapEDC.cshtml")
+@Html.Partial("~/Areas/MES/Views/Shared/_edc.cshtml")
+@Html.Partial("~/Areas/WIP/Views/Shared/_reason.cshtml")
+
+<pre>
+\Partial2\_posiMap.cshtml
+</pre>
+<div id="app">
+    <div class="panel b">
+        [readonly]<el-checkbox v-model="readonly"></el-checkbox>
+        [confirm]<el-checkbox v-model="confirm"></el-checkbox>
+        [ShowImportLog]<el-checkbox v-model="Setting.CheckOutSet.IsWaferLogEDC"></el-checkbox>
+        <el-button @@click="test">test</el-button>
+        [isChange]{{isChange}}
+        <cp-posi-map-edc ref="posi_map"
+                         :list.sync="list" :src_mo="srcMO"
+                         :readonly="readonly" :confirm="confirm" :highlight="highlight">
+            <template v-slot:default="{current}" :cfg.sync="cfg" :readonly="readonly">
+                <gt-hr content="EDC">
+                    <el-button @@click="QueryLog" type="primary" plain size="small">載入Log</el-button>
+                    <edc-input ref="edc_input" v-model="current.src.EdcList">
+                        <template v-slot:head-area>
+                            <cp-edc-log></cp-edc-log>
+                            <el-button type="primary" size="mini" plain
+                                       @@click="e_FetchLogFile"
+                                       style="float:right;margin-right:1rem;"
+                                       v-show="c_ShowImportLog">載入Log</el-button>
+                        </template>
+                        <a></a>
+                    </edc-input>
+                </gt-hr>
+                {{current.src.EdcList}}
+            </template>
+        </cp-posi-map-edc>
+    </div>
+    {{list}}
+</div>
+
+
+<script>
+    Vue.config.devtools = true;
+    $(() => {
+        var data_input = [
+            {
+                "EdcVerSid": "GTI19040815103300013",
+                "EdcParameterSid": "GTI19040815002800001",
+                "Display": "TestBool",
+                "DataType": "B",
+                "mustInput": "T",
+                "InputCount": 3,
+                "ItemName": "TestBool",
+                "ItemNo": "Test001",
+                "DispayPointName": "A,B,C",
+                "DispayPointNameList": [
+                    "Aaaaa",
+                    "Bbbbbb",
+                    "Ccccc"
+                ],
+                "QCItemSID": "GTI19040815002800001",
+                "UCL": 0,
+                "USL": 0,
+                "TL": "F",
+                "LCL": 0,
+                "LSL": 0,
+                "require": false,
+                "DataTypeDisplay": "布林",
+                "InputValueList": [
+                    {
+                        "Aaaaa": ""
+                    },
+                    {
+                        "Bbbbbb": ""
+                    },
+                    {
+                        "Ccccc": ""
+                    }
+                ]
+            },
+            {
+                "EdcVerSid": "GTI19040815103300013",
+                "EdcParameterSid": "GTI19040815015300007",
+                "Display": "string",
+                "DataType": "S",
+                "mustInput": "T",
+                "InputCount": 1,
+                "ItemName": "string",
+                "ItemNo": "test003",
+                "DispayPointName": "A",
+                "DispayPointNameList": [
+                    "Aaaaa"
+                ],
+                "QCItemSID": "GTI19040815015300007",
+                "UCL": 0,
+                "USL": 0,
+                "TL": "T",
+                "LCL": 0,
+                "LSL": -10,
+                "require": false,
+                "DataTypeDisplay": "字串",
+                "InputValueList": [
+                    {
+                        "Aaaaa": ""
+                    }
+                ]
+            },
+            {
+                "EdcVerSid": "GTI19040815103300013",
+                "EdcParameterSid": "GTI19040815013900006",
+                "Display": "Display",
+                "DataType": "N",
+                "MustInput": "T",
+                "InputCount": 1,
+                "ItemName": "數值,負數值測試",
+                "ItemNo": "Test002",
+                "DispayPointName": "A",
+                "DispayPointNameList": [
+                    "Aaaaaa", "Bbbbb"
+                ],
+                "QCItemSID": "GTI19040815013900006",
+                "UCL": 100,
+                "USL": 150,
+                "TL": "50",
+                "LCL": -10,
+                "LSL": -10,
+                "require": true,
+                "DataTypeDisplay": "數值,負數值測試",
+                "InputValueList": [
+                    {
+                        "Aaaaa": ""
+                    }
+                ]
+            },
+            {
+                "EdcVerSid": "GTI19040815103300013",
+                "EdcParameterSid": "GTI19040815013900006",
+                "Display": "Display",
+                "DataType": "N",
+                "MustInput": "T",
+                "InputCount": 1,
+                "ItemName": "單邊null",
+                "ItemNo": "Test002",
+                "DispayPointName": "A",
+                "DispayPointNameList": [
+                    "Aaaaaa", "Bbbbb"
+                ],
+                "QCItemSID": "GTI19040815013900006",
+                "UCL": 100,
+                "USL": 150,
+                "TL": "50",
+                "LCL": null,
+                "LSL": null,
+                "require": true,
+                "DataTypeDisplay": "下限null",
+                "InputValueList": [
+                    {
+                        "Aaaaa": ""
+                    }
+                ]
+            },
+            {
+                "EdcVerSid": "GTI19040815103300013",
+                "EdcParameterSid": "GTI19040815013900006",
+                "Display": "Display",
+                "DataType": "N",
+                "MustInput": "T",
+                "InputCount": 1,
+                "ItemName": "單邊null",
+                "ItemNo": "Test002",
+                "DispayPointName": "A",
+                "DispayPointNameList": [
+                    "Aaaaaa", "Bbbbb"
+                ],
+                "QCItemSID": "GTI19040815013900006",
+                "UCL": null,
+                "USL": null,
+                "TL": "50",
+                "LCL": 100,
+                "LSL": 150,
+                "require": true,
+                "DataTypeDisplay": "上限null",
+                "InputValueList": [
+                    {
+                        "Aaaaa": ""
+                    }
+                ]
+            }
+        ]
+        var list = {
+            "1": {
+                "SID": "GTI22031515092745372",
+                "ROOT_SID": "GTI22030915340037695",
+                "PARENT_SID": null,
+                "PREV_SEAIAL": null,
+                "SN": 1,
+                "SN_ID": "CrystalGrowth_WO01-01.02.0",
+                "STATUS": null,
+                "REASON": null,
+                "ChangeFrom": null,
+                "val": "GTI22031515092745372",
+                "sts": "0"
+            },
+            "2": {
+                "SID": "GTI22031515092745373",
+                "ROOT_SID": "GTI22030915340037695",
+                "PARENT_SID": null,
+                "PREV_SEAIAL": null,
+                "SN": 2,
+                "SN_ID": "CrystalGrowth_WO01-01.02.1",
+                "STATUS": null,
+                "REASON": null,
+                "ChangeFrom": null,
+                "ChangeFromSN": 5,
+                "val": "GTI22031515092745373",
+                "sts": "0"
+            },
+            "3": {
+                "SID": "GTI22031515092745374",
+                "ROOT_SID": "GTI22030915340037695",
+                "PARENT_SID": null,
+                "PREV_SEAIAL": null,
+                "SN": 3,
+                "SN_ID": "CrystalGrowth_WO01-01.02.2",
+                "STATUS": null,
+                "REASON": null,
+                "ChangeFrom": null,
+                "val": "GTI22031515092745374",
+                "sts": "0"
+            },
+            "4": {
+                "SID": "GTI22031515092745375",
+                "ROOT_SID": "GTI22030915340037695",
+                "PARENT_SID": null,
+                "PREV_SEAIAL": null,
+                "SN": 4,
+                "SN_ID": "CrystalGrowth_WO01-01.02.3",
+                "STATUS": null,
+                "REASON": null,
+                "ChangeFrom": null,
+                "val": "GTI22031515092745375",
+                "sts": "0"
+            },
+            "5": {
+                "SID": "GTI22031515092745376",
+                "ROOT_SID": "GTI22030915340037695",
+                "PARENT_SID": null,
+                "PREV_SEAIAL": null,
+                "SN": 5,
+                "SN_ID": "CrystalGrowth_WO01-01.02.4",
+                "STATUS": null,
+                "REASON": null,
+                "ChangeFrom": null,
+                "val": "GTI22031515092745376",
+                "sts": "0"
+            },
+            "6": {
+                "SID": "GTI22031515092745377",
+                "ROOT_SID": "GTI22030915340037695",
+                "PARENT_SID": null,
+                "PREV_SEAIAL": null,
+                "SN": 6,
+                "SN_ID": "CrystalGrowth_WO01-01.02.5",
+                "STATUS": null,
+                "REASON": null,
+                "ChangeFrom": null,
+                "val": "GTI22031515092745377",
+                "sts": "0"
+            },
+
+
+        };
+        _.each(list, (val, key) => {
+            val.EdcList = _.cloneDeep(data_input);
+        })
+        var send_data = @Html.Raw(ViewData["result"] ?? "{}");
+        var srcMO = _.range(1, 25).map((el) => { return [el]; });
+        new Vue({
+            el: '#app',
+            provide() {
+                return {
+                    rootEl: this,
+                };
+            },
+            data() {
+                return {
+                    data_input,
+                    value: '',
+                    tab_idx: '位置',
+                    readonly: false,
+                    confirm: true,
+                    Setting: {
+                        CheckOutSet: {
+                            IsWaferLogEDC: true
+                        }
+                    },
+                    highlight: false,
+                    srcMO,
+                    list,
+                    cfg: {
+                        title: '',
+                        fixedTip: 2
+                    },
+                    reason: [{ "RefKey": null, "SID": "GTI11110115550180956", "No": "other", "Value": "GTI11110115550180956", "Display": "其他", "StatusSid": null, "Status": null, "FromNum": 0, "INum": 0, "Attr01": null, "Attr02": null, "Attr03": null }, { "RefKey": null, "SID": "GTI20101919411379902", "No": "R.C01-0002", "Value": "GTI20101919411379902", "Display": "ALD.鎳銅片變形", "StatusSid": null, "Status": null, "FromNum": 0, "INum": 0, "Attr01": null, "Attr02": null, "Attr03": null }, { "RefKey": null, "SID": "GTI20101919423979906", "No": "R.C01-0004", "Value": "GTI20101919423979906", "Display": "ALD.鎳片壓傷", "StatusSid": null, "Status": null, "FromNum": 0, "INum": 0, "Attr01": null, "Attr02": null, "Attr03": null }, { "RefKey": null, "SID": "GTI20101919425979908", "No": "R.C01-0005", "Value": "GTI20101919425979908", "Display": "ALD.晶片溢錫", "StatusSid": null, "Status": null, "FromNum": 0, "INum": 0, "Attr01": null, "Attr02": null, "Attr03": null }, { "RefKey": null, "SID": "GTI20101919431879910", "No": "R.C01-0006", "Value": "GTI20101919431879910", "Display": "ALD.鎳片溢錫", "StatusSid": null, "Status": null, "FromNum": 0, "INum": 0, "Attr01": null, "Attr02": null, "Attr03": null }, { "RefKey": null, "SID": "GTI20101919415579904", "No": "R.C01-0003", "Value": "GTI20101919415579904", "Display": "ALD.晶片壓傷", "StatusSid": null, "Status": null, "FromNum": 0, "INum": 0, "Attr01": null, "Attr02": null, "Attr03": null }, { "RefKey": null, "SID": "GTI21050518014931812", "No": "111", "Value": "GTI21050518014931812", "Display": "111", "StatusSid": null, "Status": null, "FromNum": 0, "INum": 0, "Attr01": null, "Attr02": null, "Attr03": null }, { "RefKey": null, "SID": "GTI21081615532603712", "No": "1123", "Value": "GTI21081615532603712", "Display": "1123", "StatusSid": null, "Status": null, "FromNum": 0, "INum": 0, "Attr01": null, "Attr02": null, "Attr03": null }],
+                    isChange:false
+                }
+            },
+            computed: {
+                c_ShowImportLog() {
+                    let { IsWaferLogEDC = false } = this.Setting.CheckOutSet;
+                    return IsWaferLogEDC;
+                },
+                c_test() {
+                    let { posi_map = {} } = this.$refs;
+                    return posi_map?.current || {};
+                },
+                c_list: {
+                    get() {
+                        return JSON.stringify(this.list);
+                    },
+                    set(val) {
+                        try {
+                            debugger
+                            var r = JSON.parse(val);
+                            this.list = r;
+                            this.$refs.posi_map.Bind();
+                        } catch (e) {
+
+                        }
+                    }
+                }
+            },
+            methods: {
+                e_FetchLogFile() {
+
+                    var _self = this;
+                    var cassetteInfo = {};
+                    var allWafer = Object.values(this.send_data.PosiMap);
+                    this.send_data.lotList.forEach(x => {
+                        cassetteInfo[x.LotSID] = allWafer.filter(f => f.LOT == x.Lot).map(m => m.SN_ID);
+                    });
+
+                    var _ajax = {
+                        url: "@Genesis.Common.PageBaseInfo.GetBaseUrl()/api/info/PreloadEDCFromGssLog",
+                        type: 'POST',
+                        param: JSON.stringify(cassetteInfo),
+                        contentType: 'application/json',
+                        automessage: false,
+                        success: (res) => {
+                            let { Success, Message, Data, Exception } = res;
+                            if (Success) {
+                                let { EdcLog } = Data;
+                                _.each(EdcLog, (Log, WaferSN) => {
+
+                                    var _mapPosi = _.find(_self.$refs.posi.srcPOSI, (o) => { return o.Value == WaferSN });
+                                    if (_mapPosi != null) {
+                                        _.each(Log, el => {
+                                            var _EdcSid = el.EdcParameterSid;
+                                            var _mapEdc = _.find(_mapPosi.src.EdcList, (o) => { return o.EdcParameterSid == _EdcSid });
+                                            if (_mapEdc != null) {
+                                                //var values = el.InputValueList.map(x => Object.values(x)[0]);
+                                                //console.log(values);
+                                                //_mapEdc.InputValueList = values;
+                                                var values = el.InputValueList.map((x, idx) => {
+                                                    var item = {};
+                                                    item[idx + 1] = Object.values(x)[0];
+                                                    return item;
+                                                });
+                                                _mapEdc.InputValueList = values;
+                                                //_mapEdc.InputValueList = el.InputValueList;
+                                                _self.isChange = true;
+                                            }
+                                        })
+                                    }
+
+                                });
+                            } else {
+                                console.log(Message);
+                                _self.$alert(Message, '提示', {
+                                    type: 'warning'
+                                });
+                            }
+                        }
+                    };
+
+                    $.submitForm(_ajax);
+
+                },
+                /* POC 原始版本,己改用
+                */
+				QueryLog() {
+                    var _self = this;
+                    var query = {};
+                    _.each(this.list, (val) => {
+                        let { ROOT_SID, SN_ID } = val;
+                        ROOT_SID
+                        SN_ID
+                        var map = query[ROOT_SID];
+                        if (map == null) query[ROOT_SID] = [];
+                        query[ROOT_SID].push(SN_ID);
+                    })
+                    console.log({ query });
+                    var param = { LotSID: 'x', Rule:'x'}
+                    var url = `@Url.Action(nameof(Genesis.Areas.Example.Controllers.ActController.EDC_API_1))`;
+                    var _ajax = {
+                        url,
+                        type: 'post',
+                        data: {query},
+                        automessage: false,
+                        success: _self.QueryLog_Success
+                    };
+                    $.submitForm(_ajax);
+                },
+                QueryLog_Success(res) {
+                    let  { Success,Message,Data } = res;
+					if (Success) {
+						let {EdcLog} = Data;
+						var _self = this;
+						_.each(EdcLog,(Log,WaferSN)=>{
+							var _mapPosi =  _.find(_self.list,(o)=>{return o.SN_ID == WaferSN});
+                            if (_mapPosi!=null){
+								_.each(Log,el=>{
+									var _EdcSid = el.EdcParameterSid;
+									var _mapEdc =  _.find(_mapPosi.EdcList,(o)=>{return o.EdcParameterSid == _EdcSid});
+									if (_mapEdc!=null) _mapEdc.InputValueList = el.InputValueList;
+								})
+							}
+
+						})
+					}
+                },
+                //這一段程序 ,是為了解決  edc 物件檢核的問題所採用的方法, 程序名稱 不能改
+                CheckPointChange(current) {
+                    var r = this.$refs.edc_input.check();
+                    //console.log({ check_point_change: r });
+                    return r;
+                },
+                handleClick() { },
+                filterData() { },
+     
+            }
+        })
+    });
+</script>

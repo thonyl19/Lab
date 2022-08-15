@@ -1,0 +1,189 @@
+﻿@{
+	ViewBag.Title = @Genesis.Common.PageBaseInfo.getCurrentResource("Case6").RESOURCE_NAME;
+}
+<h3>
+	@ViewBag.Title
+	<small>此為舊套件的範例,之所以保留是為了演示 Vue 實作的方式.新開發的程式請改用 <a href="/GenesisNewMes/Example/Act/test?name=gt_form_col">gt_form_col</a> 方式實作</small>
+</h3>
+@Html.Partial("~/Areas/WIP/Views/LotInfo.cshtml")
+
+<div id="app">
+	<div>
+		<h2>show_lot</h2>
+		<el-switch v-model="isShowLot"
+				   active-color="#13ce66"
+				   inactive-color="#ff4949">
+		</el-switch>控制 批號欄位是否顯示(def:不顯示)
+	</div>
+	<div>
+		<h2>hide</h2>
+		指定那些欄位不顯示(批號欄位不由此控制) ,另 當前 "不顯示"的功能,
+		目標是放在 一開始就設定好那些不顯示, 所以實作"即時變動"的控制,
+		如當前範例所示,一經”動態隱藏“後,就無法動態再顯示該欄位.
+		<div>{{hide}}</div>
+		<span v-for="(item,key) in hide_list">
+			<input type="checkbox" :id="key" v-model="hide" :value="key" />{{key}}
+		</span>
+	</div>
+	<div class="panel b">
+		<div class="panel-body row">
+			<x-lot-info ref="lotinfo" :lotinfo="CurrentLot" :hide="hide" :show_lot="isShowLot"></x-lot-info>
+		</div>
+	</div>
+</div>
+
+@section Styles {
+	@Styles.Render(eBundle.selectize_CSS)
+	@Styles.Render(eBundle.elUI_CSS)
+}
+
+@section Scripts {
+	@Scripts.Render(eBundle.selectize_JS)
+	@Scripts.Render(eBundle.Vue_MES)
+	@Scripts.Render(eBundle.elUI_JS)
+}
+
+<script>
+	$(() => {
+		var CurrentLot = {
+			"LOT_SID": "GTI12112917240702164",
+			"LOT": "201-20121129-35",
+			"LOT_1": "",
+			"LOT_2": "",
+			"BATCH_NO": "",
+			"BATCH_SEQ": 0.0,
+			"STATUS": "Hold",
+			"QUANTITY": 1.0,
+			"UNIT": "片",
+			"QTY_1": 0.0,
+			"UNIT_1": "",
+			"QTY_2": 0.0,
+			"UNIT_2": "",
+			"WO_SID": "20121129-0002",
+			"WO": "20121129-0002",
+			"LOT_TYPE": "Normal",
+			"ROUTE_VER_SID": "GTI12112917191402129",
+			"ROUTE": "組裝測試流程",
+			"ROUTE_VERSION": 0.0,
+			"IN_ROUTE_CATEGORY": "M",
+			"SUBROUTE_VER_SID": "",
+			"PREGO_ROUTE_VER_OPER_SID": "",
+			"NEXT_ROUTE_VER_SID": "GTI12112917191402129",
+			"NEXT_ROUTE": "組裝測試流程",
+			"ROUTE_VER_OPER_SID": "GTI12112917211402150",
+			"OPER_SEQ": "001",
+			"OPERATION": "[A1010]~投入",
+			"OPER_TYPE_VER_SID": "GTI12091014250600664",
+			"NEXT_ROUTE_VER_OPER_SID": "GTI12112917211402151",
+			"NEXT_OPER_SEQ": "002",
+			"NEXT_OPERATION": "測試",
+			"NEXT_OPER_TYPE_VER_SID": "GTI12112916053301946",
+			"FUN_SEQ": 0.0,
+			"FUN_SID": "GTI11112310370081128",
+			"NEXT_FUN_SID": "GTI10112416280702881",
+			"PRODUCT_SID": "GTI12090317332700014",
+			"PRODUCT": "[Product_001]~產品_001",
+			"PARTNO_VER_SID": "GTI12112916155401972",
+			"PARTNO": "[140-DBR1394A]~S29AL016D70TFI020 已燒錄",
+			"PARTNO_VERSION": 0.0,
+			"PRIORITY": "3",
+			"OWNER": "",
+			"EQP_LINK_SID": "",
+			"PARTNO_LINK_SID": "",
+			"CARRIER_LINK_SID": "",
+			"TOOL_LINK_SID": "",
+			"ROOT_LOT_SID": "",
+			"PARENT_LOT_SID": "",
+			"IS_QC_REJECT": "F",
+			"ATTRIBUTE_01": "",
+			"ATTRIBUTE_02": "",
+			"ATTRIBUTE_03": "",
+			"ATTRIBUTE_04": "",
+			"ATTRIBUTE_05": "",
+			"ATTRIBUTE_06": "",
+			"ATTRIBUTE_07": "",
+			"ATTRIBUTE_08": "",
+			"ATTRIBUTE_09": "",
+			"ATTRIBUTE_10": "",
+			"ATTRIBUTE_11": 0.0,
+			"ATTRIBUTE_12": 0.0,
+			"ATTRIBUTE_13": 0.0,
+			"CREATE_USER": "Willie",
+			"CREATE_DATE": "2012-11-29 17:24:06",
+			"UPDATE_USER": "Admin",
+			"UPDATE_DATE": "2020-02-04 09:53:34",
+			"MES_PRIORITY": "",
+			"LOCATION": "",
+			"CUSTOMER": "",
+			"GRADE": "",
+			"FROM_ROUTE_VER_SID": "GTI12112917191402129",
+			"FROM_ROUTE": "組裝測試流程",
+			"FROM_ROUTE_VER_OPER_SID": "GTI12112917211402150",
+			"FROM_OPER_SEQ": "001",
+			"FROM_OPERATION": "投入",
+			"FROM_OPER_TYPE_VER_SID": "GTI12091014250600664",
+			"OPER_SID": "GTI12112913525201915",
+			"NEXT_OPER_SID": "GTI12112913560301925",
+			"FROM_OPER_SID": "GTI12112913525201915",
+			"SHIFT_SID": "",
+			"SHIFT_NO": "",
+			"SHIFT": "",
+			"LINE_SID": "",
+			"LINE_NO": "",
+			"LINE": "",
+			"INVENTORY_NO": "",
+			"OPER_SUM_SCRAP_QTY": 0.0,
+			"OPER_SUM_SCRAP_QTY1": 0.0,
+			"OPER_SUM_SCRAP_QTY2": 0.0,
+			"OPER_SUM_BOUNS_QTY": 0.0,
+			"OPER_SUM_BOUNS_QTY1": 0.0,
+			"OPER_SUM_BOUNS_QTY2": 0.0,
+			"TOTAL_SUM_SCRAP_QTY": 0.0,
+			"TOTAL_SUM_SCRAP_QTY1": 0.0,
+			"TOTAL_SUM_SCRAP_QTY2": 0.0,
+			"TOTAL_SUM_BOUNS_QTY": 0.0,
+			"TOTAL_SUM_BOUNS_QTY1": 0.0,
+			"TOTAL_SUM_BOUNS_QTY2": 0.0,
+			"TOTAL_YIELD": 0.0,
+			"LAST_STATUS_CHANGE_TIME": "2020-02-03 17:28:21",
+			"OPER_START_TIME": "2012-11-29 17:24:06",
+			"DISPATCH_FUTURE_HOLD": "N",
+			"QC_REJECT_COUNT": 0.0,
+			"IS_BATCH_ENABLE": "",
+			"NOTE": "",
+			"ECN_SID": "",
+			"ECN_NO": "",
+			"ECN_NAME": "",
+			"WO_LINE": "",
+			"WO_LINE_NO": "",
+			"WO_LINE_SID": ""
+		}
+		new Vue({
+			el: '#app',
+			data() {
+				return {
+					CurrentLot,
+					isShowLot: false,
+					hide: [],
+					hide_list: {
+						"STATUS": true,
+						"OPERATION": true,
+						"PRODUCT": true
+					}
+				}
+			},
+			methods: {
+				change() {
+					var _self = this;
+					var _arr = [];
+					for (key in _self.hide_list) {
+						var isShow = _self.hide_list[key];
+						if (isShow) _arr.push(key)
+					}
+					_self.hide = _arr;
+				}
+			},
+
+		})
+	});
+</script>

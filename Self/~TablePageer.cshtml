@@ -1,0 +1,94 @@
+﻿
+<h3>
+	Element-UI Table 換頁範列
+</h3>
+@Html.AntiForgeryToken()
+<div id="app">
+	<el-button type="primary" @@click="query(1)">@RES.BLL.Face.QUERY</el-button>
+	<el-table :data="grid_data"
+			  style="width: 100%">
+		<el-table-column prop="WO_SID"
+						 label="WO_SID">
+		</el-table-column>
+		<el-table-column prop="WO"
+						 label="WO">
+		</el-table-column>
+	</el-table>
+	<v-page :setting="pageSet" @@page-change="handleCurrentChange"></v-page>
+	<el-pagination background
+				   @@size-change="handleSizeChange"
+				   @@current-change="handleCurrentChange"
+				   :current-page="currentPage"
+				   :page-sizes="[5,10,15]"
+				   :page-size="pagesize"
+				   layout="total,jumper,prev, pager, next,sizes"
+				   :total="files_count"></el-pagination>
+
+</div>
+
+@section Styles {
+	@Styles.Render(eBundle.elUI_CSS)
+}
+
+@section Scripts {
+	@Scripts.Render(eBundle.Vue_MES)
+	@Scripts.Render(eBundle.elUI_JS)
+	@Scripts.Render(eBundle.Vue_pager)
+
+}
+
+<script>
+	debugger
+	Vue.use(vPage);
+    $(() => {
+        new Vue({
+            el: '#app',
+            data() {
+                return {
+					msg: "baseTpl",
+					grid_data: [],
+                    currentPage:1,
+                    pagesize:10,
+					files_count: 0,
+					pageSet: {
+						totalRow: 0,//required option
+						language: 'en',//default: 'cn'
+						pageSizeMenu: [20,100]//default: [10, 20, 50, 100]
+					}
+                }
+			},
+			methods: {
+				handleSizeChange:function(size){
+                    this.pagesize = size;
+                    this.query(1);
+                },
+                // 控制頁面的切換
+                handleCurrentChange: function(currentPage) {
+                    this.query(currentPage);
+				},
+
+				query(page) {
+                    var _self = this;
+                    _self.currentPage = page;
+                    var _ajax = {
+                        url:'@Url.Action("ListData","WorkOrder",new { area = "MES" })',
+                        type: 'get',
+                        param: {
+                            rows: _self.pagesize
+                            , sidx: 'CREATE_DATE'
+                            , sord: 'asc'
+                            , page
+                        },
+                        success(res) {
+							let { data = [], code = null,recordsTotal } = res;
+							_self.grid_data = data;
+							_self.files_count = recordsTotal;
+							console.log(res);
+                        }
+                    };
+                    $.submitForm(_ajax);
+                },
+			}
+        })
+    });
+</script>

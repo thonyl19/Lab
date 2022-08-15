@@ -1,0 +1,56 @@
+﻿@{
+	ViewBag.Title = @Genesis.Common.PageBaseInfo.getCurrentResource("baseTpl").RESOURCE_NAME;
+}
+<h3>
+	@ViewBag.Title
+</h3>
+@Html.AntiForgeryToken()
+@section Styles {
+	@Styles.Render(eBundle.elUI_CSS)
+}
+
+@section Scripts {
+	@Scripts.Render(eBundle.Vue_MES)
+	@Scripts.Render(eBundle.elUI_JS)
+}
+
+<div id="app">
+	<h3>處理 OnceClick  開啟流程圖的程序</h3>
+	<button @@click="test">test</button>
+	
+</div>
+
+<script>
+	console.log(`@System.Web.Configuration.WebConfigurationManager.AppSettings["csMES"]`);
+	console.log(window.location.pathname);
+	$(() => {
+		new Vue({
+			el: '#app',
+			data() {
+				return {
+					msg: "baseTpl---A"
+				}
+			},
+			methods: {
+				test() {
+					debugger;
+					var user = `@BLL.MVC.CurrentProvider.Provider.GetCurrent().UserNo`;
+					var lang = window.getCookie("culture");
+                    var SID = 'GTI20030417273102055';
+					var Root = $.getBaseUrl();
+					var HostIP = `@System.Web.HttpContext.Current.Request.Url.Authority`;
+					//var urlRouterChart = `@System.Web.Configuration.WebConfigurationManager.AppSettings["urlRouterChart"]`;
+					//let { host, pathname } = window.location;
+					//               console.log(pathname)
+					//let [z, Root] = pathname.split('/');
+					var url
+						//= 'http://10.96.0.219/PTTCMES/RouteChart/RouteChart.application?CurrentUser=Admin&RouterVerSID=GTI21012015313526499&HostIP=10.96.0.219&PahtDir=PTTCMES&Lang=zh-TW';
+						//= `http://${host}/${Root}/RouteChart/RouteChart.application?CurrentUser=${user}&RouterVerSID=${SID}&HostIP=10.96.0.219&PahtDir=PTTCMES&Lang=${lang}`;
+                        = `http://${HostIP}${Root}/RouteChart/RouteChart.application?CurrentUser=${user}&RouterVerSID=${SID}&Lang=${lang}&HostIP=${HostIP}&PahtDir=${Root.substring(1)}`;
+					window.open(url);
+
+				}
+			}
+		})
+	});
+</script>

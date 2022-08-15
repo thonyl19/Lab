@@ -1,0 +1,32 @@
+﻿@{
+    ViewBag.Title = @Genesis.Common.PageBaseInfo.getCurrentResource("baseTpl").RESOURCE_NAME;
+}
+<h3>
+    @ViewBag.Title
+</h3>
+@Html.AntiForgeryToken()
+@section Styles {
+    @Styles.Render(eBundle.elUI_CSS)
+}
+
+@section Scripts {
+    @Scripts.Render(eBundle.Vue_MES)
+    @Scripts.Render(eBundle.elUI_JS)
+}
+
+<div id="app">
+    {{msg}}
+</div>
+@Html.Partial("_Test")
+<script>
+    $(() => {
+        new Vue({
+            el: '#app',
+            data() {
+                return {
+                    msg: "baseTpl---A"
+                }
+            }
+        })
+    });
+</script>

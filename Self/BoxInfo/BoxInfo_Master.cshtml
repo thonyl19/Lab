@@ -1,0 +1,157 @@
+﻿@{
+    ViewBag.Title = "盒具資訊維護";
+    //
+}
+<h3>
+    @ViewBag.Title
+    <small></small>
+</h3>
+
+<form id="app">
+    <div class="toolbar">
+        <el-button type="primary" class="btn"
+                   icon="el-icon-caret-right"
+                   :disabled="exec_disabled"
+                   v-on:click="Exec">
+            @RES.BLL.Face.FunctionBarOKButton
+        </el-button>
+
+        <el-button type="primary" class="btn" icon="el-icon-search">搜索</el-button>
+    </div>
+    <el-table :data="List_Lot" class="lot-list"
+              empty-text=" "
+              style="width: 100% ">
+        <el-table-column width="90" fixed>
+            <template slot-scope="scope">
+                <button class="btn btn-default btn-sm" >
+                    <i class="fa fa-2x  fa-search fa-fw"></i>
+                </button>
+            </template>
+        </el-table-column>
+        <el-table-column label="盒具代碼" width="120" prop="seat_code"></el-table-column>
+        <el-table-column label="盒具別名" width="120" prop="seat_code"></el-table-column>
+        <el-table-column label="盒具欄數" width="120" prop="seat_code"></el-table-column>
+        <el-table-column label="盒具列數" width="120" prop="seat_code"></el-table-column>
+        <el-table-column label="備註" prop="seat_code"></el-table-column>
+    </el-table>
+    <el-dialog title="盒具資料設定"
+               :append-to-body="true"
+               :visible.sync="dialogTableVisible"
+               width="100%"
+               fullscreen="true"
+               class="vue-boxinfoview">
+        <div class="panel b">
+            <div class="panel-body row">
+
+            </div>
+        </div>
+    </el-dialog>
+</form>
+
+
+
+
+
+@section Scripts {
+    @Scripts.Render(eBundle.selectize_JS)
+    @Scripts.Render(eBundle.Vue_MES)
+    @Scripts.Render(eBundle.elUI_JS)
+    @Html.Partial("BoxInfo/_boxinfoView")
+
+}
+
+<script>
+    $(() => {
+        const v = new Vue({
+            el: '#app',
+            data() {
+                return {
+                    //
+                    CurrentLot: {
+                        LOT: '201-20121129-33'
+                    },
+                    options: [],
+                    reason: [],
+
+                    description: "",
+                    exec_disabled: true,
+                    HoldInfoList: [],
+                    isEmptyRow: true,
+                    List_Lot: [
+                        { seat_code: '0301' },
+                        { seat_code: '0302' },
+                        { seat_code: '0303' }
+                    ],
+                    dialogTableVisible: false,
+                    boxinfo: {
+                        Cols: 30,
+                        ColType: 0,
+                        Rows: 30,
+                        RowType: 0,
+                        orderType: 0,
+                        AxisVisable: true,
+
+                        Lists: [],
+                        Lists_x: {},
+                        axis: {
+                            x: [],
+                            y: []
+                        },
+                        charArr: Array.from("ABCDEFGHIJKLMNOPQRESTUVWXYZ"),
+                        selected: {}
+                    }
+
+                }
+            },
+            //mounted() {
+            //    this.dialogTableVisible = true;
+            //},
+            methods: {
+                Exec() { },
+                ClearList() { }
+            },
+        })
+    })
+</script>
+
+
+@section Styles {
+    @Styles.Render(eBundle.selectize_CSS)
+    @Styles.Render(eBundle.elUI_CSS)
+<style>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+    .boxinfo-filed-name {
+        min-width: 12rem !important;
+    }
+</style>
+}

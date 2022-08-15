@@ -1,0 +1,264 @@
+﻿@{
+	ViewBag.Title = @Genesis.Common.PageBaseInfo.getCurrentResource("gt-versonbar").RESOURCE_NAME;
+	bool isSingleModel = (bool)ViewData["SingleModel"];
+
+	if (isSingleModel) Layout = "~/Views/Shared/_LayoutSingle.cshtml";
+}
+@eBundle.QRender_CSS()
+@eBundle.QRender_JS()
+@Html.AntiForgeryToken()
+<h3>
+	@ViewBag.Title
+	@*<small><a href="https://genesisoffice365.sharepoint.com/:o:/r/sites/GTiMES50/_layouts/15/WopiFrame.aspx?sourcedoc={7175ca3d-ef9b-447d-a677-837671fc502f}&action=edit&wd=target%28UI%2Eone%7C0DA210C6%2DA155%2D4147%2DABA6%2DF995FD827BC6%2Fgt%2Dtoolbar%7CE1159DE3%2D014D%2D41F0%2D9A07%2DE3809845F054%2F%29onenote%3Ahttps%3A%2F%2Fgenesisoffice365%2Esharepoint%2Ecom%2Fsites%2FGTiMES50%2FSiteAssets%2FGTiMES%205%2E0%20%E9%96%8B%E7%99%BC%20%E7%AD%86%E8%A8%98%E6%9C%AC%2FUI%2Eone#gt-toolbar&section-id={0DA210C6-A155-4147-ABA6-F995FD827BC6}&page-id={E1159DE3-014D-41F0-9A07-E3809845F054}&end" target="_blank">參考文件</a></small>*@
+</h3>
+<div id="app" v-cloak>
+    <h3>預設版本情境</h3>
+    <h5>模擬 Post 失敗<input type="checkbox" v-model="isPostfail" /></h5>
+    <h3>gt-versionbar</h3>
+    <gt-versionbar :ver_form="ver_form" :ddl_verson_opts="ddl_verson"
+                   :e_enable="e_enable_ver_form" :e_add="e_add" :e_default="e_default"
+                   :e_copy_version="e_copy_version"></gt-versionbar>
+    <h3>gt-versionbar1</h3>
+    <br />
+    <el-tabs type="border-card" v-model="tabs">
+        <el-tab-pane label="@Face.OperationTypeVersionInfo" name="B">
+            <h3>基本使用情境</h3>
+            <h5>isEditMode<input type="checkbox" v-model="isEditMode" /></h5>
+            <gt-versionbar1 ref="ver_bar"
+                            v-model="c_cur_ver"
+                            :ddl_verson_opts="ddl_verson"
+                            :e_enable="e_enable"
+                            :e_default="e_default" :e_add="e_add"
+                            :e_copy_version="e_copy_version"
+                            :e_delete_version="e_delete_version">
+
+                <el-tooltip class="item" effect="dark" content="更新" placement="bottom">
+                    <el-button type="primary" size="mini" icon="el-icon-refresh" circle @@click="renew"> </el-button>
+                </el-tooltip>
+            </gt-versionbar1>
+            <div>{{c_cur_ver}}</div>
+            <br />
+            <h3>模擬自定 sid , enable_flag 欄位名稱 和模擬靠右模式</h3>
+            <h5><pre>
+<el-button type="primary" size="mini" @@click="Set_Initial">設為 Initial </el-button>
+ConfirmMode <input type="checkbox" v-model="ConfirmMode" />
+[confirm_ver]<input type="checkbox" v-model="ConfirmVerMode" />
+[註]confirm_ver 不是一個常規的應用,但就是有實務上的需求場景,此外,考量到 需求上會是提供訊息提示的支援,
+    所以索性就把這兩個做成同一個,只要傳入訊息提示的字段,就會開啟 版本切換提示的功能
+</pre>
+            </h5>
+             
+            <br />
+            <el-row>
+                <el-col :span="24">
+                    <gt-versionbar1   style="max-width: 660px !important;" class="pull-right"
+                                    v-model="c_cur_ver1"
+                                    sid="Display"
+                                    enable_flag="ENABLE_FLAG_T"
+                                    :confirm="ConfirmMode"
+                                    :ddl_verson_opts="ddl_verson"
+                                    :selectize_ops="selectize_ops"
+                                    :e_enable="e_enable1"
+                                    :e_default="e_default" :e_add="e_add"
+                                    :e_copy_version="e_copy_version"
+                                    :e_delete_version="e_delete_version"
+                                    :e_renew="renew"
+                                    :confirm_ver="c_confirm_ver"
+                                    >
+
+ 
+                    </gt-versionbar1>
+                </el-col>
+            </el-row>
+            <div>{{c_cur_ver1}}</div>
+        </el-tab-pane>
+        <el-tab-pane label="@Face.OperationTypeVersionInfo" name="C">
+            <el-row>
+                <el-col :span="12">
+                    <gt-versionbar1 v-model="c_cur_ver1"
+                                    sid="Display"
+                                    enable_flag="ENABLE_FLAG_T"
+                                    :confirm="ConfirmMode"
+                                    :ddl_verson_opts="ddl_verson"
+                                    :selectize_ops="selectize_ops"
+                                    :e_enable="e_enable1"
+                                    :e_default="e_default" :e_add="e_add"
+                                    :e_copy_version="e_copy_version"
+                                    :e_delete_version="e_delete_version">
+
+                        <el-tooltip class="item" effect="dark" content="更新" placement="bottom">
+                            <el-button type="primary" size="mini" icon="el-icon-refresh" circle @@click="renew"> </el-button>
+                        </el-tooltip>
+                    </gt-versionbar1>
+                </el-col>
+            </el-row>
+        </el-tab-pane>
+    </el-tabs>
+    <div>{{cur_ver}}</div>
+    <div>{{ver_form}}</div>
+    <div>{{ddl_verson}}</div>
+    @*<div class="row gt-versonbar">
+            <div class="col-lg-6 col-sm-12">
+                <div class="input-group">
+                    <span class="input-group-addon">版本</span>
+
+                    <vue-selectize class="input-group-addon" ref="version"
+                                   style="width:200px"
+                                   render_sty="GTIMES"
+                                   :options="ddlCategory"
+                                   is_formcontrol="true"
+                                   v-model="form.CATEGORY">
+                    </vue-selectize>
+
+                    <div class="input-group-addon switch" @@click="act_Switch">
+                        <input type="checkbox"  v-model="form.enabled" :disabled="!bt.e_query.enable" @click="bt.e_query.fn" v-if="bt.e_query.visable" />
+                        <span></span>
+                    </div>
+
+
+                    <el-tooltip class="item" effect="dark" content="預設版本" placement="bottom">
+                        <i class="input-group-addon fa fa-flag fa-2x btn" :disabled="!bt.e_query.enable" @click="bt.e_query.fn" v-if="bt.e_query.visable" ></i>
+                    </el-tooltip>
+
+                    <el-tooltip class="item" effect="dark" content="新增版本" placement="bottom">
+                        <el-button type="primary" size="mini" icon="el-icon-plus" style="margin:10px" :disabled="!bt.e_query.enable" @click="bt.e_query.fn" v-if="bt.e_query.visable" circle> </el-button>
+                    </el-tooltip>
+
+                </div>
+            </div>
+
+
+
+        </div>*@
+</div>
+@section Styles {
+	@Styles.Render(eBundle.elUI_CSS)
+}
+
+@section Scripts {
+	@Scripts.Render(eBundle.Vue_MES)
+	@Scripts.Render(eBundle.elUI_JS)
+}
+
+<script>
+    $(() => {
+
+        var ddlVerson = [{ "SID": "GTI20101518222609299", "Display": 111, "No": "GTI20101518222609299", "Value": "GTI20101518222609299", "DEFAULT_FLAG": "F", "DESCRIPTION": "", "ENABLE_FLAG": "Initial", "ENABLE_FLAG_T": "Initial", "$order": 7 }, { "SID": "GTI20102013445282667", "Display": 4, "No": "GTI20102013445282667", "Value": "GTI20102013445282667", "DEFAULT_FLAG": "F", "DESCRIPTION": "", "ENABLE_FLAG": "Enable", "ENABLE_FLAG_T": "Disable", "$order": 8 }, { "SID": "GTI20102312245174048", "Display": 5, "No": "GTI20102312245174048", "Value": "GTI20102312245174048", "DEFAULT_FLAG": "F", "DESCRIPTION": "", "ENABLE_FLAG": "Enable", "ENABLE_FLAG_T": "Disable", "$order": 9 }, { "SID": "GTI20102413275357470", "Display": 6, "No": "GTI20102413275357470", "Value": "GTI20102413275357470", "DEFAULT_FLAG": "F", "DESCRIPTION": "", "ENABLE_FLAG": "Initial", "ENABLE_FLAG_T": "Enable", "$order": 10 }, { "SID": "GTI20102419061335152", "Display": 7, "No": "GTI20102419061335152", "Value": "GTI20102419061335152", "DEFAULT_FLAG": "F", "DESCRIPTION": "", "ENABLE_FLAG": "Enable", "ENABLE_FLAG_T": "Disable", "$order": 11 }, { "SID": "GTI20102813410640463", "Display": 8, "No": "GTI20102813410640463", "Value": "GTI20102813410640463", "DEFAULT_FLAG": "T", "DESCRIPTION": "", "ENABLE_FLAG": "Disable", "ENABLE_FLAG_T": "Enable", "$order": 12 }];
+
+        new Vue({
+            el: '#app',
+            data() {
+                return {
+                    isPostfail: false,
+                    isEditMode: true,
+                    isChgSID: true,
+                    ConfirmMode: false,
+                    ConfirmVerMode:true,
+                    tabs: 'B',
+                    selectize_ops:{
+                        valueField: "Display"
+                    },
+                    cur_ver: {
+                        SID:"GTI20101518222609299",
+                        Display: 111,
+                    },
+                    ver_form: {
+                        ddlval: 'GTI20101518222609299',
+                        enabled: true,
+                    },
+                    ddl_verson: ddlVerson
+
+                }
+            },
+            computed: {
+                c_confirm_ver() {
+                    return this.ConfirmVerMode ? "測試:請確認是否變更版本" : "";
+                },
+                c_cur_ver: {
+                    get() {
+                        if (this.isEditMode) {
+                            return this.cur_ver;
+                        }
+                        return {};
+                    },
+                    set(val) {
+                        this.cur_ver = val;
+                    }
+                },
+                c_cur_ver1: {
+                    get() {
+                        if (this.isEditMode) {
+                            return this.cur_ver;
+                        }
+                        return {};
+                    },
+                    set(val) {
+                        this.cur_ver = val;
+                    }
+                }
+            },
+            methods: {
+                e_enable_ver_form() {
+                    this.ver_form.enabled = this.ver_form.enabled == "Enable" ? "Disable" : "Enable";
+                },
+                e_enable(fn_revert) {
+                    let _self = this;
+                    let { SID } = this.cur_ver;
+                    
+                    var _var = _.find(ddlVerson, { SID });
+                    if (this.isPostfail) {
+                        window.setTimeout((() => {
+                            fn_revert();
+                            _self.$message('模擬執行失敗,自重回復原設定');
+                        }), 1500);
+                    }
+                    this.ddl_verson = ddlVerson;
+                },
+                Set_Initial() {
+                    this.cur_ver.ENABLE_FLAG = "Initial";
+                    let { ENABLE_FLAG_T } = this.cur_ver;
+                    if (ENABLE_FLAG_T != null) this.cur_ver.ENABLE_FLAG_T = "Initial";
+                },
+                e_enable1(fn_revert) {
+                    if (!this.isPostfail) return;
+                    var title = `確定要變更嗎？`;
+                    var _ops = this.$Alert.genConfirm({ title });
+                    Swal.fire(_ops).then(result => {
+                        let { dismiss } = result;
+                        if (dismiss == "cancel") {
+                            fn_revert();
+                        }
+                        else if (result.value) {
+
+                        }
+                    });
+                },
+                e_add() {
+
+                },
+                e_default(fn_revert) {
+                    var _self = this;
+                    if (this.isPostfail) {
+
+                        window.setTimeout((() => {
+                            fn_revert();
+                            _self.$message('模擬執行失敗,自重回復原設定');
+                        }), 1500);
+                    }
+                    this.ddl_verson = ddlVerson;
+                },
+
+
+                e_copy_version() {
+                    this.$message('e_copy_version');
+                },
+                e_delete_version() {
+                    this.$message('e_delete_version');
+                },
+                renew() {
+                    this.$message('資料更新');
+                },
+            }
+        })
+    });
+</script>

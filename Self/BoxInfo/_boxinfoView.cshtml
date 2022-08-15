@@ -1,0 +1,210 @@
+﻿<style>
+
+    .vue-boxinfoview {
+        overflow: auto;
+    }
+
+        .vue-boxinfoview .el-dialog__header {
+            padding: 7px 15px;
+        }
+
+        .vue-boxinfoview .el-dialog__body {
+            padding: 7px;
+        }
+
+        .vue-boxinfoview .boxGrid {
+            margin: 2em 3em;
+        }
+
+        .vue-boxinfoview .unselect-all {
+            margin-top: 1.3em;
+            margin-left: 3em;
+        }
+
+        .vue-boxinfoview .selected {
+            color: red;
+        }
+
+        .vue-boxinfoview .boxGrid td {
+            border: 1px black groove;
+            position: relative;
+            padding: 5px;
+            min-width: 4.3rem;
+        }
+
+            .vue-boxinfoview .boxGrid td:hover {
+                background-color: #D6EDAC;
+                cursor: pointer;
+            }
+
+        .vue-boxinfoview .boxGrid tr:nth-child(even) {
+            background: #CCC;
+        }
+
+        .vue-boxinfoview .axis-x {
+            width: 80%;
+            text-align: center;
+            position: absolute;
+            top: -21px;
+        }
+
+        .vue-boxinfoview .axis-y {
+            position: absolute;
+            left: -17px;
+        }
+
+        .vue-boxinfoview .tool-bar {
+        }
+</style>
+<script type="text/x-template" id="xtpl-boxinfo">
+    <div class="vue-boxinfoview">
+        <div class="tool-bar">
+
+            <input type="button" class="unselect-all" @@click.stop="unselectAll($event)" value="Unselect All" />
+        </div>
+        <!--位置碼<input type="text"  v-on:submit.prevent  v-on:keyup.enter.prevent="action($event)" v-model="mapCode" />-->
+
+        <table class="boxGrid">
+            <tr v-for="(rows,row_idx) in Lists">
+                <td v-for="(itme,col_idx) in rows" @@click="select(itme)">
+                    <div class="fs axis-x" v-if="isShowAxisX(row_idx)">{{axis.x[col_idx]}}</div>
+                    <div class="fs axis-y" v-if="isShowAxisY(col_idx)">{{axis.y[row_idx]}}</div>
+                    <span class="fs" :class="Lists_x[itme].isSelected?'selected':''" :key="itme">{{itme}}</span>
+                </td>
+            </tr>
+        </table>
+    </div>
+</script>
+<script>
+    $(() => {
+        Vue.component('x-boxinfo', {
+            template: '#xtpl-boxinfo',
+            data() {
+                return {
+                    mapCode: "",
+                    Lists: [],
+                    Lists_x: {},
+                    axis: {
+                        x: [],
+                        y: []
+                    },
+                    charArr: Array.from("ABCDEFGHIJKLMNOPQRESTUVWXYZ"),
+                }
+            },
+            props: {
+                Cols: {
+                    type: Number,
+                    default: 0
+                },
+                Rows: {
+                    type: Number,
+                    default: 0
+                },
+                RowType: {
+                    type: Number,
+                    default: 0
+                },
+                ColType: {
+                    type: Number,
+                    default: 0
+                },
+                OrderType: {
+                    type: Number,
+                    default: 0
+                },
+                AxisVisable: {
+                    type: Boolean,
+                    default: true
+                },
+                AutoGen: {
+                    type: Boolean,
+                    default: true
+                }
+
+            },
+            methods: {
+                Exec() {
+                    debugger
+                    var _self = this;
+                    _self.Lists = [];
+                    _self.Lists_x = {};
+                    _self.selected = {};
+                    _self.axis = {
+                        x: [],
+                        y: []
+                    };
+                    for (var row = 0; row < _self.Rows; row++) {
+                        var rows = [],
+                            _row = _self.transAxis(row, _self.RowType);
+                        _self.axis.y.push(_row);
+                        for (var col = 0; col < _self.Cols; col++) {
+                            var _col = _self.transAxis(col, _self.ColType);
+                            if (row == 0) _self.axis.x.push(_col);
+                            var _key
+                                = _self.OrderType
+                                    ? `${_col}-${_row}`
+                                    : `${_row}-${_col}`;
+                            rows.push(_key);
+                            _self.$set(_self.Lists_x, _key, { isSelected: false })
+                        }
+                        this.Lists.push(rows);
+                    }
+                },
+
+                transAxis(idx, type) {
+                    var result;
+                    switch (type) {
+                        case 1:
+                            result = this.charArr[idx];
+                            break;
+                        case 2:
+                            result = this.charArr[idx].toLowerCase();
+                            break;
+                        default:
+                            result = idx + 1;
+                            break;
+                    }
+                    //console.log({idx,type,result})
+                    return result;
+                },
+                isShowAxisX(Y) {
+                    return this.AxisVisable && (Y == 0);
+                    //|| Y == this.axis.y.length-1
+                },
+                isShowAxisY(X) {
+                    return this.AxisVisable && (X == 0);
+                    //|| X == this.axis.x.length-1
+                },
+                select(item) {
+                    var _obj = this.Lists_x[item];
+                    _obj.isSelected = !_obj.isSelected;
+
+                },
+                action(event) {
+                    debugger;
+                    //event.stopPropagation();
+                    event.preventDefault();
+                    return;
+                    var _obj = this.Lists_x[item];
+                    if (_obj) {
+                        _obj.isSelected = !_obj.isSelected;
+                    }
+                },
+                unselectAll(event) {
+                    debugger;
+                    event.stopPropagation();
+                    for (var [key, item] of Object.entries(this.Lists_x)) {
+                        item.isSelected = false;
+                    }
+                }
+
+            },
+            mounted() {
+                if (this.AutoGen) {
+                    this.Exec();
+                }
+
+            },
+        })
+    })
+</script>

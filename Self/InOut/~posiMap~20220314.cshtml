@@ -1,0 +1,251 @@
+﻿@using System.Dynamic
+@model BLL.MES.DataViews.LotData
+@{
+	bool isSingleModel = (bool)ViewData["SingleModel"];
+	dynamic data = new ExpandoObject();
+	data.LOT="Test";
+	Model.CurrentLot = data;
+	if (isSingleModel)
+	{
+		Layout = "~/Views/Shared/_LayoutSingle.cshtml";
+		@eBundle.QRender_CSS();
+		@eBundle.QRender_JS();
+	}
+}
+
+@Html.Partial("~/Areas/MES/Views/WIP/Partial2/_posiMap.cshtml", @Model)
+<pre>
+\Partial2\_selectUsers.cshtml
+</pre>
+<div id="app">
+	<el-row :gutter="10">
+		<template v-for="(row,idx) in Map_MO">
+			<template v-for="(point,posi) in row">
+				<el-col :xs="6" :sm="6" :md="6" :lg="4" :xl="4" :span="8" :ref="point.el_id" :class="['posi',point.isEmpty?'':'used',current.posi==posi?'input':'',point_size]"
+						@@click.native="point.focus()" @@dblclick.native.self="point.chg_sts()">
+					<i :class="['posi-sn',point.sts_sty]" @@click="point.chg_sts()">{{point.sn}}</i>
+					<span class="src-val">{{point.src.val}}</span>
+				</el-col>
+			</template>
+		</template>
+	</el-row>
+	<div>
+		[list]{{list}}
+	</div>
+	<div>
+		[srcMO]{{srcMO}}
+	</div>
+	<div>
+		[Map_MO]{{Map_MO}}
+	</div>
+</div>
+<style>
+    .posi {
+        background-color: white;
+        border-radius: 4px;
+        border: 1px groove #ebf1de;
+        padding: 0 .3rem;
+        text-align: right;
+        position: relative;
+        margin-bottom:3px;
+    }
+        .posi.used {
+            background-color: #e6ebebd9;
+        }
+
+    .src-val {
+        position: absolute;
+        top: 0px;
+        left: 0px;
+        line-height: 5rem;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+        padding: 0 5rem 0 5px;
+        width: 100%;
+        text-align: left;
+        z-index: 1;
+    }
+    .posi-sn {
+        font-size: 3.5rem;
+        z-index: 999;
+        user-select: none;
+        cursor: pointer;
+		margin:0 .7rem;
+    }
+
+    div.posi.input {
+        border: 1px groove red !important;
+    }
+
+    div.posi:hover {
+        border: 1px groove rgb(64, 158, 255);
+        cursor: pointer;
+    }
+
+        .posi-sn.sts_r {
+            color: #ff00006b;
+        }
+
+        .posi-sn.sts_g {
+            color: #1be1466b;
+        }	
+			
+
+</style>
+
+<script>
+	$(() => {
+		var send_data = @Html.Raw(ViewData["result"] ?? "{}");
+		var srcMO = _.range(1, 25).map((el) => { return [el]; });
+		new Vue({
+			el: '#app',
+			mixins: [Vue.prototype.$UT.Mixins.PosiMap()],
+			data() {
+                return {
+                    isOnlyEmpty:false,
+                    piece_size: 1,
+					send_data,
+                    srcMO,
+                    list: {
+						"1": {
+							"SID": "GTI001---------------------------------------------------------------------------------",
+							"ROOT_SID": null,
+							"PARENT_SID": null,
+							"PREV_SEAIAL": null,
+							"SN": 1,
+							"SN_ID": "FAC01",
+							"STATUS": null
+						},
+						"2": {
+							"SID": "GTI002",
+							"ROOT_SID": null,
+							"PARENT_SID": null,
+							"PREV_SEAIAL": null,
+							"SN": 2,
+							"SN_ID": "FAC02",
+							"STATUS": null
+						}
+					}
+				}
+			},
+			methods: {
+				//解決 src 內 mvvm 機制的問題
+				parseSrc(src) {
+                    this.$set(src, 'val', 0);
+					this.$set(src, 'sts', 0);
+					Object.defineProperty(src, 'val', {
+                        get() {
+                            debugger
+                            let { SID = null } = this;
+                            return SID;
+                        },
+						set(val) { return this.SID = val; }
+                    });
+                    Object.defineProperty(src, 'sts', {
+                        get() {
+                            let { STATUS } = this;
+                            STATUS = STATUS ?? "Wait";
+                            return STATUS == "Wait"?"0":"1";
+                        },
+                        set(val) {
+                            var def = "Wait";
+                            if (val == "1") def = "Scrap";
+                            this.STATUS = def;
+                        }
+                    });
+					return src;
+				},
+				genPosiMap(total = 24, row_count = 6) {
+					var map = [];
+					for (var no = 1; no <= total; no++) {
+						var _map = {};
+						_map[`${no}`] = 0;
+						map.push(_map);
+					}
+					return map;
+				},
+                parsePOSI(sn, posi, srcObj) {
+                    var _self = this;
+                    var src = _self.parseSrc(srcObj);
+                    var _posiObj = {
+                        sn,
+                        posi,
+                        src,
+                        get el_id() {
+                            return `${this.posi}_${this.sn}`;
+                        },
+                        get_el() {
+                            let [_el] = _self.$refs[this.el_id] || [null]
+                            return _el;
+                        },
+                        get isCanUse() {
+                            var isNotMark = (_self.SkipMark && this.src.sts == "1") == false;
+                            return this.isEmpty && isNotMark;
+                        },
+                        get isEmpty() {
+                            var _v = this.src.val ?? ""
+                            return _v === "";
+                        },
+                        get sts_sty() {
+                            return _self.sts_sty[this.src.sts];
+                        },
+                        Enter() {
+                            this.update().focus();
+                        },
+                        Submit() {
+                            _self.srcPOSI[this.sn] = this;
+                            this.update().next_point()?.focus();
+                        },
+                        next_point(AutoReStart = true, startSN = null) {
+                            var next = _self.srcPOSI[this.sn + 1];
+                            if (next == null) {
+                                var isNeedReSearch = AutoReStart && startSN == null;
+                                if (isNeedReSearch) {
+                                    next = _self.srcPOSI[1];
+                                    if (next.isCanUse == false) {
+                                        next = next.next_point(AutoReStart, 1);
+                                    }
+                                    if (next == null) {
+                                        _self.$message("己沒有可以使用的位置!!");
+                                        return next;
+                                    }
+                                }
+                            } else if (next.isCanUse == false) {
+                                next = next.next_point(AutoReStart, startSN);
+                            }
+                            return next;
+                        },
+                        focus() { return _self.SetInputIndex(this); },
+                        /*
+                        NOTE: point.update 將資料回更 list
+                        */
+                        update() {
+                            let { val, sts } = this.src;
+                            if (this.isEmpty && sts == "0") {
+                                _self.$delete(_self.list, this.posi);
+                            } else {
+                                _self.$set(_self.list, this.posi, this.src);
+                            }
+                            if (_self.SyncMode == false) _self.srcPOSI[this.sn] = this;
+                            return this;
+                        },
+                        empty() {
+                            if (this.isEmpty) return this;
+                            var point = _self.srcPOSI[this.sn];
+                            _self.Del(point);
+                            return point;
+                        },
+                        chg_sts(isFormEvent = false) {
+                            debugger
+                            let { sts } = this.src;
+                            this.src.sts = sts == "0" ? "1" : "0";
+                            return this;
+                        }
+                    };
+                    return _posiObj;
+                },
+			}
+		})
+	});
+</script>

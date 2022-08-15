@@ -1,0 +1,235 @@
+﻿@{
+    ViewBag.Title = @Genesis.Common.PageBaseInfo.getCurrentResource("baseTpl").RESOURCE_NAME;
+}
+<h3>
+    @ViewBag.Title
+</h3>
+@Html.AntiForgeryToken()
+@section Styles {
+    @Styles.Render(eBundle.elUI_CSS)
+}
+
+@section Scripts {
+    @Scripts.Render(eBundle.Vue_MES)
+    @Scripts.Render(eBundle.elUI_JS)
+}
+
+<style>
+    .hr-embed {
+        padding: 20px;
+        background: #edf1f2;
+    }
+</style>
+<div id="app">
+
+    <gt-hr :content="i18n.預設摺疊關閉" :show="false">
+        <div class="hr-embed">
+            <el-table :data="tableData"
+                      style="width: 100%">
+                <el-table-column prop="date"
+                                 label="Date"
+                                 width="180">
+                </el-table-column>
+                <el-table-column prop="name"
+                                 label="Name"
+                                 width="180">
+                </el-table-column>
+                <el-table-column prop="address"
+                                 label="Address">
+                </el-table-column>
+            </el-table>
+
+            <h3>CSHTML</h3>
+            <section>
+                <pre><code>{{ code_1 }}</code></pre>
+            </section>
+        </div>
+    </gt-hr>
+
+    <gt-hr :content="i18n.預設摺疊打開">
+        <div class="hr-embed">
+            <el-table :data="tableData"
+                      style="width: 100%">
+                <el-table-column prop="date"
+                                 label="Date"
+                                 width="180">
+                </el-table-column>
+                <el-table-column prop="name"
+                                 label="Name"
+                                 width="180">
+                </el-table-column>
+                <el-table-column prop="address"
+                                 label="Address">
+                </el-table-column>
+            </el-table>
+
+            <h3>CSHTML</h3>
+            <section>
+                <pre><code>{{ code_2 }}</code></pre>
+            </section>
+        </div>
+    </gt-hr>
+
+    <h3>{{ i18n.只有分隔線 }}</h3>
+    <gt-hr>
+        <div class="hr-embed">
+            <el-table :data="tableData"
+                      style="width: 100%">
+                <el-table-column prop="date"
+                                 label="Date"
+                                 width="180">
+                </el-table-column>
+                <el-table-column prop="name"
+                                 label="Name"
+                                 width="180">
+                </el-table-column>
+                <el-table-column prop="address"
+                                 label="Address">
+                </el-table-column>
+            </el-table>
+
+            <h3>CSHTML</h3>
+            <section>
+                <pre><code>{{ code_3 }}</code></pre>
+            </section>
+        </div>
+    </gt-hr>
+
+    <gt-hr :content="i18n.不啟用折疊" :active="false">
+        <div class="hr-embed">
+            <el-table :data="tableData"
+                      style="width: 100%">
+                <el-table-column prop="date"
+                                 label="Date"
+                                 width="180">
+                </el-table-column>
+                <el-table-column prop="name"
+                                 label="Name"
+                                 width="180">
+                </el-table-column>
+                <el-table-column prop="address"
+                                 label="Address">
+                </el-table-column>
+            </el-table>
+
+            <h3>CSHTML</h3>
+            <section>
+                <pre><code>{{ code_4 }}</code></pre>
+            </section>
+        </div>
+    </gt-hr>
+</div>
+
+<script>
+    $(() => {
+        new Vue({
+            el: '#app',
+            data() {
+                return {
+                    tableData: [{
+                        date: '2016-05-03',
+                        name: 'Tom',
+                        address: 'No. 189, Grove St, Los Angeles'
+                    }, {
+                        date: '2016-05-02',
+                        name: 'Tom',
+                        address: 'No. 189, Grove St, Los Angeles'
+                    }, {
+                        date: '2016-05-04',
+                        name: 'Tom',
+                        address: 'No. 189, Grove St, Los Angeles'
+                    }, {
+                        date: '2016-05-01',
+                        name: 'Tom',
+                        address: 'No. 189, Grove St, Los Angeles'
+                    }],
+                    i18n: {
+                        預設摺疊打開: '預設摺疊打開',
+                        預設摺疊關閉: '預設摺疊關閉',
+                        只有分隔線: '只有分隔線',
+                        不啟用折疊: '不啟用折疊'
+                    },
+                    code_1: `
+<gt-hr :content="i18n.預設摺疊關閉" :show="false">
+    <template>
+        <el-table :data="tableData"
+                    style="width: 100%">
+            <el-table-column prop="date"
+                                label="Date"
+                                width="180">
+            </el-table-column>
+            <el-table-column prop="name"
+                                label="Name"
+                                width="180">
+            </el-table-column>
+            <el-table-column prop="address"
+                                label="Address">
+            </el-table-column>
+        </el-table>
+    </template>
+</gt-hr>
+`,
+                    code_2: `
+<gt-hr :content="i18n.預設摺疊打開">
+    <template>
+        <el-table :data="tableData"
+                    style="width: 100%">
+            <el-table-column prop="date"
+                                label="Date"
+                                width="180">
+            </el-table-column>
+            <el-table-column prop="name"
+                                label="Name"
+                                width="180">
+            </el-table-column>
+            <el-table-column prop="address"
+                                label="Address">
+            </el-table-column>
+        </el-table>
+    </template>
+</gt-hr>`,
+                    code_3: `
+<gt-hr>
+    <template>
+        <el-table :data="tableData"
+                    style="width: 100%">
+            <el-table-column prop="date"
+                                label="Date"
+                                width="180">
+            </el-table-column>
+            <el-table-column prop="name"
+                                label="Name"
+                                width="180">
+            </el-table-column>
+            <el-table-column prop="address"
+                                label="Address">
+            </el-table-column>
+        </el-table>
+    </template>
+</gt-hr>
+`,
+                    code_4: `
+<gt-hr :content="i18n.不啟用折疊" :active="false">
+    <template>
+        <el-table :data="tableData"
+                    style="width: 100%">
+            <el-table-column prop="date"
+                                label="Date"
+                                width="180">
+            </el-table-column>
+            <el-table-column prop="name"
+                                label="Name"
+                                width="180">
+            </el-table-column>
+            <el-table-column prop="address"
+                                label="Address">
+            </el-table-column>
+        </el-table>
+    </template>
+</gt-hr>
+`
+                }
+            }
+        })
+    });
+</script>

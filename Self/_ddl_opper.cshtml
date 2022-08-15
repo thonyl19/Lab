@@ -1,0 +1,53 @@
+﻿
+<h3>
+	ddl_opper
+</h3>
+@Html.AntiForgeryToken()
+<div id="app">
+
+	<vue-selectize-ddl-opper :main_oper.sync="main_oper"
+							 :reason="reason">
+	</vue-selectize-ddl-opper>
+
+</div>
+
+@section Styles {
+	@Styles.Render(eBundle.selectize_CSS)
+	@Styles.Render(eBundle.elUI_CSS)
+}
+
+@section Scripts {
+	@Scripts.Render(eBundle.selectize_JS)
+	@Scripts.Render(eBundle.Vue_MES)
+	@Scripts.Render(eBundle.elUI_JS)
+}
+
+<script>
+	debugger
+	$(() => {
+		new Vue({
+			el: '#app',
+			data() {
+				return {
+					main_oper: {
+						vaule: '',
+						ops: [{ "SID": "GTI11110116485080972", "No": "LotScrap", "Value": "GTI11110116485080972", "Display": "批號報廢", "StatusSid": null, "Status": null, "FromNum": 0.0, "INum": 0.0 }, { "SID": "GTI11110116520280975", "No": "HoldLot", "Value": "GTI11110116520280975", "Display": "批號扣留", "StatusSid": null, "Status": null, "FromNum": 0.0, "INum": 0.0 }, { "SID": "GTI11110116530180978", "No": "ReleaseLot", "Value": "GTI11110116530180978", "Display": "批號解除扣留", "StatusSid": null, "Status": null, "FromNum": 0.0, "INum": 0.0 }, { "SID": "GTI11110116555680981", "No": "SplitLot", "Value": "GTI11110116555680981", "Display": "批號分批", "StatusSid": null, "Status": null, "FromNum": 0.0, "INum": 0.0 }, { "SID": "GTI11110116564080984", "No": "MergeLot", "Value": "GTI11110116564080984", "Display": "批號併批", "StatusSid": null, "Status": null, "FromNum": 0.0, "INum": 0.0 }, { "SID": "GTI11110116584580987", "No": "CancelCheckIn", "Value": "GTI11110116584580987", "Display": "取消進站", "StatusSid": null, "Status": null, "FromNum": 0.0, "INum": 0.0 }]
+					},
+					reason: {
+						vaule: '',
+						ops: [{ "SID": "GTI11110115550180956", "No": "other", "Value": "GTI11110115550180956", "Display": "其他", "StatusSid": null, "Status": null, "FromNum": 0.0, "INum": 0.0 }]
+					},
+					i18n: {
+						description:'@RES.BLL.Face.Description',
+						lb_reason:'@RES.BLL.Face.lblREASON_NO',
+						lb_reasongroup:'@RES.BLL.Face.lblREASONGROUP',
+						PleaseScanTheBarcodeOrUseKeywords:"@RES.BLL.Message.PleaseScanTheBarcodeOrUseKeywords"
+					}
+				}
+			},
+			methods: {
+
+			}
+		})
+	});
+</script>

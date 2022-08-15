@@ -1,0 +1,63 @@
+﻿@{
+	ViewBag.Title = @Genesis.Common.PageBaseInfo.getCurrentResource("UI 規範041").RESOURCE_NAME;
+	bool isSingleModel = (bool)ViewData["SingleModel"];
+	if (isSingleModel) Layout = "~/Views/Shared/_LayoutSingle.cshtml";
+
+}
+@eBundle.QRender_CSS()
+@eBundle.QRender_JS()
+@Html.Partial("~/Areas/MES/Views/Shared/_wo_condition.cshtml")
+
+<div id="app" v-cloak style="position:relative;">
+	<gt-toolbar :e_save="e_save" fixed="top">
+
+	</gt-toolbar>
+	<div Area-Main class="panel b pt-lg ">
+		<gti-wo-contion ref="wo_cd"
+						v-model="form"
+						:opt_src="opt_src"
+						:i18n="i18n">
+			<gt-form-col v-model="form.ZZ" label="after"></gt-form-col>
+		</gti-wo-contion>
+		<div class="clearfix"></div>
+	</div>
+</div>
+
+<script>
+	$(() => {
+		new Vue({
+			el: '#app',
+			data() {
+				return {
+					form: {
+						WO: '',
+						STATUS: '',
+						WO_LINE_SID: '',
+						PRIORITY: '',
+						PARTNO: '',
+						ROUTE: '',
+						ZZ: '',
+					},
+					opt_src: {
+						WO_LINE_SID: [{ "RefKey": null, "SID": "GTI20092409541509670", "No": "SMD", "Value": "GTI20092409541509670", "Display": "SMD", "StatusSid": null, "Status": null, "FromNum": 0.0, "INum": 0.0 }, { "RefKey": null, "SID": "GTI20092409541509671", "No": "SMD-L", "Value": "GTI20092409541509671", "Display": "SMD-L", "StatusSid": null, "Status": null, "FromNum": 0.0, "INum": 0.0 }, { "RefKey": null, "SID": "GTI20092409541509672", "No": "TCB", "Value": "GTI20092409541509672", "Display": "TCB", "StatusSid": null, "Status": null, "FromNum": 0.0, "INum": 0.0 }, { "RefKey": null, "SID": "GTI20092409541509673", "No": "TCB-L", "Value": "GTI20092409541509673", "Display": "TCB-L", "StatusSid": null, "Status": null, "FromNum": 0.0, "INum": 0.0 }, { "RefKey": null, "SID": "GTI20092414143209936", "No": "RLD", "Value": "GTI20092414143209936", "Display": "RLD", "StatusSid": null, "Status": null, "FromNum": 0.0, "INum": 0.0 }, { "RefKey": null, "SID": "GTI20092514270110497", "No": "TVS", "Value": "GTI20092514270110497", "Display": "TVS", "StatusSid": null, "Status": null, "FromNum": 0.0, "INum": 0.0 }, { "RefKey": null, "SID": "GTI20092514270710498", "No": "TSS", "Value": "GTI20092514270710498", "Display": "TSS", "StatusSid": null, "Status": null, "FromNum": 0.0, "INum": 0.0 }],
+					},
+					i18n: {
+						ZZ: 'ZZ'
+					},
+				}
+			},
+			destored() {
+				//全域變數註消程序
+				this.$UT.parent_reload(true);
+			},
+			methods: {
+				e_save() {
+					this.$UT.parent_reload();
+				},
+				lot_Query(data) {
+					//this.DetailList.push(data);
+				},
+			}
+		})
+	});
+</script>

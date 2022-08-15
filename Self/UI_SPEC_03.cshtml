@@ -1,0 +1,89 @@
+﻿
+@{
+	ViewBag.Title = @Genesis.Common.PageBaseInfo.getCurrentResource("UI 規範03").RESOURCE_NAME;
+	bool isSingleModel = (bool)ViewData["SingleModel"];
+
+	if (isSingleModel) Layout = "~/Views/Shared/_LayoutSingle.cshtml";
+
+}
+<h3>
+	@ViewBag.Title
+	<small><a href="https://genesisoffice365.sharepoint.com/sites/GTiMES50/_layouts/15/Doc.aspx?sourcedoc={7175ca3d-ef9b-447d-a677-837671fc502f}&action=edit&wd=target%28UI.one%7C0da210c6-a155-4147-aba6-f995fd827bc6%2F%E9%A0%81%E9%9D%A2%E4%BD%88%E5%B1%80%E3%80%81%E8%A1%A8%E5%96%AE%E6%8E%92%E7%89%88%7C235e7573-2c2b-4329-a0e5-8bf5ea32f30c%2F%29" target="_blank">參考文件</a></small>
+</h3>
+@eBundle.QRender_CSS()
+@eBundle.QRender_JS()
+@Html.AntiForgeryToken()
+<div id="app" v-cloak class="m-sm">
+	<div Area-ToolBar class="toolbar mb-sm">
+		@Html.Partial("UI_SPEC_02_ToolBar")
+	</div>
+	<div Area-Main class="panel b ">
+		<div Area-Form class="panel-body form-horizontal gt-form">
+			@Html.Partial("UI_SPEC_03_Form")
+		</div>
+		<div Area-Else>
+			Tab,Grid.......
+		</div>
+	</div>
+</div>
+
+
+<script>
+	$(() => {
+		new Vue({
+			el: '#app',
+			data() {
+				return {
+                    radio:'',
+					main_oper: {
+						vaule: '',
+						ops: [{ "SID": "GTI11110116485080972", "No": "LotScrap", "Value": "GTI11110116485080972", "Display": "批號報廢", "StatusSid": null, "Status": null, "FromNum": 0.0, "INum": 0.0 }, { "SID": "GTI11110116520280975", "No": "HoldLot", "Value": "GTI11110116520280975", "Display": "批號扣留", "StatusSid": null, "Status": null, "FromNum": 0.0, "INum": 0.0 }, { "SID": "GTI11110116530180978", "No": "ReleaseLot", "Value": "GTI11110116530180978", "Display": "批號解除扣留", "StatusSid": null, "Status": null, "FromNum": 0.0, "INum": 0.0 }, { "SID": "GTI11110116555680981", "No": "SplitLot", "Value": "GTI11110116555680981", "Display": "批號分批", "StatusSid": null, "Status": null, "FromNum": 0.0, "INum": 0.0 }, { "SID": "GTI11110116564080984", "No": "MergeLot", "Value": "GTI11110116564080984", "Display": "批號併批", "StatusSid": null, "Status": null, "FromNum": 0.0, "INum": 0.0 }, { "SID": "GTI11110116584580987", "No": "CancelCheckIn", "Value": "GTI11110116584580987", "Display": "取消進站", "StatusSid": null, "Status": null, "FromNum": 0.0, "INum": 0.0 }]
+					},
+					reason: {
+						vaule: '',
+						ops: [{ "SID": "GTI11110115550180956", "No": "other", "Value": "GTI11110115550180956", "Display": "其他", "StatusSid": null, "Status": null, "FromNum": 0.0, "INum": 0.0 },
+						{ "SID": "GTI11110115550180956", "No": "Test", "Value": "GTI11110115550180956", "Display": "其他", "StatusSid": null, "Status": null, "FromNum": 0.0, "INum": 0.0 }]
+
+					},
+					//TODO-i18n:
+					i18n: {
+						msg_RemoveAll: "請確認是否清除全部資料",
+						msg_RemoveRow: "請確認是否刪除這筆資料",
+						msg_Exec: "請確認是否執行",
+						清除全部: '清除全部',
+						OLD_OPERATION: '@RES.BLL.Face.OLD_OPERATION'
+						, OPERATION: '@RES.BLL.Face.OPERATION'
+						, SUBROUTE: '@RES.BLL.Face.NEW_SUBROUTE'
+						, SUBROUTE_OPERATION: '@RES.BLL.Face.NEW_SUBROUTE_OPERATION',
+						description: '@RES.BLL.Face.Description',
+						lb_reason: '@RES.BLL.Face.lblREASON_NO',
+						lb_reasongroup: '@RES.BLL.Face.lblREASONGROUP',
+						PleaseScanTheBarcodeOrUseKeywords: "@RES.BLL.Message.PleaseScanTheBarcodeOrUseKeywords"
+					}
+				}
+			},
+			computed: {
+				disabled() {
+					return this.DetailList.length == 0;
+				}
+			},
+			methods: {
+				Exec() {
+					var title = this.i18n.msg_Exec;
+					var _self = this;
+					var _ops = this.$Alert.genConfirm({ title });
+					Swal.fire(_ops).then(result => {
+						let { value } = result;
+						if (value) {
+							//$.submitForm(_ajax);
+						}
+					});
+				},
+				lot_Query(data) {
+					//this.DetailList.push(data);
+				},
+
+			}
+		})
+	});
+</script>

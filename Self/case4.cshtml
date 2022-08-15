@@ -1,0 +1,116 @@
+﻿@{
+	ViewBag.Title = @Genesis.Common.PageBaseInfo.getCurrentResource("Case4").RESOURCE_NAME;
+}
+<h3>
+	@ViewBag.Title
+</h3>
+
+<div id="app">
+	<button v-on:click="Exec_Get">Exec_Get</button>
+	<button v-on:click="Exec_Post">Exec_Post</button>
+	<div>{{res}}</div>
+	<el-table :data="tableData"
+			  style="width: 100%"
+			  v-on:selection-change="handleSelectionChange">
+		<el-table-column type="selection"
+						 width="55">
+		</el-table-column>
+		<el-table-column prop="date"
+						 label="日期"
+						 width="180">
+		</el-table-column>
+		<el-table-column prop="Lot"
+						 label="姓名"
+						 width="180">
+		</el-table-column>
+		<el-table-column prop="address"
+						 label="地址">
+		</el-table-column>
+	</el-table>
+</div>
+
+@section Styles {
+	@Styles.Render(eBundle.elUI_CSS)
+
+}
+
+@section Scripts {
+	@Scripts.Render(eBundle.Vue_MES)
+	@Scripts.Render(eBundle.elUI_JS)
+}
+
+<script>
+    //https://element.eleme.cn/
+    //https://element.eleme.cn/#/zh-CN/component/table
+    $(() => {
+        new Vue({
+            el: '#app',
+            data() {
+                return {
+                    msg: "baseTpl",
+                    counts: 0,
+                    multipleSelection: [],
+                    res:'',
+                    tableData: [{
+                        date: '2016-05-02',
+                        Lot: '王小虎',
+                        address: '上海市普陀区金沙江路 1518 弄'
+                    }, {
+                        date: '2016-05-04',
+                        Lot: '王小虎',
+                        address: '上海市普陀区金沙江路 1517 弄'
+                    }, {
+                        date: '2016-05-01',
+                        Lot: '王小虎',
+                        address: '上海市普陀区金沙江路 1519 弄'
+                    }, {
+                        date: '2016-05-03',
+                        Lot: '王小虎',
+                        address: '上海市普陀区金沙江路 1516 弄'
+                    }]
+                }
+            },
+            methods: {
+                handleSelectionChange(val) {
+                    this.multipleSelection = val;
+                },
+                Exec_Get() {
+                    var _self = this;
+                    var _ajax = {
+                        url: "@Url.Action("api02","Act", new { area = "Example" })",
+                        type:'get',
+                        param: {
+                            name: 'test',
+                            age : 18,
+                        },
+                        success(res) {
+                            //why _self
+                            _self.res = res;
+                        }
+                    };
+                    $.submitForm(_ajax);
+                },
+                Exec_Post() {
+					var _self = this;
+                    //lodash
+					var list = _.map(_self.multipleSelection, 'date');
+                    var _ajax = {
+                        url: "@Url.Action("api03")",
+                        type:'post',
+                        param: {
+							name: 'test',
+                            //簡易賦值
+                            list
+                        },
+                        success(res) {
+                            //why _self
+                            _self.res = res;
+                        }
+                    };
+                    $.submitForm(_ajax);
+                }
+
+            }
+        })
+    });
+</script>

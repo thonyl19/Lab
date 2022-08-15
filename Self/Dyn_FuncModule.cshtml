@@ -1,0 +1,196 @@
+﻿@{
+    ViewBag.Title = @Genesis.Common.PageBaseInfo.getCurrentResource("Dyn_FuncModule").RESOURCE_NAME;
+}
+<h3>
+    @ViewBag.Title
+</h3>
+@Html.AntiForgeryToken()
+
+
+@section Scripts {
+    @eBundle.QRender_JS()
+}
+@*@Html.Partial("~/Areas/MES/Views/Shared/_Dyn_FuncModule.cshtml")*@
+@Html.Partial("~/Areas/MES/Views/Shared/Dyn_FuncModule/_Main.cshtml")
+<div id="app">
+    <el-button @@click="Case01">模擬修改</el-button>
+    <el-button @@click="is_Simple=!is_Simple">變更資料模型 - is_Simple:{{is_Simple}}</el-button>
+    {{c_showLists}}
+    @*<span v-for="(item,key) in showLists_">
+            <el-radio v-model="selectFunction" :label="key" :class="[(key==chgItem?'chg-mark':'')]">{{item.label}}</el-radio>
+        </span>
+        <component :is="dyn_view.is"
+                   v-model="dyn_view.model"
+                   v-bind="dyn_view.attrs"
+                   :is_change.sync="dyn_view.is_change"></component>*@
+    <gt-func-main v-model="c_showLists" :is_change="is_change"></gt-func-main>
+</div>
+
+<script>
+    $(() => {
+        Vue.config.devtools = true;
+        new Vue({
+            el: '#app',
+            data() {
+                return {
+                    is_Simple:true,
+                    is_change:false,
+                    //selectFunction: "edcinfo",
+                    showLists_2: ["IsOperEquipInfo", "IsBaseInfo", "IsOperFullInspectInfo", "Is105E", "IsOperIPQCInfo", "IsOperRecipeInfo", "IsOperQC1916Info", "IsToolInfo", "IsOperIPQCReasonInfo", "IsOperSOPInfo", "IsOperPartInfo", "IsOperEDCInfo"],
+                    showLists_1: {
+                        operedcinfo: {
+                            label: '工程資料訊息',
+                            model: {},
+                            attrs: {
+                                e_save() { alert('testA') }
+                            }
+                        },
+                        baseinfo1: {
+                            label: '基本訊息A',
+                            model: {},
+                        },
+                    },
+                    showLists: [
+                        {
+                            "name": "IsBaseInfo",
+                            "isShow": true,
+                            "label": "基本訊息"
+                        },
+                        {
+                            "name": "IsOperEquipInfo",
+                            "isShow": true,
+                            "label": "機台訊息"
+                        },
+                        {
+                            "name": "IsOperPartInfo",
+                            "isShow": true,
+                            "label": "耗用物料訊息"
+                        },
+                        {
+                            "name": "IsOperEDCInfo",
+                            "isShow": true,
+                            "label": "工程資料訊息"
+                        },
+                        {
+                            "name": "IsOperRecipeInfo",
+                            "isShow": true,
+                            "label": "製程訊息"
+                        },
+                        {
+                            "name": "IsOperSOPInfo",
+                            "isShow": true,
+                            "label": "SOP訊息"
+                        },
+                        {
+                            "name": "IsScrapOperReasonInfo",
+                            "isShow": false,
+                            "label": "報廢原因碼訊息"
+                        },
+                        {
+                            "name": "IsOperDefectInfo",
+                            "isShow": false,
+                            "label": "缺點資訊"
+                        },
+                        {
+                            "name": "IsOperQCInfo",
+                            "isShow": false,
+                            "label": "QC資訊"
+                        },
+                        {
+                            "name": "IsOperQC1916Info",
+                            "isShow": true,
+                            "label": "QC1916資訊"
+                        },
+                        {
+                            "name": "IsOperIPQCInfo",
+                            "isShow": true,
+                            "label": "IPQC資訊"
+                        },
+                        {
+                            "name": "IsOperIPQCReasonInfo",
+                            "isShow": true,
+                            "label": "IPQC扣留原因訊息"
+                        },
+                        {
+                            "name": "IsOperProcessInfo",
+                            "isShow": false,
+                            "label": "工序訊息"
+                        },
+                        {
+                            "name": "IsOperLotAttributeInfo",
+                            "isShow": false,
+                            "label": "批號屬性收集資訊"
+                        },
+                        {
+                            "name": "IsOperQTimeInfo",
+                            "isShow": false,
+                            "label": "時間控制資訊"
+                        },
+                        {
+                            "name": "IsOperFullInspectInfo",
+                            "isShow": true,
+                            "label": "全檢資訊"
+                        },
+                        {
+                            "name": "Is105E",
+                            "isShow": true,
+                            "label": "105E訊息"
+                        },
+                        {
+                            "name": "IsToolInfo",
+                            "isShow": true,
+                            "label": "工具訊息"
+                        }
+                    ],
+                    dyn_view: {
+                        name: 'baseinfo1',
+                        model: {},
+                        attrs: {},
+                        is_change: false,
+                        get is() {
+                            
+                            return `gt-func-${this.name}`;
+                        },
+                    }
+                }
+            },
+            computed: {
+                c_showLists() {
+                    return this.is_Simple ? this.showLists_2 : this.showLists_1;
+                },
+                selectFunction: {
+                    get() {
+                        return this.dyn_view.name;
+                    },
+                    set(val) {
+                        this.IsChange(val);
+                    }
+                },
+                chgItem() {
+                    return this.dyn_view.is_change ? this.dyn_view.name : "";
+                }
+            },
+
+            methods: {
+                Case01() {
+                    let { e_save } = this.showLists_1.operedcinfo.attrs;
+                    e_save = (e_save != null)
+                        ? null
+                        : () => { alert('test Case01'); }
+                        ; 
+                    this.showLists_1.operedcinfo.attrs.e_save = e_save;
+                },
+
+            }
+
+        })
+    });
+</script>
+@section Styles {
+    @eBundle.QRender_CSS()
+    <style>
+        .chg-mark .el-radio__label {
+            color: red !important;
+        }
+    </style>
+}

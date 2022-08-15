@@ -1,0 +1,60 @@
+﻿@{
+
+}
+<h3>
+
+	<small></small>
+</h3>
+@Html.AntiForgeryToken()
+@Html.Partial("~/Areas/MES/Views/WIP/ZZ_Partial/_LotSplitCheckOut.cshtml")
+<div id="app">
+	<lot-split-checkout :set_model="set_model"></lot-split-checkout>
+</div>
+
+@section Styles {
+    @Styles.Render(eBundle.elUI_CSS)
+}
+
+@section Scripts {
+    @Scripts.Render(eBundle.Vue_MES)
+    @Scripts.Render(eBundle.elUI_JS)
+}
+
+<script>
+	$(() => {
+		Vue.use(Vuex);
+		var CurrentLot = {
+			QUANTITY: 10000
+		}
+		var send_data = {
+			scrapList: []
+		}
+		const store = new Vuex.Store({
+			state: {
+				isLoading: false,
+				MainData: { CurrentLot, send_data },
+				Rule: {
+					is_validation: true,
+					validation_msg: ''
+				},
+			},
+
+		})
+
+		new Vue({
+			el: '#app',
+			store,
+			data() {
+				return {
+					msg: "baseTpl",
+					set_model: {
+						CurrentLot: {
+							STATUS: 'Run'
+						},
+						LotSplitCheckOutNum: 5000
+					}
+				}
+			}
+		})
+	});
+</script>

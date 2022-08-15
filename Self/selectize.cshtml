@@ -1,0 +1,452 @@
+﻿
+<div id="app">
+    <form id="FormData">
+        <el-switch v-model="readonly"
+                   active-color="#13ce66"
+                   inactive-color="#ff4949"
+                   active-text="ViewMode"
+                   inactive-text="EditMode">
+        </el-switch>
+        <button @@click="v8n">v8n</button>
+        <div class="form-horizontal gt-form">
+            <gt-hr content="vue-selectize-router 流程和版本編碼">
+                <div class="row">
+                    <gt-form-col label="原始佈局">
+                        <el-row>
+                            <el-col :span="18">
+                                <vue-selectize v-model="ddl_Route.val" ref="ddl_Route" 　:readonly="readonly"
+                                               :options.sync="ddl_Route.src"
+                                               :selectize_ops="ddl_Route.ops"
+                                               :auto_drowdown="true"
+                                               render_sty="GTIMES_SID" />
+                            </el-col>
+                            <el-col :span="6">
+                                <vue-selectize v-model="ddl_RouteVer.val" ref="ddl_RouteVer" 　:readonly="readonly"
+                                               :options.sync="ddl_RouteVer.src"
+                                               :selectize_ops="ddl_RouteVer.ops"
+                                               :auto_drowdown="true"
+                                               render_sty="GTIMES_VER" />
+                            </el-col>
+                        </el-row>
+                    </gt-form-col>
+                    <vue-selectize-router :route.sync="ddl_Route" 　:readonly="readonly" :i18n="{流程編號:'流程編號 AAAAAAAAA'}"
+                                          :route_ver.sync="ddl_RouteVer"></vue-selectize-router>
+                </div>
+            </gt-hr>
+            <h3>vue-selectize</h3>
+            <div class="row">
+                <gt-form-col label="基本用法">
+                    <vue-selectize required v-model="selectize_val"
+                                   :options="ops_LINE" :readonly="readonly" />
+                </gt-form-col>
+                <gt-form-col label="render_sty">
+                    <vue-selectize required v-model="selectize_val" ref="ddl_2"
+                                   render_sty="GTIMES"
+                                   :readonly="readonly"
+                                   :options="ops_LINE" />
+                </gt-form-col>
+            </div>
+            <h3>bind_options 的問題案例</h3>
+            <pre>
+這個案例主要是為實現 -- 使用 bind_options 的功能時,要能將 options 的回更到主程序的變數
+經過反覆的測試確認,解法只能用在 options 上, 加上 .sync 的方式來解決 </pre>
+            <el-button @@click="T01">測試 bind_options</el-button>
+            auto_drowdown<el-checkbox v-model="auto_drowdown"></el-checkbox>
+            <div>{{ops_T01}}</div>
+            <div class="row">
+                <gt-form-col label="基本用法">
+                    <vue-selectize required v-model="c_selectize_val" ref="T01"
+                                   :options.sync="ops_T01" :readonly="readonly"
+                                   :auto_drowdown="auto_drowdown"
+                                   render_sty="GTIMES" />
+                </gt-form-col>
+                <vue-selectize-dynquery required v-model="c_selectize_val"
+                                        :readonly="readonly"
+                                        :options="dynquery.ops1"
+                                        :selectize_ops="dynquery.set"
+                                        :icon_search_click="()=>{fn_query1('%')}"
+                                        :auto_drowdown="auto_drowdown"
+                                        :fn_query="fn_query" ></vue-selectize-dynquery>
+                <vue-selectize-ddlapi action="PRODUCT"
+                                      :auto_drowdown="auto_drowdown"
+                                      :options.sync="ddl_PRODUCT.src"
+                                      v-model="c_selectize_val"
+                                      
+                                      ></vue-selectize-ddlapi>
+            </div>
+            <button @@click="Case2_1">getSelectedRow 範例</button>
+            <h3>vue-selectize-dynquery</h3>
+            <pre>{{dynquery}}</pre>
+            <div class="row">
+                <gt-form-col label="基本應用">
+                    <vue-selectize-dynquery required v-model="dynquery.val"
+                                            :readonly="readonly"
+                                            :options="dynquery.ops"
+                                            :selectize_ops="dynquery.set"
+                                            :icon_search_click="()=>{fn_query('%')}"
+                                            :auto_drowdown="true"
+                                            :fn_query="fn_query" />
+                </gt-form-col>
+                <gt-form-col label="icon_search：false">
+                    <vue-selectize-dynquery :value.sync="dynquery.val" :icon_search="false"
+                                            :readonly="readonly"
+                                            :selectize_ops="dynquery.set"
+                                            :options="dynquery.ops" />
+                </gt-form-col>
+
+            </div>
+            <div class="row">
+                <gt-form-col label="icon_plus">
+                    <vue-selectize-dynquery required v-model="dynquery.val"
+                                            :readonly="readonly"
+                                            :options="dynquery.ops"
+                                            :selectize_ops="dynquery.set"
+                                            :icon_search="false"
+                                            icon_plus_tooltip="自訂文字"
+                                            @@icon_plus_click="()=>{ this.$Alert.Warning('test'); }" />
+
+
+                </gt-form-col>
+                <gt-form-col label="test_ops">
+                    {{test_ops}}
+                    <vue-selectize-dynquery required :options="test_ops" />
+
+
+                </gt-form-col>
+            </div>
+            <div class="row">
+                <section>
+                    <pre><code>{{ plus_code }}</code></pre>
+                </section>
+            </div>
+            <h3>vue-selectize-ddlapi</h3>
+            <div class="row">
+                <gt-form-col label="基本應用">
+                    <vue-selectize-ddlapi action="LINE" :readonly="readonly" :auto_drowdown="true" />
+                </gt-form-col>
+                <gt-form-col label="render_sty">
+                    <vue-selectize-ddlapi action="LINE" render_sty="GTIMES" 　:readonly="readonly" />
+                </gt-form-col>
+                <gt-form-col label="自定義錯誤訊息">
+                    <vue-selectize-ddlapi action="LINE" render_sty="GTIMES" 　:readonly="readonly"
+                                          :alert_msg="alert_msg" />
+                </gt-form-col>
+            </div>
+
+
+
+            <h3>render_sty 和 selectize_ops 測試</h3>
+            測試物件<el-select v-model="is_type">
+                <el-option v-for="item in chk_list"
+                           :key="item.value"
+                           :label="item"
+                           :value="item">
+                </el-option>
+            </el-select>
+            <pre>
+此範的目的是用於 測試和演示, vue-selectize 的  default ,render_sty 和 selectize_ops 的設定交互影響
+設定的權重 依序應為 selectize_ops > render_sty > default
+#注意, vue-selectize-ddlapi 的 default value 是用 'SID'
+</pre>
+            <div class="row">
+                <gt-form-col label="default">
+                    <compement :is="is_type" v-model="case_1.val" ref="case1_1"
+                               :options="ops_LINE" :readonly="readonly" />
+                </gt-form-col>
+                <gt-form-col label="selectize_ops">
+                    <compement :is="is_type" v-model="case_1.val" ref="case1_3"
+                               :options="ops_LINE"
+                               :selectize_ops="case_1.set"
+                               :readonly="readonly" />
+                </gt-form-col>
+                <gt-form-col label="render_sty - GTIMES">
+                    <compement :is="is_type" v-model="case_1.val" ref="case1_2"
+                               render_sty="GTIMES"
+                               :options="ops_LINE" :readonly="readonly"></compement>
+                </gt-form-col>
+                <gt-form-col label="render_sty - GTIMES_SID">
+                    <compement :is="is_type" v-model="case_1.val" ref="case1_5"
+                               :options="ops_LINE"
+                               render_sty="GTIMES_SID"
+                               :readonly="readonly"></compement>
+                    <h6>GTIMES_SID value 預設是 'SID' </h6>
+                </gt-form-col>
+                <gt-form-col label="render_sty + selectize_ops">
+                    <compement :is="is_type" v-model="case_1.val" ref="case1_4"
+                               :options="ops_LINE"
+                               :selectize_ops="case_1.set"
+                               render_sty="GTIMES"
+                               :readonly="readonly" />
+                </gt-form-col>
+            </div>
+        </div>
+    </form>
+</div>
+
+
+
+</div>
+@section Styles {
+    @Styles.Render(eBundle.selectize_CSS)
+    @Styles.Render(eBundle.elUI_CSS)
+}
+
+
+@section Scripts {
+    @Scripts.Render(eBundle.selectize_JS)
+    @Scripts.Render(eBundle.Vue_MES)
+    @Scripts.Render(eBundle.elUI_JS)
+    @Scripts.Render("~/bundles/parsley")
+}
+
+<script>
+	$(() => {
+		var _data = @Html.Raw(ViewData["result"] ?? "{}");
+        let { ops_LINE = [], ops_SHIFT = [] } = _data;
+        
+		new Vue({
+			el: '#app',
+			data() {
+                return {
+                    auto_drowdown:true,
+					A:true,
+                    B: true,
+                    ops_T01:[],
+                    chk_list: ['vue-selectize','vue-selectize-ddlapi', 'vue-selectize-dynquery'],
+                    is_type:'vue-selectize',
+					case_1: {
+						val:'TCB',
+						set: {
+                            valueField: 'No',
+						},
+					},
+					ops_LINE,
+                    selectize_val: '',
+                    ddl_PRODUCT: {
+                        src: [],
+                        QueryOnec: false
+                    },
+                    ddl_Route: {
+                        onChange(val) {
+                            alert(val);
+                        },
+                        val: "GTI20101609015509691",
+                        old: "",
+                        src: [{
+                            "RefKey": null,
+                            "SID": "GTI20101609015509699",
+                            "No": "C040-30",
+                            "Value": "GTI20101609015509699",
+                            "Display": "OVP-通用后段",
+                            "StatusSid": null,
+                            "Status": null,
+                            "FromNum": 0,
+                            "INum": 0,
+                            "Attr01": null,
+                            "Attr02": null,
+                            "Attr03": null
+                        }, {
+                                "RefKey": null,
+                                "SID": "GTI20101609015509691",
+                                "No": "C040-301",
+                                "Value": "GTI201016090155096991",
+                                "Display": "OVP-通用后段1 ---AAAAAA--- --------",
+                                "StatusSid": null,
+                                "Status": null,
+                                "FromNum": 0,
+                                "INum": 0,
+                                "Attr01": null,
+                                "Attr02": null,
+                                "Attr03": null
+                            }] 
+                        ,rows:[]
+                    },
+                    ddl_RouteVer: {
+                        val: "",
+                        old: "",
+                        src: [{
+                            "RefKey": null,
+                            "SID": "GTI20101609022009701",
+                            "No": "1",
+                            "Value": "GTI20101609022009701",
+                            "Display": "1",
+                            "StatusSid": null,
+                            "Status": null,
+                            "FromNum": 0,
+                            "INum": 0,
+                            "Attr01": null,
+                            "Attr02": null,
+                            "Attr03": null
+                        },
+                        {
+                            "RefKey": null,
+                            "SID": "GTI21042310432920080",
+                            "No": "2",
+                            "Value": "GTI21042310432920080",
+                            "Display": "2",
+                            "StatusSid": null,
+                            "Status": null,
+                            "FromNum": 0,
+                            "INum": 0,
+                            "Attr01": null,
+                            "Attr02": null,
+                            "Attr03": null
+                        }],
+                        ops: { valueField: 'SID' }
+                    },
+                    test_ops: [{
+                        "LOT": "WO_T074_001",
+                        "SID": "GTI22031515092145350",
+                        "ROOT_SID": "GTI22030915340037695",
+                        "PARENT_SID": null,
+                        "PREV_SEAIAL": null,
+                        "No": 3,
+                        "SN_ID": "CrystalGrowth_WO01-01.01.2"
+                    }, {
+                            "LOT": "STFGT1",
+                            "SID": "GTI008",
+                            "ROOT_SID": null,
+                            "PARENT_SID": null,
+                            "PREV_SEAIAL": null,
+                            "No": 8,
+                            "SN_ID": "FAC08"
+                        }],
+					dynquery: {
+						val: '',
+                        ops: [],
+                        ops1:[],
+						set: {
+							labelField: 'dllDesc',
+							valueField: 'LINE_SID',
+							searchField: ['dllDesc', 'LINE_SID'],
+							tpl_def: `<i class="fa fa-flag text-info"/>`,
+							render: {
+								item(data, escape) {
+									let { labelField } = this.settings;
+									return `<div class="item">${escape(data[labelField])}</div>`;
+								},
+								option(data, escape) {
+									let { labelField, valueField, tpl_def } = this.settings;
+									let { DEFAULT_FLAG = "F" } = data;
+									return `
+										<div class="option">${escape(data[labelField])} ${DEFAULT_FLAG == 'T' ? tpl_def : ''}</div>
+									`;
+								},
+							}
+						},
+					},
+					readonly: false,
+                    plus_code: `
+自訂方法塞給 icon_plus_click，則出現加號按鈕
+自訂文字塞給 icon_plus_tooltip，則按鈕出現 tooltip
+<vue-selectize-dynquery required v-model="dynquery.val"
+                        :readonly="readonly"
+                        :options="dynquery.ops"
+                        :selectize_ops="dynquery.set"
+                        :icon_search="false"
+                        icon_plus_tooltip="自訂文字"
+                        @@@@icon_plus_click="自訂方法" />
+`
+				}
+			},
+			computed: {
+				dyn_render_sty(){
+					return this.A ? "GTIMES" : null;
+                },
+                c_selectize_val: {
+                    get() {
+                        return this.selectize_val;
+                    },
+                    set(val) {
+                        this.selectize_val = val;
+                        console.log({ c_selectize_val: val });
+                    }
+                }
+			},
+			watch: {
+				dyn_render_sty() {
+
+                    this.$refs.case_01._reander();
+                },
+                'dynquery.val'(val) {
+                    console.log({ 'dynquery.val': val });
+                },
+                selectize_val(val) {
+                    console.log({ 'selectize_val': val });
+                }
+			},
+            methods: {
+                T01() {
+                    debugger
+                    this.$refs.T01.bind_options(this.test_ops, false)
+                },
+                alert_msg() {
+                    this.$message('test');
+                },
+				fn_query(WOLine) {
+
+					var url = this.$URL.chg_Path('MES/WorkOrder/WOLine', { WOLine });
+					var _self = this;
+					var _ajax = {
+						url,
+						type: 'get',
+						success(data) {
+							_self.dynquery.ops = data;
+						}
+					};
+					$.submitForm(_ajax);
+                },
+                fn_query1(WOLine) {
+
+                    var url = this.$URL.chg_Path('MES/WorkOrder/WOLine', { WOLine });
+                    var _self = this;
+                    var _ajax = {
+                        url,
+                        type: 'get',
+                        success(data) {
+                            _self.dynquery.ops1 = data;
+                        }
+                    };
+                    $.submitForm(_ajax);
+                },
+				Case2_1() {
+
+					let { ddl_2 } = this.$refs;
+					if (ddl_2 != null) {
+						var row = ddl_2.$el.getSelectedRow();
+						console.log({ row });
+					}
+				},
+				api_test(val, cb) {
+					var PRODUCT_SID = "GTI12090317332700014";
+					var _self = this;
+					var url = _self.$URL.chg_Path('MES/WorkOrder/PartNoVersion', { PRODUCT_SID, PARTNO: val });
+					var _ajax = {
+						url,
+						type: 'get',
+						success(data) {
+							if (data == null) {
+								_self.$Alert.Err('Data Not Find!!');
+								return;
+							}
+							switch (typeof (cb)) {
+								case "function":
+									_self.ddl_case1.options = data;
+									cb(data);
+									break;
+								case "boolean":
+									//tode
+									break;
+							}
+
+						}
+					};
+					$.submitForm(_ajax);
+				},
+				v8n() {
+					$("#FormData").parsley().validate()
+				}
+			}
+
+		})
+	});</script>

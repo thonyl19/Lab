@@ -1,0 +1,230 @@
+﻿@Html.Partial("~/Areas/WIP/Views/LotInfo.cshtml")
+
+<div id="app">
+	<div>
+		<h2>Case1</h2>
+		<el-button @@click="Case1">Case1</el-button>
+		<x-ver-modify :dialog_visable.sync="dialog1">
+			<div class="form-group">
+				<label for="exampleInputEmail1">@RES.BLL.Face.RouteCode</label>
+				<input class="form-control" placeholder="@RES.BLL.Face.RouteCode" required="required" type="text" readonly="readonly">
+			</div>
+
+			<div class="form-group">
+				<label for="exampleInputEmail1">@RES.BLL.Face.ROUTE</label>
+				<input class="form-control" placeholder="@RES.BLL.Face.ROUTE" required="required" type="text" readonly="readonly">
+			</div>
+		</x-ver-modify>
+	</div>
+
+</div>
+
+<script type="text/x-template" id="xtpl-ver-modify">
+	<el-dialog :append-to-body="true"
+			   :visible.sync="dialog_visable"
+			   width="40rem"
+			   class="ver-modify"
+			   :show-close="false"
+			   center>
+		<label slot="title">
+			版本管理
+		</label>
+		<el-row>
+			<el-col :span="12">
+				<el-button-group>
+					<el-button type="primary" icon="el-icon-view" title="檢視"></el-button>
+				</el-button-group>
+				<el-button-group>
+					<el-button type="primary" icon="el-icon-plus" title="新增版本">
+					</el-button>
+					<el-button type="primary" title="設定為預設版本">
+						<i class="fa fa-flag "></i>
+					</el-button>
+				</el-button-group>
+			</el-col>
+			<el-col :span="12" style="text-align:right">
+
+			</el-col>
+
+		</el-row>
+		<slot>
+			body
+		</slot>
+		<div class="form-group">
+			<label for="exampleInputEmail1">@RES.BLL.Face.DefaultVersion</label>
+			<input class="form-control" placeholder="@RES.BLL.Face.DefaultVersion" required="required" type="text" readonly="readonly">
+		</div>
+
+		<div class="form-group">
+			<label for="exampleInputEmail1">@RES.BLL.Face.MAXVersion</label>
+			<input class="form-control" placeholder="@RES.BLL.Face.MAXVersion" required="required" type="text" readonly="readonly">
+		</div>
+
+		<div class="form-group">
+			<label>@RES.BLL.Face.Version</label>
+			<div class="input-group">
+				<x-reason-select ref="version"
+								 required
+								 :values.sync="ver.values"
+								 :options="ver.options"
+								 :selectize_ops="ver.sets"
+								 :is_formcontrol="true">
+				</x-reason-select>
+				<div class="input-group-addon switch">
+					<input type="checkbox" checked="checked" />
+					<span></span>
+				</div>
+				<i class="input-group-addon fa fa-flag fa-2x btn"></i>
+			</div>
+		</div>
+
+		<span class="input-group-btn">
+			<button type="button" class="btn btn-info" title=@RES.BLL.Face.FunctionBarAddVersionButton><i class="fa fa-plus"></i></button>
+			<button type="button" class="btn btn-warning" title=@RES.BLL.Face.FunctionBarQueryButton><i class="fa fa-search"></i></button>
+			<button type="button" class="btn btn-success" title=@RES.BLL.Face.lblEdit><i class="fa fa-edit"></i></button>
+			<button type="button" class="btn btn-green" title=@RES.BLL.Face.FunctionBarDefaultButton><i class="fa fa-indent"></i></button>
+			<label class="switch" title="啟用/停用">
+				<input type="checkbox" checked="checked" />
+				<span></span>
+			</label>
+		</span>
+		<span slot="footer" class="dialog-footer">
+			<el-button @@click="dialog_visable = false">@RES.BLL.Face.FunctionBarExitButton</el-button>
+		</span>
+	</el-dialog>
+</script>
+
+
+
+@section Scripts {
+    @Scripts.Render(eBundle.selectize_JS)
+    @Scripts.Render(eBundle.Vue_MES)
+    @Scripts.Render(eBundle.elUI_JS)
+}
+
+<script>
+	$(() => {
+		Vue.component('x-ver-modify', {
+			data() {
+
+				return {
+					lb_Description: '@RES.BLL.Face.Description',
+					lblREASON_NO: '@RES.BLL.Face.lblREASON_NO',
+					current_ver: {
+						ver: 3, en: false, def: true
+					},
+					ver: {
+						values: [2],
+						options: [
+							{ ver: 1, en: true },
+							{ ver: 2, en: false },
+							{ ver: 3, en: false, def: true }
+						],
+						sets: {
+							labelField: 'ver',
+							valueField: 'ver',
+							searchField: ['ver'],
+							tpl_def: `<i class="fa fa-flag"/>`,
+							render: {
+								option(data, escape) {
+									debugger
+									let { labelField, valueField, tpl_def } = this.settings;
+									let { def = false, en = false } = data;
+									var tpl_en = `<i class="fa fa-toggle-${en ? 'on' : 'off'}" />`;
+									return `
+										<div class="option ${def ? 'def' : ''}">
+											${escape(data[labelField])}${tpl_en}${def ? tpl_def : ''}
+										</div>
+									`;
+								},
+								item(data, escape) {
+									let { labelField, valueField } = this.settings;
+									return `<div class="item">${escape(data[labelField])}</div>`;
+								}
+							}
+						}
+
+					}
+				}
+			},
+			template: '#xtpl-ver-modify',
+			props: {
+				dialog_visable: {
+					type: Array,
+					default: false
+				}
+
+			},
+			watch: {
+				dialog_visable(val) {
+					this.$emit('update:dialog_visable', val);
+				}
+			}
+		});
+		new Vue({
+			el: '#app',
+			data() {
+				return {
+					isShowLot: false,
+					hide: [],
+					hide_list: {
+						"STATUS": true,
+						"OPERATION": true,
+						"PRODUCT": true
+					},
+					dialog1: true
+				}
+			},
+			methods: {
+				Case1() {
+					this.dialog1 = true;
+				},
+				change() {
+					var _self = this;
+					var _arr = [];
+					for (key in _self.hide_list) {
+						var isShow = _self.hide_list[key];
+						if (isShow) _arr.push(key)
+					}
+					_self.hide = _arr;
+				}
+			},
+
+		})
+	});
+</script>
+@section Styles {
+    @Styles.Render(eBundle.selectize_CSS)
+    @Styles.Render(eBundle.elUI_CSS)
+<style>
+
+
+
+
+
+
+	.ver-modify .el-dialog__header {
+		border-radius: 7px 7px 0px 0px;
+		background-color: #5d9cec;
+		padding: 13px !important;
+		color: #fff;
+		text-align: left;
+	}
+
+	.ver-modify .el-dialog__body {
+		padding: 15px;
+	}
+
+	.ver-modify .def {
+		color: red;
+	}
+
+	.ver-modify .option i {
+		padding-left: 7px;
+	}
+
+	.ver-modify .el-dialog {
+		border-radius: 7px;
+	}
+</style>
+}
