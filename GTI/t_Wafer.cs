@@ -20,6 +20,7 @@ using static BLL.MES.WIPInjectServices;
 using static Genesis.Gtimes.WIP.LotUtility;
 using static Genesis.Library.BLL.DTC.Wafer;
 using Frame.Code;
+using Newtonsoft.Json;
 
 namespace UnitTestProject
 {
@@ -28,7 +29,7 @@ namespace UnitTestProject
 	{
 		static class _log
 		{
-            internal static string t_wafer_shipinig_package_CHECKOUT
+			internal static string t_wafer_shipinig_package_CHECKOUT
 			{
 				get
 				{
@@ -44,17 +45,17 @@ namespace UnitTestProject
 				}
 			}
 
-			internal static string t_ModifyGrade_Query(string extName="") 
+			internal static string t_ModifyGrade_Query(string extName = "")
 			{
 				return FileApp.ts_Log($@"Wafer\t_ModifyGrade_Query{extName}.json");
 			}
 
-			public static string _parse_WAFER_MAPPING { get { 
+			public static string _parse_WAFER_MAPPING { get {
 					return FileApp.ts_Log(@"Wafer\_parse_WAFER_MAPPING.json");
 				}
 			}
 
-            public static string t_UnHold_CarrierInfo { get
+			public static string t_UnHold_CarrierInfo { get
 				{
 					return FileApp.ts_Log(@"Wafer\t_UnHold_CarrierInfo.json");
 				}
@@ -76,21 +77,39 @@ namespace UnitTestProject
 				}
 			}
 
-            public static string t_ShipCassetteInfo {
+			public static string t_ShipCassetteInfo {
 				get
 				{
 					return FileApp.ts_Log(@"Wafer\t_ShipCassetteInfo.json");
 				}
 			}
 
-            public static string t_wafer_shipinig_package {
+			public static string t_wafer_shipinig_package {
 				get
 				{
 					return FileApp.ts_Log(@"Wafer\t_wafer_shipinig_package.json");
 				}
 			}
 
-            public static string t_WaferPackage(string Ext="")
+			public static string t_parse_Wafer_defect
+			{
+				get
+				{
+					return FileApp.ts_Log(@"Wafer\t_parse_Wafer_defect.json");
+				}
+			}
+
+			public static string t_ByWaferRecordDefact
+			{
+				get
+				{
+					return FileApp.ts_Log(@"Wafer\t_ByWaferRecordDefact.json");
+				}
+			}
+
+
+
+			public static string t_WaferPackage(string Ext = "")
 			{
 				return FileApp.ts_Log($@"Wafer\t_WaferPackage{Ext}.json");
 			}
@@ -99,11 +118,11 @@ namespace UnitTestProject
 		public WIPServices serv_WIP = new WIPServices();
 
 		[TestMethod]
-        public void _CarrierLoad_CarrierInfo()
-        {
+		public void _CarrierLoad_CarrierInfo()
+		{
 			var r = serv.CarrierLoad_CarrierInfo("Carrier_001");
 			FileApp.WriteSerializeJson(r, FileApp.ts_Log(@"Wafer\_CarrierLoad_CarrierInfo.json"));
-        }
+		}
 
 		[TestMethod]
 		public void _CarrierLoad_WaferInfo()
@@ -123,7 +142,7 @@ namespace UnitTestProject
 			TxnBase.LzDBQuery((tx) =>
 			{
 				var CarrierNo = "Carrier_001";
-				var r = new Wafer_Services().UnHold_CarrierInfo(CarrierNo,false,1);
+				var r = new Wafer_Services().UnHold_CarrierInfo(CarrierNo, false, 1);
 				new FileApp(false).Write_SerializeJson(r, _log.t_UnHold_CarrierInfo);
 				return tx.result;
 			});
@@ -135,8 +154,8 @@ namespace UnitTestProject
 
 
 		[TestMethod]
-        public void _CheckNotHoldByList()
-        {
+		public void _CheckNotHoldByList()
+		{
 			new TxnBase("TEST", this.DBC)
 				.Exec((_txn) =>
 				{
@@ -146,22 +165,22 @@ namespace UnitTestProject
 		}
 
 
-        [TestMethod]
-        public void _ModifyGrade_Query()
-        {
-            //var r = serv.ModifyGrade_Query("CrystalGrowth_WO01-01.06.8").parseData<d_CommandWaferInfo>();
-            //new FileApp(false).Write_SerializeJson(r, _log.t_ModifyGrade_Query());
+		[TestMethod]
+		public void _ModifyGrade_Query()
+		{
+			//var r = serv.ModifyGrade_Query("CrystalGrowth_WO01-01.06.8").parseData<d_CommandWaferInfo>();
+			//new FileApp(false).Write_SerializeJson(r, _log.t_ModifyGrade_Query());
 
-            var _d = FileApp.Read_SerializeJson<d_CommandWaferInfo>(_log.t_ModifyGrade_Query());
+			var _d = FileApp.Read_SerializeJson<d_CommandWaferInfo>(_log.t_ModifyGrade_Query());
 
 			var sn = _d.Wafers[0].SERIAL_NUMBER_ID;
-			var _r1 = serv.ModifyGrade_Query(sn,test:_d);
+			var _r1 = serv.ModifyGrade_Query(sn, test: _d);
 			Assert.IsTrue(_r1.Success
 				, "正常測試,應回傳 true");
 
 			_d.WP_LOT.STATUS = "Hold";
 			var _r2 = serv.ModifyGrade_Query(sn, test: _d);
-			Assert.IsTrue(_r2.Success == false 
+			Assert.IsTrue(_r2.Success == false
 				, "當批號狀態不為Wait,應回傳 false");
 
 			_d.Wafers[0].SERIAL_STATUS = "Hold";
@@ -169,13 +188,13 @@ namespace UnitTestProject
 			Assert.IsTrue(_r3.Code == ErrCode.DB.NoData
 				, "當 Wafer 狀態不為 Normal,應回傳 NoData");
 
-		 
+
 		}
 
-        [TestMethod]
-        public void t_ShipCassetteInfo()
-        {
-            var r = ShipCassettleServices.ShipCassetteInfo("Cassettle02");
+		[TestMethod]
+		public void t_ShipCassetteInfo()
+		{
+			var r = ShipCassettleServices.ShipCassetteInfo("Cassettle02");
 			new FileApp(false).Write_SerializeJson(r, _log.t_ShipCassetteInfo, null);
 		}
 
@@ -199,31 +218,31 @@ namespace UnitTestProject
 			//new FileApp(false).Write_SerializeJson(r, _log.t_Hold_WaferInfo);
 			var _d = FileApp.Read_SerializeJson<d_CommandWaferInfo>(_log.t_Hold_WaferInfo);
 
-			
+
 			var r1 = serv.Hold_WaferInfo("Test_SplitWafer-01.09.12", test: _d);
-			Assert.IsTrue(r1.Success,"正常讀取測試,回傳值應為 True");
+			Assert.IsTrue(r1.Success, "正常讀取測試,回傳值應為 True");
 
 			_d.WP_LOT.STATUS = "Hold";
 			var r2 = serv.ModifyGrade_Query("", test: _d);
-			Assert.IsTrue(r2.Success==false,"批號狀態不為 Wait, 回傳值應為 false");
+			Assert.IsTrue(r2.Success == false, "批號狀態不為 Wait, 回傳值應為 false");
 		}
 
-		
+
 
 
 		[TestMethod]
 		public void t_ExecModifyGrade()
 		{
-            var r = new Wafer_Services().ExecModifyGrade
+			var r = new Wafer_Services().ExecModifyGrade
 				("Test_SplitWafer-01.09.4"
 				, "B"
 				, "other"
 				, ""
 				, true)
 				;
-   //         new FileApp(false).Write_SerializeJson(r, _log.t_ModifyGrade_Query());
+			//         new FileApp(false).Write_SerializeJson(r, _log.t_ModifyGrade_Query());
 
-   //         var _d = FileApp.Read_SerializeJson<d_ModifyGrade_Query>(_log.t_ModifyGrade_Query());
+			//         var _d = FileApp.Read_SerializeJson<d_ModifyGrade_Query>(_log.t_ModifyGrade_Query());
 
 			////var _d = src1.parseData<d_ModifyGrade_Query>();
 
@@ -241,12 +260,12 @@ namespace UnitTestProject
 		[TestMethod]
 
 		public void t_Process_PosiMap_cmd_Hold()
-		=>_DBTest(Txn => {
+		=> _DBTest(Txn => {
 			var posi = FileApp.Read_SerializeJson<WAFER_MAPPING>(_log.t_Process_PosiMap_cmd_Hold);
 			var Lot = Txn.GetLotInfo(posi.LOT_SID);
 			var cmd = WIPServices.Process_PosiMap_cmd_Hold(Txn, Lot, posi);
 			Txn.DoTransaction(cmd);
-		},true);
+		}, true);
 
 		[TestMethod]
 
@@ -258,6 +277,22 @@ namespace UnitTestProject
 			Txn.DoTransaction(cmd);
 		}, true);
 
+		[TestMethod]
+
+		public void t_Insert_WP_LOT_WAFER_MAPPING()
+		=> _DBTest(Txn => {
+			var obj = Txn.DapperQuery<WP_LOT_WAFER_MAPPING>("select * from WP_LOT_WAFER_MAPPING").FirstOrDefault();
+			Txn.DoTransaction(new Insert_WP_LOT_WAFER_MAPPING(obj));
+		}, true);
+
+		[TestMethod]
+
+		public void t_Process_WAFER_REWORK()
+		=> _DBTest(Txn => {
+			var obj = Txn.DapperQuery<WP_LOT_WAFER_MAPPING>("select * from WP_LOT_WAFER_MAPPING").FirstOrDefault();
+			var lot = GTI_helper.getLotInfo();
+			Txn.DoTransaction(new Process_WAFER_REWORK(obj, lot, 99));
+		}, true);
 
 		[TestMethod]
 		public void t_Process_PosiMap_cmd_Grade()
@@ -301,8 +336,9 @@ namespace UnitTestProject
 		[TestMethod]
 		public void t_wafer_shipinig_package()
 		=> _DBTest(Txn => {
-			var search = "EB3N4B2B4505-01.01";
-			var root = "TestA";
+			var search = "SC0005";
+			var root = "SC0006";
+			var root_lot = "SC0006";
 			var r = wafer_shipinig_package(search, root).Data;
 			var r1 = wafer_shipinig_package(search, null).Data;
 			new FileApp(false).Write_SerializeJson(r1, _log.t_wafer_shipinig_package);
@@ -339,14 +375,14 @@ namespace UnitTestProject
 			";
 		});
 
-		
+
 
 
 		[TestMethod]
 		public void t_Wafer入庫編碼()
 		=> _DBTest(Txn => {
-			var WO="";
-			var MTR_IngotID="";
+			var WO = "";
+			var MTR_IngotID = "";
 		});
 
 
@@ -355,25 +391,25 @@ namespace UnitTestProject
 		=> _DBTest(Txn => {
 			Txn.GetLotInfo("EB1N4B2B2002-02", true, true);
 			var c = WIPServices.process_漢民處理新增長晶站記錄設備的邏輯(Txn);
-		},true);
+		}, true);
 
-		
+
 
 		[TestMethod]
-        public void t_DTC()
-        => _DBTest(Txn =>
-        {
-            var _lot = Txn.GetLotInfo("GTI22062810124839435");
+		public void t_DTC()
+		=> _DBTest(Txn =>
+		{
+			var _lot = Txn.GetLotInfo("GTI22062810124839435");
 			var r = new WP_LOT_WAFER_MAPPING() {
 				SERIAL_NUMBER = 7,
 				SERIAL_NUMBER_ID = "B4N410W04B262"
 			};
 
 			//Txn.DoTransaction(
-   //             new DTC_InsertWaferTRace(_lot, "Test_SplitWafer-01.09.4", "test", "")
-   //             //,new DTC_UpdateWaferStatusAndSN("Test_SplitWafer-01.09.4", "Hold")
+			//             new DTC_InsertWaferTRace(_lot, "Test_SplitWafer-01.09.4", "test", "")
+			//             //,new DTC_UpdateWaferStatusAndSN("Test_SplitWafer-01.09.4", "Hold")
 			//	,new DTC_UpdateWaferStatusAndSN("Test_SplitWafer-01.09.4", null, 7)
-   //             );
+			//             );
 			Txn.DoTransaction(
 				new DTC_InsertWaferTrace
 							(r
@@ -383,8 +419,8 @@ namespace UnitTestProject
 				);
 
 			Txn.DoTransaction(
-				new DTC_SetShipCassetteGrade("Cassettle02","A"),
-				new DTC_ShipCassetteAddCapacity("Cassettle02",50)
+				new DTC_SetShipCassetteGrade("Cassettle02", "A"),
+				new DTC_ShipCassetteAddCapacity("Cassettle02", 50)
 				);
 
 		}, true);
@@ -392,27 +428,27 @@ namespace UnitTestProject
 		[TestMethod]
 		public void _DTC_UpdateWaferStatusAndSN()
 		=> _DBTest(Txn =>
-        {
-            var t = Txn.EFQuery<WP_LOT_WAFER_MAPPING>()
-                .Reads().FirstOrDefault();
-            var SERIAL_NUMBER_ID = t.SERIAL_NUMBER_ID;
-            var exp_SERIAL_NUMBER = t.SERIAL_NUMBER;
-            
+		{
+			var t = Txn.EFQuery<WP_LOT_WAFER_MAPPING>()
+				.Reads().FirstOrDefault();
+			var SERIAL_NUMBER_ID = t.SERIAL_NUMBER_ID;
+			var exp_SERIAL_NUMBER = t.SERIAL_NUMBER;
+
 			//測試只有變更狀態
 			t.SERIAL_STATUS = "Test";
-            t.SERIAL_NUMBER = DTC_Mark.未變更.ToInt();
-            Txn.DoTransaction(new DTC_UpdateWaferStatusAndSN(t));
+			t.SERIAL_NUMBER = DTC_Mark.未變更.ToInt();
+			Txn.DoTransaction(new DTC_UpdateWaferStatusAndSN(t));
 			var t1 = _WP_LOT_WAFER_MAPPING(Txn, SERIAL_NUMBER_ID);
-            Assert.IsTrue(exp_SERIAL_NUMBER == t1.SERIAL_NUMBER);
-            Assert.IsTrue(t.SERIAL_STATUS == t1.SERIAL_STATUS);
+			Assert.IsTrue(exp_SERIAL_NUMBER == t1.SERIAL_NUMBER);
+			Assert.IsTrue(t.SERIAL_STATUS == t1.SERIAL_STATUS);
 
 			//測試變更狀態和序號
 			t.SERIAL_STATUS = "Test1";
-            t.SERIAL_NUMBER = 99;
-            Txn.DoTransaction(new DTC_UpdateWaferStatusAndSN(t));
+			t.SERIAL_NUMBER = 99;
+			Txn.DoTransaction(new DTC_UpdateWaferStatusAndSN(t));
 			var t2 = _WP_LOT_WAFER_MAPPING(Txn, SERIAL_NUMBER_ID);
-            Assert.IsTrue(t.SERIAL_NUMBER == t2.SERIAL_NUMBER);
-            Assert.IsTrue(t.SERIAL_STATUS == t2.SERIAL_STATUS);
+			Assert.IsTrue(t.SERIAL_NUMBER == t2.SERIAL_NUMBER);
+			Assert.IsTrue(t.SERIAL_STATUS == t2.SERIAL_STATUS);
 
 			t.SERIAL_STATUS = "Test2";
 			t.SERIAL_NUMBER = 999;
@@ -437,14 +473,14 @@ namespace UnitTestProject
 			var SERIAL_STATUS = t.SERIAL_STATUS;
 			////測試變更狀態和序號
 			var _lot = Txn.GetLotInfo(t.ROOT_LOT_SID);
-			var _dtc = new DTC_Hold(t, _lot, "test-hold","DESC");
+			var _dtc = new DTC_Hold(t, _lot, "test-hold", "DESC");
 			Txn.DoTransaction(_dtc);
-            var t2 = _WP_LOT_WAFER_MAPPING(Txn, SERIAL_NUMBER_ID);
-            Assert.IsTrue(t2.SERIAL_NUMBER == -1);
-            Assert.IsTrue(t2.SERIAL_STATUS == STATUS.Hold.ToString());
-            Assert.IsTrue(t2.PARENT_LOT_SID == t.LOT_SID);
-            Assert.IsTrue(t2.LOT_SID == _lot.SID);
-            Assert.IsTrue(t2.LOT == _lot.LOT);
+			var t2 = _WP_LOT_WAFER_MAPPING(Txn, SERIAL_NUMBER_ID);
+			Assert.IsTrue(t2.SERIAL_NUMBER == -1);
+			Assert.IsTrue(t2.SERIAL_STATUS == STATUS.Hold.ToString());
+			Assert.IsTrue(t2.PARENT_LOT_SID == t.LOT_SID);
+			Assert.IsTrue(t2.LOT_SID == _lot.SID);
+			Assert.IsTrue(t2.LOT == _lot.LOT);
 
 			var t2_trc = _WP_LOT_WAFER_MAPPING_TRACE(Txn);
 			Assert.IsTrue(t2_trc.OLD_LOT_SID == t.LOT_SID);
@@ -469,8 +505,8 @@ namespace UnitTestProject
 		[TestMethod]
 		public void _DTC_InsertWaferTrace()
 		=> _DBTest(Txn => {
-	//		var t = Txn.DapperQuery("select * from WP_LOT_WAFER_MAPPING")
-	//.FirstOrDefault();
+			//		var t = Txn.DapperQuery("select * from WP_LOT_WAFER_MAPPING")
+			//.FirstOrDefault();
 			var t = Txn.EFQuery<WP_LOT_WAFER_MAPPING>()
 				.Reads().FirstOrDefault();
 			var _lot = Txn.GetLotInfo(t.ROOT_LOT_SID);
@@ -480,7 +516,7 @@ namespace UnitTestProject
 			var act = TxnACTION.n
 					(ACTION.WAFER_EXCHANGE.ToString()
 					, "");
-			var _dtc = new DTC_InsertWaferTrace(t, act,true);
+			var _dtc = new DTC_InsertWaferTrace(t, act, true);
 			Txn.DoTransaction(_dtc);
 		}, true);
 
@@ -524,6 +560,24 @@ namespace UnitTestProject
 
 
 		[TestMethod]
+		public void t_Rec_NormalWafer_When_CheckOut()
+		=> _DBTest((txn) =>
+		{
+			txn.DoTransaction(new Rec_NormalWafer_When_CheckOut("EB3N4B2B4701-01.04"));
+		}, true);
+
+
+		[TestMethod]
+		public void t_parse_Wafer_defect()
+		{
+			var PosiMap = FileApp.Read_SerializeJson<Dictionary<string, string>>(_log.t_parse_Wafer_defect);
+			foreach (var item in PosiMap) {
+				var point = JsonConvert.DeserializeObject<WAFER_MAPPING>(item.Value);
+			}
+		}
+
+
+		[TestMethod]
 		public void _DTC_Exchange()
 		=> _DBTest(Txn =>
 		{
@@ -548,24 +602,24 @@ namespace UnitTestProject
 			Assert.IsTrue(t2.LOT == t.LOT);
 
 			var t2_trc = _WP_LOT_WAFER_MAPPING_TRACE(Txn);
-            Assert.IsTrue(t2_trc.OLD_LOT_SID == t.LOT_SID);
-            Assert.IsTrue(t2_trc.LOT_SID == _lot.SID);
-            Assert.IsTrue(t2_trc.LOT == _lot.LOT);
-            Assert.IsTrue(t2_trc.OPERATION == _lot.OPERATION);
-            Assert.IsTrue(t2_trc.ROUTE_VER_OPER_SID == _lot.ROUTE_VER_OPER_SID);
+			Assert.IsTrue(t2_trc.OLD_LOT_SID == t.LOT_SID);
+			Assert.IsTrue(t2_trc.LOT_SID == _lot.SID);
+			Assert.IsTrue(t2_trc.LOT == _lot.LOT);
+			Assert.IsTrue(t2_trc.OPERATION == _lot.OPERATION);
+			Assert.IsTrue(t2_trc.ROUTE_VER_OPER_SID == _lot.ROUTE_VER_OPER_SID);
 
-            Assert.IsTrue(t2_trc.SERIAL_NUMBER_ID == t.SERIAL_NUMBER_ID);
-            Assert.IsTrue(t2_trc.OLD_STATUS == SERIAL_STATUS);
-            Assert.IsTrue(t2_trc.NEW_STATUS == t2.SERIAL_STATUS);
-            Assert.IsTrue(t2_trc.OLD_SERIAL_NUMBER == SERIAL_NUMBER);
-            Assert.IsTrue(t2_trc.NEW_SERIAL_NUMBER == t.SERIAL_NUMBER);
+			Assert.IsTrue(t2_trc.SERIAL_NUMBER_ID == t.SERIAL_NUMBER_ID);
+			Assert.IsTrue(t2_trc.OLD_STATUS == SERIAL_STATUS);
+			Assert.IsTrue(t2_trc.NEW_STATUS == t2.SERIAL_STATUS);
+			Assert.IsTrue(t2_trc.OLD_SERIAL_NUMBER == SERIAL_NUMBER);
+			Assert.IsTrue(t2_trc.NEW_SERIAL_NUMBER == t.SERIAL_NUMBER);
 
-            Assert.IsTrue(t2_trc.ACTION == ACTION.WAFER_EXCHANGE.ToString());
+			Assert.IsTrue(t2_trc.ACTION == ACTION.WAFER_EXCHANGE.ToString());
 			Assert.IsTrue(t2_trc.ACTION_REASON == _dtc.txnACTION.ReasonNo);
 			Assert.IsTrue(t2_trc.ACTION_DESCRIPTION == _dtc.txnACTION.Desc);
 		}, true);
 
-        
+
 		[TestMethod]
 		public void _DTC_UpdateWaferShipCassette()
 		=> _DBTest(Txn =>
@@ -611,26 +665,26 @@ namespace UnitTestProject
 		{
 			return Txn.DapperQuery<WP_LOT_WAFER_MAPPING_TRACE>(@"select * from WP_LOT_WAFER_MAPPING_TRACE with(nolock) 
 					where ACTION_LINK_SID = @ACTION_LINK_SID"
-								, new { ACTION_LINK_SID=Txn.LinkSID })
+								, new { ACTION_LINK_SID = Txn.LinkSID })
 							.FirstOrDefault();
 		}
 
 		private static WP_LOT_WAFER_MAPPING _WP_LOT_WAFER_MAPPING(ITxnBase Txn, string SERIAL_NUMBER_ID)
-        {
-            return Txn.DapperQuery<WP_LOT_WAFER_MAPPING>(@"select * from WP_LOT_WAFER_MAPPING with(nolock) 
+		{
+			return Txn.DapperQuery<WP_LOT_WAFER_MAPPING>(@"select * from WP_LOT_WAFER_MAPPING with(nolock) 
 					where SERIAL_NUMBER_ID = @SERIAL_NUMBER_ID"
-                                , new { SERIAL_NUMBER_ID })
-                            .FirstOrDefault();
-        }
+								, new { SERIAL_NUMBER_ID })
+							.FirstOrDefault();
+		}
 
- 
+
 
 
 		[TestMethod]
 		public void t_WaferPackage()
 		=> _DBTest(Txn => {
 			var inputSrc = FileApp.Read_SerializeJson<List<WP_LOT_WAFER_MAPPING>>(_log.t_WaferPackage("_tmp"));
-			
+
 			//檢視分群結果
 			var grp_SHIP_CASSETTE = inputSrc
 				.GroupBy(o => o.SHIP_CASSETTE)
@@ -708,14 +762,14 @@ namespace UnitTestProject
 		public void t_ExecCarrierLoad()
 		=> _DBTest(Txn => {
 			List<WP_LOT_WAFER_MAPPING> data = new List<WP_LOT_WAFER_MAPPING>();
-			serv.ExecCarrierLoad("2-0002-02", data, true);
+			serv.ExecCarrierLoad("2-0002-02", data, null, true);
 		}, true);
 
 
 		[TestMethod]
 		public void t_info_SHIP_CASSETTE()
 		=> _DBTest(Txn => {
-			d_ZZ_SHIP_CASSETTE info_SHIP_CASSETTE = Wafer_Services.info_SHIP_CASSETTE(Txn,"TestA")
+			d_ZZ_SHIP_CASSETTE info_SHIP_CASSETTE = Wafer_Services.info_SHIP_CASSETTE(Txn, "TestA")
 				.parseData<d_ZZ_SHIP_CASSETTE>();
 		}, false);
 
@@ -726,7 +780,69 @@ namespace UnitTestProject
 		}, true);
 
 
+		[TestMethod]
+		public void t_GetLotInfo_HermisKoh()
+		{
+			var z = Wafer_Services.CarrierLoadMLot_QueryInfo("EB3N4B2B4507-03.01");
+			//var r = new Result() { Data = new { A = "A" } };
+			//dynamic r1 = r.DataTransExpandoObject();
+			//r1.B = "B";
+		}
+
+
+		[TestMethod]
+		public void t_CarrierLoadMLot_MLotInfo()
+		{
+			var z = Wafer_Services.CarrierLoadMLot_MLotInfo("EB3N4-03.01");
+			//var r = new Result() { Data = new { A = "A" } };
+			//dynamic r1 = r.DataTransExpandoObject();
+			//r1.B = "B";
+		}
+
+
+		[TestMethod]
+		public void t_拆子批各別上載具()
+		=> _DBTest(Txn => {
+			var _lotInfo = Txn.GetLotInfo();
+			var oper = _lotInfo.GetRouteVersionOperationInfo();
+
+			var judgeNextOper = oper.GetAllNextJudgePathRouteVersionOperationList();
+			var JudgeList = DDLServices.ReWork(oper.ROUTE_VER_SID, oper.ROUTE_VER_OPER_SID);
+
+			//WIPServices.拆子批各別上載具((TxnDoItemInfo)Txn,null,0, JudgeList);
+
+		}, true);
+
+		/// <summary>
+		/// 這個 測試是 by SPC暨Wafer收集缺點 的需求 實作,
+		/// ROUTE_VER_OPER_SID 是依據  AD_PARAMETER 中 PARAMETERGROUP_NO = 'INPUT_DEFECT_BY_SPC' 所挑選出的來 對應值
+		/// </summary>
 		[TestMethod()]
+		public void _ByWaferRecordDefact()
+		=> _DBTest(Txn => {
+			Txn.LotInfo = GTI_helper.getLotInfo(Txn,"SELECT * from WP_LOT WHERE ROUTE_VER_OPER_SID in( 'GTI22061417585513837')");
+			var Eqp = Txn.GetEquipmentInfo();
+			var PosiMap = FileApp.Read_SerializeJson<Dictionary<string, string>>(_log.t_ByWaferRecordDefact);
+			var _posi = new Dictionary<string, WAFER_MAPPING>();
+			foreach (var item in PosiMap)
+			{
+				var point = JsonConvert.DeserializeObject<WAFER_MAPPING>(item.Value);
+				_posi.Add(item.Key, point);
+			}
+			new WIPServices().ByWaferRecordDefact(Txn, _posi, Eqp,true );
+
+			var DEFECTs = Txn.DapperQuery<WP_LOT_DEFECT>($@"select *
+						from WP_LOT_DEFECT with(nolock)
+						where ACTION_LINK_SID = '{Txn.LinkSID}'").ToList();
+
+			var chk = DEFECTs.Where(c => c.PER_UNIT_RATE != null).FirstOrDefault();
+			Assert.AreEqual(chk.PER_UNIT_RATE, 5, "應有一筆且值必須為 5");
+
+		},true);
+
+
+
+			[TestMethod()]
 		public void _Process_SHIP_CASSETTE()
 		=> _DBTest(Txn => {
 			var isTest = true;

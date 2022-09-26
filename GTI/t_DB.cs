@@ -37,7 +37,7 @@ using static BLL.MES.WIPInjectServices;
 using static BLL.MES.WIPServices;
 using static Genesis.Gtimes.Transaction.WIP.WIPTransaction;
 using static Genesis.Gtimes.WIP.LotUtility;
-
+using static Genesis.Library.BLL.DTC.Carrier;
 using mdl = MDL.MES;
 using vDbCtx = MDL.MESContext;
 
@@ -47,6 +47,8 @@ namespace UnitTestProject
 	[TestClass]
 	public class t_DB : _testBase
 	{
+
+
 		public string _path = @"C:\Code\GTIMES_2015\UnitTestProject\Log\";
 		static class _log
 		{
@@ -1053,6 +1055,41 @@ SELECT 	LOT.ROUTE_VER_SID,
 		}
 
 
+		[TestMethod]
+		public void t_CreateUnitWork_txn()
+		=> _DBTest((txn) =>
+		{
+            //txn.EFQuery<AD_LOG>().Create
+
+            var unWork = new EFUnitOfWork(txn.DbContext);
+            var _sid = mes.getSID();
+            var _AD_LOG = new mdl.AD_LOG()
+            {
+                FUN_NAME = "Maintain",
+                ACTION = "UPDATE",
+                TARGET_PK = _sid,
+                TARGET_TABLE = "ZZ_EMP_ATTEND",
+                VALUE_LINK_SID = _sid,
+                CREATE_USER = "TEST",
+                CREATE_DATE = mes.getTime(),
+            };
+
+            unWork.Repository<AD_LOG>().Create(_AD_LOG);
+
+			//unWork.DTC();
+			//unWork.DTC(new Genesis.Library.BLL.DTC.Wafer.DTC_SetShipCassetteGrade("", ""));
+
+			unWork.Save();
+        });
+
+
+
+
+
+
+
+
+
 		public IResult ZZ_OPER_WORKT_SUMMARY_UpData(mdl.ZZ_OPER_WORKT_SUMMARY entity, bool isTest = false)
 		{
 			Result result = new Result(true);
@@ -1741,9 +1778,9 @@ SELECT 	LOT.ROUTE_VER_SID,
 
 		}
 
-		
 
-		
+
+
 
 		//private static IDbCommand UpdateLotAttribute(ITxnBase Txn, LotInfo lot, List<Column> modifyColumns)
 		//{
@@ -1760,6 +1797,14 @@ SELECT 	LOT.ROUTE_VER_SID,
 		//	update.WhereAnd("UPDATE_DATE", lot.UPDATE_DATE);
 		//	return update.GetCommand();
 		//}
+
+		[TestMethod]
+		public void t_DTC_Carrierload()
+		=> _DBTest((txn) =>{
+			var CarrierInfo = GTI_helper.getCarrierInfo("SELECT * from FC_CARRIER WHERE CARRIER_NO = '2-0001-12'");
+			var LotInfo = GTI_helper.getLotInfo();
+			//txn.DoTransaction(new DTC_Carrierload(CarrierInfo, LotInfo));
+		},true);
 
 		[TestMethod]
 		public void _處理轉換欄位()

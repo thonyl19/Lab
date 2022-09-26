@@ -1,5 +1,7 @@
 ﻿using Microsoft.VisualStudio.TestTools.UnitTesting;
 using System;
+using System.Collections.Generic;
+using System.Dynamic;
 using System.Reflection;
 using UnitTestProject.TestUT;
 using static Genesis.Gtimes.ADM.RouteUtility;
@@ -42,7 +44,7 @@ namespace UnitTestProject
 		}
 
 		/// <summary>
-		/// 使用反映來取得已載入組件的完整名稱
+		/// 使用反射來取得已載入組件的完整名稱
 		/// https://docs.microsoft.com/zh-cn/previous-versions/ms173183(v=vs.80)?redirectedfrom=MSDN
 		/// </summary>
 		[TestMethod]
@@ -113,8 +115,24 @@ namespace UnitTestProject
 		}
 
 		[TestMethod]
-		public void t_() { }
+		public void t_處理動態欄位新增和合併() {
+			var a = new { A = "A" };
+			dynamic zzA = zz(a);
+			zzA.X = "A";
+			zzA.Y = "Y";
+		}
 
+
+		public ExpandoObject zz(object x) {
+			//dynamic zz1 = new ExpandoObject();
+			//var booDict = new IDictionary<string, object>;
+			var expando = new ExpandoObject();
+			var dictionary = (IDictionary<string, object>)expando;
+
+			foreach (var property in x.GetType().GetProperties())
+				dictionary.Add(property.Name, property.GetValue(x));
+			return expando;
+		}
 
 	}
 

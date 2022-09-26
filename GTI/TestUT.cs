@@ -1,7 +1,9 @@
-﻿using Genesis.Gtimes.Common;
+﻿using Dal.Repository;
+using Genesis.Gtimes.Common;
 using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.Configuration;
 using System.Diagnostics;
 using System.IO;
@@ -14,6 +16,8 @@ namespace UnitTestProject.TestUT
 {
 	public class App
 	{
+
+
 		public static dynamic Timer(Func<dynamic> fn)
 		{
 			Stopwatch sw = new Stopwatch();
@@ -466,6 +470,22 @@ namespace UnitTestProject.TestUT
 			var _file = ts_Log("_tmp.txt");
 			if (isRead == false) return _file;
 			return Read(_file);
+		}
+
+		public static string _tmpJson(object data = null)
+		{
+			return _tmpJson<string>(data);
+		}
+		public static T _tmpJson<T>(object data =null)
+		{
+			var _file = ts_Log("_tmp.json");
+			var isWrite = data != null;
+			if (isWrite){
+				new FileApp() { _FileMode = FileMode.Create }.Write_SerializeJson(data, _file);
+				TypeConverter converter = TypeDescriptor.GetConverter(typeof(T));
+				return (T)converter.ConvertFrom(_file);
+			}
+			return  Read_SerializeJson<T>(_file);
 		}
 		public static T _tmpTxtToJson<T>(string AutoWriteTo = null)
 		{

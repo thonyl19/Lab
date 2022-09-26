@@ -16,7 +16,7 @@ using static Genesis.Library.BLL.Label.PrintServices;
 namespace UnitTestProject
 {
 	[TestClass]
-	public class UnitTest1
+	public class UnitTest_
 	{
 		public string _path = @"C:\Code\GTIMES_2015\UnitTestProject\Log\";
 		[TestMethod]

@@ -40,6 +40,7 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <ItemGroup>
+    <Compile Include="GTI_helper.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="TestUT.cs" />
     <Compile Include="t_Autofac.cs" />
@@ -62,7 +63,6 @@
     <Compile Include="t_PartType.cs" />
     <Compile Include="t_QTimer.cs" />
     <Compile Include="t_EDC.cs" />
-    <Compile Include="t_Wafer.cs" />
     <Compile Include="t_DTC.cs" />
     <Compile Include="_std.cs" />
   </ItemGroup>

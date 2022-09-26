@@ -36,7 +36,7 @@ namespace UnitTestProject
 				var dt = dbc.Select(_sql);
 
 				new FileApp().Write_SerializeJson(dt, FileApp.ts_Log(@"DB\ZZ_LOT_BIN.json"));
-
+				new FileApp().Write_SerializeJson(dt, _log.t_splitBIN);
 			}
 		}
 		[TestMethod]

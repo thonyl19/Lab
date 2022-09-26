@@ -40,6 +40,12 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <ItemGroup>
+    <Compile Include="DesignPatten\Form.cs" />
+    <Compile Include="DesignPatten\AbstractFactory_Case1.cs" />
+    <Compile Include="DesignPatten\t_AbstractFactory.cs" />
+    <Compile Include="DesignPatten\t_ChainofCommand.cs" />
+    <Compile Include="Mes\基礎出站.cs" />
+    <Compile Include="Mes\MesInOut.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="T4\Htm\MyWebPage1.cs" />
     <Compile Include="T4\Htm\MyWebPage11.cs">
@@ -48,12 +54,14 @@
       <DependentUpon>MyWebPage1.tt</DependentUpon>
     </Compile>
     <Compile Include="T4\Htm\t_T4.cs" />
+    <Compile Include="GTI_helper.cs" />
     <Compile Include="TestUT.cs" />
     <Compile Include="t_Autofac.cs" />
     <Compile Include="t_AD.cs" />
     <Compile Include="t_Attribute.cs" />
     <Compile Include="t_BOGUS.cs" />
     <Compile Include="t_DB.cs" />
+    <Compile Include="t_Carrier.cs" />
     <Compile Include="t_Entity.cs" />
     <Compile Include="t_GetCodes.cs" />
     <Compile Include="t_HoldLot.cs" />
@@ -64,7 +72,8 @@
     <Compile Include="t_WIP.cs" />
     <Compile Include="t_WO.cs" />
     <Compile Include="t_ZZ.cs" />
-    <Compile Include="UnitTest1.cs" />
+    <Compile Include="NUnit_Test.cs" />
+    <Compile Include="UnitTest_.cs" />
     <Compile Include="t_MES.cs" />
     <Compile Include="t_PartType.cs" />
     <Compile Include="t_QTimer.cs" />
@@ -120,8 +129,10 @@
     <Folder Include="Log\HoldLot\" />
     <Folder Include="Log\IPQC\" />
     <Folder Include="Log\Lot\" />
+    <Folder Include="Log\MesInOut\" />
     <Folder Include="Log\MES\" />
     <Folder Include="Log\MultiLotTerminated\" />
+    <Folder Include="Log\NewFolder1\" />
     <Folder Include="Log\Operation\" />
     <Folder Include="Log\QTimer\" />
     <Folder Include="Log\Wafer\" />
@@ -291,17 +302,16 @@
     </PackageReference>
   </ItemGroup>
   <ItemGroup>
-    <Reference Include="Genesis.Gtimes.Common, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null" />
+    <Reference Include="Genesis.Gtimes.MTR, Version=1.0.0.0, Culture=neutral, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>H:\HM_Dev\Library\BLL\bin\Debug\Genesis.Gtimes.MTR.dll</HintPath>
+    </Reference>
     <Reference Include="Genesis.Gtimes.Transaction, Version=1.0.0.0, Culture=neutral, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
-      <HintPath>H:\GTiMES5.1_Dev\GenesisReference4.5\Genesis.Gtimes.Transaction.dll</HintPath>
-    </Reference>
-    <Reference Include="Genesis.Gtimes.WIP, Version=1.0.0.0, Culture=neutral, processorArchitecture=MSIL">
-      <SpecificVersion>False</SpecificVersion>
-      <HintPath>H:\GTiMES5.1_Dev\GenesisReference4.5\Genesis.Gtimes.WIP.dll</HintPath>
+      <HintPath>H:\HM_Dev\GenesisReference4.5\Genesis.Gtimes.Transaction.dll</HintPath>
     </Reference>
     <Reference Include="Genesis.Mes.Library.WCF">
-      <HintPath>H:\GTiMES5.1_Dev\Library\BLL\bin\Debug\Genesis.Mes.Library.WCF.dll</HintPath>
+      <HintPath>H:\HM_Dev\Library\BLL\bin\Debug\Genesis.Mes.Library.WCF.dll</HintPath>
     </Reference>
     <Reference Include="PerpetuumSoft.Knockout, Version=0.6.0.0, Culture=neutral, PublicKeyToken=null" />
     <Reference Include="System" />
@@ -322,29 +332,37 @@
       <Project>{6b61c35a-1ebe-4afa-955c-852bee6b555f}</Project>
       <Name>ADM</Name>
     </ProjectReference>
-    <ProjectReference Include="H:\GTiMES5.1_Dev\Genesis_MVC\Genesis.csproj">
-      <Project>{a520b863-a9ed-4cff-acd9-ec3ade58b8ad}</Project>
-      <Name>Genesis</Name>
+    <ProjectReference Include="D:\Product.GTiMES4.5\Common\Common.csproj">
+      <Project>{bed38732-455e-46e5-8483-29c4a65ca9ac}</Project>
+      <Name>Common</Name>
     </ProjectReference>
-    <ProjectReference Include="H:\GTiMES5.1_Dev\Library\Frame.Code\Frame.Code.csproj">
+    <ProjectReference Include="D:\Product.GTiMES4.5\WIP\WIP.csproj">
+      <Project>{ed5754bc-5c58-47aa-85a2-17466df25165}</Project>
+      <Name>WIP</Name>
+    </ProjectReference>
+    <ProjectReference Include="H:\HM_Dev\Library\Frame.Code\Frame.Code.csproj">
       <Project>{ccbe423c-3e06-4715-8c65-518e3322265a}</Project>
       <Name>Frame.Code</Name>
     </ProjectReference>
-    <ProjectReference Include="H:\GTiMES5.1_Dev\Library\MDL\MDL.csproj">
+    <ProjectReference Include="H:\HM_Dev\Library\MDL\MDL.csproj">
       <Project>{d78c56c3-a76e-49b8-8a91-49b5d4bbd0b3}</Project>
       <Name>MDL</Name>
     </ProjectReference>
-    <ProjectReference Include="H:\GTiMES5.1_Dev\Library\RES\RES.csproj">
+    <ProjectReference Include="H:\HM_Dev\Library\RES\RES.csproj">
       <Project>{4d318d82-259f-4e42-870c-a09883281158}</Project>
       <Name>RES</Name>
     </ProjectReference>
-    <ProjectReference Include="H:\GTiMES5.1_Dev\Library\BLL\BLL.csproj">
+    <ProjectReference Include="H:\HM_Dev\Library\BLL\BLL.csproj">
       <Project>{add17dc1-60bd-47f9-a51f-704c027767c5}</Project>
       <Name>BLL</Name>
     </ProjectReference>
-    <ProjectReference Include="H:\GTiMES5.1_Dev\Library\Dal\Dal.csproj">
+    <ProjectReference Include="H:\HM_Dev\Library\Dal\Dal.csproj">
       <Project>{1eba4623-1d86-4bb9-b2a3-fa89e0132345}</Project>
       <Name>Dal</Name>
+    </ProjectReference>
+    <ProjectReference Include="H:\HM_Dev\Genesis_MVC\Genesis.csproj">
+      <Project>{a520b863-a9ed-4cff-acd9-ec3ade58b8ad}</Project>
+      <Name>Genesis</Name>
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>

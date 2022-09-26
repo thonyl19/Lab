@@ -1,5 +1,6 @@
 ﻿using BLL.MES;
 using BLL.MES.DataViews;
+using BLL.MES.SPC.Hermes;
 using Frame.Code.Web.Select;
 using Genesis;
 using Genesis.Gtimes.ADM;
@@ -16,10 +17,12 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
+using System.Configuration;
 using System.Data;
 using System.Linq;
 using System.Transactions;
 using UnitTestProject.TestUT;
+using static BLL.MES.SPC.Hermes.SPCRunServicesByHermes;
 using static BLL.MES.WIPInjectServices;
 using static Genesis.Gtimes.ADM.CarrierUtility;
 using static Genesis.Gtimes.WIP.LotUtility;
@@ -96,6 +99,11 @@ namespace UnitTestProject
 			internal static string t_DoCarrierCheckOut(string ext_name) { 
 				return FileApp.ts_Log($@"MES\t_DoCarrierCheckOut{ext_name}.json");
 			}
+			
+			internal static string t_DoRollCheckOut(string ext_name = "")
+			{
+				return FileApp.ts_Log($@"MES\t_DoRollCheckOut{ext_name}.json");
+			}
 
 			/// <summary>
 			/// 測試載具出站 - 包材分級的程序
@@ -119,10 +127,27 @@ namespace UnitTestProject
 			}
 
 
+			internal static string t_GetOperDefect
+			{
+				get
+				{
+					return FileApp.ts_Log(@"MES\t_GetOperDefect.json");
+				}
+			}
+
+
+			internal static string t_CustomDefectInfo
+			{
+				get
+				{
+					return FileApp.ts_Log(@"MES\t_CustomDefectInfo.json");
+				}
+			}
+			
 
 		}
 
-
+ 
 
 		[TestMethod]
 		public void t_()
@@ -340,20 +365,16 @@ namespace UnitTestProject
 
 		[TestMethod]
 		public void t_Txn_UnLoadLot()
-		=> _DBTest((Txn) =>
-		{
+		=> _DBTest((Txn) => {
 			var SplitList = new List<QtyItem>() { new QtyItem() { Qty = 1 } };
 			EncodeFormatUtility.CodesInfo codes = null;
-			Txn.GetLotInfo("GTI22050513264480527", true);
+			Txn.GetLotInfo("GTI22063010424149523", true);
 
 			var carrierip = Txn.LotInfo.GetCurrentCarrierInfo();
-
-
 			var r = LOT_Services.Txn_LotSplit(Txn, SplitList);
 
 			var lotInfo = Txn.GetLotInfo(r[0].LOT_SID);
-			_Txn_UnLoadLot(Txn, lotInfo);
-
+			//_Txn_UnLoadLot(Txn, lotInfo);
 		}, true);
 
 		public void _Txn_UnLoadLot(ITxnBase Txn, LotInfo lotInfo = null)
@@ -560,12 +581,48 @@ namespace UnitTestProject
 		}
 
 
-
+		
 		[TestMethod]
-		public void t_fn()
+		public void t_DoRollCheckOut()
 		=> _DBTest((Txn) => {
+			var _src 
+				//= FileApp.Read_SerializeJson<WIPFormSendParameter>(_log.t_DoRollCheckOut());
+				= FileApp.Read_SerializeJson<WIPFormSendParameter>(_log.t_DoRollCheckOut("_部份出多載具"));
+			new WIPServices().DoRollCheckOut(_src, true);
 			//var r = DDLServices.Reason("Hold");
 		});
 
+		[TestMethod]
+		public void _GetCustomDefectInfo_邏輯測試()
+		=> _DBTest((Txn) => {
+            //var lot = GTI_helper.getLotInfo("SELECT * from WP_LOT WHERE ROUTE_VER_OPER_SID in( 'GTI22061417585513837')");
+            //var RouteVerOperInfo = Txn.GetRouteVerOper("GTI22061417585513837");
+            //var DefectList = WIPOperConfigServices.GetOperDefect(Txn.DBC, lot, RouteVerOperInfo);
+			//         FileApp.WriteSerializeJson(DefectList, _log.t_GetOperDefect);
+			var DefectList = FileApp.Read_SerializeJson<List<CustomerList>>(_log.t_GetOperDefect);
+
+			var CustomDefectInfo = FileApp.Read_SerializeJson<List<DEFECT_NO_LIST>>(_log.t_CustomDefectInfo);
+
+			foreach (var item in CustomDefectInfo) {
+				var match = DefectList.FirstOrDefault(c => c.No == item.DEFECT_NO);
+				if (match != null) {
+					match.StatusSid = item.CHART_TYPE;
+				}
+			}
+			var x = DefectList.FindAll(c => !String.IsNullOrWhiteSpace(c.StatusSid));
+			Assert.IsTrue(x.Count == 2);
+			//FileApp._tmpJson(DefectList);
+		});
+
+
+		[TestMethod]
+		public void t_GetCustomDefectInfo()
+		=> _DBTest((Txn) => {
+            var lot = GTI_helper.getLotInfo("SELECT * from WP_LOT WHERE ROUTE_VER_OPER_SID in( 'GTI22061417585513837')");
+            var RouteVerOperInfo = Txn.GetRouteVerOper("GTI22061417585513837");
+
+			//實際的處理程序,但 無法做單元測試
+			var __t = WIPOperConfigServices.GetCustomDefectInfo(Txn.DBC, lot, RouteVerOperInfo);
+		});
 	}
 }
