@@ -1,0 +1,92 @@
+﻿@{
+
+    Layout = "~/Views/Shared/_LayoutSingle1.cshtml";
+    var count = ViewData["Count"].ToString() ?? "0";
+}
+@eBundle.QRender_CSS()
+@eBundle.QRender_JS()
+@Scripts.Render("~/bundles/signalR")
+<div id="app" class="container">
+    <button type="button" @@click="close">del</button>
+    <div class="row">
+        <div class="col-6">
+            User：<label id="User">{{id}}</label>
+        </div>
+        <div class="col-6">
+            Count：<label id="Count">{{count}}</label>
+        </div>
+        <div class="col-6">
+            IdleCount：<span id="timer">{{IdleCount}}</span>
+        </div>
+
+    </div>
+    <div class="row">
+        <div class="col-6">
+            <ul id="messagesList"></ul>
+        </div>
+    </div>
+</div>
+
+@section Scripts
+{
+<script src="~/signalr/hubs"></script>
+<script>
+    $(() => {
+
+        new Vue({
+            el: '#app',
+            data() {
+                return {
+                    id: '',
+                    count: @count,
+                    SignalHub: '',
+                    IdleCount: 0
+                }
+            },
+            computed: {
+                c_t() {
+                    return window.live_monitor.idleCounter;
+                }
+            },
+            mounted() {
+                var _self = this;
+                var url = new URL(location);
+                _self.id = url.searchParams.get('id') ?? "";
+
+
+                $.connection.hub.start().done(function () {
+                    _self.isDisabled = false;
+                }).catch(function (err) {
+                    return console.error(err.toString());
+                });
+                _self.SignalHub = $.connection.userCountHub;
+                _self.SignalHub.client.Counts = function (count) {
+                    _self.count = count;
+                };
+            },
+            methods: {
+                close() {
+                    debugger
+                    this.SignalHub.server.removeUser(this.id);
+                }
+            },
+        });
+
+    });
+
+</script>
+}
+
+
+<style>
+    html, body {
+        font-size: 9pt;
+    }
+
+    #dura {
+        position: absolute;
+        top: 2px;
+        right: 2px;
+        opacity: 0.5;
+    }
+</style>

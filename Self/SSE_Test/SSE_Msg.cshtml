@@ -1,0 +1,37 @@
+﻿@{
+    //https://www.c-sharpcorner.com/blogs/server-side-events-in-asp-net-mvc
+    Layout = "~/Views/Shared/_LayoutSingle.cshtml";
+    var cmd = nameof(Genesis.Areas.Example.Controllers.SelfController.Check);
+}
+@eBundle.QRender_CSS()
+@eBundle.QRender_JS()
+<a href="javascript:initialize();">點撃後觸發(每5秒回應一次)</a>
+<div id="targetDiv"></div>
+
+<script>
+    function initialize() {
+        alert("called");
+
+        if (window.EventSource == undefined) {
+            // If not supported
+            document.getElementById('targetDiv').innerHTML = "Your browser doesn't support Server Sent Events.";
+            return;
+        } else {
+            var source = new EventSource('SSE_Message');
+
+            source.onopen = function (event) {
+                document.getElementById('targetDiv').innerHTML += 'Connection Opened.<br>';
+            };
+
+            source.onerror = function (event) {
+                if (event.eventPhase == EventSource.CLOSED) {
+                    document.getElementById('targetDiv').innerHTML += 'Connection Closed.<br>';
+                }
+            };
+
+            source.onmessage = function (event) {
+                document.getElementById('targetDiv').innerHTML += event.data + '<br>';
+            };
+        }
+    }
+</script> 

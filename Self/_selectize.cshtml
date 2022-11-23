@@ -25,6 +25,11 @@
 				<vue-selectize v-model="form.F" render_sty="GTIMES"
 							   :options="ddl_ops" />
 			</gt-form-col>
+			<gt-form-col label="多選">
+				<vue-selectize v-model="form.F1" render_sty="GTIMES" 
+							   :selectize_ops="selectize_ops多選"
+							   :options="ddl_ops" />
+			</gt-form-col>
 		</div>
 	</div>
 
@@ -122,6 +127,7 @@
 						D: '12456',
 						E: 'A',
 						F: '',
+						F1:[]
 					},
 					readonly: false,
 					ddl_case1: {
@@ -153,7 +159,10 @@
 						},
 						tmpData: []
 					},
-					ddl_ops: [{ "SID": "aaid", "No": "aa", "Value": null, "Display": "a線別", "StatusSid": null, "Status": null, "INum": 0.0 }, { "SID": "bbid", "No": "bb", "Value": null, "Display": "b線別", "StatusSid": null, "Status": null, "INum": 0.0 }]
+					selectize_ops多選: {
+                        maxItems: 10
+					},
+                    ddl_ops: [{ "RefKey": null, "SID": "GTI22050617441960430", "No": "2-0001-02", "Value": "0", "Display": "製程用cassette-02", "StatusSid": null, "Status": null, "FromNum": 0, "INum": 0, "Attr01": "25", "Attr02": "2500", "Attr03": null, "checked": true, "MTR_LOT": "B6N404B2B3B0" }, { "RefKey": null, "SID": "GTI22051014160261578", "No": "2-0001-05", "Value": "0", "Display": "製程用cassette-05", "StatusSid": null, "Status": null, "FromNum": 0, "INum": 0, "Attr01": "25", "Attr02": "25000", "Attr03": null }, { "RefKey": null, "SID": "GTI22051014205661583", "No": "2-0002-01", "Value": "0", "Display": "出貨用cassette-01", "StatusSid": null, "Status": null, "FromNum": 0, "INum": 0, "Attr01": "25", "Attr02": "25", "Attr03": null, "checked": true, "MTR_LOT": "GTI22051016061362011" }, { "RefKey": null, "SID": "GTI22051014212161584", "No": "2-0002-02", "Value": "0", "Display": "出貨用cassette-02", "StatusSid": null, "Status": null, "FromNum": 0, "INum": 0, "Attr01": "25", "Attr02": "25", "Attr03": null, "checked": true, "MTR_LOT": "B6N404B2B3B0" }, { "RefKey": null, "SID": "GTI22061509422314311", "No": "2-0002-03", "Value": "0", "Display": "出貨用cassette-03", "StatusSid": null, "Status": null, "FromNum": 0, "INum": 0, "Attr01": "1", "Attr02": "1", "Attr03": null }, { "RefKey": null, "SID": "GTI22062409560535275", "No": "2-0002-10", "Value": "0", "Display": "出貨用cassette-10", "StatusSid": null, "Status": null, "FromNum": 0, "INum": 0, "Attr01": "10", "Attr02": "10", "Attr03": null, "checked": true, "MTR_LOT": "B6N404B2B3B0" }, { "RefKey": null, "SID": "GTI22062813103640546", "No": "2-0002-11", "Value": "0", "Display": "出貨用cassette-11", "StatusSid": null, "Status": null, "FromNum": 0, "INum": 0, "Attr01": "10", "Attr02": "10", "Attr03": null, "checked": true, "MTR_LOT": "GTI22051016061362011" }, { "RefKey": null, "SID": "GTI22062814174940990", "No": "2-0002-12", "Value": "0", "Display": "出貨用cassette-12", "StatusSid": null, "Status": null, "FromNum": 0, "INum": 0, "Attr01": "10", "Attr02": "10", "Attr03": null }, { "RefKey": null, "SID": "GTI22063000095848859", "No": "2-0001-12", "Value": "0", "Display": "製程用cassette-12", "StatusSid": null, "Status": null, "FromNum": 0, "INum": 0, "Attr01": "25", "Attr02": "2500", "Attr03": null }, { "RefKey": null, "SID": "GTI22063000101948860", "No": "2-0001-13", "Value": "0", "Display": "製程用cassette-13", "StatusSid": null, "Status": null, "FromNum": 0, "INum": 0, "Attr01": "25", "Attr02": "2500", "Attr03": null }, { "RefKey": null, "SID": "GTI22063000104048861", "No": "2-0001-14", "Value": "0", "Display": "製程用cassette-14", "StatusSid": null, "Status": null, "FromNum": 0, "INum": 0, "Attr01": "25", "Attr02": "2500", "Attr03": null }, { "RefKey": null, "SID": "GTI22063000110548862", "No": "2-0001-15", "Value": "0", "Display": "製程用cassette-15", "StatusSid": null, "Status": null, "FromNum": 0, "INum": 0, "Attr01": "25", "Attr02": "2500", "Attr03": null }, { "RefKey": null, "SID": "GTI22063000142448991", "No": "2-0001-16", "Value": "0", "Display": "製程用cassette-16", "StatusSid": null, "Status": null, "FromNum": 0, "INum": 0, "Attr01": "25", "Attr02": "2500", "Attr03": null }, { "RefKey": null, "SID": "GTI22063009441449250", "No": "2-0001-17", "Value": "0", "Display": "製程用cassette-17", "StatusSid": null, "Status": null, "FromNum": 0, "INum": 0, "Attr01": "8", "Attr02": "8", "Attr03": null }, { "RefKey": null, "SID": "GTI22063009451549252", "No": "2-0001-18", "Value": "0", "Display": "製程用cassette-18", "StatusSid": null, "Status": null, "FromNum": 0, "INum": 0, "Attr01": "8", "Attr02": "8", "Attr03": null }, { "RefKey": null, "SID": "GTI22063011194349934", "No": "2-0001-19", "Value": "0", "Display": "製程用cassette-19", "StatusSid": null, "Status": null, "FromNum": 0, "INum": 0, "Attr01": "10", "Attr02": "10", "Attr03": null }, { "RefKey": null, "SID": "GTI22070422363162951", "No": "2-0003-01", "Value": "0", "Display": "扣留用cassette-01", "StatusSid": null, "Status": null, "FromNum": 0, "INum": 0, "Attr01": "15", "Attr02": "500", "Attr03": null }, { "RefKey": null, "SID": "GTI22082914273720499", "No": "2-0001-20", "Value": "0", "Display": "製程用cassette-20", "StatusSid": null, "Status": null, "FromNum": 0, "INum": 0, "Attr01": "50", "Attr02": "50", "Attr03": null }]
 				}
 			},
 

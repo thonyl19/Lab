@@ -13,7 +13,6 @@
 @eBundle.QRender_CSS()
 @eBundle.QRender_JS()
 @Html.Partial("~/Areas/MES/Views/WIP/Partial2/_posiMapEDC.cshtml", @Model)
-@Html.Partial("~/Areas/MES/Views/WIP/Partial2/_defect.cshtml", @Model)
 @Html.Partial("~/Areas/MES/Views/Shared/_edc.cshtml")
 @Html.Partial("~/Areas/WIP/Views/Shared/_reason.cshtml")
 
@@ -26,16 +25,41 @@
         [confirm]<el-checkbox v-model="confirm"></el-checkbox>
         [highlight]<el-checkbox v-model="highlight"></el-checkbox>
         <el-button @@click="test">test</el-button>
-        <el-button @@click="test1">取消驗証</el-button>
         [isChange]{{isChange}}
         <cp-posi-map-edc ref="posi_map"
                          :list.sync="list" :src_mo="srcMO"
-                         :readonly="readonly" :confirm="confirm" :highlight="highlight">
+                         :readonly="readonly" :confirm="confirm" :highlight="highlight"
+                         >
             <template v-slot:default="{current}" :cfg.sync="cfg" :readonly="readonly">
                 <gt-hr content="@Face.OperDefectInfo">
-                    <form class="form-defects">
-                        <cp-defect ref="cp_defect" v-model="current.src.Defects" :set_model="set_model" cfg="{title_show:false}"></cp-defect>
-                    </form>
+                    <el-table :data="current.src.Defects"
+                              empty-text=" "
+                              style="width: 100%">
+                        <el-table-column fixed="left" prop="SID"   width="100px;">
+                            <template slot="header" slot-scope="scope">
+                                <i class="btn btn-primary btn-sm fa fa-plus" v-on:click="Remove(scope.row)"></i>
+                            </template>
+                            <template slot-scope="scope">
+                                <el-button size="small" v-on:click="Remove(scope.row)" type="danger" icon="el-icon-delete" circle></el-button>
+                            </template>
+                        </el-table-column>
+                        <el-table-column prop="Display" label="@Face.Defect">
+                            <template #default="{row}" >
+                                <vue-selectize v-model="row.No"
+                                               :options="defect_src"
+                                               render_sty="GTIMES"
+                                               :icon_search="false"></vue-selectize>
+                            </template>
+                        </el-table-column>
+                        <el-table-column prop="INum" label="@Face.DefectQty">
+                            <template #default="{row}">
+                                <vue-selectize v-model="row.No"
+                                               :options="defect_src"
+                                               render_sty="GTIMES"
+                                               :icon_search="false"></vue-selectize>
+                            </template>
+                        </el-table-column>
+                    </el-table>
                 </gt-hr>
                 <gt-hr content="@Face.lblEDC_DATA">
                     <edc-input ref="edc_input" v-model="current.src.EdcList">
@@ -59,11 +83,6 @@
 <script>
     Vue.config.devtools = true;
     $(() => {
-        var set_model =  {
-            CurrentLot: { "EnableEditMode": false, "SID": "GTI22051310425565893", "No": "Jason01-02", "Name": "Jason01-02", "Identity": "Jason01-02", "TableName": "WP_LOT", "IsExist": true, "LOT": "Jason01-02", "LOT_1": "", "LOT_2": "", "IS_BATCH_ENABLE": "T", "BATCH_NO": "", "BATCH_SEQ": 0, "STATUS": "Run", "LOT_TYPE": "Normal", "QUANTITY": 1, "UNIT": "EA", "QTY_1": 0, "UNIT_1": "", "QTY_2": 0, "UNIT_2": "", "WO_SID": "Jason01", "WO": "Jason01", "INVENTORY_NO": "", "ROUTE_VER_SID": "GTI22050311421055573", "ROUTE": "6吋長晶", "ROUTE_VERSION": 1, "IN_ROUTE_CATEGORY": "M", "SUBROUTE_VER_SID": "", "PREGO_ROUTE_VER_OPER_SID": "", "FROM_ROUTE_VER_SID": "GTI22050311421055573", "FROM_ROUTE": "6吋長晶", "FROM_ROUTE_VERSION": 1, "NEXT_ROUTE_VER_SID": "GTI22050311421055573", "NEXT_ROUTE": "6吋長晶", "NEXT_ROUTE_VERSION": 1, "ROUTE_VER_OPER_SID": "GTI22050414403658588", "OPER_SID": "GTI22050311421255580", "OPER_SEQ": "003", "OPERATION": "晶體檢驗", "OPER_TYPE_VER_SID": "GTI22032513110054936", "FROM_ROUTE_VER_OPER_SID": "GTI22050414403658587", "FROM_OPER_SID": "GTI22050311421255579", "FROM_OPER_SEQ": "002", "FROM_OPERATION": "Growth", "FROM_OPER_TYPE_VER_SID": "GTI22032513110054936", "NEXT_ROUTE_VER_OPER_SID": "GTI22050414403658589", "NEXT_OPER_SID": "GTI22050311421255581", "NEXT_OPER_SEQ": "004", "NEXT_OPERATION": "晶體加工", "NEXT_OPER_TYPE_VER_SID": "GTI22032513110054936", "FUN_SEQ": 2, "FUN_SID": "6d12ca38-a78e-49e3-8e74-13e9263db5cc", "FUN_CODE": "StationCheckOut", "NEXT_FUN_SEQ": 1, "NEXT_FUN_SID": "a4852f0c-a981-47d6-ab75-9a07129f3375", "NEXT_FUN_CODE": "StationCheckIn", "PRODUCT_SID": "GTI22050913460560557", "PRODUCT": "Ingot", "PARTNO_VER_SID": "GTI22050610575359766", "PARTNO": "1-0015", "PARTNO_VERSION": 0, "PRIORITY": "3", "MES_PRIORITY": "", "SCHEDULEDATE": null, "DUEDATE": null, "MES_SCHEDULEDATE": null, "MES_DUEDATE": null, "WTIME_END": null, "QTIME_END": null, "YIELD": 1, "TOTAL_YIELD": 0, "GRADE": "", "IS_QC_REJECT": "F", "QC_REJECT_COUNT": 0, "LOCATION": "", "CUSTOMER": "", "OWNER": "", "DISPATCH_FUTURE_HOLD": "N", "SHIFT_SID": "GTI22050311420855529", "SHIFT_NO": "SHIFT_002", "SHIFT": "A", "LINE_SID": "GTI22050311420855533", "LINE_NO": "LINE_002", "LINE": "PDC", "ECN_SID": "", "ECN_NO": "", "ECN_NAME": "", "EQP_LINK_SID": "", "PARTNO_LINK_SID": "", "CARRIER_LINK_SID": "", "TOOL_LINK_SID": "", "ROOT_LOT_SID": "", "PARENT_LOT_SID": "", "OPER_SUM_SCRAP_QTY": 0, "OPER_SUM_SCRAP_QTY1": 0, "OPER_SUM_SCRAP_QTY2": 0, "OPER_SUM_BOUNS_QTY": 0, "OPER_SUM_BOUNS_QTY1": 0, "OPER_SUM_BOUNS_QTY2": 0, "TOTAL_SUM_SCRAP_QTY": 0, "TOTAL_SUM_SCRAP_QTY1": 0, "TOTAL_SUM_SCRAP_QTY2": 0, "TOTAL_SUM_BOUNS_QTY": 0, "TOTAL_SUM_BOUNS_QTY1": 0, "TOTAL_SUM_BOUNS_QTY2": 0, "LAST_STATUS_CHANGE_TIME": "2022-06-08 09:24:57", "OPER_START_TIME": "2022-05-17 18:20:13", "RUN_START_TIME": "2022-06-08 09:24:57", "RUN_END_TIME": null, "OPER_END_TIME": null, "ATTRIBUTE_01": "", "ATTRIBUTE_02": "", "ATTRIBUTE_03": "", "ATTRIBUTE_04": "", "ATTRIBUTE_05": "", "ATTRIBUTE_06": "", "ATTRIBUTE_07": "", "ATTRIBUTE_08": "", "ATTRIBUTE_09": "", "ATTRIBUTE_10": "", "ATTRIBUTE_11": 0, "ATTRIBUTE_12": 0, "ATTRIBUTE_13": 0, "ATTRIBUTE_14": null, "ATTRIBUTE_15": null, "ATTRIBUTE_16": null, "ATTRIBUTE_17": "", "ATTRIBUTE_18": "", "ATTRIBUTE_19": "", "ATTRIBUTE_20": "", "ATTRIBUTE_21": "", "ATTRIBUTE_22": "", "ATTRIBUTE_23": "", "ATTRIBUTE_24": "", "ATTRIBUTE_25": "", "ATTRIBUTE_26": "", "ATTRIBUTE_27": "", "ATTRIBUTE_28": "", "ATTRIBUTE_29": "", "ATTRIBUTE_30": "", "ATTRIBUTE_31": "", "ATTRIBUTE_32": "", "ATTRIBUTE_33": "", "ATTRIBUTE_34": "", "ATTRIBUTE_35": "", "ATTRIBUTE_36": null, "ATTRIBUTE_37": null, "ATTRIBUTE_38": null, "ATTRIBUTE_39": null, "ATTRIBUTE_40": null, "CREATE_USER": "110404", "CREATE_DATE": "2022-05-13 10:42:55", "UPDATE_USER": "110404", "UPDATE_DATE": "2022-06-08 09:24:57", "NOTE": "", "WO_LINE_SID": "", "WO_LINE_NO": "", "WO_LINE": "", "MLOT": "" },
-            systemConfig: { "DecimalPoint": 3, "SystemTitle": "漢民SiC", "IsOpenNewDataImport": true, "IsGlobalPermissions": true, "IsEnableUserTraceLog": true, "IsAutoGenerateSPCControl": true, "IsSystemLayoutConfig": true, "IsReleaseCustomProject": true, "ProjectFolder": "Project", "IsUseWebRoute": false, "IsDCS": false, "IsDefectAllowOverZero": true, "IsRecordOperationRecipeHist": false, "setp": "0.001" },
-            OperDefectList: [{ "ItemType": null, "Attr": null, "Attr04": null, "Attr05": null, "Attr06": null, "Attr07": null, "Attr08": null, "Attr09": null, "Attr10": null, "RefKey": null, "SID": "GTI22050311422156056", "No": "DEFECT_031", "Value": null, "Display": "Inclusion", "StatusSid": "U", "Status": null, "FromNum": 0.0, "INum": 0.0, "Attr01": null, "Attr02": null, "Attr03": null }, { "ItemType": null, "Attr": null, "Attr04": null, "Attr05": null, "Attr06": null, "Attr07": null, "Attr08": null, "Attr09": null, "Attr10": null, "RefKey": null, "SID": "GTI22050311422156062", "No": "DEFECT_033", "Value": null, "Display": "1 點鐘", "StatusSid": "C", "Status": null, "FromNum": 0.0, "INum": 0.0, "Attr01": null, "Attr02": null, "Attr03": null }, { "ItemType": null, "Attr": null, "Attr04": null, "Attr05": null, "Attr06": null, "Attr07": null, "Attr08": null, "Attr09": null, "Attr10": null, "RefKey": null, "SID": "GTI22050311422156063", "No": "DEFECT_009", "Value": null, "Display": "2 點鐘", "StatusSid": null, "Status": null, "FromNum": 0.0, "INum": 0.0, "Attr01": null, "Attr02": null, "Attr03": null }, { "ItemType": null, "Attr": null, "Attr04": null, "Attr05": null, "Attr06": null, "Attr07": null, "Attr08": null, "Attr09": null, "Attr10": null, "RefKey": null, "SID": "GTI22050311422156064", "No": "DEFECT_010", "Value": null, "Display": "3 點鐘", "StatusSid": null, "Status": null, "FromNum": 0.0, "INum": 0.0, "Attr01": null, "Attr02": null, "Attr03": null }, { "ItemType": null, "Attr": null, "Attr04": null, "Attr05": null, "Attr06": null, "Attr07": null, "Attr08": null, "Attr09": null, "Attr10": null, "RefKey": null, "SID": "GTI22050311422156065", "No": "DEFECT_011", "Value": null, "Display": "4 點鐘", "StatusSid": null, "Status": null, "FromNum": 0.0, "INum": 0.0, "Attr01": null, "Attr02": null, "Attr03": null }, { "ItemType": null, "Attr": null, "Attr04": null, "Attr05": null, "Attr06": null, "Attr07": null, "Attr08": null, "Attr09": null, "Attr10": null, "RefKey": null, "SID": "GTI22050311422156066", "No": "DEFECT_012", "Value": null, "Display": "5 點鐘", "StatusSid": null, "Status": null, "FromNum": 0.0, "INum": 0.0, "Attr01": null, "Attr02": null, "Attr03": null }, { "ItemType": null, "Attr": null, "Attr04": null, "Attr05": null, "Attr06": null, "Attr07": null, "Attr08": null, "Attr09": null, "Attr10": null, "RefKey": null, "SID": "GTI22050311422156067", "No": "DEFECT_013", "Value": null, "Display": "6 點鐘", "StatusSid": null, "Status": null, "FromNum": 0.0, "INum": 0.0, "Attr01": null, "Attr02": null, "Attr03": null }, { "ItemType": null, "Attr": null, "Attr04": null, "Attr05": null, "Attr06": null, "Attr07": null, "Attr08": null, "Attr09": null, "Attr10": null, "RefKey": null, "SID": "GTI22050311422156068", "No": "DEFECT_014", "Value": null, "Display": "7 點鐘", "StatusSid": null, "Status": null, "FromNum": 0.0, "INum": 0.0, "Attr01": null, "Attr02": null, "Attr03": null }, { "ItemType": null, "Attr": null, "Attr04": null, "Attr05": null, "Attr06": null, "Attr07": null, "Attr08": null, "Attr09": null, "Attr10": null, "RefKey": null, "SID": "GTI22050311422156069", "No": "DEFECT_015", "Value": null, "Display": "8 點鐘", "StatusSid": null, "Status": null, "FromNum": 0.0, "INum": 0.0, "Attr01": null, "Attr02": null, "Attr03": null }, { "ItemType": null, "Attr": null, "Attr04": null, "Attr05": null, "Attr06": null, "Attr07": null, "Attr08": null, "Attr09": null, "Attr10": null, "RefKey": null, "SID": "GTI22050311422156070", "No": "DEFECT_016", "Value": null, "Display": "9 點鐘", "StatusSid": null, "Status": null, "FromNum": 0.0, "INum": 0.0, "Attr01": null, "Attr02": null, "Attr03": null }, { "ItemType": null, "Attr": null, "Attr04": null, "Attr05": null, "Attr06": null, "Attr07": null, "Attr08": null, "Attr09": null, "Attr10": null, "RefKey": null, "SID": "GTI22050311422156071", "No": "DEFECT_017", "Value": null, "Display": "10 點鐘", "StatusSid": null, "Status": null, "FromNum": 0.0, "INum": 0.0, "Attr01": null, "Attr02": null, "Attr03": null }, { "ItemType": null, "Attr": null, "Attr04": null, "Attr05": null, "Attr06": null, "Attr07": null, "Attr08": null, "Attr09": null, "Attr10": null, "RefKey": null, "SID": "GTI22050311422156072", "No": "DEFECT_018", "Value": null, "Display": "11 點鐘", "StatusSid": null, "Status": null, "FromNum": 0.0, "INum": 0.0, "Attr01": null, "Attr02": null, "Attr03": null }, { "ItemType": null, "Attr": null, "Attr04": null, "Attr05": null, "Attr06": null, "Attr07": null, "Attr08": null, "Attr09": null, "Attr10": null, "RefKey": null, "SID": "GTI22050311422156073", "No": "DEFECT_019", "Value": null, "Display": "12 點鐘", "StatusSid": null, "Status": null, "FromNum": 0.0, "INum": 0.0, "Attr01": null, "Attr02": null, "Attr03": null }, { "ItemType": null, "Attr": null, "Attr04": null, "Attr05": null, "Attr06": null, "Attr07": null, "Attr08": null, "Attr09": null, "Attr10": null, "RefKey": null, "SID": "GTI22050311422156075", "No": "DEFECT_021", "Value": null, "Display": "15R", "StatusSid": null, "Status": null, "FromNum": 0.0, "INum": 0.0, "Attr01": null, "Attr02": null, "Attr03": null }, { "ItemType": null, "Attr": null, "Attr04": null, "Attr05": null, "Attr06": null, "Attr07": null, "Attr08": null, "Attr09": null, "Attr10": null, "RefKey": null, "SID": "GTI22050311422156076", "No": "DEFECT_022", "Value": null, "Display": "6H", "StatusSid": null, "Status": null, "FromNum": 0.0, "INum": 0.0, "Attr01": null, "Attr02": null, "Attr03": null }, { "ItemType": null, "Attr": null, "Attr04": null, "Attr05": null, "Attr06": null, "Attr07": null, "Attr08": null, "Attr09": null, "Attr10": null, "RefKey": null, "SID": "GTI22050311422156079", "No": "DEFECT_025", "Value": null, "Display": "Particel", "StatusSid": null, "Status": null, "FromNum": 0.0, "INum": 0.0, "Attr01": null, "Attr02": null, "Attr03": null }, { "ItemType": null, "Attr": null, "Attr04": null, "Attr05": null, "Attr06": null, "Attr07": null, "Attr08": null, "Attr09": null, "Attr10": null, "RefKey": null, "SID": "GTI22050311422156080", "No": "DEFECT_026", "Value": null, "Display": "Schratch", "StatusSid": null, "Status": null, "FromNum": 0.0, "INum": 0.0, "Attr01": null, "Attr02": null, "Attr03": null }, { "ItemType": null, "Attr": null, "Attr04": null, "Attr05": null, "Attr06": null, "Attr07": null, "Attr08": null, "Attr09": null, "Attr10": null, "RefKey": null, "SID": "GTI22050311422156081", "No": "DEFECT_027", "Value": null, "Display": "Warpage", "StatusSid": null, "Status": null, "FromNum": 0.0, "INum": 0.0, "Attr01": null, "Attr02": null, "Attr03": null }, { "ItemType": null, "Attr": null, "Attr04": null, "Attr05": null, "Attr06": null, "Attr07": null, "Attr08": null, "Attr09": null, "Attr10": null, "RefKey": null, "SID": "GTI22050311422156082", "No": "DEFECT_028", "Value": null, "Display": "TTV", "StatusSid": null, "Status": null, "FromNum": 0.0, "INum": 0.0, "Attr01": null, "Attr02": null, "Attr03": null }, { "ItemType": null, "Attr": null, "Attr04": null, "Attr05": null, "Attr06": null, "Attr07": null, "Attr08": null, "Attr09": null, "Attr10": null, "RefKey": null, "SID": "GTI22050311422156083", "No": "DEFECT_029", "Value": null, "Display": "Thickness", "StatusSid": null, "Status": null, "FromNum": 0.0, "INum": 0.0, "Attr01": null, "Attr02": null, "Attr03": null }]
-        }
         var data_input = [
             {
                 "EdcVerSid": "GTI19040815103300013",
@@ -292,70 +311,11 @@
 
 
         };
-        var Defects = [
-            {
-                "ItemType": null,
-                "Attr": null,
-                "Attr04": null,
-                "Attr05": null,
-                "Attr06": null,
-                "Attr07": null,
-                "Attr08": null,
-                "Attr09": null,
-                "Attr10": null,
-                "RefKey": null,
-                "SID": "GTI22050311422156056",
-                "No": "DEFECT_031",
-                "Value": null,
-                "Display": "Inclusion",
-                "StatusSid": "U",
-                "Status": null,
-                "FromNum": 0.0,
-                "INum": 0.0,
-                "Attr01": null,
-                "Attr02": null,
-                "Attr03": null
-            },
-            {
-                "ItemType": null,
-                "Attr": null,
-                "Attr04": null,
-                "Attr05": null,
-                "Attr06": null,
-                "Attr07": null,
-                "Attr08": null,
-                "Attr09": null,
-                "Attr10": null,
-                "RefKey": null,
-                "SID": "GTI22050311422156062",
-                "No": "DEFECT_033",
-                "Value": null,
-                "Display": "1 點鐘",
-                "StatusSid": "C",
-                "Status": null,
-                "FromNum": 0.0,
-                "INum": 0.0,
-                "Attr01": null,
-                "Attr02": null,
-                "Attr03": null
-            }
-        ];
-        debugger
-        var _Defects = [];
-        set_model.OperDefectList.forEach(c => {
-            c.ReadOnly = c['StatusSid'] != null;
-            if (c.ReadOnly) {
-                c.INum = '';
-                _Defects.push(c);
-            }
-        });
-        _.filter(set_model.OperDefectList, c => { return c['StatusSid'] != null });
-        console.log({ _Defects });
-
-        _.each(list, (val, key) => {
-            val.EdcList = _.cloneDeep(data_input);
-            val.Defects = _.cloneDeep(_Defects);
-        })
+        var Defects = [{ "SID": "GTI22050311422156058", "No": "DEFECT_004", "Display": "Surface Phase", "INum": "3" }];
+            _.each(list, (val, key) => {
+                val.EdcList = _.cloneDeep(data_input);
+                val.Defects = _.cloneDeep(Defects);
+            })
         var send_data = @Html.Raw(ViewData["result"] ?? "{}");
         var srcMO = _.range(1, 25).map((el) => { return [el]; });
         new Vue({
@@ -386,8 +346,7 @@
                     },
                     reason: [{ "RefKey": null, "SID": "GTI11110115550180956", "No": "other", "Value": "GTI11110115550180956", "Display": "其他", "StatusSid": null, "Status": null, "FromNum": 0, "INum": 0, "Attr01": null, "Attr02": null, "Attr03": null }, { "RefKey": null, "SID": "GTI20101919411379902", "No": "R.C01-0002", "Value": "GTI20101919411379902", "Display": "ALD.鎳銅片變形", "StatusSid": null, "Status": null, "FromNum": 0, "INum": 0, "Attr01": null, "Attr02": null, "Attr03": null }, { "RefKey": null, "SID": "GTI20101919423979906", "No": "R.C01-0004", "Value": "GTI20101919423979906", "Display": "ALD.鎳片壓傷", "StatusSid": null, "Status": null, "FromNum": 0, "INum": 0, "Attr01": null, "Attr02": null, "Attr03": null }, { "RefKey": null, "SID": "GTI20101919425979908", "No": "R.C01-0005", "Value": "GTI20101919425979908", "Display": "ALD.晶片溢錫", "StatusSid": null, "Status": null, "FromNum": 0, "INum": 0, "Attr01": null, "Attr02": null, "Attr03": null }, { "RefKey": null, "SID": "GTI20101919431879910", "No": "R.C01-0006", "Value": "GTI20101919431879910", "Display": "ALD.鎳片溢錫", "StatusSid": null, "Status": null, "FromNum": 0, "INum": 0, "Attr01": null, "Attr02": null, "Attr03": null }, { "RefKey": null, "SID": "GTI20101919415579904", "No": "R.C01-0003", "Value": "GTI20101919415579904", "Display": "ALD.晶片壓傷", "StatusSid": null, "Status": null, "FromNum": 0, "INum": 0, "Attr01": null, "Attr02": null, "Attr03": null }, { "RefKey": null, "SID": "GTI21050518014931812", "No": "111", "Value": "GTI21050518014931812", "Display": "111", "StatusSid": null, "Status": null, "FromNum": 0, "INum": 0, "Attr01": null, "Attr02": null, "Attr03": null }, { "RefKey": null, "SID": "GTI21081615532603712", "No": "1123", "Value": "GTI21081615532603712", "Display": "1123", "StatusSid": null, "Status": null, "FromNum": 0, "INum": 0, "Attr01": null, "Attr02": null, "Attr03": null }],
                     isChange: false,
-                    // cp-defect 必要的欄位資訊
-                    set_model,
+                    defect_src:[{ "RefKey": null, "SID": "GTI22050311422156056", "No": "DEFECT_002", "Value": null, "Display": "Inclusion", "StatusSid": null, "Status": null, "FromNum": 0, "INum": 0, "Attr01": null, "Attr02": null, "Attr03": null }, { "RefKey": null, "SID": "GTI22050311422156057", "No": "DEFECT_003", "Value": null, "Display": "Surface Pits", "StatusSid": null, "Status": null, "FromNum": 0, "INum": 0, "Attr01": null, "Attr02": null, "Attr03": null }, { "RefKey": null, "SID": "GTI22050311422156058", "No": "DEFECT_004", "Value": null, "Display": "Surface Phase", "StatusSid": null, "Status": null, "FromNum": 0, "INum": 0, "Attr01": null, "Attr02": null, "Attr03": null }, { "RefKey": null, "SID": "GTI22050311422156059", "No": "DEFECT_005", "Value": null, "Display": "Seed etching", "StatusSid": null, "Status": null, "FromNum": 0, "INum": 0, "Attr01": null, "Attr02": null, "Attr03": null }, { "RefKey": null, "SID": "GTI22050311422156060", "No": "DEFECT_006", "Value": null, "Display": "Poly line", "StatusSid": null, "Status": null, "FromNum": 0, "INum": 0, "Attr01": null, "Attr02": null, "Attr03": null }, { "RefKey": null, "SID": "GTI22050311422156061", "No": "DEFECT_007", "Value": null, "Display": "Poly 外包嚴重", "StatusSid": null, "Status": null, "FromNum": 0, "INum": 0, "Attr01": null, "Attr02": null, "Attr03": null }, { "RefKey": null, "SID": "GTI22050311422156062", "No": "DEFECT_008", "Value": null, "Display": "1 點鐘", "StatusSid": null, "Status": null, "FromNum": 0, "INum": 0, "Attr01": null, "Attr02": null, "Attr03": null }, { "RefKey": null, "SID": "GTI22050311422156063", "No": "DEFECT_009", "Value": null, "Display": "2 點鐘", "StatusSid": null, "Status": null, "FromNum": 0, "INum": 0, "Attr01": null, "Attr02": null, "Attr03": null }, { "RefKey": null, "SID": "GTI22050311422156064", "No": "DEFECT_010", "Value": null, "Display": "3 點鐘", "StatusSid": null, "Status": null, "FromNum": 0, "INum": 0, "Attr01": null, "Attr02": null, "Attr03": null }, { "RefKey": null, "SID": "GTI22050311422156065", "No": "DEFECT_011", "Value": null, "Display": "4 點鐘", "StatusSid": null, "Status": null, "FromNum": 0, "INum": 0, "Attr01": null, "Attr02": null, "Attr03": null }, { "RefKey": null, "SID": "GTI22050311422156066", "No": "DEFECT_012", "Value": null, "Display": "5 點鐘", "StatusSid": null, "Status": null, "FromNum": 0, "INum": 0, "Attr01": null, "Attr02": null, "Attr03": null }, { "RefKey": null, "SID": "GTI22050311422156067", "No": "DEFECT_013", "Value": null, "Display": "6 點鐘", "StatusSid": null, "Status": null, "FromNum": 0, "INum": 0, "Attr01": null, "Attr02": null, "Attr03": null }, { "RefKey": null, "SID": "GTI22050311422156068", "No": "DEFECT_014", "Value": null, "Display": "7 點鐘", "StatusSid": null, "Status": null, "FromNum": 0, "INum": 0, "Attr01": null, "Attr02": null, "Attr03": null }, { "RefKey": null, "SID": "GTI22050311422156069", "No": "DEFECT_015", "Value": null, "Display": "8 點鐘", "StatusSid": null, "Status": null, "FromNum": 0, "INum": 0, "Attr01": null, "Attr02": null, "Attr03": null }, { "RefKey": null, "SID": "GTI22050311422156070", "No": "DEFECT_016", "Value": null, "Display": "9 點鐘", "StatusSid": null, "Status": null, "FromNum": 0, "INum": 0, "Attr01": null, "Attr02": null, "Attr03": null }, { "RefKey": null, "SID": "GTI22050311422156071", "No": "DEFECT_017", "Value": null, "Display": "10 點鐘", "StatusSid": null, "Status": null, "FromNum": 0, "INum": 0, "Attr01": null, "Attr02": null, "Attr03": null }, { "RefKey": null, "SID": "GTI22050311422156072", "No": "DEFECT_018", "Value": null, "Display": "11 點鐘", "StatusSid": null, "Status": null, "FromNum": 0, "INum": 0, "Attr01": null, "Attr02": null, "Attr03": null }, { "RefKey": null, "SID": "GTI22050311422156073", "No": "DEFECT_019", "Value": null, "Display": "12 點鐘", "StatusSid": null, "Status": null, "FromNum": 0, "INum": 0, "Attr01": null, "Attr02": null, "Attr03": null }, { "RefKey": null, "SID": "GTI22050311422156074", "No": "DEFECT_020", "Value": null, "Display": "晶體內凹", "StatusSid": null, "Status": null, "FromNum": 0, "INum": 0, "Attr01": null, "Attr02": null, "Attr03": null }, { "RefKey": null, "SID": "GTI22050311422156075", "No": "DEFECT_021", "Value": null, "Display": "15R", "StatusSid": null, "Status": null, "FromNum": 0, "INum": 0, "Attr01": null, "Attr02": null, "Attr03": null }, { "RefKey": null, "SID": "GTI22050311422156076", "No": "DEFECT_022", "Value": null, "Display": "6H", "StatusSid": null, "Status": null, "FromNum": 0, "INum": 0, "Attr01": null, "Attr02": null, "Attr03": null }, { "RefKey": null, "SID": "GTI22050311422156077", "No": "DEFECT_023", "Value": null, "Display": "龜殼紋", "StatusSid": null, "Status": null, "FromNum": 0, "INum": 0, "Attr01": null, "Attr02": null, "Attr03": null }, { "RefKey": null, "SID": "GTI22050311422156078", "No": "DEFECT_024", "Value": null, "Display": "燒乾", "StatusSid": null, "Status": null, "FromNum": 0, "INum": 0, "Attr01": null, "Attr02": null, "Attr03": null }]
 
                 }
             },
@@ -474,23 +433,13 @@
                 },
                 //這一段程序 ,是為了解決  edc 物件檢核的問題所採用的方法, 程序名稱 不能改
                 CheckPointChange(current) {
-                    console.dir(current);
-                    var chk = {
-                        check_point_change: this.$refs.edc_input.check(),
-                        cp_defect_ValiDate: this.$refs.cp_defect.ValiDate()
-                    }
-                    var r = chk.check_point_change && chk.cp_defect_ValiDate;
+                    var r = this.$refs.edc_input.check();
+                    //console.log({ check_point_change: r });
                     return r;
                 },
                 handleClick() { },
                 filterData() { },
-                test1() {
-                    var r = $('.form-defects').parsley().destroy();
-                },
                 test() {
-                    var r = this.$refs.cp_defect.ValiDate();
-                    console.dir(r);
-                    return;
                     setTimeout(() => {
                         var d = [
                             {

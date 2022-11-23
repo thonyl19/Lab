@@ -1,0 +1,362 @@
+﻿
+<script>
+    /*
+                                                 
+     
+     */
+    $(() => {
+        var vmUseOperPart = {
+            //可用物料清單
+            splitList:[],
+			UseMLotList: [],
+            MtLot: "",
+            ShowWarningMessage: false,
+            isMultiMode: true,
+            catchOPS:[],
+        }
+        var tpl_tag = `<h5 class="mult_tag">
+			<span class="label label-primary">{{option.No}}</span> {{option.Display}}
+			<i aria-hidden="true" class="multiselect__tag-icon" @@click="remove(option);" />
+		</h5>`
+
+        let { v_model, v_rootEl } = Vue.prototype.$UT.Mixins;
+        Vue.component('cp-usemtlot', {
+            mixins: [v_rootEl()],
+            template: `
+                <div class="panel" tabindex='-1' v-cloak>
+                        <div class="panel-heading b panel-header-radius gti-wip-title">
+                            <h3 class="panel-title">@RES.BLL.Face.OperPartInfo</h3>
+                        </div>
+                        <div class="panel-body">
+                            <span class="label label-primary">@RES.BLL.Face.mainPart</span>
+                            <el-table :data="OperationPartUseList"
+                                      empty-text=" "
+                                      style="width: 100%">
+                                <el-table-column fixed="left" prop="No" label="@RES.BLL.Face.PartNo"></el-table-column>
+                                <el-table-column prop="Name" label="@RES.BLL.Face.PartName"></el-table-column>
+                                <el-table-column prop="Spec" label="@RES.BLL.Face.PartSpec"></el-table-column>
+                                <el-table-column prop="UNIT" label="@RES.BLL.Face.UNIT"></el-table-column>
+                            </el-table>
+                            <span class="label label-primary">耗用物料</span>
+                            <el-checkbox v-model='single_checkout' size="mini" v-if='c_single_checkout'>允許至少使用一個料批</el-checkbox>
+                            <el-checkbox  v-model="isMultiMode" size="mini" style="margin-left:1rem;">允許載具複選</el-checkbox>
+                        <el-table :data="UseMLotList"
+                                  empty-text=" "
+                                  style="width: 100%">
+                            <el-table-column prop="MTR_LOT" fixed="left" label="@RES.BLL.Face.MLOT"></el-table-column>
+                            <el-table-column label="切片數量" width="100">
+                                <template slot-scope="scope">
+                                    <el-input type="number" v-model="scope.row.AttrNumber01" :max="scope.row.QUANTITY"
+                                              @@input="nominalChange(this,scope.row)"
+                                              :min="0" size="mini"  :required="c_required"
+                                         ></el-input>
+                                </template>
+                            </el-table-column>
+                            <el-table-column  label="@Face.Carrier" width="220">
+                                <template slot-scope="scope">
+                                    <multiselect v-model="scope.row.CarrierList" 
+							                :multiple="true"
+							                :max="2"
+							                label="Display"
+							                track-by="No" :options="set_model.CarrierList"
+							                :option-height="204"
+							                :show-labels="true"
+							                :close-on-select="false"
+							                :clear-on-select="false"
+							                :max-height="350"
+							                :searchable="true"
+							                >
+                                            <template slot="singleLabel" slot-scope="{option}" >${tpl_tag}</template>
+							                <template slot="tag" slot-scope="{ option, remove }" >${tpl_tag}</template>
+							                <template slot="option" slot-scope="{option}">
+								                ${tpl_tag}
+							                </template>
+					                </multiselect>
+                                </template>
+                            </el-table-column>
+
+                            <el-table-column prop="QUANTITY" width="100" label="@RES.BLL.Face.QUANTITY"></el-table-column>
+                            <el-table-column prop="UNIT" width="100" label="@RES.BLL.Face.UNIT"></el-table-column>
+                            <el-table-column prop="QTY_1" label="@RES.BLL.Face.QTY_1"></el-table-column>
+                            <el-table-column prop="UNIT_1" label="@RES.BLL.Face.UNIT_1"></el-table-column>
+                            <el-table-column prop="PartInfo.No" label="@RES.BLL.Face.PartNo"></el-table-column>
+                            <el-table-column prop="PartInfo.Name" label="@RES.BLL.Face.PartName"></el-table-column>
+                            <el-table-column prop="EQP_NO" label="@RES.BLL.Face.EQP_NO"></el-table-column>
+                        </el-table>
+                            <el-tag type="danger" v-if="ShowWarningMessage">請注意！已用量超過預計用量</el-tag>
+                        </div>
+                    </div>
+                `,
+            data: function () {
+                return vmUseOperPart;
+            },
+            props: {
+                set_model: {
+                    type: Object,
+                    default: []
+                },
+                value: {
+                    type: Array
+                },
+                cfg: {
+                    type: Object,
+                    default() {
+                        return {};
+                    }
+                },
+                is_test: {
+                    type: Boolean,
+                    default() {
+                        return false;
+                    }
+                },
+                mtrlot: {
+                    type: Array,
+                    default() { return null}
+                },
+            },
+            computed: {
+                single_checkout: {
+                    get() {
+                        let { single_checkout = false } = this.c_Src || {};
+                        return single_checkout;
+                    },
+                    set(val) {
+                        this.c_Src.single_checkout = val;
+                    }
+                },
+
+                OperationPartUseList: {
+                    get: function () {
+                        var _self = this;
+                        var model = _self.set_model;
+                        let dataList = model.OperationPartUseList;
+                        $.each(dataList, function (index, value) {
+                            value.UsedNum = 0;
+                        });
+                        return dataList;
+                    },
+                    set: function (newValue) {
+
+                    },
+                },
+                use_qty: {
+                    get: function () {
+                        var _self = this;
+                        var total = _.sumBy(_self.UseMLotList, (e) => {
+                            let { UseQty = 0 } = e;
+                            return parseFloat(UseQty);
+                        });
+                        return total;
+                    }
+                },
+                c_required() {
+                    return !this.single_checkout;
+                },
+                c_single_checkout() {
+                    return this.UseMLotList.length > 1;
+                },
+                c_limit() {
+                    return this.isMultiMode ? 0 : 1;
+                }
+            },
+            mounted() {
+                var _self = this;
+                if (this.mtrlot != null) {
+                    var _self = this;
+                    this.mtrlot.map(e => this.bind_UseMLotList(e, this.bind_UseMLotList));
+                } else {
+                    this.GetEQPMTLot();
+                }
+                _.each(this.set_model.CarrierList, c => {
+                    _self.$set(c, 'checked', false);
+                    _self.$set(c, 'checked', false);
+                    _self.catchOPS.push(c);
+                })
+            },
+            methods: {
+                change_data(val) {
+                    _.each(val, c => c.checked = true);
+                },
+
+                remove_ops(item) {
+                    item.checked = false;
+                },
+                click_ops(item, row) {
+                    item.checked = !item.checked;
+                },
+                //取得部份出站的清單
+                get_CheckoutOfPart() {
+                    var _self = this;
+                    var arr = [];
+                    _.each(this.UseMLotList, el => {
+                        let { AttrNumber01, AttrString01 } = el;
+                        var isNotEmpty = _self.$UT.isNullEmpty(AttrNumber01) == false
+                            && _self.$UT.isNullEmpty(AttrString01) == false;
+                        if (isNotEmpty) arr.push(el);
+                    });
+                    if (arr.length == 0) {
+                        var msg = i18next.t("MustInputOne", { ns: "message" }).format('[耗用物料]');
+                        this.$Alert.Err(msg);
+                        return null;
+                    }
+                    return arr;
+                },
+                GetEQPMTLot: function () {
+
+                    var _self = this;
+                    var model = _self.set_model;
+
+                    //取得 Bi nd 的資料
+                    var submitData = {
+                        LotNo: model.CurrentLot.LOT,
+                        EQPNo: model.UseEqumentInfo.No
+                    };
+
+                    $.submitForm({
+                        async: false,
+                        url: "@Genesis.Common.PageBaseInfo.GetBaseUrl()/api/info/lot/mtlot_on_eqp",
+                        type:'get',
+                        param: submitData,
+                        success: function (data) {
+                            if (data.Success) {
+                                $.each(data.Data, function (i) {
+                                    var useItem = data.Data[i];
+                                    var part_item = _self.OperationPartUseList.find(function (item, index, array) {
+                                        return item.No == useItem.PARTNO;
+                                    });
+                                    if (part_item != undefined) {
+                                        _self.bind_UseMLotList(useItem, part_item);
+                                    }
+
+                                });
+
+
+                                _self.setReturnData();
+                            }
+
+                        }
+                    });
+                },
+                bind_UseMLotList(useItem, part_item) {
+                    var model = this.set_model;
+
+                    //把設備指上去
+                    if (useItem.EQP_NO == null)
+                        useItem.EQP_NO = model.UseEqumentInfo.No;
+
+                    if (part_item.UsedNum == undefined)
+                        part_item.UsedNum = 0;
+
+                    //扣除使用量計算
+                    if (useItem.QUANTITY >= part_item.ConsumptNum)
+                        useItem.UseQty = parseFloat(part_item.ConsumptNum - part_item.UsedNum);
+                    else
+                        useItem.UseQty = parseFloat(useItem.QUANTITY);
+
+                    part_item.UsedNum += useItem.UseQty;
+
+                    //強制扣除數為0
+                    useItem.UseQty = 0;
+
+
+                    useItem.PartInfo = $.extend({}, part_item);
+                    useItem.watchval = [];
+
+                    vmUseOperPart.UseMLotList.push(useItem);
+                },
+                RemoveMLot(row) {
+                    var _self = this;
+                    let i = _self.UseMLotList.map(item => item.MTR_LOT_SID).indexOf(row.MTR_LOT_SID)
+                    _self.UseMLotList.splice(i, 1);
+                    _self.setReturnData();
+                },
+                setReturnData() {
+                    var _self = this;
+                    _self.UseMLotList.splitList = _self.splitList;
+                    _self.$emit('input', _self.UseMLotList);
+                },
+                nominalChange(el, row) {
+                    var _self = this;
+                    row.UseQty = parseInt(row.AttrNumber01 || 0) + parseInt(row.AttrNumber02 || 0);
+                    _self.setReturnData();
+                },
+                CarrierChange(item, MTR_LOT) {
+                    console.log(item, MTR_LOT);
+                    let { checked = false } = item;
+                    this.$set(item, 'checked', !checked);
+                    if (!item.checked) MTR_LOT = null;
+                    this.$set(item, 'MTR_LOT', MTR_LOT);
+
+                },
+                CarrierChange_old(row, bindkey) {
+                    return;
+                    var _self = this;
+                    //row[bindkey] = "";
+                    let checkNo = row[bindkey];
+                    //判斷載具是否重覆
+                    var checkList = _self.UseMLotList;
+
+                    //01
+                    var r1 = _.filter(checkList, { 'AttrString01': checkNo });
+                    var r2 = _.filter(checkList, { 'AttrString02': checkNo });
+
+                    if (r1.length + r2.length >= 2) {
+                        /*var idx = _.findLastIndex(checkList, function (o) { return o.Attr01 == checkNo; });*/
+                        Swal.fire({
+                            type: 'debugger',
+                            title: i18next.t("DataHaveExistError", { ns: "message" }).format(checkNo),
+                        }).then(function (res) {
+                            row[bindkey] = "";
+                        })
+                    }
+                    _self.setReturnData();
+                }
+            },
+            watch: {
+                splitList: function () {
+                    this.setReturnData();
+                }
+            }
+        })
+
+
+    });
+
+
+</script>
+<style>
+    .multiselect__content-wrapper {
+        z-index:999;
+    }
+    .mult_tag {
+        position: relative;
+        display: inline-block;
+        padding: 4px 26px 4px 0px;
+        border-radius: 5px;
+        line-height: 1;
+        background-color: rgba(103,194,58,.1);
+        border: 1px solid rgba(64,158,255,.2);
+        border-color: rgba(103,194,58,.2);
+        margin: 0px 3px;
+        white-space: nowrap;
+        overflow: hidden;
+        max-width: 100%;
+        text-overflow: ellipsis;
+    }
+
+    .multiselect__content .multiselect__tag-icon {
+        display: none;
+    }
+
+
+
+    .multiselect__single {
+        margin-bottom: 0px !important;
+    }
+
+    .mult_tag .label {
+        padding: .5em .6em;
+        border-radius: 0.5em;
+    }
+</style>

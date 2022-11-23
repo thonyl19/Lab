@@ -1,0 +1,108 @@
+﻿@{
+    Layout = "~/Views/Shared/_LayoutSingle.cshtml";
+    var cmd = nameof(Genesis.Areas.Example.Controllers.SelfController.Check);
+}
+@eBundle.QRender_CSS()
+@eBundle.QRender_JS()
+<!DOCTYPE html>
+
+<html>
+<head>
+    <meta name="viewport" content="width=device-width" />
+    <title>網頁閒置測試</title>
+    <style>
+        #spnIdleWarning {
+            color: coral;
+        }
+
+        .blink {
+            animation: blink-animation 1s steps(5, start) infinite;
+            -webkit-animation: blink-animation 1s steps(5, start) infinite;
+        }
+
+        @@keyframes blink-animation {
+            to {
+                visibility: hidden;
+            }
+        }
+
+        @@-webkit-keyframes blink-animation {
+            to {
+                visibility: hidden;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div id="dvIdleInfo">
+        操作閒置倒數 <span id="spnCountdown"></span> 秒
+        <span id="spnIdleWarning" class="blink"></span>
+    </div>
+    <div>
+        <input />
+        <input type="checkbox" />
+        <br />
+        <textarea></textarea>
+        <br />
+        <button id="btnCheck">檢查Session</button>
+        <input type="hidden" id="hdnToken" value="@ViewBag.Token" />
+    </div>
+    <div>
+        <ul id="ulMessages">
+        </ul>
+    </div>
+    
+    <script>
+        $(() => {
+            function showMessage(msg) {
+                $("#ulMessages")
+                    .append("<li>" + new Date().toTimeString() + " " + msg + "</li>");
+            }
+            var token = $("#hdnToken").val();
+            $("#btnCheck").click(function () {
+
+                //$.post("@Url.Content("~/IdleDetect/Check")?token=" + token).done(function (res) {
+                $.post(`@Url.Action(cmd)?token=${token}`).done(function (res) {
+                    showMessage("check = " + res);
+                });
+            });
+            var hndHeartbeat = setInterval(function () {
+                $.post(`@Url.Action("~/IdleDetect/Heartbeat")?token=${token}`).done(function (res) {
+                    if (res !== "OK") {
+                        clearInterval(hndHeartbeat);
+                        alert("資料連線中斷，請重新整理網頁 - " + res);
+                    }
+                });
+            }, 30 * 1000);
+
+            var idleCounter = 0;
+            var idleWarn = 90;
+            var idleLimit = 60;
+            var showIdleWarning = function (msg) {
+                $("#spnIdleWarning").text(msg);
+            }
+            var showCountdown = function () {
+                $("#spnCountdown").text(idleLimit - idleCounter);
+            }
+            showCountdown();
+            var hndIdleDetect = setInterval(function () {
+                idleCounter++;
+                showCountdown();
+                if (idleCounter > idleLimit) {
+                    clearInterval(hndHeartbeat);
+                    clearInterval(hndIdleDetect);
+                    alert("閒置逾時，請重新登入");
+                    //TODO: 導向登入畫面
+                }
+                else if (idleCounter > idleWarn) {
+                    showIdleWarning("提醒：操作閒置過久，系統即將登出");
+                }
+            }, 1000);
+            $("body").on("mousedown keydown", function () {
+                if (idleCounter > idleWarn) showIdleWarning("");
+                idleCounter = 0;
+            });
+        })
+    </script>
+</body>
+</html>

@@ -4,6 +4,7 @@ using BLL.MES.DataViews;
 using Genesis.Common;
 using Genesis.WebApi;
 using Newtonsoft.Json;
+using System;
 using System.Collections.Generic;
 using System.Dynamic;
 using System.Web;
@@ -15,7 +16,7 @@ namespace Genesis
 
     public class GTI_Test : IGTI_Test
     {
-        public static bool isTest { get; set; }
+        public static bool isTest { get; set; } = false;
 
         static bool? _IsDebuggingEnabled;
         public static bool IsDebuggingEnabled
@@ -122,6 +123,22 @@ namespace Genesis
                 mixins: [v_rootEl()],
             */
             public static int v_rootEl;
+
+            /*
+            value: {
+                deep: true,
+                immediate: false,
+                handler(val) {
+                    this.table_list = val;
+                    var total = 0;
+                    $.each(this.table_list , function (index, value) {
+                        total += parseFloat(value.INum);
+                    });
+                    this.defectTotal = total.toFixed(this.set_model.systemConfig.DecimalPoint);
+                }
+            }, 
+            */
+            public static int watch;
         }
 
         public struct Reazer {
@@ -163,6 +180,13 @@ namespace Genesis
             @eBundle.QRender_CSS()
             @eBundle.QRender_JS()
             @Scripts.Render("~/bundles/parsley")
+
+            @GTest.Test("<style>i.el-icon-caret-right:before {color: red !important;}</style>")
+            
+            
+            //出站
+            @GTest.Test("console.log(data.Data);alert('end');return;")
+            @GTest.Test("<style>i.fa.fa-play:before {color: red !important;}</style>")
             */
             public static int Head;
 
@@ -292,6 +316,14 @@ namespace Genesis
 		    </el-table-column>
              */
             public static int gt_split_data;
+        }
+        public struct lodash {
+            /*
+            H:\HM_Dev\Genesis_MVC\Areas\MES\Views\WIP\Partial2\_posiMapEDC.cshtml
+                _.get(this, '$store.state.isChange', false);
+             */
+            public static int get;
+        
         }
 		public struct comm_JS {
             /*
@@ -578,6 +610,7 @@ namespace Genesis
             <vue-selectize v-model="ddl_demo.val" required
 	            :options="ddl_demo.src" render_sty="GTIMES_SID"
 	            :rows.sync="ddl_demo.rows"
+                :selectize_ops="ops"
 	            :auto_drowdown="true">
 	            </vue-selectize> 
              
@@ -611,6 +644,8 @@ namespace Genesis
             */
             public static int ops_evnet;
 
+           
+
             /*
             H:\GTiMES5.1_Dev\Genesis_MVC\Areas\WIP\Views\FutureHold\HoldData.cshtml
             reason_group: {
@@ -641,6 +676,108 @@ namespace Genesis
             gt-query-lot 
 
              */
+
+
+            public static class Case {
+                /*
+                H:\HM_Dev\Genesis_MVC\Areas\MES\Views\WIP\Partial2\_useOperPartSplitSubLot.cshtml
+                <vue-selectize v-model="scope.row.checked" 
+                               :rows.sync="scope.row.CarrierList" 
+                               render_sty="GTIMES" class="adj"
+                               :selectize_ops="ops"
+                               :options="catchOPS" /> 
+
+                ops: {
+                       maxItems: null,
+                       tagField: 'No',
+                       labelField: 'Display',
+                       searchField: ['Display', 'No', 'SID'],
+                       tpl_tag(data, tagField, escape) {
+                           if (!tagField) return '';
+                           return `<span class="label label-primary">${escape(data[tagField]).trim()}</span> `;
+                       },
+                       render: {
+                           option(data, escape) {
+                               //debugger
+                               let { labelField, valueField, tagField, tpl_tag } = this.settings;
+                               var Used = data['Used'] ? 'Used' : '';
+                               return `<div class="option ${Used}"><H5>${tpl_tag(data, tagField, escape)}${escape(data[labelField])} <span class="badge badge-success">${data.Attr01}</span></H5></div>`;
+                           },
+                           item(data, escape) {
+                               let { labelField, valueField, tagField, tpl_tag } = this.settings;
+                               return `<div class="item "><H5>${tpl_tag(data, tagField, escape)}${escape(data[labelField])}<span class="badge badge-success">${data.Attr01}</span></H5></div>`;
+                           }
+                       },
+                       onFocus() {
+                           var val = this.getValue();
+                           this.clearOptions();
+                           this.addOption(_self.catchOPS);
+                           this.refreshOptions(false);
+                           this.setValue(val, true);
+                       },
+                       onItemRemove(value) {
+                           _.some(_self.catchOPS, c => {
+                               if (c.No == value) {
+                                   c.Used = false;
+                                   return true;
+                               }
+                           })
+                       },
+                       onItemAdd(value, $item) {
+                           _.some(_self.catchOPS, c => {
+                               if (c.No == value) {
+                                   c.Used = true;
+                                   return true;
+                               }
+                           })
+                       }
+                   }
+                }
+
+                .gt-vue-selectize.adj .selectize-input {
+                   height: 100%;
+                }
+
+                */
+                public static int 多載具案例;
+
+                /*
+                H:\HM_Dev\Genesis_MVC\Areas\WIP\Views\Lot\Defect.cshtml
+                <vue-selectize v-model="defect.val"
+                               :options="c_defect_src"
+                               :selectize_ops="defect.ops"
+                               render_sty="GTIMES" />
+
+                defect: {
+                        val: '',
+                        src: [],
+                        ops: {
+                            onChange: _self.defect_change
+                        },
+                        rows:[]
+                    },
+
+                c_defect_src() {
+                    return _.filter(this.defect.src,{ checked: false });
+                },
+
+                DelRow(idx, row) {
+                    var _self = this;
+                    _self.$confirm(_self.i18n.ConfirmDel, '提示', _self.confirm_arg).then(() => {
+                        _self.grid.data.splice(idx, 1);
+                        var current = _.find(_self.c_defect_src, { No: value });
+                        current.checked = false;
+                    });
+                },
+                set_checked(list){
+                    var _self = this;
+                    list.forEach(c => {
+                        _self.$set(c, 'checked', false);
+                    })
+                }
+                 */
+                public static int 剔除重覆選取;
+            } 
         }
 
         public struct gt_toolbar {
@@ -951,7 +1088,6 @@ namespace Genesis
                 /*
                 InsertCommandBuilder insert = new InsertCommandBuilder(DBC, "WP_LOT_WAFER_MAPPING")
                 .InsertColumn("WAFER_MAPPING_SID", DBC.GetSID())
-                .InsertColumn("WAFER_MAPPING_SID", DBC.GetSID())
                 ;
                  */
                 public static int InsertCommandBuilder;
@@ -1142,6 +1278,49 @@ namespace Genesis.Areas.Example.Controllers
             //ViewData["result"] = JsonConvert.DeserializeObject(text);
 
             return View($"InOut/{name}", new LotData());
+        }
+
+        [AllowAnonymous]
+        [HttpGet]
+        public ActionResult LinkTest()
+        {
+            var token = Guid.NewGuid().ToString();
+            Session[token] = DateTime.Now.ToString("HHmmss");
+            ViewBag.Token = token;
+            return View();
+        }
+
+        /// <summary>
+        /// https://www.c-sharpcorner.com/blogs/server-side-events-in-asp-net-mvc
+        /// </summary>
+        [AllowAnonymous]
+        public void SSE_Message()
+        {
+            Response.ContentType = "text/event-stream";
+
+            DateTime startDate = DateTime.Now;
+            while (startDate.AddMinutes(1) > DateTime.Now)
+            {
+                Response.Write(string.Format("data: {0}\n\n", DateTime.Now.ToString()));
+                Response.Flush();
+
+                System.Threading.Thread.Sleep(5000);
+            }
+
+            Response.Close();
+        }
+
+        public ActionResult Check(string token)
+        {
+            return Content(Session[token] as string ?? "lost");
+        }
+        public ActionResult Heartbeat(string token)
+        {
+            //讀取Session，避免逾時
+            var chk = Session[token] as string;
+            if (string.IsNullOrEmpty(chk))
+                return Content("Session lost");
+            return Content("OK");
         }
 
     }

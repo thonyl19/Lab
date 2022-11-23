@@ -5,7 +5,7 @@
 	dynamic data = new ExpandoObject();
 	data.LOT="Test";
 	Model.CurrentLot = data;
-	if (isSingleModel)
+	if (true)
 	{
 		Layout = "~/Views/Shared/_LayoutSingle.cshtml";
 	}
@@ -13,13 +13,9 @@
 }
 @eBundle.QRender_CSS()
 @eBundle.QRender_JS()
-@Html.Partial("~/Areas/MES/Views/WIP/Partial2/_useOperPartSplitSubLot.cshtml", @Model)
+@Html.Partial("~/Areas/MES/Views/WIP/Partial2/_selectEqument.cshtml")
 <pre>
-1.允許部份使用
-    意指如果允許在物料批號部份使用的情形下,執行出站. 反之,則必須全部使用才能出站
-2.切片數量超過選用載具
-    則自動出現加號選項,增加 第二個載具,而後端亦做相應處理
-    此為擴充功能,可彈性開啟
+ 
 </pre>
 <div id="app">
     <form id="WipForm">
@@ -27,9 +23,9 @@
             <input type="submit" @@click="Exec" value="Exec" />
 
             <el-checkbox v-model="single_checkout">single_checkout</el-checkbox>
-            <cp-usemtlot ref="usemtlot" v-model="OperationPartUseList" :set_model="set_model"
-                         :mtrlot="mtrlot">
-            </cp-usemtlot>
+            <select-eqp ref="Eqp" v-model="OperationPartUseList" :set_model="set_model"
+                      :mtrlot="mtrlot">
+            </select-eqp>
             {{OperationPartUseList[0]}}
 
 
@@ -59,7 +55,7 @@
                         'Robin',
                         'Joker',
                     ],
-                    single_checkout:false,
+                    single_checkout: false,
                     OperationPartUseList: [
                         {
                             "SID": "GTI22050610575359765",
@@ -71,7 +67,7 @@
                             "UsedNum": 0
                         }
                     ],
-                    mtrlot: 
+                    mtrlot:
                         [
                             {
                                 "MTR_LOT_SID": "GTI22051109412562424",
@@ -506,7 +502,7 @@
                                 "Attr03": null
                             }
                         ],
- 
+
                         "CurrentLot": {
                             "EnableEditMode": false,
                             "SID": "GTI22061409442508593",
@@ -669,7 +665,7 @@
                             "WO_LINE": "",
                             "MLOT": ""
                         },
- 
+
                         "PartInfo": {
                             "SID": "GTI22050611232259925",
                             "No": "1-0032",
@@ -760,7 +756,7 @@
                             "UPDATE_USER": "110404",
                             "UPDATE_DATE": "2022-05-09 14:15:23"
                         },
- 
+
                         "OperationPartUseList": [
                             {
                                 "SID": "GTI22050610575359765",
@@ -1492,15 +1488,8 @@
             },
             methods: {
                 Exec(e) {
-                    this.$message('ok');
-                    if (this.cfg.single_checkout) {
-                        e.preventDefault();
-                        var r = this.$refs.usemtlot.get_CheckoutOfPart();
-
-                    } else if (form.parsley().validate()) {
-
-                    }
-                    
+                    debugger;
+                    //this.$refs.Eqp
                 }
             }
         })

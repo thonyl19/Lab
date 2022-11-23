@@ -1,0 +1,98 @@
+﻿@using Frame.Code;
+@using Genesis.Hubs;
+@{
+
+    Layout = "~/Views/Shared/_LayoutSingle1.cshtml";
+    var list = GTiHub.OnlineUsers.ToJson();
+}
+@eBundle.QRender_CSS()
+@eBundle.QRender_JS()
+@Scripts.Render("~/bundles/signalR")
+<div id="app" v-cloak>
+    <div class="op">
+        <input type="text" id=msg />
+        <button type="button" @@click="broadcast" :disabled="isDisabled">Broadcast</button>
+        <button type="button" @@click="Add" :disabled="isDisabled">Add</button>
+        <A><Label>{{count}}</Label></A>
+        {{list}}
+    </div>
+    <div class="row">
+        @*<div v-for="(item,idx) in list" class="col-4">
+            <iframe :src=`SignalR_Item?id =${item}`></iframe>
+        </div>*@
+    </div>
+    <iframe id=call style="display:none"></iframe>
+</div>
+@section Scripts
+{
+<script src="~/signalr/hubs"></script>
+<script>
+    var list = @Html.Raw(list);
+    $(() => {
+        new Vue({
+            el: '#app',
+            data() {
+                return {
+                    list,
+                    count: 0,
+                    isDisabled: true,
+                    SignalHub: {}
+                }
+            },
+            mounted() {
+                console.dir($.connection);
+                debugger
+                var _self = this;
+                $.connection.hub.start().done(function () {
+                    debugger
+                    _self.isDisabled = false;
+                    $.connection.GTiHub.server.connect1(window.getCookie("GTiMES_loginkey"));
+                }).catch(function (err) {
+                    return console.error(err.toString());
+                });
+                this.SignalHub = $.connection.GTiHub;
+                this.SignalHub.client.NewUser = function (user, count) {
+                    _self.list.push(user);
+                    _self.count = count;
+                };
+                this.SignalHub.client.RemoveUser = function (user, count) {
+                    _self.count = count;
+                    _self.remove(user);
+                };
+                this.SignalHub.client.addMessage = function (user, msg) {
+                    alert(msg);
+                };
+
+            },
+    methods: {
+        remove(user) {
+            debugger
+            var idx = this.list.indexOf(user);
+            if (idx != -1) this.list.splice(idx, 1);
+        },
+        Add() {
+            this.SignalHub.server.newUser();
+        },
+        broadcast() {
+            this.SignalHub.server.send();
+        },
+
+    },
+        });
+    })
+</script>
+}
+
+<style>
+    iframe {
+        display: inline-block;
+        width: 300px;
+        height: 80px;
+        margin: 3px;
+        border: 1px solid blue;
+    }
+
+    div.op {
+        padding: 6px;
+    }
+</style>
