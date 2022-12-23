@@ -1,0 +1,1 @@
+﻿https://exceptionnotfound.net/using-t4-templates-to-generate-enums-from-database-lookup-tables/

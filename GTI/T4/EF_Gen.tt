@@ -1,0 +1,45 @@
+﻿<#@ template debug="false" hostSpecific="true" #>
+<#@ output extension=".generated.cs" #>
+<#@ Assembly Name="System.Data" #>
+<#@ import namespace="System.Data" #>
+<#@ import namespace="System.Data.SqlClient" #>
+<#@ import namespace="System.IO" #>
+<#@ import namespace="System.Text.RegularExpressions" #>
+<#
+    string tableName = Path.GetFileNameWithoutExtension(Host.TemplateFile);
+    string path = Path.GetDirectoryName(Host.TemplateFile);
+    string columnId = tableName + "ID";
+    string columnName = "Name";
+    string connectionString = "Data Source=10.96.0.226;Initial Catalog=DEV_GTIMES5;Persist Security Info=True;User ID=GTIMES;Password=GTIMES;MultipleActiveResultSets=True";
+#>
+using System;
+using System.CodeDom.Compiler;
+
+namespace Services.<#= GetSubNamespace() #>
+{
+    /// <summary>
+    /// <#= tableName #> auto generated enumeration
+    /// </summary>
+    [GeneratedCode("TextTemplatingFileGenerator", "10")]
+    public enum <#= tableName #>
+    {
+<#
+    SqlConnection conn = new SqlConnection(connectionString);
+    string command = string.Format("select {0}, {1} from {2} order by {0}", columnId, columnName, tableName);
+    SqlCommand comm = new SqlCommand(command, conn);
+
+    conn.Open();
+
+    SqlDataReader reader = comm.ExecuteReader();
+    bool loop = reader.Read();
+
+    while(loop)
+    {
+#>      /// <summary>
+        /// <#= reader[columnName] #> configuration setting.
+        /// </summary>
+        <#= Pascalize(reader[columnName]) #> = <#= reader[columnId] #><# loop = reader.Read(); #><#= loop ? ",\r\n" : string.Empty #>
+<#
+    }
+#>  }
+}

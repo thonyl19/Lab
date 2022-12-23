@@ -51,6 +51,17 @@ namespace UnitTestProject
 		}, true);
 
 
+		[TestMethod]
+		public void _DTC_WoCheckIn()
+		=> _DBTest(Txn => {
+			Txn.GetLotInfo("GRF_WO_ProductMA02-01", true,true);
+			Txn.DoTransaction(new WO.DTC_WoCheckIn("GRF_WO_ProductMA02-01","GTI22090513500294503"));
+			//var act = lot.GetCurrentCarrierInfo().CURRENT_CAPACITY;
+			//Assert.AreEqual(exp, act, $"扣數後, 數值應為 {exp}");
+		}, true);
+		
+
+
 	}
 
 

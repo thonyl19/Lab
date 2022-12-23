@@ -1,14 +1,22 @@
-﻿using BLL.MES;
+﻿using BLL.DataViews.Res;
+using BLL.MES;
+using Frame.Code;
 using Genesis.Gtimes.ADM;
 using Genesis.Gtimes.Common;
 using Genesis.Gtimes.WIP;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
+using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
 using System.Configuration;
 using System.Data;
+using System.Diagnostics;
 using System.Linq;
+using System.Net.Http;
+using System.Net.Http.Headers;
+using System.Reflection;
 using UnitTestProject.TestUT;
+using static BLL.MES.WIPInjectServices;
 using static Genesis.Areas.Label.Controllers.PrintController;
 using static Genesis.Library.BLL.Label.LabelBaseService;
 using static Genesis.Library.BLL.Label.PrintServices;
@@ -203,9 +211,63 @@ namespace UnitTestProject
 			_t = decimal.TryParse("A", out x);
 			_t = decimal.TryParse("", out x);
 			_t = decimal.TryParse("1.5555", out x);
-			 
+		}
+
+
+		[TestMethod]
+		public void t_取得版本序號()
+		{
+			var FileVersion = FileVersionInfo.GetVersionInfo(Assembly.GetExecutingAssembly().Location)
+				.FileVersion.ToString();
+
+			//AssemblyName assName = Assembly.GetExecutingAssembly().GetName();
+			//string version = assName.Version.ToString();
+			Version version = System.Reflection.Assembly.GetExecutingAssembly().GetName().Version;
+			string ver = string.Format("{0}.{1}.{2}.{3}", version.Major, version.Minor, version.Build, version.Revision.ToString());
+		}
+
+
+		[TestMethod]
+		public void t_GTiMES_saltkey()
+		{
+			var GTiMES_loginkey = "EGAk1l624BeDmFrEoTuG6GXUwnCbdfouiIGjpZaZxjRpC89ybH2iVIYA2cYhIWIrFm2kdfXoKEst3khRYca/qy6OVixxO042kRftIki+eE41pQTHZlnTUKphMk4ML6FimX6KMMywpYay86Sy3fo6Qa6Wj98VLEiDzx1BoeShQPXnSv51gKqkiEDLvJZDrJXWpcd1AUBjQtR0FWKl1TVnmrMex5YBPJECX1zlkdeFFdrtuF61e3imvwJVdj3wBRBOA222w8+DKhGxb2mRNEMcQi3dN4f9i0OFGHk+nv5p8fDf+GmgkTaYFUceKpY7VdCqoxxs8BUNr/+afCrEmxmuBaDpwf2ewQszIDFrbIq6Cn3tHucG82nB5Rwl3ZwugCBDoe1Q5LkiG9oiKvEu7EhRP1vCeph1XUAiYkHquTr2S6FfWjSUzl8I6Bifzwxi6q9i2pETJQ+k4hbWLmZkhLk3vgDZ3xiWUBVgrcbYyUna4PanQI6Ei243u0FYsWA9ofY+v4yc5SdcNRfqwVeVqIXDsD3JwpPg8jhHlTZ9UX9r7m4jxMjVt2f8g882iqqcd1XQktyrV3jl+l9cY3tCNKsHyDPyNl92lIhMtB4DOYeNZx4=";
+			var GTiMES_saltkey = "DYWPNt7Co";
+			var User = Encrypter.DecryptAES(GTiMES_loginkey, GTiMES_saltkey).ToObject<CurrentLoginUserModel>();
+			
+		}
+
+		[TestMethod]
+		public void t_GTiMES_saltkey1()
+		{
+			var A = "Ui9PSO0YBlrQ47RuXDzT6A==";
+			var B = "P3wRbcoQHxFlvgTT";
+			var T = Encrypter.DecryptAES(A,B);
+			//
+			//var T = pwd.EncryptAES(A, B);
 
 		}
+
+		[TestMethod]
+		public void t_x()
+		{
+			var UItest = "RollCheckIn_Case1";
+			var _code = "";
+			if (UItest != null)
+			{
+				string Baseurl = $"http://localhost:59394/GenesisNewMes/Example/Self/UITest?name={UItest}";
+				HttpClient client = new HttpClient();
+				client.DefaultRequestHeaders.Clear();
+				client.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
+				var r = client.GetAsync(Baseurl).Result;
+				var res = r.Content.ReadAsStringAsync().Result;
+				var _o = JsonConvert.DeserializeObject(res);// res.Replace("\"", "");
+				_code = $" x = JSON.parse({_o.ToJson()});";
+			}
+		}
+
+ 
+
+
 
 		public decimal? t_6__(string val) {
 			decimal r;

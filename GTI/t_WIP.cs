@@ -403,7 +403,7 @@ namespace UnitTestProject
 						};
 
 						var old_attr10 = txnInfo.LotInfo.ATTRIBUTE_10;
-						new WIPServices().ZZ_Process_ReWork(_r.ReWorkOperList, txnInfo);
+						WIPServices.ZZ_Process_ReWork(_r.ReWorkOperList, txnInfo);
 						var new_attr10 = txnInfo.LotInfo.ATTRIBUTE_10;
 						tx.Rollback();
 						Assert.AreNotEqual(old_attr10, new_attr10, "兩者的資料不應相符！");
@@ -528,5 +528,15 @@ namespace UnitTestProject
             new FileApp().Write_SerializeJson(_r, _log.t_Process_CollectLotAttr_cmd, isMult: false);
 
         }
+
+		[TestMethod]
+		public void t_LoadCheckToolByEquipment()
+		{
+			//ToolUtility.ToolFunction func = new ToolUtility.ToolFunction(dbc);
+			//DataView dvOperTool = func.GetPartNoOperToolData_OperSid(lotInfo.WO, lotInfo.ROUTE_VER_SID, lotInfo.ROUTE_VER_OPER_SID, lotInfo.PARTNO, lotInfo.OPER_SID);
+
+			var x = new WIPServices().LoadCheckToolByEquipment("CUT-003", "WO-T010-01");
+
+		}
 	}
 }

@@ -1,21 +1,6 @@
-//P:\MyLab\UnitTest\GTI\Mes/MesInOut.cs
-//P:\MyLab\UnitTest\GTI\Log/MesInOut/
-using BLL.Base;
-using BLL.InterFace;
-using BLL.MES;
-using BLL.MES.DataViews;
-using Genesis.Gtimes.Common;
-using Genesis.Gtimes.Transaction.WIP;
-using Genesis.Gtimes.WIP;
+ 
 using Microsoft.VisualStudio.TestTools.UnitTesting;
-using System;
-using System.Collections.Generic;
-using System.Linq;
 using UnitTestProject.TestUT;
-using static BLL.MES.DataViews.PartData;
-using static BLL.MES.WIPInjectServices;
-using Console = System.Diagnostics.Debug;
-
 namespace UnitTestProject
 {
 	[TestClass]
@@ -23,24 +8,18 @@ namespace UnitTestProject
 	{
 		static class _log
 		{
-            internal static string t_基礎出站Flow{
-				get
-				{
-					return FileApp.ts_Log(@"MesInOut\t_基礎出站Flow.json");
-				}
-			}
-
-            /// <summary>
-            /// splitBIN 前端傳入的資料範例 
-            /// </summary>
-            internal static string t_DoRollCheckOut
+			/// <summary>
+			/// splitBIN 前端傳入的資料範例 
+			/// </summary>
+			internal static string t_splitBIN
 			{
 				get
 				{
-					return FileApp.ts_Log(@"MesInOut\t_DoRollCheckOut.json");
+					return FileApp.ts_Log(@"MesInOut\t_splitBIN.json");
 				}
 			}
 		}
+
 
 		#region [ Sample ] 
 		/*
@@ -60,27 +39,7 @@ namespace UnitTestProject
 			var _r = new FileApp().Read_SerializeJson(_log.t_splitBIN);
 		}, true);
 		*/
-		#endregion
-
-		[TestMethod]
-		public void _T01() {
-			var r = FileApp.Read_SerializeJson<WIPFormSendParameter>(_log.t_DoRollCheckOut);
-			new 基礎出站(r,true).Process();
-		}
-
-
-		[TestMethod]
-		public void _基礎出站Flow()
-		{
-			var r = FileApp.Read_SerializeJson<WIPFormSendParameter>(_log.t_DoRollCheckOut);
-			var x = new 基礎出站(r, true, true);
-			x.Process();
-			FileApp.WriteSerializeJson(x._fun_flow, _log.t_基礎出站Flow);
-			//var t = x._fun_flow;
-			//Assert.
-		}
+        #endregion
 	}
- 
- 
 }
 

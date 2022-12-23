@@ -4,11 +4,15 @@ using BLL.Base;
 using BLL.InterFace;
 using BLL.MES;
 using BLL.MES.DataViews;
+using Frame.Code;
 using Genesis.Gtimes.ADM;
 using Genesis.Gtimes.Common;
+using Genesis.Gtimes.MTR;
 using Genesis.Gtimes.Transaction.EQP;
+using Genesis.Gtimes.Transaction.TOL;
 using Genesis.Gtimes.Transaction.WIP;
 using Genesis.Gtimes.WIP;
+using Genesis.Library.BLL.MES;
 using Genesis.Library.BLL.MES.WIP;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using System;
@@ -19,38 +23,171 @@ using UnitTestProject.TestUT;
 using static BLL.MES.DataViews.PartData;
 using static BLL.MES.WIPInjectServices;
 using static Genesis.Gtimes.Transaction.TransactionUtility;
+using static Genesis.Library.BLL.MES.DataViews.System;
 using Console = System.Diagnostics.Debug;
 
 namespace UnitTestProject
 {
- 
+	public class Check {
+		//public static void Equipment(TxnDoItemInfo txnInfo)
+		public static void Equipment(ITxnBase Txn, EquipmentUtility.EquipmentInfo EqpInfo)
+		{
+			#region CheckEquipment
+
+			if (Txn.LotInfo.QUANTITY > EqpInfo.MAX_CAPACITY - EqpInfo.CURRENT_CAPACITY)
+			{
+				throw new Exception(string.Format(RES.BLL.Message.ExceedEquipCapacity, EqpInfo.No));
+			}
+
+			if (EqpInfo.CURRENT_LOT_SIZE == EqpInfo.MAX_LOT_SIZE)
+			{
+				throw new Exception(string.Format(RES.BLL.Message.ExceedEquipCapacity, EqpInfo.No));
+			}
+			var eqpStateInfo = new EquipmentUtility.EquipmentStateInfo(Txn.DBC, EqpInfo.STATE_SID, EquipmentUtility.IndexType.SID);
+			//設備狀態不允許使用
+			if (eqpStateInfo.RUN_FLAG == "F")
+			{
+				throw new Exception(string.Format(RES.BLL.Message.EquipStateCannotbeRun, EqpInfo.STATE_NO));
+			}
+			//設備停用
+			if (EqpInfo.ENABLE_FLAG == "F")
+			{
+				throw new Exception(string.Format(RES.BLL.Message.NoEnable, RES.BLL.Face.EQP + ":" + EqpInfo.No));
+			}
+
+			var ToolFun = new ToolUtility.ToolFunction(Txn.DBC);
+			var dtTool = ToolFun.GetEqpOnToolList(EqpInfo.No);
+
+			if (dtTool == null || dtTool.Rows.Count == 0) return;
+
+			for (int i = 0; i < dtTool.Rows.Count; i++)
+			{
+				string TOOL_NO = dtTool.Rows[i]["TOOL_NO"].ToString();
+				ToolUtility.ToolFunction fun = new ToolUtility.ToolFunction(Txn.DBC);
+				ToolUtility.ToolInfo toolinfo = new ToolUtility.ToolInfo(Txn.DBC, TOOL_NO, ToolUtility.ToolInfo.IndexType.No);
+				ToolUtility.ToolStateInfo Toolstateinfo = new ToolUtility.ToolStateInfo(Txn.DBC, dtTool.Rows[i]["STATE_NO"].ToString(), ToolUtility.ToolStateInfo.IndexType.No);
+
+				decimal AddUseCount = fun.GetToolAddUseCount(EqpInfo.No, toolinfo, Txn.LotInfo.QUANTITY);
+
+				if (Toolstateinfo.RUN_FLAG == "F")
+				{
+					//零配件{0}狀態為{1}，禁止使用!
+					throw new Exception(string.Format(RES.BLL.Message.ToolStateNotAllowUser, TOOL_NO, Toolstateinfo.STATE_NO));
+				}
+				if (toolinfo.MAX_USE_COUNT <= toolinfo.USE_COUNT)
+				{
+					//零配件{0}最大使用次數已經達到{1}!
+					throw new Exception(string.Format(RES.BLL.Message.ToolMaxUseError, TOOL_NO, toolinfo.MAX_USE_COUNT.ToString()));
+				}
+				if (toolinfo.MAX_USE_COUNT < toolinfo.USE_COUNT + AddUseCount)
+				{
+					//零配件{0}剩餘使用次數不足，剩餘{1}次。
+					throw new Exception(string.Format(RES.BLL.Message.ToolRemainUseNotEnough, TOOL_NO, (toolinfo.MAX_USE_COUNT - toolinfo.USE_COUNT).ToString()));
+				}
+			}
+
+			#endregion
+		}
+		public static void Equipment(ITxnBase Txn, string EqpSid)
+		=> Equipment(Txn, Txn.GetEquipmentInfo(EqpSid));
+	}
 
 	public abstract class BaseFun {
+		public bool isTest { get; set ;}
 		public bool isFlowTest { get; set; }
 
+		public MESSystemConfig SystemConfig
+		{
+			get
+			{
+				var systemConfig = new SystemConfigSevices().GetSystemConfig();
+				var result = systemConfig.SystemconfigJson.ToObject<MESSystemConfig>();
+				return result;
+			}
+		}
+
+		/// <summary>
+		/// 初始化記錄
+		/// </summary>
+		internal Catch_InitRec Catch_InitRec = new Catch_InitRec();
+		/// <summary>
+		///	動態更新記錄
+		/// </summary>
+		internal Catch Catch_Current = new Catch();
+		internal ITxnBase Txn;
+
 		public List<string> _fun_flow = new List<string>();
+
+		public LotUtility.LotInfo CurrentLot
+		{
+			get {
+				//Anthony)雖然這樣做是很方便,但容易出控制外的問題,所以拿掉
+				//if (Catch_Current.Lot == null) return Txn.GetLotInfo();
+				return Catch_Current.Lot;
+			}
+		}
+
 		public bool FlowTest(string fun_name) {
 			if (isFlowTest) _fun_flow.Add(fun_name);
 			return isFlowTest;
 		}
+
+		
+	}
+	public interface IX_MesInOut {
+
+		IResult Process();
+		void 資料初始化();
+
+		IResult End();
 	}
 
-	public class 基礎出站:BaseFun
+	/// <summary>
+	/// 資料集合
+	/// </summary>
+	public class Catch {
+		public virtual LotUtility.LotInfo Lot { get; set; }
+		public virtual MtrLotUtility.MtrLotInfo MLot { get; set; }
+		public EquipmentUtility.EquipmentInfo Eqp { get; set; }
+
+	}
+
+	/// <summary>
+	/// 初始資料集合
+	/// </summary>
+	public class Catch_InitRec : Catch{
+		public override LotUtility.LotInfo Lot
+		{
+			get
+			{
+				return List_Lot.Count == 0 ? null : List_Lot[0];
+			}
+			set { List_Lot.Add(value); }
+		}
+		public override MtrLotUtility.MtrLotInfo MLot
+		{
+			get
+			{
+				return List_MLot.Count == 0 ? null : List_MLot[0];
+			}
+			set { List_MLot.Add(value); }
+		}
+		public OperationUtility.OperationInfo Oper { get; set; }
+
+		public List<LotUtility.LotInfo> List_Lot = new List<LotUtility.LotInfo>();
+		public List<MtrLotUtility.MtrLotInfo> List_MLot = new List<MtrLotUtility.MtrLotInfo>();
+	}
+
+
+	public class 基礎出站:BaseFun,IX_MesInOut
 	{
 		WIPFormSendParameter data;
-		ITxnBase Txn;
 		TxnDoItemInfo txnInfo;
-		bool isTest;
 		decimal scrapTotalQty;
-		public LotUtility.LotInfo CurrentLot {
-			get { return data.Current.LotInfo; }
-			set { data.Current.LotInfo = value; }
-		}
 		public DBController DBC
 		{
 			get { return Txn.DBC; }
 		}
-		
 
 		public 基礎出站() { }
 		public 基礎出站(WIPFormSendParameter data, bool isTest = false,bool isFlowTest = false) {
@@ -59,12 +196,10 @@ namespace UnitTestProject
 			this.isFlowTest = isFlowTest;
 		}
 
-		public virtual 基礎出站 資料初始化()
+		public virtual void 資料初始化()
 		{
-			if (FlowTest(nameof(資料初始化))) return this;
-
-			var LotInfo 
-				= data.Old.LotInfo 
+			var LotInfo
+				= Catch_InitRec.Lot
 				= Txn.GetLotInfo(data.Lot, isQueryByLotNO: true);
 			if (LotInfo == null  || LotInfo.IsExist == false)
 				Result.NotExist(data.Lot).ThrowException();
@@ -76,13 +211,8 @@ namespace UnitTestProject
 				}
 				.ThrowException();
 
-			data.Current = new Catch()
-			{
-				LotInfo = Txn.GetLotInfo(data.Lot,isQueryByLotNO:true),
-				Equipment = LotInfo.GetCurrentEquipmentInfo()
-			};
-
-			return this;
+			Catch_InitRec.Eqp = LotInfo.GetCurrentEquipmentInfo();
+			Catch_InitRec.Oper = Txn.GetOperationInfo();
 		}
 
 		public virtual 基礎出站 處理人員
@@ -108,7 +238,7 @@ namespace UnitTestProject
 
 					var mutilUsercommands = WIPServices.GetMutilUserCommands(txnInfo);
 					Txn.DoTransaction(mutilUsercommands.ToArray());
-					CurrentLot.ReLoad();
+					CurrentLot.ReLoad(DBC);
 				}
 				return this;
 			}
@@ -137,7 +267,7 @@ namespace UnitTestProject
 						, data.LotModifyData.Note);
 					oAttr.TransactionName = "LotChangeNote";
 					Txn.DoTransaction(oAttr);
-					CurrentLot.ReLoad();
+					CurrentLot.ReLoad(DBC);
 				}
 				return this;
 			}
@@ -158,11 +288,13 @@ namespace UnitTestProject
 						, data.SelectGrade.No);
 					oAttr.TransactionName = "LotChangeGrade";
 					txnInfo.DoTransaction(oAttr);
-					CurrentLot.ReLoad();
+					CurrentLot.ReLoad(DBC);
 				}
 				return this;
 			}
 		}
+
+
 
 
 		/// <summary>
@@ -198,7 +330,7 @@ namespace UnitTestProject
 					update.UpdateColumn("ATTRIBUTE_10", data.ReWorkOperList.Status);
 					update.WhereAnd("LOT_SID", txnInfo.OldLotinfo.SID);
 					Txn.DoTransaction(update.GetCommand());
-					CurrentLot.ReLoad();
+					CurrentLot.ReLoad(DBC);
 				}
 				return this;
 			}
@@ -242,7 +374,7 @@ namespace UnitTestProject
 
 					}
 					txnInfo.DoTransaction(txnCmds.ToArray());
-					CurrentLot.ReLoad();
+					CurrentLot.ReLoad(DBC);
 				}
 				return this;
 			}
@@ -319,7 +451,7 @@ namespace UnitTestProject
 						update.WhereAnd("TOOL_SID", item.TOOL_SID);
 						txnInfo.DoTransaction(update.GetCommand());
 
-						CurrentLot.ReLoad();
+						CurrentLot.ReLoad(DBC);
 					}
 
 				}
@@ -344,7 +476,7 @@ namespace UnitTestProject
 						update.WhereAnd("LOT_SID", txnInfo.LotInfo.SID);
  
 						Txn.DoTransaction(update.GetCommand());
-						CurrentLot.ReLoad();
+						CurrentLot.ReLoad(DBC);
 					}
 
 
@@ -405,7 +537,7 @@ namespace UnitTestProject
 							var equipUnloadLot = new EQPTransaction.EquipmentUnloadLotTxn(equip, CurrentLot);
 							Txn.DoTransaction(equipUnloadLot);
 
-							CurrentLot.ReLoad();
+							CurrentLot.ReLoad(DBC);
 
 							equip = new EquipmentUtility.EquipmentInfo(DBC, equip.No, EquipmentUtility.IndexType.No);
 							EQPTransaction.EndOfEquipmentTxn endEQPTxn = new EQPTransaction.EndOfEquipmentTxn(equip);
@@ -415,7 +547,7 @@ namespace UnitTestProject
 						}
 
 						//重取資料
-						CurrentLot.ReLoad();
+						CurrentLot.ReLoad(DBC);
 						#endregion
 
 					}
@@ -425,7 +557,7 @@ namespace UnitTestProject
 
 
 
-					var _oldInfo = data.Old.LotInfo;
+					var _oldInfo = CurrentLot;
 					InsertCommandBuilder insert = new InsertCommandBuilder(txnInfo.DBC, "ZZ_LOT_MOVE");
 					insert.InsertColumn("LOT_MOVE_SID", Txn.GetSID());
 					insert.InsertColumn("LOT_SID", _oldInfo.SID);
@@ -454,16 +586,26 @@ namespace UnitTestProject
 					txnInfo.MESWIPCheckItem.IsGoNextTask = false;
 
 					//重取資料
-					CurrentLot.ReLoad();
+					CurrentLot.ReLoad(DBC);
 				}
 
 				return this;
 			}
 		}
 
-		public virtual void End() { Console.WriteLine(nameof(End)); }
 
-		
+		public virtual IResult End()
+		{
+			//TODO
+			//txnInfo.DoTransaction
+			//   (new WIPTransaction.GoToNextTaskTxn(Txn.LotInfo)
+			//   , new WIPTransaction.EndOfLotTxn(Txn.LotInfo)
+			//   );
+			//Txn.LotInfo.ReLoad(DBC);
+			return Txn.result;
+		}
+
+
 		public virtual IResult Process()
 		=> TxnBase.LzDBTrans(nameof(基礎出站)
 			, TxnReason.n("")
@@ -495,20 +637,7 @@ namespace UnitTestProject
 				//todo  SPC 資料打包
 				// SpcIntegrateInfo txnInfoBySPC = new SpcIntegrateInfo(_lotInfo: _lotInfo, _SpcHoldLotInfo: _oldInfo, _WIPFormSendParameter: data, _txnTime: txnTime, _linkSID: linkSID, _MesDB: DBC);
 
-				//return this
-				//		.處理人員
-				//		.處理報廢
-				//		.QTimeCheck
-				//		.寫入批號備註
-				//		.寫入批號等級
-				//		.批號出站_重工
-				//		.處理物料批
-				//		.Edc收集處理
-				//		.更新FC_TOOL的彈性欄位
-				//		.暫留線邊倉功能
-
-				//		.Txn.result
-				//		;
+ 
 
 
 				return this
@@ -517,7 +646,7 @@ namespace UnitTestProject
 						.Edc收集處理
 						.更新FC_TOOL的彈性欄位
 						.處理物料批
-						.Txn.result;
+						.End();
 
 			}
 			,isTest

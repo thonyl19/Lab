@@ -39,13 +39,16 @@
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
+  <PropertyGroup>
+    <SignAssembly>false</SignAssembly>
+  </PropertyGroup>
   <ItemGroup>
     <Compile Include="DesignPatten\Form.cs" />
     <Compile Include="DesignPatten\AbstractFactory_Case1.cs" />
     <Compile Include="DesignPatten\t_AbstractFactory.cs" />
     <Compile Include="DesignPatten\t_ChainofCommand.cs" />
+    <Compile Include="MES5E2E\Test.cs" />
     <Compile Include="Mes\基礎出站.cs" />
-    <Compile Include="Mes\MesInOut.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="T4\Htm\MyWebPage1.cs" />
     <Compile Include="T4\Htm\MyWebPage11.cs">
@@ -60,7 +63,6 @@
     <Compile Include="t_AD.cs" />
     <Compile Include="t_Attribute.cs" />
     <Compile Include="t_BOGUS.cs" />
-    <Compile Include="t_DB.cs" />
     <Compile Include="t_Carrier.cs" />
     <Compile Include="t_Entity.cs" />
     <Compile Include="t_GetCodes.cs" />
@@ -70,16 +72,13 @@
     <Compile Include="t_Reflection.cs" />
     <Compile Include="t_RouteOper.cs" />
     <Compile Include="t_WIP.cs" />
-    <Compile Include="t_WO.cs" />
     <Compile Include="t_ZZ.cs" />
     <Compile Include="NUnit_Test.cs" />
     <Compile Include="UnitTest_.cs" />
-    <Compile Include="t_MES.cs" />
     <Compile Include="t_PartType.cs" />
     <Compile Include="t_QTimer.cs" />
     <Compile Include="t_EDC.cs" />
     <Compile Include="t_Wafer.cs" />
-    <Compile Include="t_DTC.cs" />
     <Compile Include="_std.cs" />
   </ItemGroup>
   <ItemGroup>
@@ -118,6 +117,48 @@
       <DependentUpon>Web.config</DependentUpon>
       <SubType>Designer</SubType>
     </Content>
+    <None Include="configSetting\appSettings_default.config">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Include="configSetting\Connection_217_HERMES.config">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Include="configSetting\Connection_229PD_GTIMES.config">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Include="configSetting\Connection_229_GRF.config">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Include="configSetting\Connection_229_GRF_DEMO.config">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Include="configSetting\Connection_229_INIT.config">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Include="configSetting\Connection_HM_GTIMES.config">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Include="configSetting\Connection_KSPTTC.config">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Include="configSetting\Connection_localhost.config">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Include="configSetting\Connection_Dev.config">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Include="configSetting\Connection_PDT_GTIMES5.config">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Include="configSetting\Connection_PD_GTIMES.config">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Include="configSetting\Connection_PD_GTIMES_DEMO.config">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Include="configSetting\Connection_PTTC.config">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
     <None Include="packages.config" />
   </ItemGroup>
   <ItemGroup>
@@ -254,6 +295,15 @@
     </PackageReference>
     <PackageReference Include="Oracle.ManagedDataAccess.EntityFramework">
       <Version>19.3.0</Version>
+    </PackageReference>
+    <PackageReference Include="Selenium.Support">
+      <Version>4.4.0</Version>
+    </PackageReference>
+    <PackageReference Include="Selenium.WebDriver">
+      <Version>4.4.0</Version>
+    </PackageReference>
+    <PackageReference Include="Selenium.WebDriver.ChromeDriver">
+      <Version>105.0.5195.5200</Version>
     </PackageReference>
     <PackageReference Include="System.Buffers">
       <Version>4.5.0</Version>

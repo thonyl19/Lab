@@ -1806,6 +1806,15 @@ SELECT 	LOT.ROUTE_VER_SID,
 			//txn.DoTransaction(new DTC_Carrierload(CarrierInfo, LotInfo));
 		},true);
 
+
+		[TestMethod]
+		public void t_d_MT_LOT()
+		=> _DBTest((txn) => {
+			var a2 = TableQueryService.d_MT_LOT("M0003-108001", MDL.SearchKey.No).FirstOrDefault();
+			//var a1 = TableQueryService.d_MT_LOT("M0003-108001", MDL.SearchKey.No, txn.DB).FirstOrDefault();
+		}, true);
+
+
 		[TestMethod]
 		public void _處理轉換欄位()
 		=> _DBTest((txn) =>
@@ -1863,6 +1872,50 @@ SELECT 	LOT.ROUTE_VER_SID,
 
 
 		},true);
+
+
+		[TestMethod]
+		public void _處理轉換欄位x()
+		=> _DBTest((txn) =>
+		{
+			var sql = @"
+			declare @link_sid as  nvarchar(255);
+			set @link_sid = 'GTI22092704070692066'
+			select *
+			from WP_LOT_HIST   with(nolock)
+			where ACTION_LINK_SID = @link_sid
+
+			select *
+			from WP_CARRIER_TRACE  with(nolock)
+			where ACTION_LINK_SID = @link_sid
+
+			select B.Lot,B.CARRIER_LINK_SID , A.* from WP_LOT_CARRIER_TRACE A  with(nolock)
+				INNER join WP_LOT B  with(nolock)
+					ON B.CARRIER_LINK_SID = A.CARRIER_LINK_SID
+						AND A.LOT = B.LOT
+			where A.ACTION_LINK_SID =  @link_sid
+			";
+
+			var r = txn.DBC.Select(sql );
+			FileApp._tmpJson(r);
+		}, true);
+
+
+
+		[TestMethod]
+		public void _測試新增欄位()
+		=> _DBTest((txn) =>
+		{
+			var sql = @"
+			 select  top 1 *
+			from ZZ_LOT_ROLL   with(nolock)
+ 
+			";
+
+			var r = txn.DapperQuery<ZZ_LOT_ROLL>(sql)
+				.FirstOrDefault();
+			FileApp._tmpJson(r);
+		}, true);
 
 	}
 
