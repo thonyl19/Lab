@@ -14,7 +14,6 @@ using Genesis.Library.BLL.MES.AutoGenerate;
 using Genesis.Library.BLL.MES.DataViews;
 using MDL.MES;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
-using Newtonsoft.Json;
 using OfficeOpenXml;
 using System;
 using System.Collections.Generic;
@@ -36,15 +35,13 @@ using UnitTestProject.TestUT;
 using static BLL.MES.WIPInjectServices;
 using static BLL.MES.WIPServices;
 using static Genesis.Gtimes.Transaction.WIP.WIPTransaction;
-using static Genesis.Gtimes.WIP.LotUtility;
-using static Genesis.Library.BLL.DTC.Carrier;
 using mdl = MDL.MES;
 using vDbCtx = MDL.MESContext;
 
 namespace UnitTestProject
 {
-	//TODO-BK
-	[TestClass]
+    //TODO-BK
+    [TestClass]
 	public class t_DB : _testBase
 	{
 
@@ -240,13 +237,13 @@ namespace UnitTestProject
 					dbContext.Database.Connection.BeginTransaction(System.Data.IsolationLevel.ReadUncommitted);
 					//在這一段 掛掉 ,原因不理解
 					var x = dbContext.WP_WO.Count();
-				 */
 
 				using (TransactionScope ts = new TransactionScope(TransactionScopeOption.Required
 					, new TransactionOptions() { IsolationLevel = System.Transactions.IsolationLevel.ReadUncommitted }))
 				{
 					var users = dbContext.WP_WO.Count();
 				}
+				 */
 				//using (var transaction = dbContext.Database.BeginTransaction(System.Data.IsolationLevel.ReadUncommitted))
 				//{
 				//	//var _sql = $@"SELECT top 1 * from WP_WO";
@@ -1090,6 +1087,8 @@ SELECT 	LOT.ROUTE_VER_SID,
 
 
 
+
+
 		public IResult ZZ_OPER_WORKT_SUMMARY_UpData(mdl.ZZ_OPER_WORKT_SUMMARY entity, bool isTest = false)
 		{
 			Result result = new Result(true);
@@ -1635,7 +1634,7 @@ SELECT 	LOT.ROUTE_VER_SID,
 
 		}
 
-
+		/*
         [TestMethod]
         public void t_CountWaferBy_SHIP_CASSETTE()
         {
@@ -1685,7 +1684,7 @@ SELECT 	LOT.ROUTE_VER_SID,
 
 		}
 
-
+		*/
 		[TestMethod]
 		public void t_Process_PosiMap_cmd_CHANGE_SERIAL1()
 		{
@@ -1727,6 +1726,33 @@ SELECT 	LOT.ROUTE_VER_SID,
 				var r = tx.EFQuery<WP_LOT_WAFER_MAPPING>().GetByID("GTI22031515092145349");
 			});
 		}
+
+		[TestMethod]
+		public void _EFQuery_JOIN()
+		=> TxnBase.LzDBQuery((txn)=>{
+			var _repo = new { 
+				QC_ITEMGROUP_ITEM = txn.EFQuery<QC_ITEMGROUP_ITEM>(),
+				QC_ITEMGROUP = txn.EFQuery<QC_ITEMGROUP>(),
+				QC_ITEM = txn.EFQuery<QC_ITEM>()
+			};
+			txn.result.Data = (from a in _repo.QC_ITEMGROUP_ITEM.Reads()
+						 join b in _repo.QC_ITEM.Reads() 
+							on a.QC_ITEM_SID equals b.QC_ITEM_SID
+						 join c in _repo.QC_ITEMGROUP.Reads()
+							on a.QC_ITEMGROUP_SID equals c.QC_ITEMGROUP_SID
+						 where b.ENABLE_FLAG == nameof(EnableFlag.T)
+						 select new SelectModel
+						 {
+							 SID = c.QC_ITEMGROUP_SID,
+							 No = c.QC_ITEMGROUP_NO,
+							 Display = c.QC_ITEMGROUP_NAME,
+						 }
+						)
+						.Distinct()
+						.AsQueryable()
+						.ToList();
+			return txn.result;
+		});
 
 
 
@@ -1859,6 +1885,7 @@ SELECT 	LOT.ROUTE_VER_SID,
 			DBC.AddCommandParameter(parameters, "SERIAL_NUMBER_ID", "SERIAL_NUMBER_ID");
 
 			var r = txn.DBC.Select(sql, parameters);
+			var t = ServicesBase.SQLDebug(txn.DBC, sql, parameters);
 			var l = new List<string>();
             foreach (var el in r.Columns)
             {
@@ -1872,6 +1899,29 @@ SELECT 	LOT.ROUTE_VER_SID,
 
 
 		},true);
+
+		[TestMethod]
+		public void _DTC_Del()
+		=> _DBTest(Txn => {
+			var sql = @"
+delete AD_SHIFT where SHIFT_SID = @SHIFT_SID
+			";
+			var parameters = new List<IDbDataParameter>();
+			DBC.AddCommandParameter(parameters, "SHIFT_SID", "GTI22111617402893180");
+			sql = DBC.GetCommandText(sql, SQLStringType.OracleSQLString);
+			var cmd = DBC.CreateCommand(sql, parameters);
+			Txn.DoTransaction(cmd);
+
+		}, true);
+
+
+		[TestMethod]
+		public void t_取得DBInfo()
+		{
+			using (var dbc = this.DBC)
+			{
+			}
+		}
 
 
 		[TestMethod]
@@ -1901,21 +1951,68 @@ SELECT 	LOT.ROUTE_VER_SID,
 		}, true);
 
 
-
 		[TestMethod]
-		public void _測試新增欄位()
+
+		public void _AsEnumerable()
 		=> _DBTest((txn) =>
 		{
-			var sql = @"
-			 select  top 1 *
-			from ZZ_LOT_ROLL   with(nolock)
- 
-			";
+			List<SelectModel> _d = null;
+			var IdleState_SID = "GTI11092111313080782";
+			var query = (from t in (from t1 in txn.EFQuery<FC_CARRIER>().Reads()
+									where t1.ENABLE_FLAG == "F"
+									   //&& (isOnlyIdle == false
+										  // || isOnlyIdle && t1.STATE_SID == IdleState_SID)
+									select t1)
+									//很奇怪,在專案可以執行,但這裡無法用
+									//.AsEnumerable()
+						 select new SelectModel
+						 {
+							 SID = t.CARRIER_SID,
+							 No = t.CARRIER_NO,
+							 Display = t.CARRIER_NAME,
+							 Value = t.CURRENT_CAPACITY.ToString(),
+							 //Attr01 = t.MAX_CAPACITY.ToString(),
+							 Attr01 = (t.MAX_CAPACITY - t.CURRENT_CAPACITY).ToString(),
+							 Attr02 = t.MAX_USE_COUNT.ToString(),
+						 }).ToList();
+		});
 
-			var r = txn.DapperQuery<ZZ_LOT_ROLL>(sql)
-				.FirstOrDefault();
-			FileApp._tmpJson(r);
-		}, true);
+
+
+		//     [TestMethod]
+		//     public void _測試新增欄位()
+		//     => _DBTest((txn) =>
+		//     {
+		//         var sql = @"
+		// select  top 1 *
+		//from ZZ_LOT_ROLL   with(nolock)
+
+		//";
+
+		//         var r = txn.DapperQuery<ZZ_LOT_ROLL>(sql)
+		//             .FirstOrDefault();
+		//         FileApp._tmpJson(r);
+		//     }, true);
+
+		//[TestMethod]
+		//      public void _DapperQuery()
+		//      => _DBTest((txn) =>
+		//      {
+		//	var arg = new { EQP_SID = "GTI23070514415145713" };
+		//          var sql = @"
+		//		SELECT  A.*
+		//		FROM	ESG_EMISSION_EQUIPMENT_RELATION A
+		//				INNER JOIN FC_EQUIPMENT B
+		//					ON A.EQP_NO = B.EQP_NO
+		//		WHERE	B.EQP_SID = @EQP_SID 
+
+		//	";
+
+		//          var r = txn.DapperQuery<ESG_EMISSION_EQUIPMENT_RELATION>(sql, arg)
+		//              .FirstOrDefault();
+		//          FileApp._tmpJson(r);
+		//      }, true);
+
 
 	}
 

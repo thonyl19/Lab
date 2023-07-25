@@ -16,6 +16,12 @@ using Genesis.Gtimes.Common;
 using Frame.Code.Web.Select;
 using Genesis.Gtimes.ADM;
 using Genesis.Gtimes.MTR;
+using AHTask = Genesis.Library.BLL.ZZ.GRF.AHTask;
+using static Genesis.Library.BLL.ZZ.GRF.AHTask;
+using System.Net.Http;
+using System.Text;
+using System.Net.Http.Headers;
+using Frame.Code;
 
 namespace UnitTestProject
 {
@@ -61,6 +67,45 @@ namespace UnitTestProject
 				get
 				{
 					return FileApp.ts_Log(@"GRF\SlittingCheckOut_Case3.json");
+				}
+			}
+
+
+			/// <summary>
+			/// 分條出站- 物料批 報廢測試
+			/// </summary>
+			internal static string WIP_10_工單物料耗用報工
+			{
+				get
+				{
+					return FileApp.ts_Log(@"GRF\WIP_10_工單物料耗用報工.json");
+				}
+			}
+
+			/// <summary>
+			/// 工單耗用SAP回報 回拋SAP
+			/// </summary>
+			internal static string WIP_11_工單耗用SAP回報
+			{
+				get
+				{
+					return FileApp.ts_Log(@"GRF\WIP_11_工單耗用SAP回報.json");
+				}
+			}
+
+			internal static string WIP_11_工單耗用SAP回報_sap
+			{
+				get
+				{
+					return FileApp.ts_Log(@"GRF\WIP_11_工單耗用SAP回報_sap2.json");
+				}
+			}
+
+			internal static string WIP_10_Sap_GetOWOR
+			{
+				get
+				{
+					return FileApp.ts_Log(@"GRF\WIP_10_Sap_GetOWOR.json");
 				}
 			}
 
@@ -125,7 +170,7 @@ namespace UnitTestProject
 		[TestMethod]
 		public void t_SlittingCheckIn_WOInfo()
 		{
-			new WO_Services().SlittingCheckIn_WOInfo("A_20021121002");
+			WOServices.SlittingCheckIn_WOInfo("A_20021121002");
 		}
 
 		[TestMethod]
@@ -155,6 +200,34 @@ namespace UnitTestProject
 			new WIPServices().DoCheckOut(_r, true);
 		}
 
+
+		/// <summary>
+		/// 以一般出站模式 做測試
+		/// </summary>
+		[TestMethod]
+		public void t_WIP_10_工單物料耗用報工()
+		{
+			var _r = FileApp.Read_SerializeJson<ZZ_WO_MLOT_CONSUME>(_log.WIP_10_工單物料耗用報工);
+			AHTask.WoMtrConsumption(_r,true);
+		}
+
+		[TestMethod]
+		public void t_WIP_10_工單物料耗用報工_1()
+		=> _DBTest(Txn => {
+			var _r = FileApp.Read_SerializeJson<ZZ_WO_MLOT_CONSUME>(_log.WIP_10_工單物料耗用報工);
+			var mlot = Txn.GetMLotInfo(_r.MTR_LOT);
+			var addMtrLotQtyTxn = new MTRTransaction.AddMtrLotQtyTxn
+				( mlot
+				, -2
+				, null, null);
+			Txn.DoTransaction(addMtrLotQtyTxn);
+			Txn.DoTransaction(new MTRTransaction.TerminateMtrLotTxn(mlot));
+
+			//mlot = Txn.GetMLotInfo(_r.MTR_LOT);
+
+
+		},true);
+
 		/// <summary>
 		///  
 		/// </summary>
@@ -162,6 +235,101 @@ namespace UnitTestProject
 		public void t_查詢前階工單()
 		{ 
 			var r = WOServices.查詢前階工單("");
+		}
+
+		public struct d_WIP_11_工單耗用SAP回報
+		{
+			public List<ZZ_WO_MLOT_CONSUME> data { get; set; }
+			public int DocEntry { get; set; }
+			public string SAP { get; set; }
+			public string NOTE { get; set; }
+		}
+
+		/// <summary>
+		///  
+		/// </summary>
+		[TestMethod]
+		public void WIP_11_工單耗用SAP回報()
+		{
+			var r = FileApp.Read_SerializeJson<d_WIP_11_工單耗用SAP回報>(_log.WIP_11_工單耗用SAP回報);
+			AHTask.WoConsumptionToSap(r.data, r.DocEntry, r.SAP, r.NOTE,true);
+			//var z = new d_SAP_PostOIGEList();
+			//var x = r.GroupBy(c => new {c.PARTNO,c.ERP_WO,c.WAREHOUSE_NO })
+			//	.ToDictionary(a => a.Key, b => b.ToList());
+			//int idx = 0;
+			//foreach (var el in x) {
+			//	idx++;
+			//	var BatchList = el.Value.Select(c => new BatchItem(c.MTR_LOT, (int)c.MTR_QTY)).ToList();
+			//	var _idx = idx.ToString();
+			//	var x1 = new Line() {
+			//		ItemCode = el.Key.PARTNO,
+			//		WhsCode = el.Key.WAREHOUSE_NO,
+			//		//TODO:20230331
+			//		//BaseEntry = el.Key.ERP_WO,
+			//		Quantity = el.Value.Sum(c => {
+			//			c.U_MES_LINE_ID = _idx;
+			//			return (int)c.MTR_QTY;
+			//		}),
+			//		BatchList = BatchList,
+			//		BaseLine = idx,
+			//		//TODO:20230331
+			//		//U_MES_LINE_ID = _idx
+			//	};
+			//	z.Lines.Add(x1);
+			//}
+			//FileApp.WriteSerializeJson(z, _log.WIP_11_工單耗用SAP回報_sap);
+		}
+
+
+		/// <summary>
+		///  
+		/// </summary>
+		[TestMethod]
+		public void WIP_11_工單耗用SAP回報1()
+		{
+		//	var r = FileApp.Read_SerializeJson<List<ZZ_WO_MLOT_CONSUME>>(_log.WIP_11_工單耗用SAP回報);
+		//	var r1 = d_SAP_PostOIGEList.parse(r).parseData<d_SAP_PostOIGEList_z>();
+		//	var r2 = AHTask.SendAPI(r1.ApiData);
+
+			var r = FileApp.Read_SerializeJson<d_SAP_PostOIGEList>(_log.WIP_11_工單耗用SAP回報_sap);
+			var r2 = AHTask.SendAPI_PostOIGE(r);
+
+
+			//FileApp.WriteSerializeJson(z, _log.WIP_11_工單耗用SAP回報_sap);
+		}
+
+		[TestMethod]
+		public void TestMethod1()
+		{
+			string url = "http://35.79.76.110:8086/api/SapApi/PostOIGEList";
+			string json = "{ \r\n   \"Lines\": [ \r\n     { \r\n       \"BatchList\": [ \r\n         { \r\n           \"batchNumber\": \"string\", \r\n           \"Quantity\": 0 \r\n         } \r\n       ], \r\n       \"DocEntry\": \"string\", \r\n       \"ItemCode\": \"string\", \r\n       \"Dscription\": \"string\", \r\n       \"Quantity\": 0, \r\n       \"LineNum\": 0, \r\n       \"unitMsr\": \"string\", \r\n       \"WhsCode\": \"string\", \r\n       \"BaseType\": \"string\", \r\n       \"BaseEntry\": 0, \r\n       \"BaseLine\": 0, \r\n       \"BaseRef\": \"string\", \r\n       \"OcrCode\": \"string\", \r\n       \"OcrName\": \"string\", \r\n       \"U_MESLineID\": \"string\" \r\n     } \r\n   ] \r\n }";
+			var client = new HttpClient();
+			client.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
+			var content = new StringContent(json, System.Text.Encoding.UTF8, "application/json");
+			//HttpResponseMessage httpResponseMessage = client.PostAsync(url, content).Result;
+			var response = client.PostAsync(url, content).Result;
+			string r = response.Content.ReadAsStringAsync().Result;
+			var result = r.ToObject<d_SAP_PostOIGEList_result>();
+			 
+		}
+
+
+		[TestMethod]
+		public void TestMethod2()
+		{
+			var client = new HttpClient();
+			client.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
+			var response = client.GetAsync("http://35.79.76.110:8086/api/GetApi/Sap_GetOWOR?DocNum=960").Result;
+			string content = response.Content.ReadAsStringAsync().Result;
+			var x = content.ToObject<d_SAP_PostOIGEList_result>();
+		}
+
+
+		[TestMethod]
+		public void TestMethod2_1()
+		{
+			var a = FileApp.Read_SerializeJson<d_SAP_PostOIGEList_result>(_log.WIP_10_Sap_GetOWOR);
+			var x = a.Data.ToString().ToObject<List<d_Sap_GetOWOR>>();
 		}
 
 		/// <summary>

@@ -41,9 +41,24 @@
   </PropertyGroup>
   <ItemGroup>
     <Compile Include="GTI_helper.cs" />
+    <Content Include="configSetting\Connection_226_GRF.config" />
+    <None Include="configSetting\appSettings_GRF.config">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Include="configSetting\appSettings_default.config">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Include="configSetting\Connection~.config">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
     <None Include="Log\GRF\ExecPleatingSlittingCheckOut.json" />
+    <None Include="Log\GRF\JavaScript.json" />
+    <None Include="Log\GRF\WIP_10_Sap_GetOWOR.json" />
+    <None Include="Log\GRF\WIP_10_工單物料耗用報工.json" />
+    <None Include="Log\GRF\WIP_11_工單耗用SAP回報.json" />
     <None Include="Log\GRF\完工轉物料批_CheckOut.json" />
     <None Include="Log\GRF\ExecSlittingCheckIn.json" />
+    <Compile Include="Mes\t_Fun.cs" />
     <Compile Include="Mes\分條出站.cs" />
     <Compile Include="Mes\分條進站.cs" />
     <Compile Include="Mes\MesInOut.cs" />
@@ -59,6 +74,7 @@
     <Compile Include="t_DB.cs" />
     <Compile Include="t_Entity.cs" />
     <Compile Include="t_GetCodes.cs" />
+    <Compile Include="t_MTR.cs" />
     <Compile Include="ZZ\t_GRF.cs" />
     <Compile Include="t_HoldLot.cs" />
     <Compile Include="t_IPQC.cs" />
@@ -156,6 +172,9 @@
     </PackageReference>
     <PackageReference Include="Microsoft.AspNet.Razor">
       <Version>3.2.3</Version>
+    </PackageReference>
+    <PackageReference Include="Microsoft.AspNet.WebApi.Core">
+      <Version>5.2.7</Version>
     </PackageReference>
     <PackageReference Include="Microsoft.AspNet.WebPages">
       <Version>3.2.3</Version>
@@ -266,7 +285,7 @@
       <Version>4.7.0</Version>
     </PackageReference>
     <PackageReference Include="System.Linq.Dynamic.Core">
-      <Version>1.2.5</Version>
+      <Version>1.2.7</Version>
     </PackageReference>
     <PackageReference Include="System.Memory">
       <Version>4.5.3</Version>
@@ -291,10 +310,15 @@
     </PackageReference>
   </ItemGroup>
   <ItemGroup>
+    <Reference Include="Genesis.Gtimes.ADM, Version=1.0.0.0, Culture=neutral, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>D:\GRF_Dev\Genesis_MVC\bin\Genesis.Gtimes.ADM.dll</HintPath>
+    </Reference>
     <Reference Include="Genesis.Gtimes.Common, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null" />
+    <Reference Include="Genesis.Gtimes.MTR, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null" />
     <Reference Include="Genesis.Gtimes.Transaction, Version=1.0.0.0, Culture=neutral, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
-      <HintPath>H:\GTiMES5.1_Dev\GenesisReference4.5\Genesis.Gtimes.Transaction.dll</HintPath>
+      <HintPath>D:\GRF_Dev\GenesisReference4.5\Genesis.Gtimes.Transaction.dll</HintPath>
     </Reference>
     <Reference Include="Genesis.Gtimes.WIP, Version=1.0.0.0, Culture=neutral, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
@@ -318,37 +342,33 @@
     <Service Include="{508349B6-6B84-4DF5-91F0-309BEEBAD82D}" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="D:\Product.GTiMES4.5\ADM\ADM.csproj">
-      <Project>{6b61c35a-1ebe-4afa-955c-852bee6b555f}</Project>
-      <Name>ADM</Name>
-    </ProjectReference>
-    <ProjectReference Include="D:\Product.GTiMES4.5\MTR\MTR.csproj">
-      <Project>{59c65604-cbfa-4f56-a6fb-e6e3de5365b6}</Project>
-      <Name>MTR</Name>
-    </ProjectReference>
-    <ProjectReference Include="H:\GRF_Dev\Library\BLL\BLL.csproj">
+    <ProjectReference Include="D:\GRF_Dev\Library\BLL\BLL.csproj">
       <Project>{add17dc1-60bd-47f9-a51f-704c027767c5}</Project>
       <Name>BLL</Name>
     </ProjectReference>
-    <ProjectReference Include="H:\GTiMES5.1_Dev\Genesis_MVC\Genesis.csproj">
+    <ProjectReference Include="D:\GRF_Dev\Genesis_MVC\Genesis.csproj">
       <Project>{a520b863-a9ed-4cff-acd9-ec3ade58b8ad}</Project>
       <Name>Genesis</Name>
     </ProjectReference>
-    <ProjectReference Include="H:\GTiMES5.1_Dev\Library\Frame.Code\Frame.Code.csproj">
+    <ProjectReference Include="D:\GRF_Dev\Library\Frame.Code\Frame.Code.csproj">
       <Project>{ccbe423c-3e06-4715-8c65-518e3322265a}</Project>
       <Name>Frame.Code</Name>
     </ProjectReference>
-    <ProjectReference Include="H:\GTiMES5.1_Dev\Library\MDL\MDL.csproj">
+    <ProjectReference Include="D:\GRF_Dev\Library\MDL\MDL.csproj">
       <Project>{d78c56c3-a76e-49b8-8a91-49b5d4bbd0b3}</Project>
       <Name>MDL</Name>
     </ProjectReference>
-    <ProjectReference Include="H:\GTiMES5.1_Dev\Library\RES\RES.csproj">
+    <ProjectReference Include="D:\GRF_Dev\Library\RES\RES.csproj">
       <Project>{4d318d82-259f-4e42-870c-a09883281158}</Project>
       <Name>RES</Name>
     </ProjectReference>
-    <ProjectReference Include="H:\GTiMES5.1_Dev\Library\Dal\Dal.csproj">
+    <ProjectReference Include="D:\GRF_Dev\Library\Dal\Dal.csproj">
       <Project>{1eba4623-1d86-4bb9-b2a3-fa89e0132345}</Project>
       <Name>Dal</Name>
+    </ProjectReference>
+    <ProjectReference Include="D:\GRF_Dev\MyRegister\MyRegister.csproj">
+      <Project>{c41bed1e-d385-4592-8b49-8bd3d308c785}</Project>
+      <Name>MyRegister</Name>
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>

@@ -1,16 +1,8 @@
 ﻿using BLL.MES;
 using BLL.MES.DataViews;
-using BLL.MES.SPC.Hermes;
 using Frame.Code.Web.Select;
-using Genesis;
 using Genesis.Gtimes.ADM;
 using Genesis.Gtimes.Common;
-using Genesis.Gtimes.Transaction;
-using Genesis.Gtimes.Transaction.CAR;
-using Genesis.Gtimes.Transaction.EQP;
-using Genesis.Gtimes.Transaction.MTR;
-using Genesis.Gtimes.Transaction.WIP;
-using Genesis.Gtimes.WIP;
 using Genesis.Library.BLL.DTC;
 using Genesis.Library.BLL.MES.AutoGenerate;
 using Genesis.Library.BLL.MES.DataViews;
@@ -19,23 +11,22 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
-using System.Configuration;
 using System.Data;
 using System.Linq;
-using System.Transactions;
 using UnitTestProject.TestUT;
 using static BLL.MES.SPC.Hermes.SPCRunServicesByHermes;
 using static BLL.MES.WIPInjectServices;
 using static Genesis.Gtimes.ADM.CarrierUtility;
 using static Genesis.Gtimes.WIP.LotUtility;
-using MTR = Genesis.Gtimes.MTR;
-using MES = Genesis.Library.BLL.MES.OperTask;
 using BLL.MVC;
 using DataViews = BLL.DataViews;
+using Genesis.Gtimes.Transaction.EQP;
+using Genesis.Gtimes.Transaction;
+using Genesis.Gtimes.Transaction.CAR;
 
 namespace UnitTestProject
 {
-	[TestClass]
+    [TestClass]
 	public class t_MES : _testBase
 	{
 		static class _log
@@ -698,7 +689,7 @@ namespace UnitTestProject
 		{
 			var oper_key = "Z";
 			var oper_type_key = "STD";
-			var oper_list = "A,B,C";
+			var oper_list = "RIS-PT-01,RIS-PT-04,RIS-PT-05,RIS-PT-07,RIS-PT-17,PA01001G";
 
 
 			var epo_PF_OPERATION_TYPE = Txn.EFQuery<PF_OPERATION_TYPE>();
@@ -715,21 +706,21 @@ namespace UnitTestProject
 					);
 
 			var _oper_list = oper_list.Split(',');
-			for (var i = 1; i < _oper_list.Length; i++)
+			for (var i = 0; i < _oper_list.Length; i++)
 			{
 				var _e = new PF_OPERATION()
 				{
-					OPERATION_NO = $"{oper_key}{String.Format("{0:00}", i)}0",
+					OPERATION_NO = $"{oper_key}{String.Format("{0:00}", i+1)}0",
 					OPERATION = _oper_list[i],
 					OPER_TYPE_SID = _oper_type.OPER_TYPE_SID,
-					OPERATION_TYPE = $"{oper_type_key}{String.Format("{0:00}", i)}",
+					OPERATION_TYPE = $"{oper_type_key}{String.Format("{0:00}", i+1)}",
 					OPERATION_TYPE_NAME = _oper_type.OPERATION_TYPE_NAME,
 					OPERATION_TYPE_CATEGORY = _oper_type.CATEGORY,
 					OPER_TYPE_VER_SID = _oper_type_ver.OPER_TYPE_VER_SID,
 				};
 				Txn.EntityCommonSetVal<PF_OPERATION>(_e);
 				epo_PF_OPERATION.Create(_e);
-				//epo_PF_OPERATION.SaveChanges();
+				epo_PF_OPERATION.SaveChanges();
 			}
 		}, true);
 
@@ -742,7 +733,7 @@ namespace UnitTestProject
 		=> _DBTest((Txn) =>
 		{
 			var is只建立流程版本 = true;
-			string ROUTE = "測試01",
+			string ROUTE = "組裝01",
 					ROUTE_NO = ROUTE
 					;
 			var epo_PF_ROUTE = Txn.EFQuery<PF_ROUTE>();
@@ -760,11 +751,13 @@ namespace UnitTestProject
 					ROUTE = ROUTE,
 					ROUTE_NO = ROUTE_NO,
 					DEFAULT_VERSION = 1,
+					MAX_VERSION = 0
 				};
 				Txn.EntityCommonSetVal<PF_ROUTE>(_e);
 				epo_PF_ROUTE.Create(_e);
+				epo_PF_ROUTE.SaveChanges();
+
 			}
-			//epo_PF_ROUTE.SaveChanges();
 
 			var _e1 = new PF_ROUTE_VER()
 			{

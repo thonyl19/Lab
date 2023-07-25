@@ -1,31 +1,24 @@
 ﻿using BLL.DataViews.Res;
 using BLL.MES;
 using BLL.MES.DataViews;
-using BLL.MVC;
-using Dal.Repository;
 using Frame.Code;
-using Genesis.Library.BLL.MES;
 using Genesis.Library.BLL.MVC.AutoGenerate;
 using MDL;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using System;
 using System.Collections.Generic;
-using System.ComponentModel.DataAnnotations;
 using System.Data.Entity;
-using System.Linq;
 using System.Resources;
 using UnitTestProject.TestUT;
 using static Genesis.Gtimes.ADM.ParameterUtility;
 using static Genesis.Library.BLL.MES.DataViews.System;
 using _v8n = BLL.MES.FluentValidation;
-using System.Globalization;
-using System.IO;
 using System.Reflection;
 
 namespace UnitTestProject
 {
-	//[assembly:NeutralResourcesLanguage("en")]
-	[TestClass]
+    //[assembly:NeutralResourcesLanguage("en")]
+    [TestClass]
 	public class t_AD : _testBase
 	{
 		public static CurrentLoginUserModel UserModel = new CurrentLoginUserModel()
@@ -249,6 +242,61 @@ namespace UnitTestProject
 
 
 		}
+
+		[TestMethod]
+		public void t_2()
+		{
+			var json = new { machineID = "5179228C5B676460DEB32391544E018B490F89699", state = "1" };
+			var machineID = Convert.ToString(json.machineID);
+			//var regCode = Convert.ToString(json.regCode);
+			var state = Convert.ToString(json.state); // 0:驗證註冊碼  1:重新檢查授權
+													 //var productName = Convert.ToString(obj.productName);
+
+			if (state == "0")
+			{
+				//RegisterClass reg = new RegisterClass();
+				//var rCode = reg.GetCode(machineID);
+
+				//if (rCode != regCode)
+				//{
+				//	//return null;
+				//}
+			}
+
+			var registerServices = new BLL.MVC.RegisterServices();
+			var dataInfo = (MDL.GenesisMVC.Tables.AD_REGISTER)registerServices.getData(machineID);
+
+			if (dataInfo.SID == null)
+			{
+				//return null;
+			}
+
+
+			//var regInfo = new RegisterClass.RegFileInfo();
+			//regInfo.P_Name = dataInfo.ProductName;
+			//regInfo.MachineID = dataInfo.MachineID;
+			//regInfo.ExtDate = (DateTime)dataInfo.ExtDate;
+			//regInfo.MaxOnlineNum = (int)dataInfo.MaxOnlineNum;
+			//regInfo.NextCheckDate = DateTime.Now.AddDays((double)dataInfo.ReCheckDayNum);
+			//regInfo.GraceDayNum = (int)dataInfo.GraceDayNum;
+			//regInfo.RegCompany = dataInfo.Company;
+			//regInfo.IsUseRegister = dataInfo.IsUseRegister;
+
+			////更新下次檢測日期 API無cookie狀態，要注意
+			//dataInfo.NextCheckDate = regInfo.NextCheckDate;
+
+			////第一次登錄才給regDate
+			//if (dataInfo.RegDate == null)
+			//	dataInfo.RegDate = DateTime.Now;
+
+			//registerServices.ApiUpdate(dataInfo);
+
+			//var retCode = Frame.Code.Security.DESEncrypt.Encrypt(regInfo.ToJson());
+
+		}
+
+
+		
 	}
 
 

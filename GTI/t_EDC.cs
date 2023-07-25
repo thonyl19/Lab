@@ -1,4 +1,5 @@
 ﻿using BLL.MES;
+using MDL.MES;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using UnitTestProject.TestUT;
 using static BLL.MES.WIPInjectServices;
@@ -20,6 +21,14 @@ namespace UnitTestProject
 					return FileApp.ts_Log(@"EDC\t_GetOperEdc.json");
 				}
 			}
+
+			internal static string t_SaveAPI
+			{
+				get
+				{
+					return FileApp.ts_Log(@"EDC\t_SaveAPI.json");
+				}
+			}
 		}
 
 
@@ -30,9 +39,12 @@ namespace UnitTestProject
 			var _list = WIPOperConfigServices.GetOperEdc(txn.DBC, txn.LotInfo, txn.GetRouteVerOper());
 			new FileApp().Write_SerializeJson(_list, _log.t_GetOperEdc);
 		}, true);
-		 
 
 
+
+		
+
+		
 	}
 
 

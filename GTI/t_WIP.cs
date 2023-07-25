@@ -535,7 +535,9 @@ namespace UnitTestProject
 			//ToolUtility.ToolFunction func = new ToolUtility.ToolFunction(dbc);
 			//DataView dvOperTool = func.GetPartNoOperToolData_OperSid(lotInfo.WO, lotInfo.ROUTE_VER_SID, lotInfo.ROUTE_VER_OPER_SID, lotInfo.PARTNO, lotInfo.OPER_SID);
 
-			var x = new WIPServices().LoadCheckToolByEquipment("CUT-003", "WO-T010-01");
+			var x = new WIPServices()
+				//.LoadCheckToolByEquipment("CUT-003", "WO-T010-01");
+				.LoadCheckToolByEquipment("E-C02-001-01", "LWO23010901-07");
 
 		}
 	}

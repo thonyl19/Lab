@@ -15,6 +15,8 @@ namespace Genesis
 		public static string JQuery = "~/bundles/jquery";
 		public static string JQueryDrag_JS = "~/Vendor/JQueryDragJS";
 		public static string JQueryDrag_CSS = "~/Vendor/JQueryDragCSS";
+		public static string Storage = "~/bundles/storage";
+		
 		public static string Genesis = "~/bundles/Genesis";
 		public static string elUI_JS = "~/Vendor/elUI_JS";
 		public static string elUI_CSS = "~/Vendor/elUI_CSS";
@@ -25,6 +27,7 @@ namespace Genesis
 
 		public static string artTemplate = "~/bundles/artTemplate";
 		public static string parsley = "~/bundles/parsley";
+		public static string localize = "~/bundles/localize";
 		/// <summary>
 		/// 備註：這裡不包括載入 elUI 相關套件
 		/// </summary>
@@ -118,8 +121,7 @@ namespace Genesis
 				"~/Scripts/app/modules/trigger-resize.js",
 				"~/Scripts/app/modules/fullscreen.js",
 				"~/Scripts/app/modules/gmap.js",
-
-				//"~/Scripts/app/modules/localize.js",
+				
 				"~/Scripts/app/modules/i18next.js",
 				"~/Scripts/app/modules/maps-vector.js",
 				"~/Scripts/app/modules/navbar-search.js",
@@ -216,8 +218,7 @@ namespace Genesis
 			// Main Vendor
 
 			bundles.Add(new ScriptBundle(eBundle.JQuery).Include(
-						"~/Vendor/jquery/dist/jquery.js"
-			//"~/Vendor/jquery/dist/jquery-migrate-3.1.0.js"
+				"~/Vendor/jquery/dist/jquery.js"
 			));
 
 			bundles.Add(new ScriptBundle(eBundle.c3_JS).Include(
@@ -285,7 +286,7 @@ namespace Genesis
 			#endregion
 
 
-			bundles.Add(new ScriptBundle("~/bundles/storage").Include(
+			bundles.Add(new ScriptBundle(eBundle.Storage).Include(
 			  "~/Vendor/jQuery-Storage-API/jquery.storageapi.js"
 			));
 
@@ -757,11 +758,11 @@ namespace Genesis
 
 			//Vue
 			bundles.Add(new ScriptBundle(eBundle.Vue).Include(
-			  "~/Scripts/vue.js",
+			  "~/Scripts/vue.min.js",
 			  "~/Scripts/lodash.min.js"
 			));
 			bundles.Add(new ScriptBundle(eBundle.Vue_MES).Include(
-				"~/Scripts/vue.js",
+				"~/Scripts/vue.min.js",
 				"~/Scripts/vuex.js",
 				"~/Scripts/numeral.min.js",
 				"~/Scripts/vue_Utility.js",

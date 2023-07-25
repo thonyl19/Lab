@@ -1,9 +1,11 @@
-﻿using BLL.DataViews.Res;
+﻿using BLL.Base;
+using BLL.DataViews.Res;
 using BLL.MES;
 using Frame.Code;
 using Genesis.Gtimes.ADM;
 using Genesis.Gtimes.Common;
 using Genesis.Gtimes.WIP;
+using MDL.MES;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Newtonsoft.Json;
 using System;
@@ -16,14 +18,11 @@ using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Reflection;
 using UnitTestProject.TestUT;
-using static BLL.MES.WIPInjectServices;
-using static Genesis.Areas.Label.Controllers.PrintController;
 using static Genesis.Library.BLL.Label.LabelBaseService;
-using static Genesis.Library.BLL.Label.PrintServices;
 
 namespace UnitTestProject
 {
-	[TestClass]
+    [TestClass]
 	public class UnitTest_
 	{
 		public string _path = @"C:\Code\GTIMES_2015\UnitTestProject\Log\";
@@ -80,6 +79,14 @@ namespace UnitTestProject
 
 			//LotInfo = FileApp.Read_SerializeJson<LotUtility.LotInfo>(_file);
 
+
+		}
+
+		[TestMethod]
+		public void t_ProjectCustomer()
+		{
+			string ProjectCustomer = System.Configuration.ConfigurationManager.AppSettings["urlSAP"] != null ?
+				System.Configuration.ConfigurationManager.AppSettings["urlSAP"] : "";
 
 		}
 
@@ -213,6 +220,19 @@ namespace UnitTestProject
 			_t = decimal.TryParse("1.5555", out x);
 		}
 
+		[TestMethod]
+		public void t_GetParameterGroupTypes()
+		{
+			var x = new ServicesBase().GetEnumList("ParameterGroupType");
+		}
+
+
+		[TestMethod]
+		public void t_RequiredFieldCheck()
+		{
+			var d = new QC_CODE_LETTER();
+			new ServicesBase().RequiredFieldCheck(d);
+		}
 
 		[TestMethod]
 		public void t_取得版本序號()
@@ -239,13 +259,26 @@ namespace UnitTestProject
 		[TestMethod]
 		public void t_GTiMES_saltkey1()
 		{
-			var A = "Ui9PSO0YBlrQ47RuXDzT6A==";
+			var A = "RrYm72OF0OGCOKQFFAlvJg==";
 			var B = "P3wRbcoQHxFlvgTT";
 			var T = Encrypter.DecryptAES(A,B);
 			//
 			//var T = pwd.EncryptAES(A, B);
 
 		}
+
+		[TestMethod]
+		public void t_GTiMES_saltkey2()
+		{
+			var A = "RrYm72OF0OGCOKQFFAlvJg==";
+			var B = "P3wRbcoQHxFlvgTT";
+			var T = Encrypter.DecryptAES(A, B);
+			//
+			//Genesis.Mes.Library.Security.Password pwd = new Genesis.Mes.Library.Security.Password();
+			//pwd.DecryptAES(password, userEntity.PWD, userEntity.SECOND_PWD);
+
+		}
+
 
 		[TestMethod]
 		public void t_x()
@@ -265,7 +298,11 @@ namespace UnitTestProject
 			}
 		}
 
- 
+
+
+			
+
+
 
 
 

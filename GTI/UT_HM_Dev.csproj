@@ -67,11 +67,10 @@
     <Compile Include="t_Entity.cs" />
     <Compile Include="t_GetCodes.cs" />
     <Compile Include="t_HoldLot.cs" />
-    <Compile Include="t_IPQC.cs" />
     <Compile Include="t_Lot.cs" />
+    <Compile Include="t_MTR.cs" />
     <Compile Include="t_Reflection.cs" />
     <Compile Include="t_RouteOper.cs" />
-    <Compile Include="t_WIP.cs" />
     <Compile Include="t_ZZ.cs" />
     <Compile Include="NUnit_Test.cs" />
     <Compile Include="UnitTest_.cs" />
@@ -79,6 +78,7 @@
     <Compile Include="t_QTimer.cs" />
     <Compile Include="t_EDC.cs" />
     <Compile Include="t_Wafer.cs" />
+    <Compile Include="ZZ\t_HM.cs" />
     <Compile Include="_std.cs" />
   </ItemGroup>
   <ItemGroup>
@@ -157,6 +157,9 @@
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
     <None Include="configSetting\Connection_PTTC.config">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Include="configSetting\Connection~.config">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
     <None Include="packages.config" />
@@ -352,6 +355,14 @@
     </PackageReference>
   </ItemGroup>
   <ItemGroup>
+    <Reference Include="Genesis.Gtimes.ADM, Version=1.0.0.0, Culture=neutral, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>H:\HM_Dev\Library\BLL\bin\Debug\Genesis.Gtimes.ADM.dll</HintPath>
+    </Reference>
+    <Reference Include="Genesis.Gtimes.Common, Version=1.0.0.0, Culture=neutral, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>H:\HM_Dev\GenesisReference4.5\Genesis.Gtimes.Common.dll</HintPath>
+    </Reference>
     <Reference Include="Genesis.Gtimes.MTR, Version=1.0.0.0, Culture=neutral, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
       <HintPath>H:\HM_Dev\Library\BLL\bin\Debug\Genesis.Gtimes.MTR.dll</HintPath>
@@ -359,6 +370,10 @@
     <Reference Include="Genesis.Gtimes.Transaction, Version=1.0.0.0, Culture=neutral, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
       <HintPath>H:\HM_Dev\GenesisReference4.5\Genesis.Gtimes.Transaction.dll</HintPath>
+    </Reference>
+    <Reference Include="Genesis.Gtimes.WIP, Version=1.0.0.0, Culture=neutral, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>H:\HM_Dev\GenesisReference4.5\Genesis.Gtimes.WIP.dll</HintPath>
     </Reference>
     <Reference Include="Genesis.Mes.Library.WCF">
       <HintPath>H:\HM_Dev\Library\BLL\bin\Debug\Genesis.Mes.Library.WCF.dll</HintPath>
@@ -390,25 +405,25 @@
       <Project>{ed5754bc-5c58-47aa-85a2-17466df25165}</Project>
       <Name>WIP</Name>
     </ProjectReference>
+    <ProjectReference Include="H:\HM_Case\Library\BLL\BLL.csproj">
+      <Project>{add17dc1-60bd-47f9-a51f-704c027767c5}</Project>
+      <Name>BLL</Name>
+    </ProjectReference>
+    <ProjectReference Include="H:\HM_Case\Library\Dal\Dal.csproj">
+      <Project>{1eba4623-1d86-4bb9-b2a3-fa89e0132345}</Project>
+      <Name>Dal</Name>
+    </ProjectReference>
+    <ProjectReference Include="H:\HM_Case\Library\MDL\MDL.csproj">
+      <Project>{d78c56c3-a76e-49b8-8a91-49b5d4bbd0b3}</Project>
+      <Name>MDL</Name>
+    </ProjectReference>
     <ProjectReference Include="H:\HM_Dev\Library\Frame.Code\Frame.Code.csproj">
       <Project>{ccbe423c-3e06-4715-8c65-518e3322265a}</Project>
       <Name>Frame.Code</Name>
     </ProjectReference>
-    <ProjectReference Include="H:\HM_Dev\Library\MDL\MDL.csproj">
-      <Project>{d78c56c3-a76e-49b8-8a91-49b5d4bbd0b3}</Project>
-      <Name>MDL</Name>
-    </ProjectReference>
     <ProjectReference Include="H:\HM_Dev\Library\RES\RES.csproj">
       <Project>{4d318d82-259f-4e42-870c-a09883281158}</Project>
       <Name>RES</Name>
-    </ProjectReference>
-    <ProjectReference Include="H:\HM_Dev\Library\BLL\BLL.csproj">
-      <Project>{add17dc1-60bd-47f9-a51f-704c027767c5}</Project>
-      <Name>BLL</Name>
-    </ProjectReference>
-    <ProjectReference Include="H:\HM_Dev\Library\Dal\Dal.csproj">
-      <Project>{1eba4623-1d86-4bb9-b2a3-fa89e0132345}</Project>
-      <Name>Dal</Name>
     </ProjectReference>
     <ProjectReference Include="H:\HM_Dev\Genesis_MVC\Genesis.csproj">
       <Project>{a520b863-a9ed-4cff-acd9-ec3ade58b8ad}</Project>

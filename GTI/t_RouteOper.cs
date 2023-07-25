@@ -195,6 +195,14 @@ namespace t_RouteOper
 			_file.Write_SerializeJson(_r, _log.t_RouteVerOperationInfo);
 
 		}
+
+
+		[TestMethod]
+		public void t_StationEQP()
+		{
+			var NEXT_OPER_SID = "GTI23010917340392788";
+			var r = WIPOperConfigServices.StationEQP(NEXT_OPER_SID);
+		}
 	}
 
 

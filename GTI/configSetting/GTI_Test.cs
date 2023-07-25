@@ -4,12 +4,13 @@ using BLL.MES;
 using BLL.MES.DataViews;
 using Frame.Code;
 using Genesis.Common;
-//using Genesis.Hubs;
 using Genesis.WebApi;
 using Microsoft.AspNet.SignalR;
 using Newtonsoft.Json;
+using System;
 using System.Collections.Generic;
 using System.Dynamic;
+using System.Linq;
 using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Threading;
@@ -17,10 +18,20 @@ using System.Threading.Tasks;
 using System.Web;
 using System.Web.Mvc;
 using System.Web.Mvc.Html;
+using System.Xml;
+using System.Xml.Linq;
+using System.Xml.XPath;
+using System.Resources;
+using Genesis.Gtimes.Common;
+using System.Configuration;
+using System.Web.Http.Cors;
+using System.Collections;
+using System.IO;
+using System.Text.RegularExpressions;
+using vFile = System.IO.File;
 
 namespace Genesis
 {
-AA
     public class GTI_Test : IGTI_Test
     {
         public static bool isTest { get; set; }
@@ -77,6 +88,7 @@ AA
                         ServicesBase.isTest = true;
                         Debug = "debugger;";
                     }
+                    isUItest(Req);
                 }
             }
             else
@@ -100,7 +112,7 @@ AA
         public IHtmlString param_UItest(string key = "dataModel")
         {
             var _code = "";
-            if (UItest != "")
+            if (string.IsNullOrWhiteSpace(UItest)==false)
             {
                 string Baseurl = $"http://localhost:59394/GenesisNewMes/Example/Self/UITest?name={UItest}";
                 HttpClient client = new HttpClient();
@@ -109,7 +121,7 @@ AA
                 var r = client.GetAsync(Baseurl).Result;
                 var res = r.Content.ReadAsStringAsync().Result;
                 //var _o = JsonConvert.DeserializeObject(res);// res.Replace("\"", "");
-                _code = $"{key} = {res}";//JSON.parse({_o.ToJson()});
+                _code = $"{key} = {res};";//JSON.parse({_o.ToJson()});
             }
             return Test(_code, 1);
         }
@@ -126,6 +138,11 @@ AA
                 var r = client.GetAsync(Baseurl).Result;
                 var res = r.Content.ReadAsStringAsync().Result;
                 _obj = res.ToObject<T>();
+
+                //Type _type = typeof(T);
+                //if (_type == typeof(LotData)) {
+                //    (_obj as LotData).LOT_Ext.Add("UItest_Src", res);
+                //}
             }
             return _obj;
         }
@@ -158,11 +175,47 @@ AA
     {
         //public static string basePath(string key) { return $"~/Areas/Example/Views/Code/{key}.cshtml"; }
 
+        public struct 進出站 {
+            /*
+            ##CheckPartials
+            \Genesis_MVC\Areas\MES\Views\OperTask\StationCheckOut.cshtml 
+            @foreach (var c in BLL.Base.ServicesBase.CheckPartials(Html, "GRF", "_LotFinlishTransfromMLot.cshtml"))
+            {
+                @Html.Raw(c)
+            }
+            */
+            public static int CheckPartials;
+
+
+            /*
+            \Genesis_MVC\Areas\MES\Views\WIP\Partial2\_selectEqument.cshtml
+            c_EqpMLOTList: {
+                get() {
+                    var r = [];
+                    let { $store } = this;
+                    if ($store) {
+                        return  _.get($store,'state.globalvar.OperationPartUseList', []);
+                    }
+                    return r; 
+                },
+                set(val) {
+                    this.EqpMLOTList = val;
+                    let { $store } = this;
+                    if ($store) this.$set($store.state.globalvar,'OperationPartUseList', val);
+                }
+            }
+             
+             */
+            public static int _子物件往主物件做賦值;
+        }
+
         public struct comm_Vue
         {
             /* mixins: [reason_obj],
             v_rootEl , v_model
             mixins: [Vue.prototype.$UT.Mixins.Info()],
+            $nextTick 
+
             */
             public static int mixins;
             // Vue.config.devtools = true;
@@ -176,8 +229,13 @@ AA
                     };
                 },
             子物件) H:\HM_Dev\Genesis_MVC\Areas\MES\Views\WIP\Partial2\_useOperPartSplitSubLot.cshtml
+                {{c_Src.Setting}}
                 let { v_model, v_rootEl } = Vue.prototype.$UT.Mixins;
                 mixins: [v_rootEl()],
+
+            賦值程序)
+            this.$set(this.c_Src, 'ErrGroup', {});
+                   
             */
             public static int v_rootEl;
 
@@ -227,8 +285,13 @@ AA
             @{
                 var action = ViewContext.RouteData.Values["action"].ToString();
                 var controller = ViewContext.RouteData.Values["controller"].ToString().ToUpper();
+                
                 GTI_Test GTest = new GTI_Test(Html, ViewContext.HttpContext);
+                GTI_Test GTest = new GTI_Test(Html, HttpContext.Current.IsDebuggingEnabled, ViewContext.HttpContext.Request);
+                
+                ViewBag.Title = Model.ViewBag_Title(Face.CHECKOUT);
                 ViewBag.Title = Genesis.Common.PageBaseInfo.getCurrentResource(action.ToString()).RESOURCE_NAME;
+
                 bool isSingleModel = (bool)ViewData["SingleModel"];
                 if (isSingleModel)
                 {
@@ -378,6 +441,9 @@ AA
 		    </el-table-column>
              */
             public static int gt_split_data;
+
+
+
         }
         public struct lodash
         {
@@ -446,6 +512,36 @@ AA
             e.preventDefault 
              */
             public static int Event;
+
+            /*
+            QueryFunc(search) {
+                var _self = this;
+                let { query_mode } = this;
+                var url = _self.$URL.chg_Path(_self.c_API, { search, query_mode });
+                if (url == null) return;
+                var _ajax = {
+                    url,
+                    type: 'get',
+                    automessage: false,
+                    success(res) {
+                        let { Success, Message,Data} = res
+                        if (Success) {
+                            if (_self.clear_type == 1) _self.c_val = "";
+                            if (_self.CheckRepeat(Data) == false) {
+                                _self.callback(Data);
+                            }
+                        } else {
+                            _self.$Alert.Err(Message).then(() => {
+                                if (_self.clear_type == 2) _self.c_val = "";
+                            });
+                        }
+                    }
+                };
+                $.submitForm(_ajax);
+            } 
+             */
+            public static int API;
+
         }
         public struct elUI
         {
@@ -604,6 +700,20 @@ AA
                 }
                 */
                 public static int case_階層;
+
+                /*
+                <el-table-column :label='i18n.ENABLE_FLAG' prop='ENABLE_FLAG' 啟用停用>
+                    <template slot-scope="scope">
+                        {{ENABLE_FLAG[scope.row.ENABLE_FLAG]}}
+                    </template>
+                </el-table-column>
+                
+                ENABLE_FLAG: {
+					T:'@Face.rdoEnable',
+					F:'@Face.rdoDisable',
+				},
+                */
+                public static int ENABLE_FLAG;
             }
 
             public struct Tabs
@@ -627,15 +737,145 @@ AA
             });
             */
             public static int confirm;
+
+            /*
+			<el-date-picker v-model="form.日期" style="width: 100% !important;"
+							type="daterange"
+							align="right"
+							unlink-panels
+							value-format="yyyy-MM-dd"
+							range-separator="@Face.DateQueryFlag"
+							start-placeholder="@Face.Start_Date"
+							end-placeholder="@Face.End_Date"
+							:picker-options="pickerOptions">
+			</el-date-picker>
+            data() {
+            	form: {
+					日期:['2022-1-1','2022-1-31']
+				},
+                pickerOptions: {
+                    shortcuts: [
+                        {
+                            text: '最近一週',
+                            onClick(picker) {
+                                const end = new Date();
+                                const start = new Date();
+                                start.setTime(start.getTime() - 3600 * 1000 * 24 * 7);
+                                picker.$emit('pick', [start, end]);
+                            }
+                        }, {
+                            text: '最近一個月',
+                            onClick(picker) {
+                                const end = new Date();
+                                const start = new Date();
+                                start.setTime(start.getTime() - 3600 * 1000 * 24 * 30);
+                                picker.$emit('pick', [start, end]);
+                            }
+                        }, {
+                            text: '最近三個月',
+                            onClick(picker) {
+                                const end = new Date();
+                                const start = new Date();
+                                start.setTime(start.getTime() - 3600 * 1000 * 24 * 90);
+                                picker.$emit('pick', [start, end]);
+                            }
+                        }
+                    ]
+                },
+            }
+            computed: {
+			    c_Conditions() {
+                    var conditions = { condition: "AND", rules: [] };
+                    _.each(this.form,
+                        (value, field) => {
+                            if (value != "" && value != null) {
+                                var _rule = { field, type: "string", operator: "contains", value };
+                                switch (field) {
+                                    case "日期":
+                                        //_rule.operator = 'greater_or_equal';
+                                        //_rule.value = moment(this.form.日期).format('YYYY/MM/DD') + " 00:00:00";
+                                        if (_.isString(value)) {
+                                            _rule.operator = "Contains";
+                                            _rule.value = [value];
+                                        } else if (_.isArray(value)) {
+                                            _rule.operator = "between";
+                                            _rule.type = "date";
+                                            let end = moment(value[1]).add('hours', 23).add('minutes', 59).add('seconds', 59).format('YYYY-MM-DD HH:mm:ss');
+                                            _rule.value = [moment(value[0]).format('YYYY-MM-DD HH:mm:ss'), end];
+                                        }
+                                        conditions.rules.push(_rule);
+                                        break;
+                                    default:
+                                        conditions.rules.push(_rule);
+                                        break;
+                                }
+                            }
+					    });
+				    return conditions;
+			    },
+		    },
+            click_Query() {
+			    this.grid.Conditions = this.c_Conditions;
+			    this.query(1);
+		    },
+            // 查詢處理程序
+			query(pageIdx) {
+				var _self = this;
+				_self.grid.Page.Index = pageIdx;
+				var param = _self.grid.query_rule;
+				console.log({ query: param });
+				var _ajax = {
+					url: '@Url.Action($"{action}_ListData")',
+					type: 'post',
+					param,
+					success: this.query_success
+				};
+				$.submitForm(_ajax);
+			},
+			// 查詢成功處理程序
+			query_success(res) {
+				let { Data, Code = null, Message, Success = false } = res;
+				if (Success) {
+					let { PageInfo, gridData } = Data || {};
+					this.grid.data = gridData;
+					this.grid.row_count = PageInfo.RowCount;
+				} else {
+					var msg = Message != null
+						? Message
+						: '@BLL.InterFace.ErrCode.GenericErrorMessage'
+						;
+					this.$Alert.Err(msg);
+				}
+			},
+             
+             */
+            public static int el_Date_range;
+
+            /*
+            L:\Prd_Dev\Genesis_MVC\Areas\PMS\Views\PMSJobExecute\PMSJobExecuteMaster.cshtml
+            
+            delay_query() {
+                var conditions = { condition: "AND", rules: [] };
+                var _rule_Data = { field: 'STATUS', operator: "Contains", type: "string", value: ["WAIT", "PROCESSING"] };
+                conditions.rules.push(_rule_Data);
+                var _rule_STATUS = { field: 'PLAN_DATE', operator: "less_or_equal", type: "date", value: moment().format("YYYY/MM/DD") };
+                conditions.rules.push(_rule_STATUS);
+                this.grid.Conditions = conditions;
+			    this.query(1);
+            },
+            */
+            public static int el_Date_查詢今日以前的特定狀態;
         }
 
         public struct gt_form_col
         {
             /*
+            col_sty="col-lg-12" -- 單邊一欄模式
+
             <div class="panel b">
                 <div class="panel-body form-horizontal gt-form">
                     <div class="col-lg-6 col-md-12 adj">
-                        <gt-form-col label="@Face.OPERATION" required col_sty="col-lg-12">
+                        <gt-form-col label="@Face.OPERATION" required readonly col_sty="col-lg-12">
                         </gt-form-col>
                     </div>
                 </div>
@@ -645,16 +885,19 @@ AA
 
             /*
             H:\GTiMES5.1_Dev\Genesis_MVC\Areas\WIP\Views\Lot\_Common.cshtml
-            col_sty="col-lg-12" -- 單邊一欄模式
-            <gt-form-col label="@Face.OPERATION" required >
-                <input class="form-control" v-if="c_SN_readonly"
-                        v-model="c_SN"  
-                        v-on:keyup.enter="act_query(c_val)"
-                        />
-                <div class="form-control" readonly v-if="!c_SN_readonly">
-                    <span class="label label-primary">{{Lot_0.ROUTE_VER_OPER_SID}}</span> {{Lot_0.OPERATION}}
-                </div>
-            </gt-form-col>
+            
+            <div class="col-lg-6 col-md-6 form-group">
+                <gt-form-col label="@Face.OPERATION" required >
+                    <input class="form-control" v-if="c_SN_readonly"
+                            v-model="c_SN"  
+                            v-on:keyup.enter="act_query(c_val)"
+                            />
+                    <div class="form-control" readonly v-if="!c_SN_readonly">
+                        <span class="label label-primary">{{Lot_0.ROUTE_VER_OPER_SID}}</span> {{Lot_0.OPERATION}}
+                    </div>
+                </gt-form-col>
+            </div>
+            
             */
             public static int 擬selectize;
 
@@ -681,6 +924,49 @@ AA
              
             */
             public static string gt_tag_version = "";
+
+            /*
+            <div class="col-lg-12 col-md-12 adj-center">
+                <gt-query label="鋼版編號/名稱" 
+                            v-model="query.Top"
+                            placeholder="@RES.BLL.Message.PleaseScanTheBarcodeOrUseKeywords"
+                            :callback="callback"
+                            :query_mode=1
+                            api="api/ddl/Tool"
+                            >
+                    <el-button type='success' icon="fa fa-save"   style="margin-left:3rem;" @@click="Save">
+                        儲存
+                    </el-button>
+                </gt-query>
+            </div> 
+             
+             */
+            public static int _單欄置中配置;
+
+
+            /*
+            <gt-form-col :label='i18n.UPDATE_DATE' 資料更新日期 col_sty="col-lg-12"
+                            v-trim>
+                <div style="padding: 6px 0px">
+                    <el-tag type="success" size="mini">{{form.UPDATE_USER}}</el-tag>
+                    {{form.UPDATE_DATE}}
+                </div>
+            </gt-form-col>
+            */
+            public static int _人員日期配置;
+
+
+            /*
+             <gt-form-col :label="c_special_reason_label" col_sty="col-lg-12">
+                <el-input type="textarea" v-model="qc_data.@nameof(IQC_QC_1916.SPECIAL_REASON)" :readonly="c_status_is_create">
+            </gt-form-col> 
+
+            <gt-form-col :label="i18n.DESCRIPTION" col_sty="col-lg-12">
+                <el-input type="textarea" v-model="form.DESCRIPTION" :autosize="{ minRows: 3, maxRows: 4}" >
+            </gt-form-col>
+             */
+            public static int _備註;
+
         }
         public struct v_selectize
         {
@@ -751,6 +1037,21 @@ AA
             gt-query-lot 
 
              */
+            public static int vue_selectize_班別;
+            /*
+            H:\GRF_Dev\Genesis_MVC\Areas\MES\Views\WIP\Partial2\_multiSelectUsers.cshtml
+            <vue-selectize ref="selectShiftItem" placeholder="@RES.BLL.Message.PleaseScanTheBarcodeOrUseKeywords"
+							   v-if="set_model.UserShiftList"
+							   v-model="selected_Shiftitem"
+							   :options="set_model.UserShiftList"
+							   :selectize_ops="selectize_ops"
+							   render_sty="GTIMES"
+							   autocomplete="off"
+                               required
+							   >
+				</vue-selectize>
+             */
+
 
             public static int vue_selectize_Case;
             /*
@@ -759,6 +1060,16 @@ AA
             data-parsley-error-message
             */
 
+            public static int vue_selectize_api;
+            /*
+            <vue-selectize-ddlapi v-model="form.PARTNO"  required
+                        :options="ddl_PARTNO.src"
+                        action="PartNo"
+                        render_sty="GTIMES" 
+						:readonly="!isAddMode">
+					<gt-tagformat v-model="form.PART_NAME" :tag="form.PARTNO" readonly></gt-tagformat>
+			</vue-selectize-ddlapi>
+            */
         }
 
         public struct gt_toolbar
@@ -769,7 +1080,7 @@ AA
             <gt-toolbar :e_save="c_save"
                     :e_del="c_delete"
                     :e_copy="c_copy"
-                    :enable.sync="c_switch_enable"
+                    :enable="c_enable"
                     :visible="!c_isAddMode"
                     fixed="top"
                     :is_change="c_is_change">
@@ -780,6 +1091,23 @@ AA
                     visable: !this.c_isAddMode,
                     enable: !this.c_switch_enable,
                     fn: this.fnDelete
+                }
+            },
+            c_enable: {
+                get() {
+                    if (this.c_is_change)
+                        this.form.@nameof(FC_EQUIPMENT_PORT.ENABLE_FLAG) = 'F';
+                    return this.form.@nameof(FC_EQUIPMENT_PORT.ENABLE_FLAG) === 'T' ? true : false;
+                },
+                set(val) {
+                    this.$set(this.form, '@nameof(FC_EQUIPMENT_PORT.ENABLE_FLAG)', val ? 'T' : 'F');
+
+                    if (!this.fnCheckIsChange()) {
+                        return false;
+                    }
+
+                    if (!this.c_isAddMode && !this.c_is_change)
+                        this.fnUpdateEnable(val);
                 }
             },
 			*/
@@ -858,6 +1186,35 @@ AA
                 },
             */
             public static int Clear;
+
+            /*
+            e_enable(Enable) {
+                debugger
+                var _self = this;
+                let param = {
+                    SID: this.form.STATE_SID,
+                    Enable
+                }
+                var url = '@Url.Action($"{action}_Enable")';
+                var _ajax = {
+                    url,
+                    param,
+                    type: 'post',
+                    success(res) {
+                        let { Success, Data, Message = ""} = res;
+                        if (Success) {
+                        } else {
+                            _self.form.ENABLE_FLAG = !Enable ? 'T' : 'F';
+                        }
+                        _self.$UT.parent_reload();
+                    }
+                };
+                return $.submitForm(_ajax);
+            },
+             
+             */
+            public static int Enable;
+
         }
 
         /*
@@ -894,6 +1251,19 @@ AA
             },
 			*/
             public static int M1;
+
+
+            public static int gt_query_lot;
+            /*
+                             <gt-query-lot label="@RES.BLL.Face.Lot" prompt_sty="has-req" col_sty="col-lg-12"
+                              v-model="CurrentLot.LOT"
+                              :query_func="Query"
+                              :check_repeat="grid.data"
+                              :readonly="c_LOT_input"
+                              placeholder="@RES.BLL.Message.PleaseInputLot"
+                              query_mode=1>
+             
+             */
         }
     }
 
@@ -929,6 +1299,52 @@ AA
 		    => DDLServices.ddl_Parameter(ParameterNo);
             */
             public static int Parameter;
+
+
+            /*
+            http://localhost:59394/GenesisNewMes/api/ddl/Parameter?ParameterNo=grade
+            var _list = TableQueryService.GetRouteOperData(RouteVerSID);
+			if (_list == null) return null;
+			var _ddl = _list
+				.Select(s => new SelectModel
+				{
+					SID = s.Field<string>("OPER_SID"),
+					No = s.Field<string>("OPERATION_NO"),
+					Display = s.Field<string>("OPERATION"),
+					Value = s.Field<string>("OPER_SID"),
+					Attr01 = s.Field<string>("ROUTE_VER_OPER_SID")
+				}).ToList();
+			return _ddl;
+            */
+            public static int SelectModel;
+
+            /*
+            http://localhost:59394/GenesisNewMes/Example/Self/test?name=_Upload
+
+            [Route("api/Import/Upload")]
+            [HttpPost]
+            public IResult Upload()
+            {
+                var httpRequest = HttpContext.Current.Request;
+                // 檢查是否有上傳的檔案
+                if (httpRequest.Files.Count == 0)
+                {
+                    return new Result("沒有上傳的檔案。");
+                }
+                var postedFile = httpRequest.Files[0];
+                string fileName = httpRequest["fileName"];
+                if (fileName == null) { 
+                    fileName = Path.GetFileName(postedFile.FileName);
+                }
+                var uploadPath = HttpContext.Current.Server.MapPath("~/App_Data/" + fileName);
+                if (File.Exists(uploadPath)) File.Delete(uploadPath);
+
+                postedFile.SaveAs(uploadPath);
+                return new Result(true, "圖片上傳成功。") { Data = new { fileName } };
+            } 
+            
+             */
+            public static int upload;
 
         }
         public struct Controller
@@ -999,11 +1415,38 @@ AA
                 /*
                  H:\HM_Dev\Library\BLL\Base\ServicesBase.cs
                 GetCustomerView
+                
                  */
                 /// <summary>
                 /// 根據專案名稱取得客製頁面
                 /// </summary>
                 public static int GetCustomerView;
+
+                /*
+                [Ref] H:\GRF_Dev\Genesis_MVC\Areas\ZZ_LIO\Views\OperTask\LaserCuttingCheckOut.cshtml
+
+                @foreach (var c in BLL.Base.ServicesBase.CheckPartials(Html, "LIO", Model.Setting.CheckOutSet?.SplitCfg))
+                {
+                    @Html.Raw(c)
+                }
+                    
+                public static List<MvcHtmlString> CheckPartials(HtmlHelper htm, string Key, params IOptionCfg[] list)
+		        {
+			        var r = new List<MvcHtmlString>();
+			        bool isMatch = System.Configuration.ConfigurationManager.AppSettings["ProjectCustomer"] == Key;
+			        if (!isMatch) return r;
+			        var area_name = _Rule(Key);
+			        foreach (var item in list)
+			        {
+				        r.Add(htm.Partial($"~/Areas/{area_name}/Views/{item.CodeRule}.cshtml"));
+			        }
+			        return r;
+		        }
+                 */
+                /// <summary>
+                /// 處理多檔載入需求 
+                /// </summary>
+                public static int CheckPartials;
 
                 /*
                 H:\HM_Dev\Library\BLL\MES\WIPInfoServices.cs
@@ -1014,7 +1457,37 @@ AA
                 /// 取得日期區間
                 /// </summary>
                 public static int DataRange;
+
+
+                /*
+                M:\Prd_zz\Genesis_MVC\Common\PageBaseInfo.cs
+
+                public class PF_PARTNO : iCommPage
+                { 
+				    public string path { get; } = "~/Views/Maintain/_PF_PARTNO.cshtml"; 
+				    public string Query { get; set; } 
+
+                    /// <summary>
+                    /// 子視窗程序
+                    /// </summary>
+                    public string SubForm = "";
+                } 
+                */
+                public static int CommPage;
             }
+
+
+            /*
+            public Dictionary<string,object> ExtenParam { get; set; } = new Dictionary<string, object>();
+             {
+                "ExtenParam": {
+                    "NextStationEQP": "[{\"RefKey\":null,\"SID\":\"GTI23032016184294144\",\"No\":\"DBM-001\",\"Value\":\"DBM-001\",\"Display\":\"DBM-001\",\"StatusSid\":null,\"Status\":null,\"FromNum\":0,\"INum\":0,\"Attr01\":null,\"Attr02\":null,\"Attr03\":null,\"$order\":1}]",
+			        "X":"ABC"
+                },
+        
+            }
+             */
+            public static int _可接收的Dictionary架構;
         }
         public struct Service
         {
@@ -1157,10 +1630,102 @@ AA
             {
 
                 /*
-                 
+                 var listA = (from a in svcAD_RESOURCE.GetAllListIQueryable()
+						 where a.RESOURCE_TYPE == 9
+						 select a)
+						 .ToDictionary(p => p.RESOURCE_NO, p => p);
                 */
                 public static int basic;
+
+                /*
+                var query = from a in context.A join b in context.B on a.Id equals b.AId 
+                into bGroup from b in bGroup.DefaultIfEmpty() 
+                where b != null 
+                select new { a, b };
+
+                */
+                public static int left_join;
+
+                /*
+                Txn.result.Data = Txn.EFQuery<PF_OPERATION_API>()
+					.Reads(c=>c.FUN_TYPE == FUN_TYPE && c.OPER_SID == OPER_SID)
+                    .Select(c => new
+					{
+						c.MOUDLE,
+						c.RESOURCE_URL,
+						c.CHECK_MODE
+					})
+					.GroupBy(c=>c.MOUDLE)
+					.ToDictionary(c=>c.Key,c => (dynamic)c.ToList());
+
+                
+                var _repo = new
+			    {
+				    QC_INSTRUMENTS = Txn.EFQuery<QC_INSTRUMENTS>(),
+				    QC_INSTRUMENTS_EDC = Txn.EFQuery<QC_INSTRUMENTS_EDC>(),
+				    QC_INSTRUMENTS_STATE = Txn.EFQuery<QC_INSTRUMENTS_STATE>(),
+			    };
+			    var form =  (from a in _repo.QC_INSTRUMENTS.Reads()
+				     join b in _repo.QC_INSTRUMENTS_STATE.Reads() 
+					    on a.STATE_SID equals b.STATE_SID into bGroup
+				     where a.INSTRUMENT_SID == SID
+			
+				     from b in bGroup.DefaultIfEmpty()
+				     select new
+				     {
+					     A = a,
+					     STATE_NAME = b != null ? b.STATE_NAME : null
+				     }).FirstOrDefault();
+
+                */
+                public static int case1;
+
+                /*
+                var data_input = _repo.QC_INSP_EDC.Reads(c => c.INSP_NO == form.IPQC_NO)
+                        .Select(q1 => new BLL.DataViews.Edc.EdcModel
+						{
+							QCItemSID = q1.INSP_EDC_SID,
+							DispayPointName = q1.DISPLAY_POINT_NAME,
+							ItemName = q1.PARAMETER,
+							ItemNo = q1.PARA_NO,
+							EdcVerSid = q1.EDC_VER_SID,
+							DataType = q1.DATATYPE,
+							TL = q1.TL,
+							UCL = q1.UCL,
+							LCL = q1.LCL,
+							USL = q1.USL,
+							LSL = q1.LSL,
+							mustInput = q1.MUST_INPUT,
+						}).ToList();
+                */
+                public static int EDC;
             }
+        }
+
+        public struct commm {
+            /*
+            string ProjectCustomer = System.Configuration.ConfigurationManager.AppSettings["ProjectCustomer"] != null ?
+				System.Configuration.ConfigurationManager.AppSettings["ProjectCustomer"] : "";
+             */
+            public static int ConfigurationManager;
+
+
+            /*
+            var svcAD_RESOURCE = new BaseAdResourceServices() { DbContext = new MVCContext() }; 
+             */
+            public static int MVCContext;
+
+
+            /*
+            D:\GRF_Dev\Genesis_MVC\Common\BaseController.cs
+            _OperTaskView()
+
+            TempData["Err"] = err;
+            return Redirect($"~/Pages/Error?Message=執行程式定義錯誤，請聯絡管理人員");
+             
+             */
+            public static int ErrorMessage;
+
         }
 
         /*
@@ -1198,6 +1763,48 @@ AA
 				, "當批號狀態不為Wait,應回傳 false"); 
             */
             public static int Case;
+        }
+
+        /*
+        檢核相關參考 
+        */
+        public struct Check {
+            /*
+            H:\GRF_Dev\Library\BLL\ZZ\GRF\AHTask.WoMtrConsumption.cs 
+            struct d_WoMtrConsumption {
+			    public WOInfo WO ;
+			    public MtrLotUtility.MtrLotInfo MTR_LOT;
+		    }
+		    static IResult Check_WoMtrConsumption(ITxnBase Txn, ZZ_WO_MLOT_CONSUME data) {
+			    if (string.IsNullOrEmpty(data.WO)) {
+				    Result.FieldRequired(RES.BLL.Face.WO).ThrowException();
+			    }
+			    if (string.IsNullOrEmpty(data.MTR_LOT)) {
+				    Result.FieldRequired(RES.BLL.Face.MLOT).ThrowException();
+			    }
+                if (data.MTR_QTY == null)
+                {
+                    Result.FieldRequired("物料耗用數量").ThrowException();
+                }
+
+			    var _d = new d_WoMtrConsumption();
+			    _d.WO = Txn.GetWOInfo(data.WO);
+			    if (_d.WO.IsExist == false) Result.NotExist(RES.BLL.Face.WO);
+
+			    _d.MTR_LOT = Txn.GetMLotInfo(data.MTR_LOT);
+			    if (_d.MTR_LOT.IsExist == false) Result.NotExist(RES.BLL.Face.MLOT);
+
+			    Txn.result.Data = _d;
+			    return Txn.result;
+		    }
+            */
+            public static int Case1;
+
+            /*
+             
+            BLL.InterFace.Check
+            */
+            public static int Case_InterFace;
         }
     }
 
@@ -1300,6 +1907,22 @@ namespace Genesis.Areas.Example.Controllers
             ViewData["SingleModel"] = SingleModel;
             return View($"Code/{name}");
         }
+
+        [AllowAnonymous]
+        [HttpGet]
+        public ActionResult TestEDC(string file = "EDC_API")
+        {
+            var _data = ControllerContext.HttpContext.Server.MapPath($"../../Areas/example/Views/Self/UITest/{file}.json");
+            string text = System.IO.File.ReadAllText(_data);
+
+            var EdcLog = JsonConvert.DeserializeObject<object>(text);
+            var _r = new Result(true)
+            {
+                Data = EdcLog
+            };
+            return Content(_r.ToJson(true));
+        }
+
     }
 
 
@@ -1353,6 +1976,68 @@ namespace Genesis.Areas.DDD.Controllers
             );
         }
     }
+
+    //[AllowAnonymous]
+    //[EnableCors(origins: "*", headers: "Content-Type", methods: "GET")]
+    [RoutePrefix("DDD/DBA")]
+    public class DBAController : BaseController {
+        DBController _dbc;
+        internal DBController DBC
+        {
+            get
+            {
+                if (_dbc == null)
+                {
+
+                    var Conn = ConfigurationManager.ConnectionStrings["sql.mes"];
+                    _dbc = new DBController(Conn);
+                }
+                return this._dbc;
+            }
+        }
+
+        [Route("IP/{IP}")]
+        public ActionResult LotInfo(string IP = "226")
+        => _Content((o) =>{
+            using (_dbc ?? DBC){ 
+
+            }
+            return null;
+        });
+
+        [AllowAnonymous]
+        [Route("Table")]
+        [Route("Table/{Table}")]
+        public ActionResult TableInfo(string Table = null) {
+            using (_dbc ?? DBC)
+            {
+                var sql_table_list = @"
+                SELECT name
+                FROM sys.tables;
+                ";
+
+                var sql_table_schema = $@"
+                    SELECT 
+		                    c.name AS Filed,
+		                    ISNULL(p.value, '') AS [Desc],
+		                    t.Name AS Type,
+		                    c.max_length/2 AS Length,
+		                    IIF(c.is_nullable=0,'N','Y') AS abeNull
+                    FROM  sys.columns c
+			                    INNER JOIN  sys.types t 
+				                    ON c.user_type_id = t.user_type_id
+			                    LEFT OUTER JOIN sys.extended_properties p 
+				                    ON p.major_id = c.object_id AND p.minor_id = c.column_id
+                    WHERE 
+		                    OBJECT_NAME(c.object_id) = '{Table}'
+                ";
+                var _sql = Table == null ? sql_table_list : sql_table_schema;
+                return Content(_dbc.Select(_sql).ToJson(true));
+
+            }
+            return Content("");
+        }
+    } 
     [RoutePrefix("DDD/Wafer")]
     public class WaferController : BaseController
     {
@@ -1418,6 +2103,95 @@ namespace Genesis.Areas.DDD.Controllers
 
         //TODO-tmp 用某個流程 ,直接 查出現下有那些站,站內有那些批號
     }
-}
 
+    [RoutePrefix("DDD/APP")]
+    public class APPController : BaseController
+    {
+        private readonly string[] _localizationFiles = new[]
+        {
+            "Face.zh-TW.resx",
+            "Message.zh-TW.resx"
+        };
+
+        [Route("i18n/{keyword}")]
+        public ActionResult i18nSearch(string keyword)
+        => _Content(o =>
+        {
+            var result = new Dictionary<string, Dictionary<string, string>>();
+            foreach (var file in _localizationFiles)
+            {
+                //var results = new Dictionary<string, string>();
+                var _path = System.Web.HttpContext.Current.Server.MapPath("~/");
+                var fileName = $"{_path}/../../Library/RES/BLL/{file}";
+                XDocument doc = XDocument.Load(fileName);
+                var query = from elem in doc.Descendants("data")
+                            where elem.Value.Contains(keyword) 
+                                || elem.Attribute("name").Value.Contains(keyword)
+                            select new
+                            {
+                                Key = elem.Attribute("name").Value,
+                                Value = elem.Element("value").Value
+                            };
+                var results = new Dictionary<string, string>();
+                foreach (var item in query)
+                {
+                    if (results.ContainsKey(item.Key))
+                    {
+                        results.Add($"{item.Key}~${item.Value}", item.Value);
+                    }
+                    else { 
+                        results.Add(item.Key, item.Value);
+                    }
+                }
+                var mainkey = file.Replace(".zh-TW.resx", "");
+                result.Add(mainkey, results);
+            }
+            return new Result(true) { Data = result };
+        });
+
+        [Route("i18n/Add/{res}")]
+        [Route("i18n/Add/{res}/{key}/{en}/{tw}/{cn}")]
+        public ActionResult i18nAdd(string res, string key, string en, string tw, string cn)
+        => _Content(o =>
+        {
+            var root = Server.MapPath("~/");
+            var tarFile = $@"{root}..\Library\RES\BLL\{res}.resx";
+            if (FileHelper.IsExistFile(tarFile) == false) {
+                return Result.NotExist("語系檔").Data = new { tarFile };
+            }
+
+            ResXResourceSet resxSet = new ResXResourceSet(tarFile);
+            using (ResXResourceWriter resxWriter = new ResXResourceWriter(tarFile))
+            {
+                foreach (DictionaryEntry entry in resxSet)
+                {
+                    resxWriter.AddResource(entry.Key.ToString(), entry.Value);
+                }
+
+                resxWriter.AddResource(key, en);
+                resxWriter.Generate();
+            }
+
+            for (var i = 0; i < 2; i++) {
+                string val = tw, res_tp = ".zh-TW";
+                if (i == 1) { 
+                    val = cn;
+                    res_tp = ".zh-CN";
+                }
+                var tarFile1 = $@"{root}..\Library\RES\BLL\{res}{res_tp}.resx";
+                string fileContent = vFile.ReadAllText(tarFile1);
+                // 使用正則表達式進行置換
+                string pattern = $@"</data>\s*</root>";
+                string replacement = $@"</data>
+	<data name=""{key}"" xml:space=""preserve"">
+		<value>{val}</value>
+	</data>
+</root>";
+                string newContent = Regex.Replace(fileContent, pattern, replacement);
+                vFile.WriteAllText(tarFile1, newContent);
+            }
+            return o;
+        });
+    }
+}
 //bk

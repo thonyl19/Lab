@@ -12,6 +12,9 @@ using System.IO;
 using System.Linq;
 using UnitTestProject.TestUT;
 using mdl = MDL.MES;
+using System.Resources;
+using System.Globalization;
+using System.Collections;
 
 namespace UnitTestProject
 {
@@ -322,8 +325,54 @@ namespace UnitTestProject
 
 		}
 
+ 
+
+		[TestMethod]
+		public void TestLanguageResource()
+		{
+			var enUsCulture = new CultureInfo("en-US");
+			var resManager = new ResourceManager(typeof(RES.BLL.Face));
+			var enUsResourceSet = resManager.GetResourceSet(enUsCulture, true, true);
+
+			// Create a new resource writer for the en-US resource file
+			using (var resourceWriter = new ResourceWriter("Face.en-US.resx"))
+			{
+				// Copy the existing resources to the new writer
+				foreach (DictionaryEntry entry in enUsResourceSet)
+				{
+					resourceWriter.AddResource(entry.Key.ToString(), entry.Value.ToString());
+				}
+
+				// Add new resources
+				resourceWriter.AddResource("hello_world", "Hello World");
+
+				// Save the changes to the resource file
+				resourceWriter.Generate();
+			}
+		}
 
 
+		[TestMethod]
+		public void TestLanguageResource1()
+		{
+			var resxPath = @"M:\Prd_Dev\Library\RES\BLL\resources.resx";
+			//var resxSet = new ResXResourceSet(resxPath);
+
+			// 新增資料
+			//resxSet.Add("hello_world", "Hello World");
+
+			// 寫入 .resx 檔案
+			using (var writer = new ResXResourceWriter(resxPath))
+			{
+				writer.AddResource("test", "test");
+				writer.Generate();
+			}
+		}
+
+		[TestMethod]
+		public void _test_cae1() {
+			var zz = DDLServices.ddl_Carrier();
+		}
 	}
 
 

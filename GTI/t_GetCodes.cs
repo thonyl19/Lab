@@ -9,16 +9,15 @@ using System;
 using System.Collections.Generic;
 using System.Configuration;
 using System.Data;
-using System.Net;
 using UnitTestProject.TestUT;
 //using Genesis.Gtimes.ADM.EncodeFormatUtility;
 
 namespace UnitTestProject
 {
-	/// <summary>
-	/// 編碼原則
-	/// </summary>
-	[TestClass]
+    /// <summary>
+    /// 編碼原則
+    /// </summary>
+    [TestClass]
 	public class t_GetCodes
 	{
 		static class _log
