@@ -1,0 +1,194 @@
+﻿@{
+	bool isSingleModel = (bool)ViewData["SingleModel"];
+
+	if (isSingleModel)
+	{
+		Layout = "~/Views/Shared/_LayoutSingle.cshtml";
+		@eBundle.QRender_CSS();
+		@eBundle.QRender_JS();
+	}
+}
+
+@Scripts.Render("https://cdn.jsdelivr.net/npm/opencc-js@1.0.5/dist/umd/t2cn.js")
+
+
+<div id="app">
+    <gt-toolbar :e_Add="Add">
+        <el-select v-model="form.res" size="mini">
+            <el-option v-for="item in options"
+                       :key="item.value"
+                       :label="item.label"
+                       :value="item.value">
+            </el-option>
+        </el-select>
+        <el-tag @@click="Copy">@@{{c_key}}</el-tag>
+        <el-tag @@click="Copy">RES.BLL.{{c_key}}</el-tag>
+    </gt-toolbar>
+    <div class="panel b">
+        <div class="panel-body">
+            <form id="form_main" class="panel-body form-horizontal gt-form row">
+                <gt-form-col label='Key' v-model="form.key">
+                </gt-form-col>
+                <gt-form-col label='英文' v-model="form.en">
+                </gt-form-col>
+                <gt-form-col label='繁中'>
+                    <el-input v-model="c_tw">
+                        <el-button slot="append" icon="el-icon-search" @@click="Search"></el-button>
+                        <el-button slot="append" icon="el-icon-s-tools" @@click="trans"></el-button>
+                    </el-input>
+                    <div v-for="(item,idx) in trans_list" :key="idx" @@click="tt">{{item}}</div>
+                </gt-form-col>
+                <gt-form-col label='簡中' v-model="form.cn" readonly>
+                </gt-form-col>
+            </form>
+            <el-tabs v-model="activeName">
+                <el-tab-pane label="Src" name="A">
+                    <el-input type="textarea"
+                              :rows="2"
+                              v-model="textarea">
+                    </el-input></el-tab-pane>
+                <el-tab-pane label="View" name="B"><div v-for="(item) in c_textarea">{{item}}</div></el-tab-pane>
+            </el-tabs>
+        </div>
+    </div>
+</div>
+
+
+        <script>
+            $(() => {
+                const converter = OpenCC.Converter({ from: 'hk', to: 'cn' });
+                new Vue({
+                    el: '#app',
+                    data() {
+                        return {
+                            activeName: 'A',
+                            textarea: '',
+                            trans_list:[],
+                            options: [{
+                                value: 'Face',
+                                label: 'Face'
+                            }, {
+                                    value: 'Message',
+                                    label: 'Message'
+                                },],
+                            form: {
+                                res:'Face',
+                                key: '',
+                                en: '',
+                                tw: '',
+                                cn: '',
+                            },
+                            A: i18next.t('transferQtyTooMuch').format('A'),
+                        }
+                    },
+                    computed: {
+                        c_key() {
+                            return `${this.form.res}.${this.form.key}`;
+                        },
+                        c_tw: {
+                            get() {
+                                return this.form.tw;
+                            },
+                            set(val) {
+                                this.form.tw = val;
+                                this.form.cn = converter(val);
+                            }
+                        },
+                        c_textarea() {
+                            return this.textarea.split('\n');
+                        },
+                         
+                    },
+                    methods: {
+                        trans() {
+                            this.trans_list.push(this.form.tw);
+                        },
+                        tt(event) {
+                            const clickedElement = event.target;
+                            this.form.en = event.target.outerText;
+                            this.form.key = this.capitalizeWordsAndJoin(this.form.en);
+                            clickedElement.remove();
+                        },
+                        Search() {
+                            var _self = this;
+                            if (_self.c_tw == "") return;
+                            var url = _self.$URL.chg_Path(`DDD/APP/i18n/${_self.c_tw}`);
+                            var _ajax = {
+                                url,
+                                type: 'get',
+                                automessage: false,
+                                success(res) {
+                                    const h = _self.$createElement;
+                                    let { Success, Message, Data } = res
+                                    _self.$notify({
+                                        title: Message,
+                                        message: h('pre', { style: 'color: teal' }, JSON.stringify(Data,null,4)),
+                                        type: Success ? 'success' : 'warning'
+                                    });
+                                }
+                            };
+                            $.submitForm(_ajax);
+                        },
+                        Add() {
+                            var _self = this;
+                            if (_self.c_tw == "") return;
+                            let { res, key, en, tw, cn } = _self.form;
+                            var param = { en, tw, cn };
+                            var url = _self.$URL.chg_Path(`DDD/APP/i18n/Add/${res}/${key}/`);
+                            var _ajax = {
+                                url,
+                                type: 'post',
+                                param,
+                                automessage: false,
+                                success(res) {
+                                    const h = _self.$createElement;
+                                    let { Success, Message, Data } = res
+                                    _self.$notify({
+                                        title: Message,
+                                        message: h('pre', { style: 'color: teal' }, JSON.stringify(Data, null, 4)),
+                                        type: Success ? 'success' : 'warning'
+                                    });
+                                }
+                            };
+                            $.submitForm(_ajax);
+                        },
+                        Copy(e) {
+                            var val = e.target.innerHTML;
+                            navigator.clipboard.writeText(val)
+                                .then(() => {
+                                    this.$message({
+                                        showClose: true,
+                                        message: '文字已複製到剪貼簿！',
+                                        //type: 'success'
+                                    });
+                                })
+                                .catch((error) => {
+                                    this.$message({
+                                        showClose: true,
+                                        message: `複製到剪貼簿時發生錯誤：${error}`,
+                                        type: 'error'
+                                    });
+                                });
+                        },
+                        capitalizeWordsAndJoin(sentence) {
+                            // 將句子按空白和逗號分割成單詞陣列
+                            const words = sentence.split(/[ ,!?]+/);
+
+                            // 使用 map 函數處理每個單詞，首字母大寫，其餘小寫
+                            const capitalizedWords = words.map(word => {
+                                if (word.length > 1) {
+                                    return word.charAt(0).toUpperCase() + word.slice(1).toLowerCase();
+                                } else {
+                                    return word.toUpperCase(); // 單字只有一個字元，全部轉為大寫
+                                }
+                            });
+
+                            // 重組成一個字符串，使用空格分隔
+                            const result = capitalizedWords.join('');
+
+                            return result;
+                        }
+                    },
+                })
+            });
+        </script>

@@ -1,11 +1,10 @@
 ﻿@{
-    
+	Layout = "~/Views/Shared/_LayoutSingle.cshtml";
 }
-<h3>
-    @ViewBag.Title
-    <small></small>
-</h3>
+@eBundle.QRender_CSS()
+@eBundle.QRender_JS()
 @Html.Partial("~/Areas/MES/Views/Shared/_edc.cshtml")
+@Html.AntiForgeryToken()
 <div id="app" v-cloak>
     <label>title</label><input v-model="cfg.title" /><br />
     顯示自定義抬頭<input type="checkbox" v-model="isTest" />
@@ -19,27 +18,30 @@
         <div>
             <el-checkbox v-model="lock" />鎖定 tooltip 顯示模式
             <el-checkbox v-model="readonly" />readonly
+            <el-checkbox v-model="dyn_add" />動態加欄位 dyn_add
             <el-button @@click="check">檢核資料</el-button>
         </div>
         <div><el-button @@click="QueryLog">載入Log</el-button></div>
+        <div>[EDC 載入後檢核模式]
+            <el-radio-group v-model.number="api_check_mode">
+                <el-radio :label=1>嚴謹</el-radio>
+                <el-radio :label=2>告警</el-radio>
+                <el-radio :label=3>不檢核</el-radio>
+            </el-radio-group>
+        </div>
     </div>
 
-    <edc-input ref="edc" v-model="data_input" :cfg.sync="cfg" :readonly="readonly">
+    <edc-input ref="edc" v-model="data_input" :cfg.sync="cfg" :readonly="readonly" 
+               :dyn_add="dyn_add" :api_check_mode="api_check_mode">
         <template v-slot:head-area>
-            <el-button type="primary" size="small" plain style="float: right;margin-right:1rem;" @@click="e_copy">塞入自定義功能</el-button>
+            <el-button type="primary" size="small" plain style="float: right;margin-right:1rem;" 
+                       @@click="e_copy">塞入自定義功能</el-button>
+            <el-button size="small" @@click="e_TestEDC">載入PLC</el-button>
         </template>
         <h3 v-if="isTest">自定義抬頭</h3>
     </edc-input>
+    {{data_input[0]}}
 </div>
-@section Styles {
-    @Styles.Render(eBundle.elUI_CSS)
-}
-
-@section Scripts {
-    @Scripts.Render(eBundle.Vue_MES)
-    @Scripts.Render(eBundle.elUI_JS)
-}
-
 <script>
     Vue.config.devtools = true;
 
@@ -214,7 +216,7 @@
                         "Aaaaa": ""
                     }
                 ]
-            },
+            } 
         ]
         var _data_input = [
             {
@@ -277,6 +279,7 @@
             el: '#app',
             data() {
                 return {
+                    dyn_add:true,
                     isTest: true,
                     fixedTip: 2,
                     lock: false,
@@ -287,7 +290,8 @@
                         fixedTip: 2
                     },
                     readonly: false,
-                    isChange: false
+                    isChange: false,
+                    api_check_mode:3
                 }
             },
             watch: {
@@ -305,30 +309,50 @@
                 }
             },
             methods: {
+                e_TestEDC() {
+                    //alert('e_TestEDC');
+                    var _self = this;
+                    var url = _self.$URL.chg_Path('Example/Act/TestEDC', { file:'EDC_API1'});
+                    var _ajax = {
+                        url,
+                        type: 'get',
+                        automessage: false,
+                        processData: false,
+                        success: _self.TestEDC_Success
+                    };
+                    $.submitForm(_ajax);
+                },
+                TestEDC_Success(res) {
+                    let { Data, Message="API 調用錯誤", Success =false} = res;
+                    if (Success) {
+                          
+                    }
+                    else {
+                        this.$Alert.Err(Message);
+                    }
+                },
                 check() {
                     alert(this.$refs.edc.check());
                 },
                 e_copy(arr) {
-                    debugger
                     this.$refs.edc.value = _data_input;
-                    //arr.slice(1, arr.lenght+1);
-                    //arr.concat(_data_input);
-                    //this.$emit('update', arr);
+                    alert('e_copy');
                 },
                 QueryLog(LOT) {
                     var _self = this;
-                    var url = `@Url.Action(nameof(Genesis.Areas.Example.Controllers.ActController.EDC_API))`;
+                    var url = _self.$URL.chg_Path('Example/Act/TestEDC', {});
                     var _ajax = {
                         url,
                         type: 'get',
                         param: {LOT},
                         automessage: false,
+                        processData: false,
                         success: _self.QueryLog_Success
                     };
                     $.submitForm(_ajax);
                 },
                 QueryLog_Success(res) {
-                    //let {{ Success}}
+                    console.log(res)
                 }
             }
         })

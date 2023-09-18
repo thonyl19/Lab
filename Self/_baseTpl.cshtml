@@ -1,17 +1,9 @@
-﻿@{
-	bool isSingleModel = (bool)ViewData["SingleModel"];
-
-	if (isSingleModel)
-	{
-		Layout = "~/Views/Shared/_LayoutSingle.cshtml";
+﻿
 		@eBundle.QRender_CSS();
 		@eBundle.QRender_JS();
-	}
-}
 
-@Html.Partial("~/Areas/MES/Views/Shared/_wo_condion.cshtml")
 <div id="app">
-
+	{{msg}}
 </div>
 
 

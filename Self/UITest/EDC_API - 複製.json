@@ -1,0 +1,54 @@
+{
+  "CrystalGrowth_WO01-01.02.0": [
+    {
+      "EdcVerSid": "GTI19040815103300013",
+      "EdcParameterSid": "GTI19040815002800001",
+      "InputValueList": [
+        {
+          "Aaaaa": ""
+        },
+        {
+          "Bbbbbb": "Y"
+        },
+        {
+          "Ccccc": "N"
+        }
+      ]
+    },
+    {
+      "EdcVerSid": "GTI19040815103300013",
+      "EdcParameterSid": "GTI19040815015300007",
+      "InputValueList": [
+        {
+          "Aaaaa": "12345"
+        }
+      ]
+    }
+  ],
+  "CrystalGrowth_WO01-01.02.1": [
+    {
+      "EdcVerSid": "GTI19040815103300013",
+      "EdcParameterSid": "GTI19040815002800001",
+      "InputValueList": [
+        {
+          "Aaaaa": ""
+        },
+        {
+          "Bbbbbb": "Y"
+        },
+        {
+          "Ccccc": "N"
+        }
+      ]
+    },
+    {
+      "EdcVerSid": "GTI19040815103300013",
+      "EdcParameterSid": "GTI19040815015300007",
+      "InputValueList": [
+        {
+          "Aaaaa": "12345"
+        }
+      ]
+    }
+  ]
+}

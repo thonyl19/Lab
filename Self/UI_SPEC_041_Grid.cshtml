@@ -37,6 +37,7 @@
 	<el-table-column prop="CREATE_DATE"
 					 label="@RES.BLL.Face.CREATE_DATE" sortable="custom" :sort-orders="$UT.sort_order">
 		<template slot-scope="scope">
+			<el-tag type="success" size="mini">{{scope.row.UPDATE_USER}}</el-tag>
 			<gt-split-data v-model="scope.row.UPDATE_DATE"></gt-split-data>
 		</template>
 	</el-table-column>

@@ -20,7 +20,7 @@
     <form id="WipForm">
         <div class="panel b">
             <input type="submit" @@click="Exec" value="Exec" />
-            <gti-list-mlot ref="tobj" v-model="value" :set_model="set_model" >
+            <gti-list-mlot ref="tobj" v-model="value"  >
             </gti-list-mlot>
 
         </div>
@@ -52,7 +52,13 @@
                         長度: 944,
                         耗用長度: 500,
                     }],
-                    //set_model: {
+                    LOT_Ext: {
+                        "PF_PARTNO": {
+                            WIDTH:300
+                        }
+                    },
+                    List_MLotOnEqp: [{ "MTR_LOT_SID": "GTI22112117405594217", "MTR_LOT": "GTI22112117405594217", "MTR_LOT_1": null, "MTR_LOT_2": null, "MTR_BATCH_NO": null, "MTR_BATCH_SEQ": null, "STATUS": "Run", "QUANTITY": 200, "UNIT": "Roll", "QTY_1": 0, "UNIT_1": null, "QTY_2": 0, "UNIT_2": null, "OPER_SID": null, "OPERATION_NO": null, "OPERATION": null, "WO_SID": null, "WO": null, "PRODUCT_SID": null, "PRODUCT": "系統預設產品資料", "PARTNO_SID": "GTI22112117231794206", "PARTNO": "300300", "PARTNO_VER_SID": "GTI22112117231894207", "PARTNO_VERSION": 0, "PRIORITY": "Normal", "CLOSE_DATE": null, "OWNER": null, "EQP_SID": "GTI22112117532496226", "EQP_NO": "SP-2", "ROOT_MTR_LOT_SID": "GTI22112117405594217", "PARENT_MTR_LOT_SID": null, "DATECODE": null, "ATTRIBUTE_01": null, "ATTRIBUTE_02": null, "ATTRIBUTE_03": null, "ATTRIBUTE_04": null, "ATTRIBUTE_05": null, "ATTRIBUTE_06": null, "ATTRIBUTE_07": null, "ATTRIBUTE_08": null, "ATTRIBUTE_09": null, "ATTRIBUTE_10": null, "ATTRIBUTE_11": null, "ATTRIBUTE_12": null, "ATTRIBUTE_13": null, "ATTRIBUTE_14": null, "ATTRIBUTE_15": null, "ATTRIBUTE_16": null, "CREATE_USER": "Admin", "CREATE_DATE": "2022-11-21 17:40:54", "UPDATE_USER": "Admin", "UPDATE_DATE": "2022-12-28 12:04:44", "VENDOR_SID": null, "VENDOR_NO": null, "STOCK": null, "LOCATION": null, "RECEIVE_NO": null, "RECEIVE_SEQ": null, "RECEIVE_DATE": null, "SALEOUT_FLAG": null, "SHIP": null, "SHIP_SEQ": null, "SHIP_DATE": null, "CUSTOMER_SID": null, "CUSTOMER_NO": null, "CUSTOMER": null, "IS_PRODUCT": null, "PICKING_NO": null, "PICKING_SEQ": null, "WAREHOUSE_SID": null, "WAREHOUSE_NO": null, "WAREHOUSE_NAME": null, "EXPIRATION_DATE": null, "EXTEND_EXPIRATION_DATE": null, "LOT_SID": null, "LOT": null, "ATTRIBUTE_17": null, "ATTRIBUTE_18": null, "ATTRIBUTE_19": null, "ATTRIBUTE_20": null, "ATTRIBUTE_21": null, "ATTRIBUTE_22": null, "ATTRIBUTE_23": null, "ATTRIBUTE_24": null, "ATTRIBUTE_25": null, "ATTRIBUTE_26": null, "ATTRIBUTE_27": null, "ATTRIBUTE_28": null, "ATTRIBUTE_29": null, "ATTRIBUTE_30": null, "ATTRIBUTE_31": null, "ATTRIBUTE_32": null, "ATTRIBUTE_33": null, "ATTRIBUTE_34": null, "ATTRIBUTE_35": null, "ATTRIBUTE_36": null, "ATTRIBUTE_37": null, "ATTRIBUTE_38": null, "ATTRIBUTE_39": null, "ATTRIBUTE_40": null, "PART_NAME": "濾布捲", "WIDTH": 900, "used": 100, "sum_scraps": 0, "lots": [], "scraps": [{ "RefKey": null, "SID": "GTI11110115550180956", "No": "other", "Value": null, "Display": "其他", "StatusSid": null, "Status": null, "FromNum": 0, "INum": 100, "Attr01": null, "Attr02": null, "Attr03": null, "$order": 1 }] }],
+                    set_model: {
                         OperScrapList: [
                             { "RefKey": null, "SID": "GTI11110115550180956", "No": "other", "Value": null, "Display": "其他", "StatusSid": null, "Status": null, "FromNum": 0, "INum": 0, "Attr01": null, "Attr02": null, "Attr03": null }
                             , { "RefKey": null, "SID": "GTI22092622011391630", "No": "R.C01-0002", "Value": null, "Display": "過期", "StatusSid": null, "Status": null, "FromNum": 0, "INum": 0, "Attr01": null, "Attr02": null, "Attr03": null }
@@ -66,11 +72,12 @@
                         systemConfig: {
                             setp: 1,
                             DecimalPoint: 0
-                        }
-                    //},
+                        },
+                    },
                     i18n: {
                         料號: 'AAAA'
-                    }
+                    },
+                    OperScrapList: [{ "RefKey": null, "SID": "GTI11110115550180956", "No": "other", "Value": null, "Display": "其他", "StatusSid": null, "Status": null, "FromNum": 0, "INum": 0, "Attr01": null, "Attr02": null, "Attr03": null }]
                 }
             },
             computed: {

@@ -1,0 +1,61 @@
+@using System.Dynamic
+@{
+	bool isSingleModel = (bool)ViewData["SingleModel"];
+	dynamic data = new ExpandoObject();
+    if (true)
+	{
+		Layout = "~/Views/Shared/_LayoutSingle.cshtml";
+	}
+    GTI_Test GTest = new GTI_Test(Html, ViewContext.HttpContext);
+}
+@eBundle.QRender_CSS()
+@eBundle.QRender_JS()
+@Html.AntiForgeryToken()
+@Html.Partial("~/Areas/MES/Views/Shared/Dyn_FuncModule/_OperAPI.cshtml")
+<pre>
+</pre>
+<div id="app">
+    <form id="WipForm">
+        <div class="panel b">
+            <input type="submit" @@click="Exec" value="Exec" />
+            <gt-func-oper-api :oper_info="oper_info"> </gt-func-oper-api>
+        </div>
+    </form>
+</div>
+<script>
+    Vue.config.devtools = true;
+
+    $(() => {
+        var form = $("#WipForm");
+        new Vue({
+            el: '#app',
+            provide() {
+                return {
+                    rootEl: this,
+                };
+            },
+            data() {
+                return {
+                    value: null,
+                    set_model: {},
+                    oper_info: {
+                        OPER_SID: 'GTI23010916485492704', OPERATION: 'OPERATION', OPERATION_NO: 'OPERATION'
+                    }
+                }
+            },
+            computed: {
+
+            },
+            methods: {
+                Exec(e) {
+                    this.$message('ok');
+                    if (this.cfg.single_checkout) {
+                        e.preventDefault();
+                    } else if (form.parsley().validate()) {
+
+                    }
+                }
+            }
+        })
+    });
+</script>

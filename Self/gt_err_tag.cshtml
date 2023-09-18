@@ -1,0 +1,79 @@
+@using System.Dynamic
+@{
+	bool isSingleModel = (bool)ViewData["SingleModel"];
+	if (true)
+	{
+		Layout = "~/Views/Shared/_LayoutSingle.cshtml";
+	}
+    GTI_Test GTest = new GTI_Test(Html, ViewContext.HttpContext);
+}
+@eBundle.QRender_CSS()
+@eBundle.QRender_JS()
+<pre>
+</pre>
+<div id="app">
+    <form id="WipForm">
+        <div class="panel b">
+            <gt-form-col label="´ú¸Õ¿é¤J¿ù»~°T®§" v-model="c_ErrMsg" ></gt-form-col>
+            <gt-err-tag v-model="c_LotGoodQty" sid="cp_usemtlot.GoodQty">
+            </gt-err-tag>
+
+            <gt-err-tag sid="cp_usemtlot.GoodQty">
+            </gt-err-tag>
+
+        </div>
+    </form>
+</div>
+<script>
+    Vue.config.devtools = true;
+
+    $(() => {
+        var form = $("#WipForm");
+        let {  v_rootEl } = Vue.prototype.$UT.Mixins;
+
+        new Vue({
+            mixins: [  v_rootEl()],
+            el: '#app',
+            provide() {
+                return {
+                    rootEl: this,
+                };
+            },
+            data() {
+                return {
+                    ErrMsg: '',
+                    value: null,
+                    set_model: {},
+                    ErrGroup: {},
+                }
+            },
+            computed: {
+                c_ErrMsg: {
+                    get() {
+                        return this.ErrMsg;
+                    },
+                    set(val) {
+                        this.ErrMsg = val;
+                    }
+                },
+                c_LotGoodQty() {
+                    if (this.ErrMsg != '') {
+                        this.SetErrGroup('cp_usemtlot.GoodQty', this.ErrMsg)
+                    } else {
+                        this.SetErrGroup('cp_usemtlot.GoodQty');
+                    }
+                },
+            },
+            methods: {
+                Exec(e) {
+                    this.$message('ok');
+                    if (this.cfg.single_checkout) {
+                        e.preventDefault();
+                    } else if (form.parsley().validate()) {
+
+                    }
+                }
+            }
+        })
+    });
+</script>

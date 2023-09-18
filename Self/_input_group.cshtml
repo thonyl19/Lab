@@ -1,4 +1,11 @@
-﻿
+﻿@{
+    bool isSingleModel = (bool)ViewData["SingleModel"];
+
+    if (isSingleModel)
+    {
+        Layout = "~/Views/Shared/_LayoutSingle.cshtml";
+    }
+}
 <div id="app">
 	<div class="row">
 		<h2>Case1--基本使用</h2>

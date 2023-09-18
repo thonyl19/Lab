@@ -1,0 +1,330 @@
+﻿{
+  "form": {
+    "IPQC_NO": "insp_wo",
+    "QC_RESULT": "Accept",
+    "WO": "AAAA",
+    "CREATE_USER": "test"
+  },
+  "data_input": [
+    {
+      "EdcVerSid": "GTI22113014143903090",
+      "EdcParameterSid": "GTI22113014044203081",
+      "QCItemSID": "GTI23051617155368667",
+      "DataType": "N",
+      "DataCount": 0,
+      "DispayPointName": null,
+      "DispayPointNameList": [],
+      "ItemSid": "GTI23051617155368667",
+      "ItemNo": "WMS_IQC_001",
+      "ItemName": "長",
+      "mustInput": "F",
+      "UCL": null,
+      "USL": null,
+      "LCL": null,
+      "LSL": null,
+      "TL": "0",
+      "EDCSid": "GTI22113014143403089",
+      "EDCThrowSpc": "F",
+      "ThrowSpc": null,
+      "EDCVerParaSid": "GTI22113014044203081",
+      "DBTable": null,
+      "DBColumnName": null,
+      "InputValueList": [
+        {
+          "1": 1
+        }
+      ]
+    },
+    {
+      "EdcVerSid": "GTI22113014143903090",
+      "EdcParameterSid": "GTI22113014051703082",
+      "QCItemSID": "GTI23051617155368668",
+      "DataType": "N",
+      "DataCount": 0,
+      "DispayPointName": null,
+      "DispayPointNameList": [],
+      "ItemSid": "GTI23051617155368668",
+      "ItemNo": "WMS_IQC_002",
+      "ItemName": "寬",
+      "mustInput": "F",
+      "UCL": null,
+      "USL": null,
+      "LCL": null,
+      "LSL": null,
+      "TL": "0",
+      "EDCSid": "GTI22113014143403089",
+      "EDCThrowSpc": "F",
+      "ThrowSpc": null,
+      "EDCVerParaSid": "GTI22113014051703082",
+      "DBTable": null,
+      "DBColumnName": null,
+      "InputValueList": [
+        {
+          "1": 1
+        }
+      ]
+    },
+    {
+      "EdcVerSid": "GTI22113014143903090",
+      "EdcParameterSid": "GTI22113014054403083",
+      "QCItemSID": "GTI23051617155368669",
+      "DataType": "N",
+      "DataCount": 0,
+      "DispayPointName": null,
+      "DispayPointNameList": [],
+      "ItemSid": "GTI23051617155368669",
+      "ItemNo": "WMS_IQC_003",
+      "ItemName": "高",
+      "mustInput": "T",
+      "UCL": null,
+      "USL": null,
+      "LCL": null,
+      "LSL": null,
+      "TL": "0",
+      "EDCSid": "GTI22113014143403089",
+      "EDCThrowSpc": "F",
+      "ThrowSpc": null,
+      "EDCVerParaSid": "GTI22113014054403083",
+      "DBTable": null,
+      "DBColumnName": null,
+      "InputValueList": [
+        {
+          "1": 1
+        }
+      ]
+    },
+    {
+      "EdcVerSid": "GTI22113014143903090",
+      "EdcParameterSid": "GTI22113014062203084",
+      "QCItemSID": "GTI23051617155368670",
+      "DataType": "N",
+      "DataCount": 0,
+      "DispayPointName": null,
+      "DispayPointNameList": [],
+      "ItemSid": "GTI23051617155368670",
+      "ItemNo": "WMS_IQC_004",
+      "ItemName": "重量",
+      "mustInput": "F",
+      "UCL": 2.9,
+      "USL": 3,
+      "LCL": 2.7,
+      "LSL": 2.7,
+      "TL": "2.8",
+      "EDCSid": "GTI22113014143403089",
+      "EDCThrowSpc": "F",
+      "ThrowSpc": null,
+      "EDCVerParaSid": "GTI22113014062203084",
+      "DBTable": null,
+      "DBColumnName": null,
+      "InputValueList": [
+        {
+          "1": 1
+        }
+      ]
+    },
+    {
+      "EdcVerSid": "GTI22113014143903090",
+      "EdcParameterSid": "GTI22113014071903085",
+      "QCItemSID": "GTI23051617155368671",
+      "DataType": "N",
+      "DataCount": 0,
+      "DispayPointName": null,
+      "DispayPointNameList": [],
+      "ItemSid": "GTI23051617155368671",
+      "ItemNo": "WMS_IQC_005",
+      "ItemName": "摺數",
+      "mustInput": "F",
+      "UCL": null,
+      "USL": null,
+      "LCL": null,
+      "LSL": null,
+      "TL": "64",
+      "EDCSid": "GTI22113014143403089",
+      "EDCThrowSpc": "F",
+      "ThrowSpc": null,
+      "EDCVerParaSid": "GTI22113014071903085",
+      "DBTable": null,
+      "DBColumnName": null,
+      "InputValueList": [
+        {
+          "1": 1
+        }
+      ]
+    },
+    {
+      "EdcVerSid": "GTI22113014143903090",
+      "EdcParameterSid": "GTI22113014083103086",
+      "QCItemSID": "GTI23051617155368672",
+      "DataType": "N",
+      "DataCount": 0,
+      "DispayPointName": null,
+      "DispayPointNameList": [],
+      "ItemSid": "GTI23051617155368672",
+      "ItemNo": "WMS_IQC_006",
+      "ItemName": "溝槽寬度",
+      "mustInput": "F",
+      "UCL": null,
+      "USL": null,
+      "LCL": null,
+      "LSL": null,
+      "TL": "0",
+      "EDCSid": "GTI22113014143403089",
+      "EDCThrowSpc": "F",
+      "ThrowSpc": null,
+      "EDCVerParaSid": "GTI22113014083103086",
+      "DBTable": null,
+      "DBColumnName": null,
+      "InputValueList": [
+        {
+          "1": 1
+        }
+      ]
+    },
+    {
+      "EdcVerSid": "GTI22113014143903090",
+      "EdcParameterSid": "GTI22113014105103087",
+      "QCItemSID": "GTI23051617155368673",
+      "DataType": "N",
+      "DataCount": 0,
+      "DispayPointName": null,
+      "DispayPointNameList": [],
+      "ItemSid": "GTI23051617155368673",
+      "ItemNo": "WMS_IQC_007",
+      "ItemName": "溝槽鉚釘寬度",
+      "mustInput": "F",
+      "UCL": null,
+      "USL": null,
+      "LCL": null,
+      "LSL": null,
+      "TL": "0",
+      "EDCSid": "GTI22113014143403089",
+      "EDCThrowSpc": "F",
+      "ThrowSpc": null,
+      "EDCVerParaSid": "GTI22113014105103087",
+      "DBTable": null,
+      "DBColumnName": null,
+      "InputValueList": [
+        {
+          "1": 1
+        }
+      ]
+    },
+    {
+      "EdcVerSid": "GTI22113014143903090",
+      "EdcParameterSid": "GTI22113014114603088",
+      "QCItemSID": "GTI23051617155368674",
+      "DataType": "B",
+      "DataCount": 0,
+      "DispayPointName": null,
+      "DispayPointNameList": [],
+      "ItemSid": "GTI23051617155368674",
+      "ItemNo": "WMS_IQC_008",
+      "ItemName": "外觀完整/組裝",
+      "mustInput": "F",
+      "UCL": null,
+      "USL": null,
+      "LCL": null,
+      "LSL": null,
+      "TL": "T",
+      "EDCSid": "GTI22113014143403089",
+      "EDCThrowSpc": "F",
+      "ThrowSpc": null,
+      "EDCVerParaSid": "GTI22113014114603088",
+      "DBTable": null,
+      "DBColumnName": null,
+      "InputValueList": [
+        {
+          "1": 1
+        }
+      ]
+    },
+    {
+      "EdcVerSid": "GTI22113014143903090",
+      "EdcParameterSid": "GTI22113014044203081",
+      "QCItemSID": "GTI23051617155468675",
+      "DataType": "N",
+      "DataCount": 0,
+      "DispayPointName": null,
+      "DispayPointNameList": [],
+      "ItemSid": "GTI23051617155468675",
+      "ItemNo": "WMS_IQC_001",
+      "ItemName": "外觀尺寸(長)",
+      "mustInput": "F",
+      "UCL": 773,
+      "USL": 774,
+      "LCL": 772,
+      "LSL": 771,
+      "TL": "773",
+      "EDCSid": "GTI22113014143403089",
+      "EDCThrowSpc": "F",
+      "ThrowSpc": null,
+      "EDCVerParaSid": "GTI22113014044203081",
+      "DBTable": null,
+      "DBColumnName": null,
+      "InputValueList": [
+        {
+          "1": 1
+        }
+      ]
+    },
+    {
+      "EdcVerSid": "GTI22113014143903090",
+      "EdcParameterSid": "GTI22113014051703082",
+      "QCItemSID": "GTI23051617155468676",
+      "DataType": "N",
+      "DataCount": 0,
+      "DispayPointName": null,
+      "DispayPointNameList": [],
+      "ItemSid": "GTI23051617155468676",
+      "ItemNo": "WMS_IQC_002",
+      "ItemName": "外觀尺寸(寬)",
+      "mustInput": "F",
+      "UCL": 483,
+      "USL": 484,
+      "LCL": 483,
+      "LSL": 482,
+      "TL": "483",
+      "EDCSid": "GTI22113014143403089",
+      "EDCThrowSpc": "F",
+      "ThrowSpc": null,
+      "EDCVerParaSid": "GTI22113014051703082",
+      "DBTable": null,
+      "DBColumnName": null,
+      "InputValueList": [
+        {
+          "1": 1
+        }
+      ]
+    },
+    {
+      "EdcVerSid": "GTI22113014143903090",
+      "EdcParameterSid": "GTI22113014054403083",
+      "QCItemSID": "GTI23051617155468677",
+      "DataType": "N",
+      "DataCount": 0,
+      "DispayPointName": null,
+      "DispayPointNameList": [],
+      "ItemSid": "GTI23051617155468677",
+      "ItemNo": "WMS_IQC_003",
+      "ItemName": "外觀尺寸(高)",
+      "mustInput": "F",
+      "UCL": 56,
+      "USL": 57,
+      "LCL": 56,
+      "LSL": 56,
+      "TL": "56",
+      "EDCSid": "GTI22113014143403089",
+      "EDCThrowSpc": "F",
+      "ThrowSpc": null,
+      "EDCVerParaSid": "GTI22113014054403083",
+      "DBTable": null,
+      "DBColumnName": null,
+      "InputValueList": [
+        {
+          "1": 1
+        }
+      ]
+    }
+  ],
+  "isTest": "T"
+}

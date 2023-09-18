@@ -1,0 +1,214 @@
+﻿@using System.Dynamic
+@{
+	bool isSingleModel = (bool)ViewData["SingleModel"];
+	dynamic data = new ExpandoObject();
+    if (true)
+	{
+		Layout = "~/Views/Shared/_LayoutSingle.cshtml";
+	}
+    GTI_Test GTest = new GTI_Test(Html, ViewContext.HttpContext);
+}
+@eBundle.QRender_CSS()
+@eBundle.QRender_JS()
+
+<div id="app">
+    <el-checkbox v-model="del_mode">del_mode</el-checkbox>
+    <el-checkbox v-model="readonly">readonly</el-checkbox>
+    <gt-hr content="基本用法" :active="active">
+        <gti-rwd-layout v-model="case1" rwd_width="1000" 
+            :i18n="i18n" rwd="false" 
+            :del_mode="del_mode" 
+            :readonly="readonly"></gti-rwd-layout>
+    </gt-hr>
+    <gt-hr content="基本用法-order" :active="active">
+        <gti-rwd-layout v-model="case1" rwd_width="1000"
+                        :i18n="i18n" rwd="false" :del_mode="del_mode"
+                        :readonly="readonly"
+                        :order="order"></gti-rwd-layout>
+    </gt-hr>
+    <gt-hr content="進階用法-自定義表單" :active="active">
+        <gti-rwd-layout v-model="tableData" :pda_mode="isPDA">
+            <template slot="form">
+                {{tableData}}
+            </template>
+        </gti-rwd-layout>
+    </gt-hr>
+    <gt-hr content="進階用法-自定義表格" :active="active">
+        <gti-rwd-layout v-model="tableData">
+            <el-table :data="tableData">
+                <el-table-column label='date' prop="date">
+                    <template slot-scope="scope">
+                        <input v-model="scope.row.date" />
+                    </template>
+                </el-table-column>
+                <el-table-column label='name' prop="name"></el-table-column>
+                <el-table-column label='address' prop="address"></el-table-column>
+            </el-table>
+        </gti-rwd-layout>
+    </gt-hr>
+</div>
+<script>
+    $(() => {
+        //原型
+        var layout = {
+            mixins: [Vue.prototype.$UT.Mixins.v_model()],
+            template: `
+        <div class="gti-rwd-layout">
+            <div class="dyn-setting">
+                <A>
+                    <i class="fa fa-gear fa-2x" @@click="isShowSet=!isShowSet"></i>
+                </A>
+                <transition name="zoom">
+                    <div v-show="isShowSet" class="menu">
+                        <el-checkbox v-model="c_RWD">RWD</el-checkbox> </br>
+                        <el-radio-group v-model="c_isPDA" size="small">
+                            <el-radio-button label="Table"></el-radio-button>
+                            <el-radio-button label="Form"></el-radio-button>
+                          </el-radio-group>
+                    </div>
+                </transition>
+            </div>
+            <slot name="form" v-if="isPDA">
+                <div class="panel">
+                    <transition-group name="zoom">
+                        <div class="panel-body form-horizontal gt-form" v-for="(item,idx) in c_val" :key="idx">
+                            <A class="del-icon" v-if="del_mode">
+                                <i class="fa fa-trash fa-2x" @@click="Del(idx)"></i>
+                            </A>    
+                            <gt-form-col v-for="(item,key) in c_val[idx]" :key="key" :label='f_label(key)' v-model="item" :readonly="readonly" ></gt-form-col>
+                            <div class="clearfix"></div>
+                            <hr/>
+                        </div>
+                    </transition-group>
+                </div>
+            </slot>
+            <slot v-else>
+                <el-table :data="c_val">
+                    <el-table-column label="操作" width="60" v-if="del_mode">
+                        <template slot-scope="scope">
+                            <transition name="zoom">
+                                <el-button size="small" circle
+                                            type="danger"
+                                            icon="el-icon-delete"
+                                            @@click="Del(scope.$index)"></el-button>
+                            </transition>
+                        </template>
+                    </el-table-column>
+                    <el-table-column v-for="(item,key) in c_val[0]" :key="key" :label='f_label(key)' :prop="key"></el-table-column>
+                </el-table>
+            </slot>
+        </div>
+					`,
+            data() {
+                return {
+                    windowWidth:0,
+                    isPDA: true,
+                    RWD: false,
+                    isShowSet: true,
+                }
+            },
+            props: {
+                pda_mode: {
+                    type: Boolean,
+                    default() { return true }
+                },
+                rwd_width: {
+                    type: [Number,String],
+                    default() { return 900 }
+                },
+                i18n: {
+                    type: Object,
+                    default() { return null }
+                },
+                rwd: {
+                    type: Boolean,
+                    default() { return true }
+                },
+                del_mode: {
+                    type: Boolean,
+                    default() { return false }
+                },
+                readonly: {
+                    type: Boolean,
+                    default() { return true }
+                },
+            },
+            mounted() {
+                this.isPDA = this.pda_mode;
+                this.c_RWD = eval(this.rwd);
+                    
+            },
+            beforeDestroy() {
+                window.removeEventListener('resize', this.handleResize);
+            },
+            computed: {
+                c_isPDA: {
+                    get() { return this.isPDA ?'Form': 'Table' },
+                    set(val) {
+                        this.isPDA = val =='Form';
+                        this.$emit('update:pda_mode', val == 'Form');
+                    }
+                },
+                c_RWD: {
+                    get() { return this.RWD },
+                    set(val) {
+                        this.RWD = val;
+                        if (val) {
+                            window.addEventListener('resize', this.handleResize);
+                            this.handleResize();
+                        } else {
+                            window.removeEventListener('resize', this.handleResize);
+                        }
+                        this.$emit('update:rwd', val);
+
+                    }
+                }
+            },
+            methods: {
+                Del(idx) {
+                    this.$confirm('請確認是否刪除?', '提示', {
+                        confirmButtonText: '確定',
+                        cancelButtonText: '取消',
+                        type: 'warning'
+                    }).then(() => {
+                        this.c_val.splice(idx, 1);
+                        _self.$message({
+                            type: 'success',
+                            message: '移除成功!'
+                        });
+                    }).catch(() => {
+                        _self.$message({
+                            type: 'info',
+                            message: '已取消'
+                        });
+                    });
+                },
+                f_label(key) {
+                    if (this['i18n'] == null) return key;
+                    return this.i18n[key] || key;
+                },
+                handleResize() {
+                    this.windowWidth = window.innerWidth;
+                    this.isPDA = this.windowWidth < this.rwd_width;
+                },
+            }
+        };
+        new Vue({
+            el: '#app',
+            //components: { 'gti-rwd-layout': layout }, 
+            data() {
+                return {
+                    del_mode: true,
+                    readonly: false,
+                    active: true,
+                    case1:[{ "SID": "326c3575-00b4-41c6-b09e-04c050545efc", "LOT_SID": "GTI19061310370703456", "LOT": "Gti-20190613-05", "OUTPUT_QTY": null, "ROUTE_VER_OPER_SID": "GTI19041123550700964", "STATUS": "Create", "OPERATION_SID": "GTI19041123373400918", "OPERATION": "設備進站", "ACTION": "CalculatWorkHour", "APPLICATION_NAME": "StationCheckOut", "ACTION_LINK_SID": "GTI20071514082626209", "ACTION_LINK_SID_TRACE": "GTI20071514082626209", "WO_SID": "Gtimes2019Demo", "WO": "Gtimes2019Demo", "LINE_SID": null, "LINE_NO": null, "SHIFT_SID": "GTI20071015443415664", "SHIFT_NO": "MorningShift", "SHIFT": "早班", "REPORT_TYPE": "ActualWorkingHours", "REPORT_USER_NUM": 3, "WORK_TOTAL": 159550, "WORK_DATE": null, "EQUIPMENT_LIST": null, "EQUIPMENT_TOTAL": null, "CREATE_USER": "Joseph", "CREATE_DATE": "2020-07-15 00:00:00", "UPDATE_USER": "Joseph", "UPDATE_DATE": "2020-07-15 00:00:00" }, { "SID": "54c7134f-fc06-4b79-b960-0b5c6ee1d6ef", "LOT_SID": "GTI19061310370703457", "LOT": "Gti-20190613-06", "OUTPUT_QTY": null, "ROUTE_VER_OPER_SID": "GTI19041123550700964", "STATUS": "Create", "OPERATION_SID": "GTI19041123373400918", "OPERATION": "設備進站", "ACTION": "CalculatWorkHour", "APPLICATION_NAME": "StationCheckOut", "ACTION_LINK_SID": "GTI20072211244640681", "ACTION_LINK_SID_TRACE": "GTI20072211244640681", "WO_SID": "Gtimes2019Demo", "WO": "Gtimes2019Demo", "LINE_SID": null, "LINE_NO": null, "SHIFT_SID": "GTI20071015443415664", "SHIFT_NO": "MorningShift", "SHIFT": "早班", "REPORT_TYPE": "ActualWorkingHours", "REPORT_USER_NUM": 2, "WORK_TOTAL": 0, "WORK_DATE": null, "EQUIPMENT_LIST": null, "EQUIPMENT_TOTAL": 0, "CREATE_USER": "Joseph", "CREATE_DATE": "2020-07-22 00:00:00", "UPDATE_USER": "Joseph", "UPDATE_DATE": "2020-07-22 00:00:00" }, { "SID": "c68c5153-bfee-4e63-9c57-a0d638c248b8", "LOT_SID": "GTI19061310370703460", "LOT": "Gti-20190613-09", "OUTPUT_QTY": 25, "ROUTE_VER_OPER_SID": "GTI19041123550700964", "STATUS": "Create", "OPERATION_SID": "GTI19041123373400918", "OPERATION": "設備進站", "ACTION": "CalculatWorkHour", "APPLICATION_NAME": "StationCheckOut", "ACTION_LINK_SID": "GTI20081111575883131", "ACTION_LINK_SID_TRACE": "GTI20081111575883131", "WO_SID": "Gtimes2019Demo", "WO": "Gtimes2019Demo", "LINE_SID": null, "LINE_NO": null, "SHIFT_SID": "GTI20071015443415664", "SHIFT_NO": "MorningShift", "SHIFT": "早班", "REPORT_TYPE": "ActualWorkingHours", "REPORT_USER_NUM": 1, "WORK_TOTAL": 0, "WORK_DATE": "2020-08-11 00:00:00", "EQUIPMENT_LIST": null, "EQUIPMENT_TOTAL": 0, "CREATE_USER": "Joseph", "CREATE_DATE": "2020-08-11 00:00:00", "UPDATE_USER": "Joseph", "UPDATE_DATE": "2020-08-11 00:00:00" }, { "SID": "d2652077-eb9a-4990-b8e8-72f8cf1f0b49", "LOT_SID": "GTI19061310370703461", "LOT": "Gti-20190613-10", "OUTPUT_QTY": 30, "ROUTE_VER_OPER_SID": "GTI19041123550700964", "STATUS": "Create", "OPERATION_SID": "GTI19041123373400918", "OPERATION": "設備進站", "ACTION": "CalculatWorkHour", "APPLICATION_NAME": "StationCheckOut", "ACTION_LINK_SID": "GTI20081112141783229", "ACTION_LINK_SID_TRACE": "GTI20081112141783229", "WO_SID": "Gtimes2019Demo", "WO": "Gtimes2019Demo", "LINE_SID": null, "LINE_NO": null, "SHIFT_SID": "GTI20071015443415664", "SHIFT_NO": "MorningShift", "SHIFT": "早班", "REPORT_TYPE": "ActualWorkingHours", "REPORT_USER_NUM": 1, "WORK_TOTAL": 0, "WORK_DATE": "2020-08-11 00:00:00", "EQUIPMENT_LIST": "Stepper_001", "EQUIPMENT_TOTAL": 0, "CREATE_USER": "Joseph", "CREATE_DATE": "2020-08-11 00:00:00", "UPDATE_USER": "Joseph", "UPDATE_DATE": "2020-08-11 00:00:00" }, { "SID": "e64bfed6-695a-40b4-8299-1f4238b078df", "LOT_SID": "GTI19061310370703472", "LOT": "Gti-20190613-21", "OUTPUT_QTY": null, "ROUTE_VER_OPER_SID": "GTI19041123550700964", "STATUS": "Create", "OPERATION_SID": "GTI19041123373400918", "OPERATION": "設備進站", "ACTION": "CalculatWorkHour", "APPLICATION_NAME": "StationCheckOut", "ACTION_LINK_SID": "GTI20072213302640885", "ACTION_LINK_SID_TRACE": "GTI20072213302640885", "WO_SID": "Gtimes2019Demo", "WO": "Gtimes2019Demo", "LINE_SID": null, "LINE_NO": null, "SHIFT_SID": "GTI20071015443415664", "SHIFT_NO": "MorningShift", "SHIFT": "早班", "REPORT_TYPE": "ActualWorkingHours", "REPORT_USER_NUM": 2, "WORK_TOTAL": 0, "WORK_DATE": null, "EQUIPMENT_LIST": null, "EQUIPMENT_TOTAL": 0, "CREATE_USER": "Joseph", "CREATE_DATE": "2020-07-22 00:00:00", "UPDATE_USER": "Joseph", "UPDATE_DATE": "2020-07-22 00:00:00" }],
+                    tableData: [{ "id": 1, "date": "2016-05-02", "name": "王小虎", "address": "上海市普陀区金沙江路 1518 弄" }, { "id": 2, "date": "2016-05-04", "name": "王小虎", "address": "上海市普陀区金沙江路 1517 弄" }, { "id": 3, "date": "2016-05-01", "name": "王小虎", "address": "上海市普陀区金沙江路 1519 弄", "children": [{ "id": 31, "date": "2016-05-01", "name": "王小虎", "address": "上海市普陀区金沙江路 1519 弄" }, { "id": 32, "date": "2016-05-01", "name": "王小虎", "address": "上海市普陀区金沙江路 1519 弄" }] }, { "id": 4, "date": "2016-05-03", "name": "王小虎", "address": "上海市普陀区金沙江路 1516 弄" }],
+                    order: ['test', 'ACTION', 'OPERATION'],
+                    i18n: {
+                        name: '姓名'
+                    },
+                }
+            },
+        })
+    });
+</script>

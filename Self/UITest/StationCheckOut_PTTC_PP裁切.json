@@ -14,21 +14,20 @@
             "Attr02": null,
             "Attr03": null
         },
-      {
-        "RefKey": null,
-        "SID": "GTI22092622024791713",
-        "No": "MIX-002",
-        "Value": null,
-        "Display": "攪拌機-002",
-        "StatusSid": null,
-        "Status": null,
-        "FromNum": 0,
-        "INum": 0,
-        "Attr01": null,
-        "Attr02": null,
-        "Attr03": null
-      },
-
+        {
+            "RefKey": null,
+            "SID": "GTI22092622024791713",
+            "No": "MIX-002",
+            "Value": null,
+            "Display": "攪拌機-002",
+            "StatusSid": null,
+            "Status": null,
+            "FromNum": 0,
+            "INum": 0,
+            "Attr01": null,
+            "Attr02": null,
+            "Attr03": null
+        },
         {
             "RefKey": null,
             "SID": "GTI22092622024791714",

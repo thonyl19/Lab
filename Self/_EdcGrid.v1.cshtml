@@ -1,10 +1,13 @@
 ﻿@{
-	ViewBag.Title = @Genesis.Common.PageBaseInfo.getCurrentResource("baseTpl").RESOURCE_NAME;
+	bool isSingleModel = (bool)ViewData["SingleModel"];
+	if (isSingleModel)
+	{
+		Layout = "~/Views/Shared/_LayoutSingle.cshtml";
+	}
 }
 <h3>
-	@ViewBag.Title
+    @ViewBag.Title
 </h3>
-@Html.Partial("~/Areas/MES/Views/Shared/_edcGrid.v1.cshtml")
 
 @Html.AntiForgeryToken()
 @section Styles {
@@ -15,7 +18,7 @@
 	@Scripts.Render(eBundle.Vue_MES)
 	@Scripts.Render(eBundle.elUI_JS)
 }
-
+@Html.Partial("~/Areas/MES/Views/Shared/_edcGrid.v1.cshtml")
 <div id="app">
     [is_change]{{is_change}}
     <el-switch v-model="EditMode"
@@ -24,20 +27,23 @@
                active-text="FullEdit"
                inactive-text="OneEdit">
     </el-switch>
-    <gt-edc-grid v-model="edcData" :test_mode="EditMode" :is_change.sync="is_change"></gt-edc-grid>
+    [show_spc]
+    <el-checkbox v-model="show_spc">show_spc</el-checkbox>
+    <gt-edc-grid v-model="edcData" :test_mode="EditMode" :is_change.sync="is_change" :show_spc="show_spc"></gt-edc-grid>
     {{edcData}}
 </div>
 
 <script>
-	$(() => {
-		Vue.config.devtools = true;
+    $(() => {
+        Vue.config.devtools = true;
 
-		new Vue({
-			el: '#app',
-			data() {
-				return {
+        new Vue({
+            el: '#app',
+            data() {
+                return {
                     EditMode: false,
-                    is_change:false,
+                    is_change: false,
+                    show_spc: false,
                     edcData: [
                         {
                             "EDC_VER_PARA_SID": "GTI20102213392967647",
@@ -124,8 +130,8 @@
                             "DISPLAY_POINT_NAME": "A"
                         }
                     ]
-				}
-			}
-		})
-	});
+                }
+            }
+        })
+    });
 </script>

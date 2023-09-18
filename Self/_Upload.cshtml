@@ -1,0 +1,105 @@
+﻿
+<div id="app">
+    <el-button size="small" type="info" @@click="isOne=!isOne">是否限制一筆:{{isOne}}</el-button>
+    <el-upload class="upload-demo"
+               :action='cp_upload.api'
+               :on-preview="handlePreview"
+               :on-remove="handleRemove"
+               :file-list="cp_upload.fileList">
+        <el-button size="small" type="primary">点击上传</el-button>
+        <div slot="tip" class="el-upload__tip">只能上传jpg/png文件，且不超过500kb</div>
+    </el-upload>
+    <hr />
+    <el-upload class="upload-demo"
+               :action="cp_upload.api"
+               :data="c_fileName"
+               :multiple="false"
+               :on-preview="handlePreview"
+               :on-remove="handleRemove"
+               :on-success="handleAvatarSuccess"
+               :on-change="handleChange"
+               :file-list="cp_upload.fileList"
+               list-type="picture">
+        <el-button size="small" type="primary" slot="trigger" v-if="c_limit">点击上传</el-button>
+    </el-upload>
+        <img v-if="cp_upload.imageUrl" :src="cp_upload.imageUrl" class="avatar">
+</div>
+
+@section Styles {
+    @Styles.Render(eBundle.selectize_CSS)
+    @Styles.Render(eBundle.elUI_CSS)
+    <style>
+        .el-upload__input {
+            display: none !important;
+        }
+        .el-upload-list--picture .el-upload-list__item {
+            height: 280px !important;
+        }
+
+        .el-upload-list--picture img {
+            width: 250px !important;
+            height: 250px !important;
+        }
+    </style>
+}
+
+@section Scripts {
+    @Scripts.Render(eBundle.selectize_JS)
+    @Scripts.Render(eBundle.Vue_MES)
+    @Scripts.Render(eBundle.elUI_JS)
+}
+
+<script>
+    $(() => {
+
+        new Vue({
+            el: '#app',
+            data() {
+                return {
+                    //是否限制一筆
+                    isOne:false,
+                    cp_upload: {
+                        imageUrl: '',
+                        api: '@Url.Content("~/api/Import/Upload")',
+                        fileList: [{ name: 'food.jpeg', url: 'https://fuss10.elemecdn.com/3/63/4e7f3a15429bfda99bce42a18cdd1jpeg.jpeg?imageMogr2/thumbnail/360x360/format/webp/quality/100' }, { name: 'food2.jpeg', url: 'https://fuss10.elemecdn.com/3/63/4e7f3a15429bfda99bce42a18cdd1jpeg.jpeg?imageMogr2/thumbnail/360x360/format/webp/quality/100' }]
+                    },
+                };
+            },
+            computed: {
+                c_fileName() {
+                    return { fileName: 'test.png' };
+                },
+                c_limit() {
+                    if (this.isOne == false) return true;
+                    return this.cp_upload.fileList.length == 0;
+                },
+            },
+            methods: {
+                test() {
+                    this.cp_upload.fileList.push('test');
+                },
+                handleChange(file) {
+                    // 清空文件列表，只保留当前上传的文件
+                    this.cp_upload.fileList = [file];
+                },
+                handleRemove(file, fileList) {
+                    debugger
+                    //const index = fileList.findIndex(item => item.name === file.name);
+                    //if (index !== -1) {
+                    //    // 从 fileList 中删除对应的文件
+                    //    fileList.splice(index, 1);
+                    //},
+                    this.cp_upload.fileList = fileList;
+                },
+                handlePreview(file) {
+                    console.log(file);
+                },
+                handleAvatarSuccess(res, file) {
+                    debugger
+                    this.imageUrl = URL.createObjectURL(file.raw);
+                },
+            }
+
+        })
+    });
+</script>

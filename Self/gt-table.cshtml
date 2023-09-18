@@ -1,21 +1,16 @@
 ﻿@using MDL.MES
 @using Genesis.Areas.ADM.Controllers
 @{
-    ViewBag.Title = Genesis.Common.PageBaseInfo.getCurrentResource().RESOURCE_NAME;
-}
-@Html.AntiForgeryToken()
-@section Styles {
-    @Styles.Render(eBundle.jqDataTables_CSS)
-    @eBundle.QRender_CSS()
-}
-@section Scripts {
-    @Scripts.Render(eBundle.jqDataTables_JS)
-    @eBundle.QRender_JS()
-}
+    bool isSingleModel = (bool)ViewData["SingleModel"];
 
-<h3>
-    @ViewBag.Title
-</h3>
+    if (isSingleModel)
+    {
+        Layout = "~/Views/Shared/_LayoutSingle.cshtml";
+    }
+}
+@eBundle.QRender_CSS()
+@eBundle.QRender_JS()
+
 <div id="app" v-cloak>
     <div class="row">
         <div class="col-3">
@@ -105,7 +100,7 @@
                   :data="grid.grid_data"
                   :default-sort="{prop: 'DEFAULT_VERSION', order: 'descending'}"
                   :headers="headers"
-				  :i18n="i18n">
+                  :i18n="i18n">
             <template #control>
                 <el-table-column :label="i18n.操作" min-width="50">
                     <template slot-scope="scope">

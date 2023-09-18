@@ -1,0 +1,84 @@
+﻿@{
+    var action = ViewContext.RouteData.Values["action"].ToString();
+	var controller = ViewContext.RouteData.Values["controller"].ToString().ToUpper();
+	GTI_Test GTest = new GTI_Test(Html, HttpContext.Current.IsDebuggingEnabled, ViewContext.HttpContext.Request);
+	ViewBag.Title = Genesis.Common.PageBaseInfo.getCurrentResource(action.ToString()).RESOURCE_NAME;
+	bool sidepage = ViewContext.HttpContext.Request["sidepage"] == "T";
+	if (sidepage){
+        <h3>
+            @ViewBag.Title
+        </h3>
+    } else {
+        Layout = "~/Views/Shared/_LayoutSingle.cshtml";
+        @eBundle.QRender_CSS();
+        @eBundle.QRender_JS();
+    }
+}
+@eBundle.QRender_CSS()
+@eBundle.QRender_JS()
+@Html.AntiForgeryToken()
+<div id="app" v-cloak>
+	<gt-toolbar  :e_Add="e_Add"  fixed="top" :is_change="is_change">
+	</gt-toolbar>
+	<div Area-Main class="panel b pt-sm">
+		<el-tabs type="border-card" v-model.trim="tab.active">
+			<el-tab-pane label="TOP鋼版群組設定" name="TOP鋼版群組設定">
+			</el-tab-pane>
+			<el-tab-pane label="BOTTOM鋼版群組設定" name="BOTTOM鋼版群組設定">
+			</el-tab-pane>
+		</el-tabs>
+	</div>
+</div>
+<script>
+$(() => {
+	new Vue({
+		el: '#app',
+		data() {
+			return {
+				tab:{
+					active:'TOP鋼版群組設定',
+				},
+				form: {},
+				i18n:{
+					TYPE:'TYPE',
+					PART_NAME:'PART_NAME',
+					TOOL_NAME:'TOOL_NAME',
+					PARTNO_SID:'PARTNO_SID',
+					PARTNO_VER_SID:'PARTNO_VER_SID',
+					TOOL_SID:'TOOL_SID',
+					CREATE_USER:'CREATE_USER',
+					CREATE_DATE:'CREATE_DATE',
+					TOOL_NO:'TOOL_NO',
+					ZZ_PARTNO_TOOL_LIST_SID:'ZZ_PARTNO_TOOL_LIST_SID',
+					PARTNO:'PARTNO',
+				},
+				readonly: false,
+                is_change: false,
+			}
+		},
+		mounted() {
+			var _self = this;
+			@Html.Raw(HttpContext.Current.IsDebuggingEnabled?"window.__vm = this;":"");	
+			
+		},
+		methods: {
+			_test() {
+				this.MessageDelSuccess();
+			},
+			e_clear() {
+				for (key in this.form) {
+					this.form[key] = "";
+				}
+				this.form["ENABLE_FLAG"] = 'All';
+			},
+			e_Add() {
+				this.act_Item("");
+			},
+			
+		}
+	})
+});
+</script>
+
+ 
+

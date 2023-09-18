@@ -1,0 +1,246 @@
+﻿@{
+    var action = ViewContext.RouteData.Values["action"].ToString();
+	var controller = ViewContext.RouteData.Values["controller"].ToString().ToUpper();
+	ViewBag.Title = Genesis.Common.PageBaseInfo.getCurrentResource(action.ToString()).RESOURCE_NAME;
+    GTI_Test GTest = new GTI_Test(Html, HttpContext.Current.IsDebuggingEnabled, ViewContext.HttpContext.Request);
+    bool sidepage = ViewContext.HttpContext.Request["sidepage"] == "T";
+    Layout = "~/Views/Shared/_LayoutSingle.cshtml";
+
+}
+@eBundle.QRender_CSS()
+@eBundle.QRender_JS()
+@Html.AntiForgeryToken()
+<h3>
+	@ViewBag.Title
+</h3>
+<div id="app" v-cloak>
+	<gt-toolbar  :e_Add="e_Add" :e_query="click_Query" :e_clear="e_clear" >
+	</gt-toolbar>
+	<div Area-Main class="panel b">
+		<div class="form-horizontal gt-form">
+			<gt-searchcd active_names="1">
+				<div class="form-horizontal gt-form">
+					<gt-form-col :label='i18n.SID'
+						v-model="form.SID" v-trim
+						></gt-form-col>
+				</div>
+			</gt-searchcd>
+		</div>
+		<el-table empty-text=" " style="width: 100%" @@sort-change="sort_change"
+			:data="grid.data"
+			:default-sort="{prop: 'CREATE_DATE', order: 'ascending'}">
+			<el-table-column label="@Face.Operate" min-width="50">
+				<template slot-scope="scope">
+					<el-tooltip class="item" effect="dark" content="@Face.QUERY" placement="right">
+						<el-button size="mini" type="success" icon="el-icon-search" circle
+							title="@Face.QUERY" @@click="View_Item(scope.row)">
+						</el-button>
+					</el-tooltip>
+				</template>
+			</el-table-column>
+			<el-table-column :label='i18n.SID'  prop='SID' SMT料棧表明細序號 >
+			</el-table-column>
+			<el-table-column :label='i18n.BOM_SID'  prop='BOM_SID' SMT料棧表序號 >
+			</el-table-column>
+			<el-table-column :label='i18n.EQP_SID'  prop='EQP_SID' 機台系統識別碼 >
+			</el-table-column>
+			<el-table-column :label='i18n.EQP_NO'  prop='EQP_NO' 機台代碼 >
+			</el-table-column>
+			<el-table-column :label='i18n.EQP_NAME'  prop='EQP_NAME' 機台名稱 >
+			</el-table-column>
+			<el-table-column :label='i18n.PARTNO_SID'  prop='PARTNO_SID' 料號系統識別碼 >
+			</el-table-column>
+			<el-table-column :label='i18n.PARTNO'  prop='PARTNO' 料號代碼 >
+			</el-table-column>
+			<el-table-column :label='i18n.PART_NAME'  prop='PART_NAME' 料號名稱 >
+			</el-table-column>
+			<el-table-column :label='i18n.POSITION'  prop='POSITION' 打件位置 >
+			</el-table-column>
+			<el-table-column :label='i18n.SLOT_NO'  prop='SLOT_NO' 料棧編號 >
+			</el-table-column>
+			<el-table-column :label='i18n.FEEDER_SPEC'  prop='FEEDER_SPEC' 喂料器規格 >
+			</el-table-column>
+			<el-table-column :label='i18n.QTY'  prop='QTY' 使用數量 >
+			</el-table-column>
+			<el-table-column :label='i18n.CREATE_USER'  prop='CREATE_USER' 資料建立使用者 >
+			</el-table-column>
+			<el-table-column :label='i18n.CREATE_DATE'  prop='CREATE_DATE' 資料建立時間 >
+			</el-table-column>
+			<el-table-column :label='i18n.UPDATE_USER'  prop='UPDATE_USER' 更新使用者 >
+			</el-table-column>
+			<el-table-column :label='i18n.UPDATE_DATE'  prop='UPDATE_DATE' 更新時間 >
+			</el-table-column>
+		</el-table>
+		<el-pagination background
+			@@size-change="e_SizeChange"
+			@@current-change="e_CurrentChange"
+			:current-page="grid.Page.Index"
+			:page-sizes="[5,10,15]"
+			:page-size="grid.Page.Size"
+			layout="total, prev, pager, next, jumper"
+			:total="grid.row_count"></el-pagination>
+	</div>
+</div>
+<script>
+$(() => {
+	new Vue({
+		el: '#app',
+		data() {
+			return {
+				grid: {
+					data: [],
+					pageSize: 10,
+					pageIdx: 1,
+					row_count: 0,
+					Sort: {
+						Name: "CREATE_DATE",
+						isAsc: true
+					},
+					Conditions: {},
+					Page: {
+						Index: 1,
+						Size: 10,
+					},
+					get query_rule() {
+						{
+							let { Conditions, Sort, Page } = this;
+							return {
+								Conditions, Sort, Page
+							}
+						}
+					}
+				},
+				form: {},
+				i18n:{
+					SID:'SMT料棧表明細序號',
+					BOM_SID:'SMT料棧表序號',
+					EQP_SID:'機台系統識別碼',
+					EQP_NO:'機台代碼',
+					EQP_NAME:'機台名稱',
+					PARTNO_SID:'料號系統識別碼',
+					PARTNO:'料號代碼',
+					PART_NAME:'料號名稱',
+					POSITION:'打件位置',
+					SLOT_NO:'料棧編號',
+					FEEDER_SPEC:'喂料器規格',
+					QTY:'使用數量',
+					CREATE_USER:'資料建立使用者',
+					CREATE_DATE:'資料建立時間',
+					UPDATE_USER:'更新使用者',
+					UPDATE_DATE:'更新時間',
+				},
+				readonly: false,
+			}
+		},
+		mounted() {
+			var _self = this;
+			@Html.Raw(HttpContext.Current.IsDebuggingEnabled?"window.__vm = this;":"");	
+			
+		},
+		methods: {
+			_test() {
+				this.MessageDelSuccess();
+			},
+			e_clear() {
+                this.$UT.page_reload();
+            },			},
+            e_Add() {
+                
+                this.View_Item({ SID: '' });
+            },
+			//父視窗reload 功能
+			reload() {
+				console.log("父視窗reload!!");
+				this.query(this.grid.Page.Index);
+			},
+			parse_ENABLE_FLAG(row, column){
+				return this.$UT.parse_Enable(row.ENABLE_FLAG);
+			},
+			//查詢事件
+			click_Query() {
+				var Conditions = {
+					condition: "AND",
+					rules: []
+				};
+				_.each(this.form, (value, field) => {
+					if (value != "") {
+						var _rule = { field, type: "string", operator: "contains", value: value.trim() };
+						switch (field) {
+							case "ENABLE_FLAG":
+								if (value != 'All') {
+									_rule.operator = "equal";
+									Conditions.rules.push(_rule);
+								}
+								break;
+							default:
+								Conditions.rules.push(_rule);
+								break;
+						}
+					}
+				});
+				this.grid.Conditions = Conditions;
+				this.query(1);
+			},
+			sort_change(column) {
+				this.grid.Sort = {
+					Name: column.prop,
+					isAsc: column.order == "ascending"
+				}
+				if (this.grid.data.length == 0) return;
+				this.query(1);
+			},
+			// 查詢處理程序
+			query(pageIdx) {
+				var _self = this;
+				_self.grid.Page.Index = pageIdx;
+				var param = _self.grid.query_rule;
+				console.log({ query: param });
+				var _ajax = {
+					url: '@Url.Action($"{action}_ListData")',
+					type: 'post',
+					param,
+					success: this.query_success
+				};
+				$.submitForm(_ajax);
+			},
+			// 查詢成功處理程序
+			query_success(res) {
+				let { Data, Code = null, Message, Success = false } = res;
+				if (Success) {
+					let { PageInfo, gridData } = Data || {};
+					this.grid.data = gridData;
+					this.grid.row_count = PageInfo.RowCount;
+				} else {
+					var msg = Message != null
+						? Message
+						: '@BLL.InterFace.ErrCode.GenericErrorMessage'
+						;
+					this.$Alert.Err(msg);
+				}
+			},
+			View_Item(row){
+				var {SID:SID} = row || {};
+				if (SID != "") {
+					SID = `&SID=${SID}`
+				}
+				var arg = {
+					title: '@ViewBag.Title',
+					content: `@Url.Action("SMT_BOM_ITEM")?SingleMode=true${SID}`
+				}
+				this.$UT.layer(arg, this);
+			},
+			e_SizeChange(size) {
+				this.pagesize = size;
+				this.query(1);
+			},
+			// 換頁事件
+			e_CurrentChange(currentPage) {
+				this.query(currentPage);
+			}, 
+		}
+	})
+});
+</script>
+
+ 
+

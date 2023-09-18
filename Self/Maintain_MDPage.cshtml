@@ -1,0 +1,472 @@
+@{
+    var action = ViewContext.RouteData.Values["action"].ToString();
+    var controller = ViewContext.RouteData.Values["controller"].ToString().ToUpper();
+    GTI_Test GTest = new GTI_Test(Html, HttpContext.Current.IsDebuggingEnabled, ViewContext.HttpContext.Request);
+    ViewBag.Title = Genesis.Common.PageBaseInfo.getCurrentResource(action.ToString()).RESOURCE_NAME;
+    bool sidepage = ViewContext.HttpContext.Request["sidepage"] == "T";
+    var model = new
+    {
+        SMT_BOM = new MDL.MES.SMT_BOM(),
+        SMT_BOM_ITEM = new MDL.MES.SMT_BOM_ITEM(),
+    };
+
+    if (sidepage)
+        {
+    < h3 >
+        @ViewBag.Title
+    </ h3 >
+    }
+    else
+    {
+        Layout = "~/Views/Shared/_LayoutSingle.cshtml";
+        @eBundle.QRender_CSS();
+        @eBundle.QRender_JS();
+    }
+}
+@Html.AntiForgeryToken()
+<div id="app" v-cloak>
+    <gt-toolbar :e_save="e_save" :e_del="e_del"  fixed="top" is_change="is_change">
+    </gt-toolbar>
+    <div Area-Main class="panel b pt-sm">
+        <form id="form_main" class="form-horizontal gt-form">
+            <gt-form-col :label="i18n.PART_NAME">
+                <vue-selectize-ddlapi v-model="form.PARTNO" required
+                                      :options="ddl_PARTNO.src"
+                                      action="PartNo"
+                                      render_sty="GTIMES"
+                                      :readonly="!isAddMode"
+                                      :readonly_view="c_PART">
+                </vue-selectize-ddlapi>
+            </gt-form-col>
+            <gt-form-col :label="i18n.LINE">
+                <vue-selectize-ddlapi v-model="form.LINE_NO" required
+                                      :options="ddl_LINE.src"
+                                      action="LINE"
+                                      render_sty="GTIMES"
+                                      :readonly_view="c_PART"
+                                      :readonly="!isAddMode" />
+            </gt-form-col>
+            <gt-form-col :label="i18n.LABEL_TYPE" :readonly="!isAddMode" 
+                        :readonly_view="i18n.c_LABEL_TYPE[form.LABEL_TYPE]"
+                        >
+                <el-radio-group v-model="form.LABEL_TYPE">
+                    <el-radio :label="'T'">@Face.OBVERSE_SIDE</el-radio>
+                    <el-radio :label="'B'">@Face.REVERSE_SIDE</el-radio>
+                </el-radio-group>
+            </gt-form-col>
+        </form>
+        <div class="clearfix"></div>
+        <el-tabs type="border-card" v-model.trim="tab.active" v-if="!isAddMode">
+            <el-tab-pane :label="i18n.基本資料" name="A">
+                <el-table empty-text=" " style="width: 100%" :data="grid.data"
+                          ref="input_grid" :row-class-name="RowStyle">
+                    <el-table-column :label="i18n.操作" width="120">
+                        <template slot="header" slot-scope="scope">
+                            <el-button size="small" class="s-VIEW"
+                                       type="primary"
+                                       icon="el-icon-plus"
+                                       v-show="!isAddMode"
+                                       :disabled="grid.currentRow != null"
+                                       @@click="AddItem"></el-button>
+                            {{i18n.操作}}
+                        </template>
+                        <template slot-scope="scope">
+                            <el-button size="small" circle class="s-VIEW"
+                                       type="success"
+                                       icon="el-icon-edit"
+                                       @@click="Edit(scope.$index, scope.row)"></el-button>
+                            <el-button size="small" circle class="s-VIEW"
+                                       type="danger"
+                                       icon="el-icon-delete"
+                                       @@click="DelRow(scope.$index, scope.row)"></el-button>
+                            <el-button size="small" circle class="s-EDIT"
+                                       type="success"
+                                       icon="el-icon-check"
+                                       @@click="Confirm(scope.$index, scope.row,$event)"></el-button>
+                            <el-button size="small" circle class="s-EDIT"
+                                       type="danger"
+                                       icon="el-icon-refresh-right"
+                                       @@click="Cancel(scope.$index, scope.row,$event)"></el-button>
+                        </template>
+                    </el-table-column>
+                    <el-table-column :label="i18n.EQP" 機台 min-width="120">
+                        <template slot-scope="scope">
+                            <div class="s-VIEW"><gt-no-name v-model="scope.row.EQP_NAME" :no="scope.row.EQP_NO" :inline="false" readonly></gt-no-name></div>
+                            <vue-selectize-ddlapi v-model="grid.edit_row.EQP_NO" required class="s-EDIT"
+                                                  :options.sync="ddl_Eqp.src"
+                                                  action="Equipment"
+                                                  render_sty="GTIMES"
+                                                  :rows.sync="ddl_Eqp.rows"
+                                                  required />
+                        </template>
+                    </el-table-column>
+                    <el-table-column :label="i18n.SLOT_NO" 料棧編號>
+                        <template slot-scope="scope">
+                            <div class="s-VIEW">{{scope.row.SLOT_NO}}</div>
+                            <el-input class="s-EDIT" type=text v-model="c_edit_row.SLOT_NO" size="small" required />
+                        </template>
+                    </el-table-column>
+                    <el-table-column :label="i18n.FEEDER_SPEC" 喂料器規格>
+                        <template slot-scope="scope">
+                            <div class="s-VIEW">{{scope.row.FEEDER_SPEC}}</div>
+                            <el-input class="s-EDIT" type=text v-model="c_edit_row.FEEDER_SPEC" size="small" required />
+                        </template>
+                    </el-table-column>
+                    <el-table-column :label="i18n.PART_NAME" 料號名稱 min-width="120">
+                        <template slot-scope="scope">
+                            <div class="s-VIEW"><gt-no-name v-model="scope.row.PART_NAME" :no="scope.row.PARTNO" :inline="false" readonly></gt-no-name></div>
+                            <vue-selectize-ddlapi v-model="c_edit_row.PARTNO" required class="s-EDIT"
+                                                  :options.sync="ddl_PARTNO.src"
+                                                  action="PartNo"
+                                                  render_sty="GTIMES"
+                                                  :rows.sync="ddl_PARTNO.rows"
+                                                  required />
+                        </template>
+                    </el-table-column>
+                    <el-table-column :label="i18n.POSITION" 打件位置>
+                        <template slot-scope="scope">
+                            <div class="s-VIEW">{{scope.row.POSITION}}</div>
+                            <el-input class="s-EDIT" type=text v-model="c_edit_row.POSITION" size="small" required />
+                        </template>
+                    </el-table-column>
+                    <el-table-column :label="i18n.QTY" 使用數量 min-width="80">
+                        <template slot-scope="scope">
+                            <div class="s-VIEW">{{scope.row.QTY}}</div>
+                            <el-input class="s-EDIT" type=text v-model.number="c_edit_row.QTY" size="small" required />
+                        </template>
+                    </el-table-column>
+                </el-table>
+            </el-tab-pane>
+        </el-tabs>
+    </div>
+</div>
+<script>
+	$(() => {
+		var _data = @Html.Raw(ViewData["result"] ?? "{}");
+		console.log(_data);
+		let { Data, Message, Success } = _data;
+
+        let { SMT_BOM = {}, SMT_BOM_ITEM = [], ddl = {} } = Data || {};
+
+        var model = @Html.Raw(Json.Encode(model));
+		new Vue({
+            el: '#app',
+			data() {
+				return {
+					tab:{
+						active:'A',
+					},
+                    form: SMT_BOM || {},
+                    i18n: {
+                        c_LABEL_TYPE: {
+                            T: '@Face.OBVERSE_SIDE',
+                            B:'@Face.REVERSE_SIDE'
+                        },
+                        操作:'操作',
+                        基本資料:'基本資料',
+						SID:'SMT料棧表系統序號',
+						PARTNO_SID:'料號系統識別碼',
+						PARTNO:'料號代碼',
+						PART_NAME:'料號名稱',
+						LINE_SID:'生產線系統識別碼',
+						LINE_NO:'生產線代碼',
+						LINE:'生產線名稱',
+						LABEL_TYPE:'正反面',
+						CREATE_USER:'資料建立使用者',
+						CREATE_DATE:'資料建立時間',
+						UPDATE_USER:'更新使用者',
+						UPDATE_DATE:'更新時間',
+						//SID:'SMT料棧表明細序號',
+						BOM_SID:'SMT料棧表序號',
+						EQP_SID:'機台系統識別碼',
+						EQP_NO:'機台代碼',
+						EQP_NAME:'機台名稱',
+						EQP:'機台',
+						//PARTNO_SID:'料號系統識別碼',
+						//PARTNO:'料號代碼',
+						//PART_NAME:'料號名稱',
+						POSITION:'打件位置',
+						SLOT_NO:'料棧編號',
+						FEEDER_SPEC:'喂料器規格',
+						QTY:'使用數量',
+						//CREATE_USER:'資料建立使用者',
+						//CREATE_DATE:'資料建立時間',
+						//UPDATE_USER:'更新使用者',
+						//UPDATE_DATE:'更新時間',
+					},
+					readonly: false,
+					ddl_PARTNO: {
+                        src: ddl['PART']||[],
+                        rows:[],
+					},
+					ddl_LINE: {
+						src:[]
+                    },
+                    ddl_Eqp: {
+                        src: ddl['EQP'] || [],
+                        rows:[]
+                    },
+                    grid: {
+                        edit_row: {} ,
+                        currentRow: null,
+                        data: SMT_BOM_ITEM,
+                        new_items:[],
+                    },
+                    confirm_arg: {
+						showClose: false,
+						closeOnClickModal: false,
+						closeOnPressEscape: false,
+						dangerouslyUseHTMLString: true,
+						confirmButtonText: `@Face.FunctionBarConfirmButton`,
+						cancelButtonText: `@Face.FunctionBarCancelButton`,
+						type: 'info'
+                    },
+                    is_change: false,
+				}
+			},
+            mounted() {
+				var _self = this;
+                @Html.Raw(HttpContext.Current.IsDebuggingEnabled?"window.__vm = this;":"");
+
+			},
+            computed: {
+                c_isEdited() {
+                    return this.grid.currentRow != null;
+                },
+                c_edit_row() {
+                    return this.grid.edit_row || {};
+                },
+                c_LABEL_TYPE() {
+                    let { LABEL_TYPE } = form;
+                    var r = "";
+                    switch (LABEL_TYPE) {
+                        case "T":
+                            r = '@Face.OBVERSE_SIDE'
+                            break;
+                    }
+                    return r;
+                },
+				c_PART() {
+                    let { PARTNO, PART_NAME } = this.form;
+                    if (PARTNO) {
+                        return [PARTNO, PART_NAME]
+                    }
+                    return null;
+				},
+				c_LINE() {
+                    let { LINE_NO, LINE } = this.form;
+                    if (LINE_NO) {
+                        return [LINE_NO, LINE];
+                    }
+                    return null;
+				},
+				isAddMode() {
+					let { SID } = this.form;
+                    return SID == null;
+                },
+                e_del() {
+                    return {
+                        visable: this.isAddMode == false,
+                        enable: !this.enable && this.form.QUOTE_ONCE === "F",
+                        fn: this.toolbar_delete
+                    }
+                },
+                e_save() {
+                    return {
+                        visable: true,
+                        enable: !this.enable,
+                        fn: this.Save
+                    }
+                }
+            },
+			methods: {
+				_test() {
+					this.MessageDelSuccess();
+				},
+				e_clear() {
+                    for (key in this.form) {
+						this.form[key] = "";
+					}
+                    this.form["ENABLE_FLAG"] = 'All';
+				},
+				e_Add() {
+					this.act_Item("");
+				},
+                Save() {
+					if (this.isAddMode) {
+						this.Save_form_main();
+                    } else {
+                        this.Save_form_item();
+					}
+				},
+                Save_form_main() {
+                    var _self = this;
+					if ($("#form_main").parsley().validate()) {
+						var param = {
+                            main: this.form,
+						};
+						@GTest.param_test
+						@GTest.Test("console.log({ param });")
+
+                        var _ajax = {
+                            url: '@Url.Action($"{ action}_SaveMain")',
+                            param,
+                            type: 'post',
+                            success: function(res) {
+								let { Success, Message, Data, Exception } = res;
+								console.log(Data);
+                                if (Success) {
+                                    let { SID } = Data;
+                                    _self.$Alert.Success('@RES.BLL.Message.SaveSuccessful').then(() => {
+                                        _self.reload({ SID })
+                                        _self.$UT.parent_reload();
+                                    });
+                                } else {
+                                    _self.$Alert.Warning(Message || res.info);
+                                }
+                            }
+                        };
+                        $.submitForm(_ajax);
+                    }
+                },
+                Save_form_item() {
+                    var _self = this;
+					if ($("#form_main").parsley().validate()) {
+						var param = {
+							main: this.form,
+                            item: this.grid.data
+						};
+						@GTest.param_test
+						@GTest.Test("console.log({ param });")
+
+                        var _ajax = {
+                            url: '@Url.Action($"{ action}_SaveItem")',
+                            param,
+                            type: 'post',
+                            success: function(res) {
+								let { Success, Message, Data, Exception } = res;
+								console.log(Data);
+                                if (Success) {
+                                    _self.$Alert.Success('@RES.BLL.Message.SaveSuccessful').then(() => {
+                                        _self.reload()
+                                        _self.$UT.parent_reload();
+                                    });
+                                } else {
+                                    _self.$Alert.Warning(Message || res.info);
+                                }
+                            }
+                        };
+                        $.submitForm(_ajax);
+                    }
+                },
+                Edit(idx, row) {
+                    var _self = this;
+                    var _fn = () => {
+                        _self.ddl_Eqp.src = [{
+                            Display: row.EQP_NAME,
+                            No: row.EQP_NO,
+                        }];
+                        _self.ddl_PARTNO.src = [{
+                            Display: row.PART_NAME,
+                            No: row.PARTNO,
+                        }];
+                        _self.grid.currentRow = row;
+                        _self.grid.edit_row = Object.assign({}, row);
+                        //_self.$set(_self.grid.currentRow, 'edit', true);
+                    }
+                    _self.CancelEdit(_fn);
+                },
+                DelRow(idx, row) {
+					var _self = this;
+					_self.$confirm(_self.i18n.ConfirmDel, '提示', _self.confirm_arg).then(() => {
+					    _self.grid.data.splice(idx, 1);
+                        _self.is_change = true;
+					});
+				},
+                CancelEdit(_fn) {
+                    var _self = this;
+                    if (_self.grid.currentRow != null) {
+                        let { $Alert } = _self;
+                        if ($Alert) {
+                            $Alert.Err("必須先完成或取消當前編輯中的項目!");
+                        } else {
+                            _self.$message("必須先完成或取消當前編輯中的項目!");
+                        }
+                    } else {
+                        _fn();
+                    }
+                },
+                Cancel(idx, row, event) {
+                    var _self = this;
+                    _self.$confirm(_self.i18n.ConfirmCancel, '提示', _self.confirm_arg).then(() => {
+                        var isNew = _self.grid.currentRow['SID'] == null;
+                        if (isNew) _self.grid.data.splice(idx, 1);
+                        _self.grid.edit_row = {};
+                        _self.grid.currentRow.edit = false;
+                        _self.grid.currentRow = null;
+                    });
+                },
+                OnEscapeKeyUp(event) {
+                    if (event.which === 27) {
+                        this.Cancel();
+                    }
+                },
+                RowStyle(item) {
+                    let { row } = item;
+                    var isEditRow = row === this.grid.currentRow;
+                    if (isEditRow) {
+                        return "gt-SMT_BOM_ITEM s-EDIT";
+                    }
+                    return "gt-SMT_BOM_ITEM s-VIEW";
+                },
+                AddItem() {
+                    var _row = Object.assign({}, model.SMT_BOM);
+                    this.$set(_row, 'edit', true);
+                    this.grid.currentRow = _row;
+                    this.grid.edit_row = _row;
+                    this.grid.data.push(_row);
+                },
+                Confirm(idx, row, event) {
+                    var _self = this;
+                    let $tr = $(event.target).closest('table');
+                    $tr.wrap("<form id='parsley-form'></form>");
+                    var $form = $tr.closest('form');
+                    if ($form && $form.parsley().validate()) {
+                        let { edit_row } = _self.grid;
+                        if (_self.is_change == false) {
+                            for (var key in _self.grid.currentRow) {
+                                if (_self.is_change) continue;
+                                if (edit_row[key] != _self.grid.currentRow[key])
+                                    _self.is_change = true;
+                            }
+                        }
+                        if (_self.grid.currentRow != edit_row) _self.is_change = true;
+
+                        let [Eqp_Row0] = _self.ddl_Eqp.rows;
+                        edit_row.EQP_NAME = Eqp_Row0.Display;
+
+                        let [Part_Row0] = _self.ddl_PARTNO.rows;
+                        edit_row.PART_NAME = Part_Row0.Display;
+
+                        _self.grid.currentRow = null;
+                        _self.grid.data[idx] = edit_row;
+                    }
+                    $tr.unwrap();
+				},
+			}
+		})
+	});
+</script>
+<style>
+    .gt-SMT_BOM_ITEM.s-EDIT .s-VIEW {
+        display: none;
+    }
+
+    .gt-SMT_BOM_ITEM.s-VIEW .s-EDIT {
+        display: none;
+    }
+</style>
+
+
+ 
+

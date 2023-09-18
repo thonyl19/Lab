@@ -1,0 +1,192 @@
+{
+    "undefined": "1",
+    "__RequestVerificationToken": "GJbjbY0k9LRf9Z69vkBPQjAoKDZDh5PQjNx46GpKRtaxiCOp8j5CdPxcrLlr-OITorx1MwriAmnDb9vIVL4t__P_K9C4-14u0_TDew2jKhk1",
+    "user_list": [
+        {
+            "RefKey": null,
+            "SID": "GTI20101610432410029",
+            "No": "J2819",
+            "Value": "GTI20101610432410029",
+            "Display": "常芝勤",
+            "StatusSid": null,
+            "Status": null,
+            "FromNum": 0,
+            "INum": 0,
+            "Attr01": "J2819",
+            "Attr02": null,
+            "Attr03": null,
+            "$order": 1
+        }
+    ],
+    "LotModifyData.Note": [],
+    "LotSplitQty": 12,
+    "edcList": [
+        {
+            "EdcVerSid": "GTI20020716132301414",
+            "EdcParameterSid": "GTI20020716111501406",
+            "QCItemSID": "GTI20020716111501406",
+            "DataType": "N",
+            "DataCount": 1,
+            "DispayPointName": "",
+            "DispayPointNameList": [
+                ""
+            ],
+            "ItemSid": "GTI20020716111501406",
+            "ItemNo": "EDC.01",
+            "ItemName": "轉速",
+            "mustInput": "T",
+            "UCL": null,
+            "USL": null,
+            "LCL": null,
+            "LSL": null,
+            "TL": "20000",
+            "EDCSid": "GTI20020716124601409",
+            "EDCThrowSpc": "F",
+            "ThrowSpc": "F",
+            "EDCVerParaSid": "GTI20020716132301416",
+            "DBTable": "",
+            "DBColumnName": "",
+            "InputValueList": [
+                {
+                    "1": 1
+                }
+            ]
+        },
+        {
+            "EdcVerSid": "GTI20020716132301414",
+            "EdcParameterSid": "GTI20020716113401407",
+            "QCItemSID": "GTI20020716113401407",
+            "DataType": "N",
+            "DataCount": 1,
+            "DispayPointName": "",
+            "DispayPointNameList": [
+                ""
+            ],
+            "ItemSid": "GTI20020716113401407",
+            "ItemNo": "EDC.02",
+            "ItemName": "速度",
+            "mustInput": "T",
+            "UCL": null,
+            "USL": null,
+            "LCL": null,
+            "LSL": null,
+            "TL": "50",
+            "EDCSid": "GTI20020716124601409",
+            "EDCThrowSpc": "F",
+            "ThrowSpc": "F",
+            "EDCVerParaSid": "GTI20020716132301417",
+            "DBTable": "",
+            "DBColumnName": "",
+            "InputValueList": [
+                {
+                    "1": 1
+                }
+            ]
+        },
+        {
+            "EdcVerSid": "GTI20020716132301414",
+            "EdcParameterSid": "GTI20020716115201408",
+            "QCItemSID": "GTI20020716115201408",
+            "DataType": "N",
+            "DataCount": 1,
+            "DispayPointName": "",
+            "DispayPointNameList": [
+                ""
+            ],
+            "ItemSid": "GTI20020716115201408",
+            "ItemNo": "EDC.03",
+            "ItemName": "刀數",
+            "mustInput": "T",
+            "UCL": null,
+            "USL": null,
+            "LCL": null,
+            "LSL": null,
+            "TL": "1",
+            "EDCSid": "GTI20020716124601409",
+            "EDCThrowSpc": "F",
+            "ThrowSpc": "F",
+            "EDCVerParaSid": "GTI20020716132301418",
+            "DBTable": "",
+            "DBColumnName": "",
+            "InputValueList": [
+                {
+                    "1": 1
+                }
+            ]
+        }
+    ],
+    "UserShift": {
+        "RefKey": null,
+        "SID": "GTI23071310460814648",
+        "No": "SHIFT_001",
+        "Value": null,
+        "Display": "早班_001",
+        "StatusSid": null,
+        "Status": null,
+        "FromNum": 0,
+        "INum": 0,
+        "Attr01": null,
+        "Attr02": null,
+        "Attr03": null,
+        "$order": 1
+    },
+    "Lot": "CrystalGrowth_WO01-01.01",
+    "Setting": {
+        "CheckInSet": {
+            "IsShowEdcView": false,
+            "IsCollectEDC": false,
+            "IsUseCopeAllEDC": false
+        },
+        "CheckOutSet": {
+            "IsShowSplit": false,
+            "SplitCfg": {
+                "SplitMode": 0,
+                "CodeRule": "SplitLot",
+                "ParentLotCheckOut": true,
+                "title": null,
+                "enable": false,
+                "required": false
+            },
+            "SplitType": "Out",
+            "IsPrintLabel": false,
+            "IsLotSplitQTY": true,
+            "IsLotSplitQTYCheckList": [],
+            "IsSplitBIN": false,
+            "IsPackage": false,
+            "IsPackage_cfg": {
+                "title": null,
+                "enable": false,
+                "required": false,
+                "CodeRule": null
+            },
+            "IsReWork": false,
+            "LotFinlishTransfromMLot": false,
+            "IsReWork_cfg": {
+                "title": null,
+                "enable": false,
+                "required": false,
+                "CodeRule": null
+            },
+            "IsGoodQTY": false,
+            "IsGoodUseType": "GoodAndScrap",
+            "IsGrade": false,
+            "IsGradePack": false,
+            "IsWaferLogEDC": false,
+            "IsIngotLogEDC": false,
+            "IsIngotLogEDCTarget": "AssemblyMaterials",
+            "IsUseCopeAllEDC": false
+        },
+        "AnySet": {
+            "IsMultiLotSpitEqps": false,
+            "IsOperationWorkingTimeSummery": true,
+            "IsWarehousingOp": false,
+            "UseWareEncodeSetting": "Default",
+            "IsOperationWoBin": false,
+            "IsOperationWoPlate": false,
+            "FinishedReturnERP": false,
+            "UseWMS": false,
+            "APICfg": {}
+        }
+    },
+    "CheckTime": "2022-04-28 09:58:34"
+}

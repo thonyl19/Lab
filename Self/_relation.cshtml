@@ -1,0 +1,33 @@
+﻿@{
+	bool isSingleModel = (bool)ViewData["SingleModel"];
+
+	if (isSingleModel)
+	{
+		Layout = "~/Views/Shared/_LayoutSingle.cshtml";
+		@eBundle.QRender_CSS();
+		@eBundle.QRender_JS(eBundle.localize);
+	}
+}
+
+@Html.Partial("~/Areas/ESG/Views/_relation.cshtml")
+@Html.AntiForgeryToken()
+
+<div id="app">
+	<gt-esg-relation v-model="form.PARTNO"></gt-esg-relation>
+</div>
+
+
+<script>
+	$(() => {
+		new Vue({
+			el: '#app',
+			data() {
+				return {
+					form: {
+						PARTNO: '11160111'
+					}
+				}
+			}
+		})
+	});
+</script>

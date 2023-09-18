@@ -1,0 +1,337 @@
+﻿@{
+    string jsVersion = Genesis.Common.PageBaseInfo.GetJsVersion();
+    bool sidepage = ViewContext.HttpContext.Request["sidepage"] == "F";
+}
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+    <meta name="description" content="Smart+ MES">
+    <meta name="keywords" content="MES,Smart,Genesis">
+    <title>@System.Web.Configuration.WebConfigurationManager.AppSettings["TitleName"] @ViewBag.Title</title>
+
+    @Html.Partial("_i18n")
+    @*載入環境變數*@
+    @Html.Partial("_InjectSystemConfig")
+
+    <!-- =============== VENDOR STYLES ===============-->
+    @Styles.Render("~/bundles/fontawesome")
+    @Styles.Render("~/bundles/simpleLineIcons")
+    @Styles.Render("~/bundles/animatecss")
+    @Styles.Render("~/bundles/whirl")
+
+    <!-- =============== Knockout ===============-->
+    @Scripts.Render("~/bundles/jquery")
+    @Scripts.Render("~/bundles/knockout")
+    @Scripts.Render("~/bundles/signalR")
+    <!--VM模型-->
+    <script>
+		var VmList = new Object();
+		//setBaseUrl
+        var baseUrl = localStorage.getItem("baseUrl");
+		var checkUrl = "@Genesis.Common.PageBaseInfo.GetBaseUrl()";
+		if (checkUrl != baseUrl) {
+			localStorage.setItem("baseUrl", checkUrl);
+			//清除cache項目
+			localStorage.removeItem("GTiRPTThemescss");
+
+		}
+
+        //window.onerror = function (a, b, c, d, e, f, g) {
+        //    alert(a);
+        //    alert(b);
+        //    alert(c);
+        //    alert(d);
+        //    alert(e);
+
+        //}
+
+
+    </script>
+
+
+
+    <!-- =============== PAGE VENDOR STYLES =============== -->
+    @if (IsSectionDefined("Styles"))
+    {@RenderSection("Styles", required: false)}
+    <!-- =============== BOOTSTRAP STYLES ===============-->
+    <link href="@Styles.Url("~/Content/app/css/bootstrap.css?v="+jsVersion)" rel="stylesheet" type="text/css" id="bscss" />
+    <!-- =============== APP STYLES ===============-->
+    <link href="@Styles.Url("~/Content/app/css/app.css?v="+jsVersion)" rel="stylesheet" type="text/css" id="maincss" />
+    <link href="@Styles.Url("~/Content/mvc-override.css?v="+jsVersion)" rel="stylesheet" type="text/css" />
+    @Styles.Render(eBundle.selectize_CSS)
+    @Styles.Render(eBundle.elUI_CSS)
+    <link rel="icon" href="@Url.Content("~/Content/favicon.ico")" />
+
+
+    <!-- =============== VENDOR SCRIPTS ===============-->
+    @Scripts.Render($"{eBundle.selectize_JS}?v={jsVersion}")
+    @Scripts.Render($"{eBundle.Vue_MES}?v={jsVersion}")
+    @Scripts.Render($"{eBundle.elUI_JS}?v={jsVersion}")
+
+
+    @Scripts.Render("~/bundles/modernizr")
+    @Scripts.Render("~/bundles/matchMedia")
+    @Scripts.Render("~/bundles/bootstrap")
+    @Scripts.Render("~/bundles/moment")
+    @Scripts.Render("~/bundles/storage")
+    @Scripts.Render("~/bundles/jqueryEasing")
+    @Scripts.Render("~/bundles/animo")
+    @Scripts.Render("~/bundles/slimscroll")
+    @Scripts.Render("~/bundles/screenfull")
+    @Scripts.Render("~/bundles/localize")
+    @Scripts.Render("~/bundles/demoRTL")
+
+
+    @Scripts.Render("~/bundles/SweetAlert_2")
+    @Scripts.Render("~/bundles/parsley")
+    <script src="~/Vendor/layer/layer.js"></script>
+
+    <!-- =============== APP SCRIPTS ===============-->
+    @*@Scripts.Render($"~/bundles/Genesis?v={jsVersion}")*@
+
+</head>
+<body>
+    <audio src='~/Content/Sound/error.wav' style='display:none' id='errorSound'></audio>
+    <div class="wrapper">
+        <!-- top navbar-->
+        <header class="topnavbar-wrapper">
+            @Html.Partial("_TopNavbar")
+        </header>
+        <!-- sidebar-->
+        <aside class="aside">
+
+            @*@if (System.Web.Configuration.WebConfigurationManager.AppSettings["SystemMode"] == "Debug")
+                {
+                    @Html.Partial("_Sidebar_bak")
+                }
+                else
+                {
+                    @Html.Partial("_Sidebar")
+                }*@
+
+            @Html.Partial("_Sidebar")
+
+
+        </aside>
+        <!-- offsidebar-->
+        <aside class="offsidebar hide">
+            @sidepage?"":Html.Partial("_Offsidebar~20221027")
+        </aside>
+        <!-- Main section-->
+        <section>
+            <!-- Page content-->
+            <div class="content-wrapper">
+                @RenderBody()
+            </div>
+        </section>
+        <!-- Page footer-->
+        <footer>
+            @Html.Partial("_Footer")
+        </footer>
+
+    </div>
+
+    @if (IsSectionDefined("BodyArea"))
+    {@RenderSection("BodyArea", required: false)}
+
+    <!-- =============== APP SCRIPTS ===============-->
+    @Scripts.Render($"~/bundles/Genesis?v={jsVersion}")
+
+
+    <!-- =============== PAGE VENDOR SCRIPTS ===============-->
+    @RenderSection("scripts", required: false)
+    @{ if (System.Web.Configuration.WebConfigurationManager.AppSettings["EnableMessageServices"] == "1")
+        {
+            if (BLL.MVC.CurrentProvider.Provider.checkIsLogger())
+            {
+                <text>
+                    <script src="@System.Web.Configuration.WebConfigurationManager.AppSettings["MessageServices"]/signalr/hubs"></script>
+
+                    <script>
+
+                    $(function () {
+                        try {
+                            var checkUser = "@BLL.MVC.CurrentProvider.Provider.checkIsLogger()";
+
+                            if (checkUser == "True") {
+                                var user = @Html.Raw(Newtonsoft.Json.JsonConvert.SerializeObject(@BLL.MVC.CurrentProvider.Provider.GetCurrent()));
+                                //Set the hubs URL for the connection
+                                var serverUri = "@System.Web.Configuration.WebConfigurationManager.AppSettings["MessageServices"]";
+                                $.connection.hub.url = serverUri + "/signalr";
+
+                                // Declare a proxy to reference the hub.
+                                var gt = $.connection.myHub;
+
+                                //給 Server 回呼使用
+                                gt.client.addMessage = function (msg) {
+                                    Swal.fire({
+                                        //type: 'info',
+                                        title: msg,
+                                        timer: 10000,
+                                        //text: 'Something went wrong!',
+                                        //footer: '<a href>Why do I have this issue?</a>'
+                                    })
+
+                                    ////放入通知訊息裡
+                                    //notifyList.add(msg);
+                                }
+
+                                gt.client.syncUserList = function(){
+
+                                }
+
+
+
+                                $.connection.hub.start().done(function () {
+                                    gt.server.connect(user.UserSid,user.UserNo, user.UserName)
+                                       .done(function () {
+                                           console.info("已連線至Gcloud，等待命令更新中");
+
+                                           //gt.server.send("Admin","testtesttes");
+                                       })
+                                    .fail(function(){
+                                        console.log('Could not Connect!');
+                                    });
+
+                                    gt.server.getOnlineCount().done(function (num) {
+                                        console.info("目前線上人數：" + num);
+                                    });
+
+
+
+                                    //取得線上人員Bind
+                                    window.SyncUserList = function (){
+                                        $.BindUseroffidebar("@Url.Action("GetUserList","Portal",new { Area = ""})")
+                                    }
+
+                                    //每分鐘同步一次名單
+
+                                    SyncUserList();
+                                    window.setInterval("window.SyncUserList()", 1000 * 60);
+
+                                    //gt.server.getOnlineUserList().done(function (data) {
+                                    //    var userList = JSON.parse(data);
+                                    //    $.BindUseroffidebar(userList);
+                                    //});
+
+
+                                });
+                            }
+                        } catch (e) {
+                            console.info("Gcloud services not running");
+                        }
+                    })
+
+                    </script>
+
+                </text> }
+        }
+
+        <script>
+
+            $(document).ready(function () {
+                // when there is an error, display the tooltip with the error message
+                Parsley.on('field:error', function (fieldInstance) {
+                    var messages = ParsleyUI.getErrorsMessages(fieldInstance);
+
+                    var checkSelectText = fieldInstance.$element.parent(".selectize-input");
+
+                    if (checkSelectText.length != 0) {
+
+                        checkSelectText.addClass("parsley-error");
+
+                        var selectMessgeItem = checkSelectText.find("ul");
+                        if (selectMessgeItem.length > 0) {
+                            checkSelectText.parent().append(selectMessgeItem);
+                        }
+                        else {
+                            checkSelectText.parent().find("ul").show();
+                        }
+
+                        //強製加入監看事件
+                        checkSelectText.parent().parent().find("select").on("change", function (e) {
+                            var target = e.target;
+                            var selectTextItem = $(target).siblings(".selectize-control").find(".item");
+                            //表示有選值，觸發移除class
+                            if (selectTextItem.length > 0) {
+                                //取得同層的input，父層的inpur
+                                selectTextItem.parent(".selectize-input").removeClass("parsley-error");
+                                selectTextItem.parent().siblings(".parsley-errors-list").hide();
+                            }
+                            else {
+                                $(target).siblings(".selectize-control").find(".selectize-input").addClass("parsley-error");
+                                $(target).siblings(".selectize-control").find(".parsley-errors-list").show();
+                            }
+
+                        });
+                    }
+                    //layer.tips(messages, fieldInstance.$element, { tips: [1, "red"] });
+
+                    //fieldInstance.$element.tooltip('destroy');
+                    //fieldInstance.$element.tooltip({
+                    //	animation: true,
+                    //	container: 'body',
+                    //	placement: 'bottom',
+                    //	title: messages
+                    //});
+
+
+                    //fieldInstance.$element.popover({
+                    //	trigger: 'manual',
+                    //	container: 'body',
+                    //	placement: 'bottom',
+                    //	content: function () {
+                    //		return fieldInstance.getErrorsMessages().join(';');
+                    //	}
+                    //}).popover('show');
+
+                });
+
+
+                // destroy tooltip when field is valid
+                Parsley.on('field:success', function (fieldInstance) {
+
+                    var checkSelectItem = fieldInstance.$element.parent(".selectize-input");
+                    if (checkSelectItem.length != 0) {
+                        checkSelectItem.removeClass("parsley-error");
+                    }
+
+                    //fieldInstance.$element.popover('hide');
+
+
+                    //fieldInstance.$element.tooltip('destroy');
+                });
+
+
+                var elSelect = $(".el-select");
+                $.each(elSelect, function (i, n) {
+                    if (typeof ($(n).attr("required")) != "undefined") {
+                        let txtItem = $(n).find("input[type='text']");
+                        txtItem.attr('required', 'required');
+                        $(n)[0].__vue__.$watch('value', function (newVal, oldVal) {
+                            txtItem.parsley().validate();
+                        });
+
+                    }
+                });
+
+            });
+
+        </script>
+    }
+
+
+
+
+    @*Register*@
+    @Html.Partial("_Register")
+</body>
+
+
+
+
+
+</html>
