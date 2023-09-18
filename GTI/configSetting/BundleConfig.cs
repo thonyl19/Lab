@@ -758,11 +758,11 @@ namespace Genesis
 
 			//Vue
 			bundles.Add(new ScriptBundle(eBundle.Vue).Include(
-			  "~/Scripts/vue.min.js",
+			  "~/Scripts/vue.js",
 			  "~/Scripts/lodash.min.js"
 			));
 			bundles.Add(new ScriptBundle(eBundle.Vue_MES).Include(
-				"~/Scripts/vue.min.js",
+				"~/Scripts/vue.js",
 				"~/Scripts/vuex.js",
 				"~/Scripts/numeral.min.js",
 				"~/Scripts/vue_Utility.js",
@@ -833,4 +833,5 @@ namespace Genesis
 
 		IHtmlString Test(string code, int mode = 0);
 	}
+
 }

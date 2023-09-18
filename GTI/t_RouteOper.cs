@@ -4,7 +4,7 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 using UnitTestProject.TestUT;
 using static Genesis.Gtimes.ADM.RouteUtility;
 
-namespace t_RouteOper
+namespace UnitTestProject
 {
 	[TestClass]
 	public class t_RouteOper : _testBase
@@ -70,7 +70,7 @@ namespace t_RouteOper
 
 				}
 			}
-			
+
 		}
 
 		/// <summary>
@@ -195,16 +195,5 @@ namespace t_RouteOper
 			_file.Write_SerializeJson(_r, _log.t_RouteVerOperationInfo);
 
 		}
-
-
-		[TestMethod]
-		public void t_StationEQP()
-		{
-			var NEXT_OPER_SID = "GTI23010917340392788";
-			var r = WIPOperConfigServices.StationEQP(NEXT_OPER_SID);
-		}
 	}
-
-
-
 }

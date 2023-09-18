@@ -524,15 +524,15 @@ namespace UnitTestProject.TestUT
 			}
 		}
 
-		internal void _DBTest(Action<ITxnBase> fn, bool isTransMode = false)
+		internal void _DBTest(Action<ITxnBase> fn, bool isTransMode = false, bool isTest = false)
 		{
 			if (isTransMode)
 			{
-				TxnBase.LzDBTrans_t(txn =>
+				TxnBase.LzDBTrans("Test",txn =>
 				{
 					fn(txn);
 					return txn.result;
-				});
+				}, isTest);
 			}
 			else {
 				TxnBase.LzDBQuery(txn =>

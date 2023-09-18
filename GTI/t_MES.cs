@@ -23,6 +23,8 @@ using DataViews = BLL.DataViews;
 using Genesis.Gtimes.Transaction.EQP;
 using Genesis.Gtimes.Transaction;
 using Genesis.Gtimes.Transaction.CAR;
+using Genesis.Library.BLL.ADM;
+using System.Reflection;
 
 namespace UnitTestProject
 {
@@ -687,9 +689,11 @@ namespace UnitTestProject
 		public void t_快速建立站點()
 		=> _DBTest((Txn) =>
 		{
-			var oper_key = "Z";
+			var oper_key = "C";
 			var oper_type_key = "STD";
-			var oper_list = "RIS-PT-01,RIS-PT-04,RIS-PT-05,RIS-PT-07,RIS-PT-17,PA01001G";
+			var oper_list 
+				//= "AA,BB";
+				= "T_BatchLot,T_Carrier,T_MultiLot";
 
 
 			var epo_PF_OPERATION_TYPE = Txn.EFQuery<PF_OPERATION_TYPE>();
@@ -718,11 +722,11 @@ namespace UnitTestProject
 					OPERATION_TYPE_CATEGORY = _oper_type.CATEGORY,
 					OPER_TYPE_VER_SID = _oper_type_ver.OPER_TYPE_VER_SID,
 				};
-				Txn.EntityCommonSetVal<PF_OPERATION>(_e);
+				Txn.EntityCommonSetVal<PF_OPERATION>(_e,isNeedInit:true);
 				epo_PF_OPERATION.Create(_e);
 				epo_PF_OPERATION.SaveChanges();
 			}
-		}, true);
+		}, true, true);
 
 
 		/// <summary>
@@ -801,6 +805,41 @@ namespace UnitTestProject
 			var searchServices = new SearchServices();
 			var result = searchServices.Search("分條_20221121-03",true);
 		}
-		
+
+
+		[TestMethod]
+		public void t_SOP複製版本()
+		{
+			var SOP_VER_SID = "GTI23083109161452871";
+			var x = "GTI20112317424387712";
+			//SopVerServices.Info(x);
+			//SopVerServices.CopyVersion(SOP_VER_SID,true);
+ 
+		}
+
+		[TestMethod]
+		public void t_SOP複製版本1()
+		{
+			var x = new FC_SOP();
+			x.CREATE_DATE = DateTime.Now;
+			var props = x.GetType().GetProperties();
+
+			//var CREATE_DATE = props.SingleOrDefault<PropertyInfo>(p => p.Name == "CREATE_DATE");
+			//if (CREATE_DATE.PropertyType.Name == "Nullable`1") {
+			//	SetData<T, DateTime?>("CREATE_DATE", x, ExeTime);
+			//}else{
+			//	SetData<T, DateTime>("CREATE_DATE", x, ExeTime);
+			//}
+
+
+		}
+		[TestMethod]
+		public void t_SetDefaultVersion()
+		{
+			//SopVerServices.SetDefaultVersion("GTI20112317424387712","GTI23090610572252945", true);
+		}
+
+ 
+	
 	}
 }

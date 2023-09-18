@@ -84,7 +84,6 @@
     <Compile Include="t_WIP.cs" />
     <Compile Include="t_WO.cs" />
     <Compile Include="t_ZZ.cs" />
-    <Compile Include="t_MES.cs" />
     <Compile Include="t_PartType.cs" />
     <Compile Include="t_QTimer.cs" />
     <Compile Include="t_EDC.cs" />

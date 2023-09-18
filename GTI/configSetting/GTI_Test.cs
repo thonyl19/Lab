@@ -29,6 +29,7 @@ using System.Collections;
 using System.IO;
 using System.Text.RegularExpressions;
 using vFile = System.IO.File;
+using MDL.OracleMES.Tables;
 
 namespace Genesis
 {
@@ -152,7 +153,7 @@ namespace Genesis
 
 
         public string Debug { get; set; } = "";
-        public IHtmlString param_test { get { return Test("param.isTest='T';"); } }
+        public IHtmlString param_test { get { return Test("param.isTest='T'; console.log({ param });"); } }
 
 
         public IHtmlString Test(string code, int mode = 0)
@@ -301,6 +302,9 @@ namespace Genesis
                 {
                     <h3>@ViewBag.Title</h3>
                 }
+
+                var param = $.extend(submitData, VmSendData);
+                @GTest.param_test
             }
             @Html.AntiForgeryToken()
             @eBundle.QRender_CSS()
@@ -314,6 +318,7 @@ namespace Genesis
             /*
             //Ajax 語法 
             url: "@Url.Action($"Exec{action}")",
+            url: "@Url.Action("DoFutureHold",{controll}, new { area = "WIP" })"
             [Get]
                 Query() {
                     let { search, ROOT_SHIP_CASSETTE } = this;
@@ -542,6 +547,14 @@ namespace Genesis
              */
             public static int API;
 
+            /*
+            M:\Prd_Dev\Genesis_MVC\Areas\ADM\Views\SequenceNum\SequenceNum_Item.cshtml
+            this.$confirm(_self.i18n.ConfirmAdd, '提示', _self.confirm_arg).then(() => {
+                _self.$URL.chgSearchParam({ SID: null }, true);
+            }); 
+             */
+            public static int e_Add;
+
         }
         public struct elUI
         {
@@ -728,6 +741,9 @@ namespace Genesis
             }
 
             /*
+            更省事的用法 
+            :e_clear="$Alert.Clear"
+
             this.$confirm('是否一併刪除批號記錄?', '提示', {
                 type: 'warning'
             }).then(() => {
@@ -752,6 +768,8 @@ namespace Genesis
             data() {
             	form: {
 					日期:['2022-1-1','2022-1-31']
+                    // 預填入當天日期
+                    //日期:new Date()
 				},
                 pickerOptions: {
                     shortcuts: [
@@ -865,6 +883,34 @@ namespace Genesis
             },
             */
             public static int el_Date_查詢今日以前的特定狀態;
+
+            /*
+            因為 MVC 接收時 , 無法直接接收 UTC 的時間格式 , 所以 需要用類似下面的程序 ,
+                先把日期資料轉成文字格式後 ,後端才能正確讀取並解析 
+
+            param.START_DATE = moment(param.START_DATE).format('YYYY/MM/DD 00:00:00');
+            param.END_DATE = moment(param.END_DATE).format('YYYY/MM/DD 23:59:59');
+
+             */
+            public static int el_Date_傳送資料的前置處理;
+
+            /*
+                <el-date-picker v-model="form.CALIBRATION_DATE" style="width: 100% !important;"
+                    type="date"
+                    align="right"
+                    unlink-panels
+                    value-format="yyyy-MM-dd"
+                    :picker-options="pickerOptions"
+                    >
+                </el-date-picker>
+
+                pickerOptions: {
+                    disabledDate(time) {
+                        return time.getTime() > Date.now();
+                    },
+                },
+            */
+            public static int el_限定只能選取今天以前的日期;
         }
 
         public struct gt_form_col
@@ -1062,13 +1108,18 @@ namespace Genesis
 
             public static int vue_selectize_api;
             /*
-            <vue-selectize-ddlapi v-model="form.PARTNO"  required
-                        :options="ddl_PARTNO.src"
-                        action="PartNo"
-                        render_sty="GTIMES" 
-						:readonly="!isAddMode">
-					<gt-tagformat v-model="form.PART_NAME" :tag="form.PARTNO" readonly></gt-tagformat>
-			</vue-selectize-ddlapi>
+            <gt-form-col :label="i18n.料號" col_sty="col-lg-12"
+                                 v-model="form.PART_NO"
+                                 :readonly="isViewMode">
+                <vue-selectize-ddlapi v-model="form.PARTNO"  required
+                            :options="ddl_PARTNO.src"
+                            action="PartNo"
+                            render_sty="GTIMES" 
+						    :readonly="!isAddMode">
+					    <gt-tagformat v-model="form.PART_NAME" :tag="form.PARTNO" readonly></gt-tagformat>
+			    </vue-selectize-ddlapi>
+            </gt-form-col>
+
             */
         }
 
@@ -1365,6 +1416,7 @@ namespace Genesis
             =>_Content(Func);
             =>_Content(Func,{文字類型參數});
 		    =>_Content((o) => new Result(true)); 
+            =>_Content(o => new Result("測試資料送出") { Code = "991", Data = data });
             */
             public static int _Content;
 
@@ -1425,22 +1477,37 @@ namespace Genesis
                 /*
                 [Ref] H:\GRF_Dev\Genesis_MVC\Areas\ZZ_LIO\Views\OperTask\LaserCuttingCheckOut.cshtml
 
-                @foreach (var c in BLL.Base.ServicesBase.CheckPartials(Html, "LIO", Model.Setting.CheckOutSet?.SplitCfg))
+                @foreach (var c in BLL.Base.ServicesBase.CheckPartials(Html, nameof(mes.LIO), Model.Setting.CheckOutSet?.SplitCfg))
                 {
                     @Html.Raw(c)
                 }
                     
-                public static List<MvcHtmlString> CheckPartials(HtmlHelper htm, string Key, params IOptionCfg[] list)
+                @BLL.Base.ServicesBase.CheckPartials(Server,Html, nameof(mes.GRF), "_woInfo_ext.cshtml")
+        
+                /// <summary>
+		        /// 
+		        /// </summary>
+		        /// <param name="server"></param>
+		        /// <param name="htm"></param>
+		        /// <param name="Key"></param>
+		        /// <param name="list"></param>
+		        /// <returns></returns>
+		        /// Anthony-20230719)更懶的作法,以及加上找不到檔案的防呆機制
+		        public static IHtmlString CheckPartials(HttpServerUtilityBase server, HtmlHelper htm, string Key, params string[] list)
 		        {
 			        var r = new List<MvcHtmlString>();
 			        bool isMatch = System.Configuration.ConfigurationManager.AppSettings["ProjectCustomer"] == Key;
-			        if (!isMatch) return r;
+			        if (!isMatch) return htm.Raw("");
 			        var area_name = _Rule(Key);
-			        foreach (var item in list)
+			        foreach (string item in list)
 			        {
-				        r.Add(htm.Partial($"~/Areas/{area_name}/Views/{item.CodeRule}.cshtml"));
+				        var viewPath = $"~/Areas/{area_name}/Views/{item}";
+				        if (System.IO.File.Exists(server.MapPath(viewPath)))
+				        {
+					        r.Add(htm.Partial(viewPath));
+				        }
 			        }
-			        return r;
+			        return htm.Raw(string.Join("", r));
 		        }
                  */
                 /// <summary>
@@ -1597,6 +1664,215 @@ namespace Genesis
             });
             */
             public static int QueryList;
+
+            /*
+             
+             
+             */
+            public struct PagerQuery {
+                /*
+                L:\Prd_Dev\Library\BLL\MES\WRP\ReportFormServices.cs
+                
+                var PageInfo = merge.PageResult<dynamic>(pagerQuery.Page.Index, pagerQuery.Page.Size);
+                var gridData = PageInfo.Queryable.ToList();
+                foreach (var d in gridData)
+                {
+                    for (int i = 0; i < param.Columns.Count; i++)
+                    {
+                        var col = param.Columns[i];
+                        if (string.IsNullOrEmpty(col.DATA_FORMAT_STRING))
+                            continue;
+
+                        IDictionary<string,object> rawData = (IDictionary<string, object>)d;
+                        rawData[col.COLUMN_NAME] = string.Format(col.DATA_FORMAT_STRING, rawData[col.COLUMN_NAME]);
+                    }
+                }
+                data.gridData = gridData;
+                data.PageInfo = pagerQuery.parsePagedResult(PageInfo);
+                 */
+
+                public static int 在查詢結果之後補上必要欄位_case1;
+
+                /*
+                L:\Prd_Dev\Library\BLL\MES\ADMServices.cs
+                L:\Prd_Dev\Library\BLL\MES\WOServices.cs
+                var PageInfo = _query.PageResult(PQuery.Page.Index, PQuery.Page.Size);
+							var Queryable = (
+									from wo in PageInfo.Queryable
+									join part in dbContext.PF_PARTNO_VER
+										on wo.PARTNO_VER_SID equals part.PARTNO_VER_SID
+									select new
+									{
+										#region [ wo.* ] 
+										wo.WO_SID,
+										wo.WO,
+										wo.SO,
+										wo.SO_TYPE,
+										wo.SO_SEQ,
+										wo.PO,
+										wo.PO_TYPE,
+										wo.PO_SEQ,
+										wo.WO_TYPE,
+										wo.WO_TYPE2,
+										wo.WO_TYPE3,
+										wo.STATUS,
+										wo.ERP_STATUS,
+										wo.QUANTITY,
+										wo.ERP_QUANTITY,
+										wo.UNIT,
+										wo.QTY_1,
+										wo.UNIT_1,
+										wo.QTY_2,
+										wo.UNIT_2,
+										wo.UNRELEASE_QUANTITY,
+										wo.UNRELEASE_QTY_1,
+										wo.UNRELEASE_QTY_2,
+										wo.LOT_SIZE,
+										wo.ROUTE_VER_SID,
+										wo.ROUTE,
+										wo.ROUTE_VERSION,
+										wo.PRODUCT_SID,
+										wo.PRODUCT,
+										wo.PARTNO_VER_SID,
+										wo.PARTNO,
+										wo.PARTNO_VERSION,
+										wo.PRIORITY,
+										wo.OWNER,
+										wo.CUSTOMER,
+										wo.BONDED_FLAG,
+										wo.BONDED_NO,
+										wo.SCHEDULEDATE,
+										wo.DUEDATE,
+										wo.ERP_CREATE_DATE,
+										wo.ERP_FINISH_DATE,
+										wo.FINISH_DATE,
+										wo.CREATEDATE,
+										wo.MIN_START_DATE,
+										wo.PRE_START_DATE,
+										wo.ROOT_WO_SID,
+										wo.PARENT_WO_SID,
+										wo.PARENT_WO_TYPE,
+										wo.FACTORY,
+										wo.MODIFY_FLAG,
+										wo.BOM_SID,
+										wo.BOM_VERSION,
+										wo.BOM_CREATE_DATE,
+										wo.CONFIRM_FLAG,
+										wo.SCHEDULE_QTY,
+										wo.ERP_RECEIVE_QTY,
+										wo.ERP_WIP_QTY,
+										wo.AREA_SID,
+										wo.AREA_NO,
+										wo.INVENTORY_TYPE,
+										wo.LINE_NAME,
+										wo.CONFIRM_DATE,
+										wo.CONFIRM_USER,
+										wo.PACKAGE_UNIT_QTY,
+										wo.PACKAGE_UNIT,
+										wo.SIGN_STATUS,
+										wo.CUST_PART_NO,
+										wo.CUST_PART_NO_SID,
+										wo.CUST_PART_NO_VER_SID,
+										wo.GROSS_DIE_QTY,
+										wo.PM_USER,
+										wo.SHIPPING_ADDRESS,
+										wo.SHIPPING_ADDRESS1,
+										wo.URGENT_FLAG,
+										wo.WAFER_THICKNESS,
+										wo.WAFER_SIZE,
+										wo.RECEIVE_NO,
+										wo.RECEIVE_NO_TYPE,
+										wo.ERP_COMMENT,
+										wo.MES_COMMENT,
+										wo.ERP_COMMENT1,
+										wo.ERP_COMMENT2,
+										wo.ERP_COMMENT3,
+										wo.ERP_COMMENT4,
+										wo.ATTRIBUTE_01,
+										wo.ATTRIBUTE_02,
+										wo.ATTRIBUTE_03,
+										wo.ATTRIBUTE_04,
+										wo.ATTRIBUTE_05,
+										wo.ATTRIBUTE_06,
+										wo.ATTRIBUTE_07,
+										wo.ATTRIBUTE_08,
+										wo.ATTRIBUTE_09,
+										wo.ATTRIBUTE_10,
+										wo.ATTRIBUTE_11,
+										wo.ATTRIBUTE_12,
+										wo.ATTRIBUTE_13,
+										wo.ATTRIBUTE_14,
+										wo.ATTRIBUTE_15,
+										wo.ATTRIBUTE_16,
+										wo.CREATE_USER,
+										wo.CREATE_DATE,
+										wo.UPDATE_USER,
+										wo.UPDATE_DATE,
+										wo.RELEASE_QUANTITY,
+										wo.RELEASE_QTY_1,
+										wo.RELEASE_QTY_2,
+										wo.YIELD,
+										wo.SCARP_QUANTITY,
+										wo.SCARP_QTY1,
+										wo.SCARP_QTY2,
+										wo.TERMINATED_QUANTITY,
+										wo.TERMINATED_QTY1,
+										wo.TERMINATED_QTY2,
+										wo.ECN,
+										wo.STOCK_QTY,
+										wo.RELEASE_DATE,
+										wo.ECN_SID,
+										wo.ECN_NO,
+										wo.ECN_NAME,
+										wo.WO_LINE_SID,
+										wo.WO_LINE_NO,
+										wo.WO_LINE,
+										#endregion
+										part.PART_NAME
+									}
+								)
+								.ToList();
+                */
+                public static int 在查詢結果之後補上必要欄位_case2;
+
+                /*
+                L:\Prd_Dev\Library\BLL\MES\QMSService.cs
+                這一版作法的概念是
+                1.先把 排序,分頁的結果 取出為 tmp_list
+                2.從  tmp_list 取得 list_key
+                3.用 list_key 再去 db 取得需要 子項欄位
+                4.使用 linq join 的方式 , 把欄位填回到  tmp_list
+
+                var PageInfo = _queryBase.PageResult(PQuery.Page.Index, PQuery.Page.Size);
+				var tmp_list = PageInfo.Queryable.ToList();
+				var list_LotSid = tmp_list.Select(c => c.LOT_SID).ToList();
+				var list_part = (from a in dbContext.WP_LOT
+							where list_LotSid.Contains(a.LOT_SID)
+							join b in dbContext.PF_PARTNO
+								on a.PARTNO equals b.PARTNO
+							select new {
+								a.LOT_SID,
+								a.PARTNO,
+								a.WO_LINE,
+								a.WO_LINE_NO,
+								b.PART_NAME
+							}).ToList();
+				var Queryable = tmp_list.Join(
+								list_part,
+								a=>a.LOT_SID,
+								b=>b.LOT_SID,
+								(a,b)=> {
+									a.PART_NAME = b.PART_NAME;
+									a.PARTNO = b.PARTNO;
+									a.WO_LINE = b.WO_LINE;
+									a.WO_LINE_NO = b.WO_LINE_NO;
+									return a;
+								}).ToList();
+                 */
+                public static int 在查詢結果之後補上必要欄位_case3;
+
+            }
+
         }
 
         public struct MES
@@ -1699,7 +1975,18 @@ namespace Genesis
 						}).ToList();
                 */
                 public static int EDC;
+
+
+                /*
+                context.YourEntities.AsNoTracking().ToList();
+                 */
+                public static int i排解相同類型的實體已經有相同的主索引鍵值;
             }
+
+            /*
+             NotMapped
+             */
+            public static string 擴充欄位 = new MDL.MES.QC_AQL_DATA().AQL_NO;
         }
 
         public struct commm {
@@ -1763,6 +2050,17 @@ namespace Genesis
 				, "當批號狀態不為Wait,應回傳 false"); 
             */
             public static int Case;
+
+            /*
+            測試案例中, 其資料中有多個集合 , 如果沒有既有物件可以承接讀取 ,
+                就可利用下例中的方式 ,簡單的建一個資料集合來承接 
+            
+            struct d_QC_INSTRUMENTS_CALIBRATION_RECORDS_Save {
+			    public QC_INSTRUMENTS_CALIBRATION_RECORDS form ;
+			    public List<EdcModel> edc_list;
+		    } 
+             */
+            public static int 讀取集合性質的Log;
         }
 
         /*
@@ -1957,6 +2255,7 @@ namespace Genesis.Areas.Example.Controllers
 }
 namespace Genesis.Areas.DDD.Controllers
 {
+     
     public class DDDAreaRegistration : AreaRegistration
     {
         public override string AreaName
@@ -1977,8 +2276,6 @@ namespace Genesis.Areas.DDD.Controllers
         }
     }
 
-    //[AllowAnonymous]
-    //[EnableCors(origins: "*", headers: "Content-Type", methods: "GET")]
     [RoutePrefix("DDD/DBA")]
     public class DBAController : BaseController {
         DBController _dbc;
@@ -2005,6 +2302,7 @@ namespace Genesis.Areas.DDD.Controllers
             return null;
         });
 
+        //[EnableCors(origins: "http://allowed-origin.com", headers: "*", methods: "GET")]
         [AllowAnonymous]
         [Route("Table")]
         [Route("Table/{Table}")]
@@ -2149,11 +2447,30 @@ namespace Genesis.Areas.DDD.Controllers
             return new Result(true) { Data = result };
         });
 
-        [Route("i18n/Add/{res}")]
-        [Route("i18n/Add/{res}/{key}/{en}/{tw}/{cn}")]
+
+        [HttpPost]
+        [Route("i18n/Add/{res}/{key}/")]
         public ActionResult i18nAdd(string res, string key, string en, string tw, string cn)
         => _Content(o =>
         {
+            Type _t = null;
+            switch (res.ToUpper()) {
+                case "FACE":
+                    _t = typeof(RES.BLL.Face);
+                    break;
+                case "MESSAGE":
+                    _t = typeof(RES.BLL.Message);
+                    break;
+            }
+            if (_t == null) return new Result("查無符合的 BLL.res");
+            var rm = new ResourceManager(_t);
+            var MatchItem = rm.GetObject(key);
+            if (MatchItem != null) {
+                var r = new Result("Key值己存在");
+                r.Data = new { key , MatchItem };
+                return r;
+            }
+
             var root = Server.MapPath("~/");
             var tarFile = $@"{root}..\Library\RES\BLL\{res}.resx";
             if (FileHelper.IsExistFile(tarFile) == false) {
@@ -2161,11 +2478,10 @@ namespace Genesis.Areas.DDD.Controllers
             }
 
             ResXResourceSet resxSet = new ResXResourceSet(tarFile);
-            using (ResXResourceWriter resxWriter = new ResXResourceWriter(tarFile))
-            {
-                foreach (DictionaryEntry entry in resxSet)
-                {
-                    resxWriter.AddResource(entry.Key.ToString(), entry.Value);
+            using (ResXResourceWriter resxWriter = new ResXResourceWriter(tarFile)){
+                foreach (DictionaryEntry entry in resxSet){
+                    var _key = entry.Key.ToString();
+                    resxWriter.AddResource(_key, entry.Value);
                 }
 
                 resxWriter.AddResource(key, en);
@@ -2189,6 +2505,65 @@ namespace Genesis.Areas.DDD.Controllers
 </root>";
                 string newContent = Regex.Replace(fileContent, pattern, replacement);
                 vFile.WriteAllText(tarFile1, newContent);
+            }
+            return o;
+        });
+
+
+        [Route("i18n/parseTxt")]
+        public ActionResult parseTxt()
+        => _Content(o =>
+        {
+            Type _t = null;
+            var list = new string[] { "Face", "Message" };
+            var root = Server.MapPath("~/");
+            List<string> result;
+            foreach (var res in list) { 
+                var tarFile = $@"{root}..\Library\RES\BLL\{res}.zh-TW.resx";
+                if (FileHelper.IsExistFile(tarFile) == false){
+                    return Result.NotExist("語系檔").Data = new { res };
+                }
+                var resxSet = new ResXResourceReader(tarFile);
+                
+                result = new List<string>();
+                foreach (DictionaryEntry entry in resxSet)
+                {
+                    result.Add(entry.Value.ToString());
+                }
+                
+                var data = string.Join("\n", result);
+                var tarFile1 = $@"{root}..\Library\RES\BLL\{res}.txt";
+                vFile.WriteAllText(tarFile1, data);
+            }
+            return o;
+        });
+        [Route("i18n/parseTxt/callback")]
+        public ActionResult callback()
+        => _Content(o =>
+        {
+            Type _t = null;
+            var list = new string[] { "Face", "Message" };
+            var root = Server.MapPath("~/");
+            List<string> result;
+            foreach (var res in list)
+            {
+                var tarFile = $@"{root}..\Library\RES\BLL\{res}-zh-TW.resx";
+                var src = $@"{root}..\Library\RES\BLL\{res}.txt";
+                if (FileHelper.IsExistFile(tarFile) == false)
+                {
+                    return Result.NotExist("語系檔").Data = new { res };
+                }
+                var resxSet = new ResXResourceReader(tarFile);
+
+                result = new List<string>();
+                foreach (DictionaryEntry entry in resxSet)
+                {
+                    result.Add(entry.Value.ToString());
+                }
+
+                var data = string.Join("\n", result);
+                var tarFile1 = $@"{root}..\Library\RES\BLL\{res}.txt";
+                vFile.WriteAllText(tarFile1, data);
             }
             return o;
         });

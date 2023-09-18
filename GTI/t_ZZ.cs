@@ -15,6 +15,7 @@ using mdl = MDL.MES;
 using System.Resources;
 using System.Globalization;
 using System.Collections;
+using System.Reflection;
 
 namespace UnitTestProject
 {
@@ -373,7 +374,45 @@ namespace UnitTestProject
 		public void _test_cae1() {
 			var zz = DDLServices.ddl_Carrier();
 		}
+
+
+		[TestMethod]
+		public void _zz() {
+			string className = "MyNamespace.MyClass"; // 目標類別的完整名稱
+			string methodName = "MyMethod"; // 目標方法名稱
+
+			Type type = Type.GetType(className);
+
+			if (type != null)
+			{
+				MethodInfo method = type.GetMethod(methodName);
+
+				if (method != null)
+				{
+					object instance = Activator.CreateInstance(type);
+					method.Invoke(instance, null);
+				}
+				else
+				{
+					Console.WriteLine("方法不存在");
+				}
+			}
+			else
+			{
+				Console.WriteLine("類別不存在");
+			}
+		}
 	}
 
 
 }
+
+
+//namespace MyNamespace {
+//	public class MyClass
+//	{
+
+//		public void MyMethod() { 
+//		}
+//	}
+//}

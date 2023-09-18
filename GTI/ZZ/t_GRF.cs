@@ -22,6 +22,8 @@ using System.Net.Http;
 using System.Text;
 using System.Net.Http.Headers;
 using Frame.Code;
+using System;
+using System.Data.Entity;
 
 namespace UnitTestProject
 {
@@ -109,6 +111,14 @@ namespace UnitTestProject
 				}
 			}
 
+			internal static string 分條工單批次開立
+			{
+				get
+				{
+					return FileApp.ts_Log(@"ZZ\GRF\分條工單批次開立.json");
+				}
+			}
+
 		}
 
 
@@ -133,7 +143,7 @@ namespace UnitTestProject
 		#endregion
 		[TestMethod]
 		public void t_GRF_SlittingCheckIn()
-		{ 
+		{
 			var _r = new FileApp().Read_SerializeJson<WIPFormSendParameter>(_log.ExecSlittingCheckIn);
 			new GRF_SlittingCheckIn().Process(_r, true);
 		}
@@ -145,12 +155,13 @@ namespace UnitTestProject
 			var _r = new FileApp().Read_SerializeJson<WIPFormSendParameter>(_log.SlittingCheckOut_Case3);
 			new SlittingCheckOut().Process(_r, true);
 		}
-		
+
 
 
 		[TestMethod]
 		public void t_生產批轉物料批()
-		=> _DBTest((Txn) => {
+		=> _DBTest((Txn) =>
+		{
 			List<LotInfo> LotInfos = new List<LotInfo>() {
 						Txn.GetLotInfo("分條_20221121-03.02",false,true)
 						,Txn.GetLotInfo("分條_20221121-03.03",false,true)
@@ -177,7 +188,7 @@ namespace UnitTestProject
 		public void t_LotFinlishTransfromMLot()
 		{
 
-			new LotFinlishTransfromMLot().Process(new WIPFormSendParameter(),true);
+			new LotFinlishTransfromMLot().Process(new WIPFormSendParameter(), true);
 		}
 
 		/// <summary>
@@ -208,16 +219,17 @@ namespace UnitTestProject
 		public void t_WIP_10_工單物料耗用報工()
 		{
 			var _r = FileApp.Read_SerializeJson<ZZ_WO_MLOT_CONSUME>(_log.WIP_10_工單物料耗用報工);
-			AHTask.WoMtrConsumption(_r,true);
+			AHTask.WoMtrConsumption(_r, true);
 		}
 
 		[TestMethod]
 		public void t_WIP_10_工單物料耗用報工_1()
-		=> _DBTest(Txn => {
+		=> _DBTest(Txn =>
+		{
 			var _r = FileApp.Read_SerializeJson<ZZ_WO_MLOT_CONSUME>(_log.WIP_10_工單物料耗用報工);
 			var mlot = Txn.GetMLotInfo(_r.MTR_LOT);
 			var addMtrLotQtyTxn = new MTRTransaction.AddMtrLotQtyTxn
-				( mlot
+				(mlot
 				, -2
 				, null, null);
 			Txn.DoTransaction(addMtrLotQtyTxn);
@@ -226,14 +238,14 @@ namespace UnitTestProject
 			//mlot = Txn.GetMLotInfo(_r.MTR_LOT);
 
 
-		},true);
+		}, true);
 
 		/// <summary>
 		///  
 		/// </summary>
 		[TestMethod]
 		public void t_查詢前階工單()
-		{ 
+		{
 			var r = WOServices.查詢前階工單("");
 		}
 
@@ -252,7 +264,7 @@ namespace UnitTestProject
 		public void WIP_11_工單耗用SAP回報()
 		{
 			var r = FileApp.Read_SerializeJson<d_WIP_11_工單耗用SAP回報>(_log.WIP_11_工單耗用SAP回報);
-			AHTask.WoConsumptionToSap(r.data, r.DocEntry, r.SAP, r.NOTE,true);
+			AHTask.WoConsumptionToSap(r.data, r.DocEntry, r.SAP, r.NOTE, true);
 			//var z = new d_SAP_PostOIGEList();
 			//var x = r.GroupBy(c => new {c.PARTNO,c.ERP_WO,c.WAREHOUSE_NO })
 			//	.ToDictionary(a => a.Key, b => b.ToList());
@@ -287,9 +299,9 @@ namespace UnitTestProject
 		[TestMethod]
 		public void WIP_11_工單耗用SAP回報1()
 		{
-		//	var r = FileApp.Read_SerializeJson<List<ZZ_WO_MLOT_CONSUME>>(_log.WIP_11_工單耗用SAP回報);
-		//	var r1 = d_SAP_PostOIGEList.parse(r).parseData<d_SAP_PostOIGEList_z>();
-		//	var r2 = AHTask.SendAPI(r1.ApiData);
+			//	var r = FileApp.Read_SerializeJson<List<ZZ_WO_MLOT_CONSUME>>(_log.WIP_11_工單耗用SAP回報);
+			//	var r1 = d_SAP_PostOIGEList.parse(r).parseData<d_SAP_PostOIGEList_z>();
+			//	var r2 = AHTask.SendAPI(r1.ApiData);
 
 			var r = FileApp.Read_SerializeJson<d_SAP_PostOIGEList>(_log.WIP_11_工單耗用SAP回報_sap);
 			var r2 = AHTask.SendAPI_PostOIGE(r);
@@ -310,7 +322,7 @@ namespace UnitTestProject
 			var response = client.PostAsync(url, content).Result;
 			string r = response.Content.ReadAsStringAsync().Result;
 			var result = r.ToObject<d_SAP_PostOIGEList_result>();
-			 
+
 		}
 
 
@@ -337,7 +349,8 @@ namespace UnitTestProject
 		/// </summary>
 		[TestMethod]
 		public void t_()
-		=> _DBTest(Txn => {
+		=> _DBTest(Txn =>
+		{
 			//var Eqp = Txn.GetEquipmentInfo("GTI22120910222003769");
 			////var r = WOServices.查詢前階工單("");
 			//Txn.DoTransaction
@@ -348,63 +361,149 @@ namespace UnitTestProject
 
 		[TestMethod]
 		public void t_1()
-		=> TxnBase.LzDBTrans("App", TxnACTION.n("MLOT_SCRAP"),Txn=>
-        {
+		=> TxnBase.LzDBTrans("App", TxnACTION.n("MLOT_SCRAP"), Txn =>
+		 {
 
-            var lot = Txn.GetLotInfo("分條_20221121-03", isQueryByLotNO: true);
-            var operation = lot.GetRouteVersionOperationInfo();
-            var equipment = lot.GetCurrentEquipmentInfo();
-            var mlot = Txn.GetMLotInfo("GTI22112117405494215");
-            var reason = new SelectModel();// Txn.GetReasonCodeInfo("GTI11110115550180956");
-            var dbc = Txn.DBC;
+			 var lot = Txn.GetLotInfo("分條_20221121-03", isQueryByLotNO: true);
+			 var operation = lot.GetRouteVersionOperationInfo();
+			 var equipment = lot.GetCurrentEquipmentInfo();
+			 var mlot = Txn.GetMLotInfo("GTI22112117405494215");
+			 var reason = new SelectModel();// Txn.GetReasonCodeInfo("GTI11110115550180956");
+			var dbc = Txn.DBC;
 
-            NewMethod(Txn, mlot, operation, equipment, reason);
-            //var r = Txn.EFQuery<WP_MTL_TRACE>().Reads().ToList();
-            return Txn.result;
-        }, isTest:true);
+			 NewMethod(Txn, mlot, operation, equipment, reason);
+			//var r = Txn.EFQuery<WP_MTL_TRACE>().Reads().ToList();
+			return Txn.result;
+		 }, isTest: true);
 
-        private static void NewMethod
-			(ITxnBase Txn 
+		private static void NewMethod
+			(ITxnBase Txn
 			, MtrLotUtility.MtrLotInfo mlot
 			, RouteUtility.RouteVersionOperationInfo operation
 			, EquipmentUtility.EquipmentInfo equipment
 			, SelectModel reason)
-        {
+		{
 			var dbc = Txn.DBC;
 			InsertCommandBuilder insert = new InsertCommandBuilder(dbc, "MT_LOT_SCRAP");
-            insert.InsertColumn("MTL_SCRAP_SID", dbc.GetSID());
-            insert.InsertColumn("MTL_SID", mlot.SID);
-            insert.InsertColumn("LOT", mlot.LOT);
-            insert.InsertColumn("MTL_LOT", mlot.MTR_LOT);
-            insert.InsertColumn("ROUTE_VER_OPER_SID", operation.ROUTE_VER_OPER_SID);
-            insert.InsertColumn("OPERATION", operation.OPERATION);
-            insert.InsertColumn("ACTION", "MTL_SCRAP");
-            insert.InsertColumn("APPLICATION_NAME", Txn.ApplicationName);
-            insert.InsertColumn("ACTION_LINK_SID", Txn.LinkSID);
-            insert.InsertColumn("ACTION_REASON", Txn?.ActionReason.ReasonNo);
-            insert.InsertColumn("ACTION_DESCRIPTION", Txn?.ActionReason.Desc);
-            if (!(equipment == null || equipment.IsExist == false))
-            {
-                insert.InsertColumn("EQP_SID", equipment.SID);
-                insert.InsertColumn("EQP_NO", equipment.No);
-                insert.InsertColumn("EQP_NAME", equipment.Name);
-            }
-            insert.InsertColumn("REASON_SID", reason.SID);
-            insert.InsertColumn("REASON_NO", reason.No);
-            insert.InsertColumn("REASON", reason.Display);
-            //TODO:不確定,先且設 Attr3
-            insert.InsertColumn("SCRAP_DESCRIPTION", reason.Attr03);
-            insert.InsertColumn("SCRAP_QUNATITY", reason.INum);
-            insert.InsertColumn("CANCEL_FLAG", "F");
-            insert.InsertColumn("CREATE_USER", Txn.UserNo);
-            insert.InsertColumn("CREATE_DATE", Txn.ExeTime);
-            insert.InsertColumn("UPDATE_USER", Txn.UserNo);
-            insert.InsertColumn("UPDATE_DATE", Txn.ExeTime);
+			insert.InsertColumn("MTL_SCRAP_SID", dbc.GetSID());
+			insert.InsertColumn("MTL_SID", mlot.SID);
+			insert.InsertColumn("LOT", mlot.LOT);
+			insert.InsertColumn("MTL_LOT", mlot.MTR_LOT);
+			insert.InsertColumn("ROUTE_VER_OPER_SID", operation.ROUTE_VER_OPER_SID);
+			insert.InsertColumn("OPERATION", operation.OPERATION);
+			insert.InsertColumn("ACTION", "MTL_SCRAP");
+			insert.InsertColumn("APPLICATION_NAME", Txn.ApplicationName);
+			insert.InsertColumn("ACTION_LINK_SID", Txn.LinkSID);
+			insert.InsertColumn("ACTION_REASON", Txn?.ActionReason.ReasonNo);
+			insert.InsertColumn("ACTION_DESCRIPTION", Txn?.ActionReason.Desc);
+			if (!(equipment == null || equipment.IsExist == false))
+			{
+				insert.InsertColumn("EQP_SID", equipment.SID);
+				insert.InsertColumn("EQP_NO", equipment.No);
+				insert.InsertColumn("EQP_NAME", equipment.Name);
+			}
+			insert.InsertColumn("REASON_SID", reason.SID);
+			insert.InsertColumn("REASON_NO", reason.No);
+			insert.InsertColumn("REASON", reason.Display);
+			//TODO:不確定,先且設 Attr3
+			insert.InsertColumn("SCRAP_DESCRIPTION", reason.Attr03);
+			insert.InsertColumn("SCRAP_QUNATITY", reason.INum);
+			insert.InsertColumn("CANCEL_FLAG", "F");
+			insert.InsertColumn("CREATE_USER", Txn.UserNo);
+			insert.InsertColumn("CREATE_DATE", Txn.ExeTime);
+			insert.InsertColumn("UPDATE_USER", Txn.UserNo);
+			insert.InsertColumn("UPDATE_DATE", Txn.ExeTime);
 
-            Txn.DoTransaction(insert.GetCommand());
-        }
+			Txn.DoTransaction(insert.GetCommand());
+		}
 
- 
+
+		[TestMethod]
+		public void t_2()
+		{
+			List<string> inputList = new List<string>
+				{
+					"SPC_WO_110",
+					"SPC_WO_109",
+					"SPC_WO_108",
+					"SPC_WO_107",
+					"SPC_WO_107-",//應略過
+					"SPC_WO_1A7-",//應略過
+					"SPC_WO_1100",
+					"SPC_WO_1100A",//應略過
+				};
+
+			// 使用 LINQ 將每個元素轉換為數字並取得最大值
+			int maxValue = inputList
+				.Select(item =>
+				{
+					string numberPart = item.Replace("SPC_WO_1", "");
+					int number;
+					if (numberPart.Length > 3) return (int?)null;
+					if (int.TryParse(numberPart, out number))
+					{
+						return number;
+					}
+					else
+					{
+						return (int?)null;
+					}
+				})
+				.Where(number => number.HasValue)
+				.Max(number => number.Value);
+		}
+
+		[TestMethod]
+		public void t_分條工單批次開立()
+		{
+			var _r = FileApp.Read_SerializeJson<WP_WO>(_log.分條工單批次開立);
+			var _r1 = WOServices.分條工單批次開立(_r,true);
+		}
+
+		[TestMethod]
+		public void t_分條工單批次開立_Rule_WO()
+		=> _DBTest(Txn =>
+		{
+			var r = WOServices.分條工單批次開立_Rule_WO(Txn, "11111111", 25);
+
+			//var _rep = new
+			//{
+			//	WP_WO = Txn.EFQuery<WP_WO>()
+			//};
+			//var _ATTRIBUTE_09 = "11111111";
+			//var _list = (from a in _rep.WP_WO.Reads()
+			//			 where a.ATTRIBUTE_09 == _ATTRIBUTE_09
+			//			 select a.WO).AsNoTracking().ToList();
+
+			//int maxValue = _list
+			//	.Select(item =>
+			//	{
+			//		string numberPart = item.Replace($"{_ATTRIBUTE_09}-", "");
+			//		int number;
+			//		if (numberPart.Length > 3) return 0;
+			//		if (int.TryParse(numberPart, out number))
+			//		{
+			//			return number;
+			//		}
+			//		else
+			//		{
+			//			return 0;
+			//		}
+			//	})
+			//	//.Where(number => number.HasValue)
+			//	.Max(number => number);
+
+
+			//var result = new List<string>();
+			//var count = 10;
+			//var startValue = 95;
+			//for (int i = 0; i < count; i++)
+			//{
+			//	startValue++; // 遞增起始值
+			//	string formattedNumber = startValue.ToString("D2"); // 轉換為格式化後的文字（兩位數，不足補零）
+			//	result.Add(formattedNumber);
+			//}
+
+		});
 	}
 }
-
