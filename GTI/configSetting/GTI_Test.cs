@@ -174,6 +174,28 @@ namespace Genesis
 
     public struct GT_Client
     {
+        
+        public struct GT_FormCol
+        {
+            /*
+        	<template slot-scope="scope">
+                <gt-no-name v-model="scope.row.Display" :no="scope.row.No"  :inline="false" ></gt-no-name>
+			</template>
+             */
+            public int gt_no_name;
+
+            /*
+            搭配 i18n 處理, readonly 時的顯示模式
+            <gt-form-col :label="i18n.校正結果" 校正結果 required col_sty="col-lg-12" v-model="i18n.CALIBRATION_RESULT[form.CALIBRATION_RESULT]" 
+                :readonly="!isAddMode">
+                <el-radio-group v-model="form.CALIBRATION_RESULT" required v-if="isAddMode">
+                    <el-radio label="T">{{i18n.CALIBRATION_RESULT.T}}</el-radio>
+                    <el-radio label="F">{{i18n.CALIBRATION_RESULT.F}}</el-radio>
+                </el-radio-group>
+            </gt-form-col> 
+            */
+            public int 搭配RadioGroup;
+        }
         //public static string basePath(string key) { return $"~/Areas/Example/Views/Code/{key}.cshtml"; }
 
         public struct 進出站 {
@@ -621,6 +643,9 @@ namespace Genesis
                  
                 */
                 public static string html_LOT_vData = "el_Table/html_LOT_vData";
+
+
+                public static int ViewRow;
                 /*
                 DelRow(idx, row) {
                     var _self = this;
@@ -740,6 +765,168 @@ namespace Genesis
                 public static int Base;
             }
 
+
+            /// <summary>
+            /// http://localhost:59394/GenesisNewMes/Example/Self/test?name=_el_DatePicker
+            /// </summary>
+            public struct DatePicker {
+                /*
+                <el-date-picker v-model="form.日期" style="width: 100% !important;"
+                                type="daterange"
+                                align="right"
+                                unlink-panels
+                                value-format="yyyy-MM-dd"
+                                range-separator="@Face.DateQueryFlag"
+                                start-placeholder="@Face.Start_Date"
+                                end-placeholder="@Face.End_Date"
+                                :picker-options="pickerOptions">
+                </el-date-picker>
+                data() {
+                    form: {
+                        日期:['2022-1-1','2022-1-31']
+                        // 預填入當天日期
+                        //日期:new Date()
+                    },
+                    pickerOptions: {
+                        shortcuts: [
+                            {
+                                text: '最近一週',
+                                onClick(picker) {
+                                    const end = new Date();
+                                    const start = new Date();
+                                    start.setTime(start.getTime() - 3600 * 1000 * 24 * 7);
+                                    picker.$emit('pick', [start, end]);
+                                }
+                            }, {
+                                text: '最近一個月',
+                                onClick(picker) {
+                                    const end = new Date();
+                                    const start = new Date();
+                                    start.setTime(start.getTime() - 3600 * 1000 * 24 * 30);
+                                    picker.$emit('pick', [start, end]);
+                                }
+                            }, {
+                                text: '最近三個月',
+                                onClick(picker) {
+                                    const end = new Date();
+                                    const start = new Date();
+                                    start.setTime(start.getTime() - 3600 * 1000 * 24 * 90);
+                                    picker.$emit('pick', [start, end]);
+                                }
+                            }
+                        ]
+                    },
+                }
+                computed: {
+                    c_Conditions() {
+                        var conditions = { condition: "AND", rules: [] };
+                        _.each(this.form,
+                            (value, field) => {
+                                if (value != "" && value != null) {
+                                    var _rule = { field, type: "string", operator: "contains", value };
+                                    switch (field) {
+                                        case "日期":
+                                            //_rule.operator = 'greater_or_equal';
+                                            //_rule.value = moment(this.form.日期).format('YYYY/MM/DD') + " 00:00:00";
+                                            if (_.isString(value)) {
+                                                _rule.operator = "Contains";
+                                                _rule.value = [value];
+                                            } else if (_.isArray(value)) {
+                                                _rule.operator = "between";
+                                                _rule.type = "date";
+                                                var format = 'YYYY-MM-DD HH:mm:ss';
+                                                var start = moment(value[0]).startOf('day').format(format);
+                                                let end = moment(value[1]).endOf('day').format(format);
+                                                _rule.value = [start, end];
+                                            }
+                                            conditions.rules.push(_rule);
+                                            break;
+                                        default:
+                                            conditions.rules.push(_rule);
+                                            break;
+                                    }
+                                }
+                            });
+                        return conditions;
+                    },
+                },
+                click_Query() {
+                    this.grid.Conditions = this.c_Conditions;
+                    this.query(1);
+                },
+                // 查詢處理程序
+                query(pageIdx) {
+                    var _self = this;
+                    _self.grid.Page.Index = pageIdx;
+                    var param = _self.grid.query_rule;
+                    console.log({ query: param });
+                    var _ajax = {
+                        url: '@Url.Action($"{action}_ListData")',
+                        type: 'post',
+                        param,
+                        success: this.query_success
+                    };
+                    $.submitForm(_ajax);
+                },
+                // 查詢成功處理程序
+                query_success(res) {
+                    let { Data, Code = null, Message, Success = false } = res;
+                    if (Success) {
+                        let { PageInfo, gridData } = Data || {};
+                        this.grid.data = gridData;
+                        this.grid.row_count = PageInfo.RowCount;
+                    } else {
+                        var msg = Message != null
+                            ? Message
+                            : '@BLL.InterFace.ErrCode.GenericErrorMessage'
+                            ;
+                        this.$Alert.Err(msg);
+                    }
+                },
+
+                 */
+                public static int 日期起迄區間;
+
+                /*
+                L:\Prd_Dev\Genesis_MVC\Areas\PMS\Views\PMSJobExecute\PMSJobExecuteMaster.cshtml
+                delay_query() {
+                    var conditions = { condition: "AND", rules: [] };
+                    var _rule_Data = { field: 'STATUS', operator: "Contains", type: "string", value: ["WAIT", "PROCESSING"] };
+                    conditions.rules.push(_rule_Data);
+                    var _rule_STATUS = { field: 'PLAN_DATE', operator: "less_or_equal", type: "date", value: moment().format("YYYY/MM/DD") };
+                    conditions.rules.push(_rule_STATUS);
+                    this.grid.Conditions = conditions;
+                    this.query(1);
+                },
+                */
+                public static int case_查詢今日以前的特定狀態;
+
+                /*
+                因為 MVC 接收時 , 無法直接接收 UTC 的時間格式 , 所以 需要用類似下面的程序 ,
+                    先把日期資料轉成文字格式後 ,後端才能正確讀取並解析 
+                param.START_DATE = moment(param.START_DATE).format('YYYY/MM/DD 00:00:00');
+                param.END_DATE = moment(param.END_DATE).format('YYYY/MM/DD 23:59:59');
+                 */
+                public static int MVC_傳送資料的前置處理;
+
+                /*
+                    <el-date-picker v-model="form.CALIBRATION_DATE" style="width: 100% !important;"
+                        type="date"
+                        align="right"
+                        unlink-panels
+                        value-format="yyyy-MM-dd"
+                        :picker-options="pickerOptions"
+                        >
+                    </el-date-picker>
+
+                    pickerOptions: {
+                        disabledDate(time) {
+                            return time.getTime() > Date.now();
+                        },
+                    },
+                */
+                public static int 限定只能選取今天以前的日期;
+            }
             /*
             更省事的用法 
             :e_clear="$Alert.Clear"
@@ -754,163 +941,9 @@ namespace Genesis
             */
             public static int confirm;
 
-            /*
-			<el-date-picker v-model="form.日期" style="width: 100% !important;"
-							type="daterange"
-							align="right"
-							unlink-panels
-							value-format="yyyy-MM-dd"
-							range-separator="@Face.DateQueryFlag"
-							start-placeholder="@Face.Start_Date"
-							end-placeholder="@Face.End_Date"
-							:picker-options="pickerOptions">
-			</el-date-picker>
-            data() {
-            	form: {
-					日期:['2022-1-1','2022-1-31']
-                    // 預填入當天日期
-                    //日期:new Date()
-				},
-                pickerOptions: {
-                    shortcuts: [
-                        {
-                            text: '最近一週',
-                            onClick(picker) {
-                                const end = new Date();
-                                const start = new Date();
-                                start.setTime(start.getTime() - 3600 * 1000 * 24 * 7);
-                                picker.$emit('pick', [start, end]);
-                            }
-                        }, {
-                            text: '最近一個月',
-                            onClick(picker) {
-                                const end = new Date();
-                                const start = new Date();
-                                start.setTime(start.getTime() - 3600 * 1000 * 24 * 30);
-                                picker.$emit('pick', [start, end]);
-                            }
-                        }, {
-                            text: '最近三個月',
-                            onClick(picker) {
-                                const end = new Date();
-                                const start = new Date();
-                                start.setTime(start.getTime() - 3600 * 1000 * 24 * 90);
-                                picker.$emit('pick', [start, end]);
-                            }
-                        }
-                    ]
-                },
-            }
-            computed: {
-			    c_Conditions() {
-                    var conditions = { condition: "AND", rules: [] };
-                    _.each(this.form,
-                        (value, field) => {
-                            if (value != "" && value != null) {
-                                var _rule = { field, type: "string", operator: "contains", value };
-                                switch (field) {
-                                    case "日期":
-                                        //_rule.operator = 'greater_or_equal';
-                                        //_rule.value = moment(this.form.日期).format('YYYY/MM/DD') + " 00:00:00";
-                                        if (_.isString(value)) {
-                                            _rule.operator = "Contains";
-                                            _rule.value = [value];
-                                        } else if (_.isArray(value)) {
-                                            _rule.operator = "between";
-                                            _rule.type = "date";
-                                            let end = moment(value[1]).add('hours', 23).add('minutes', 59).add('seconds', 59).format('YYYY-MM-DD HH:mm:ss');
-                                            _rule.value = [moment(value[0]).format('YYYY-MM-DD HH:mm:ss'), end];
-                                        }
-                                        conditions.rules.push(_rule);
-                                        break;
-                                    default:
-                                        conditions.rules.push(_rule);
-                                        break;
-                                }
-                            }
-					    });
-				    return conditions;
-			    },
-		    },
-            click_Query() {
-			    this.grid.Conditions = this.c_Conditions;
-			    this.query(1);
-		    },
-            // 查詢處理程序
-			query(pageIdx) {
-				var _self = this;
-				_self.grid.Page.Index = pageIdx;
-				var param = _self.grid.query_rule;
-				console.log({ query: param });
-				var _ajax = {
-					url: '@Url.Action($"{action}_ListData")',
-					type: 'post',
-					param,
-					success: this.query_success
-				};
-				$.submitForm(_ajax);
-			},
-			// 查詢成功處理程序
-			query_success(res) {
-				let { Data, Code = null, Message, Success = false } = res;
-				if (Success) {
-					let { PageInfo, gridData } = Data || {};
-					this.grid.data = gridData;
-					this.grid.row_count = PageInfo.RowCount;
-				} else {
-					var msg = Message != null
-						? Message
-						: '@BLL.InterFace.ErrCode.GenericErrorMessage'
-						;
-					this.$Alert.Err(msg);
-				}
-			},
-             
-             */
-            public static int el_Date_range;
 
-            /*
-            L:\Prd_Dev\Genesis_MVC\Areas\PMS\Views\PMSJobExecute\PMSJobExecuteMaster.cshtml
-            
-            delay_query() {
-                var conditions = { condition: "AND", rules: [] };
-                var _rule_Data = { field: 'STATUS', operator: "Contains", type: "string", value: ["WAIT", "PROCESSING"] };
-                conditions.rules.push(_rule_Data);
-                var _rule_STATUS = { field: 'PLAN_DATE', operator: "less_or_equal", type: "date", value: moment().format("YYYY/MM/DD") };
-                conditions.rules.push(_rule_STATUS);
-                this.grid.Conditions = conditions;
-			    this.query(1);
-            },
-            */
-            public static int el_Date_查詢今日以前的特定狀態;
 
-            /*
-            因為 MVC 接收時 , 無法直接接收 UTC 的時間格式 , 所以 需要用類似下面的程序 ,
-                先把日期資料轉成文字格式後 ,後端才能正確讀取並解析 
 
-            param.START_DATE = moment(param.START_DATE).format('YYYY/MM/DD 00:00:00');
-            param.END_DATE = moment(param.END_DATE).format('YYYY/MM/DD 23:59:59');
-
-             */
-            public static int el_Date_傳送資料的前置處理;
-
-            /*
-                <el-date-picker v-model="form.CALIBRATION_DATE" style="width: 100% !important;"
-                    type="date"
-                    align="right"
-                    unlink-panels
-                    value-format="yyyy-MM-dd"
-                    :picker-options="pickerOptions"
-                    >
-                </el-date-picker>
-
-                pickerOptions: {
-                    disabledDate(time) {
-                        return time.getTime() > Date.now();
-                    },
-                },
-            */
-            public static int el_限定只能選取今天以前的日期;
         }
 
         public struct gt_form_col
@@ -1117,6 +1150,20 @@ namespace Genesis
                             render_sty="GTIMES" 
 						    :readonly="!isAddMode">
 					    <gt-tagformat v-model="form.PART_NAME" :tag="form.PARTNO" readonly></gt-tagformat>
+			    </vue-selectize-ddlapi>
+            </gt-form-col>
+
+            //使用 readonly_view
+            <gt-form-col :label="i18n.料號" col_sty="col-lg-12"
+                                 v-model="form.PART_NO"
+                                 :readonly="isViewMode">
+                <vue-selectize-ddlapi v-model="form.PARTNO"  required
+                            :options="ddl_PARTNO.src"
+                            action="PartNo"
+                            render_sty="GTIMES" 
+						    :readonly="!isAddMode"
+                            :readonly_view="[form.INSTRUMENT_NAME,form.INSTRUMENT_NO]">
+					    
 			    </vue-selectize-ddlapi>
             </gt-form-col>
 
@@ -1877,12 +1924,20 @@ namespace Genesis
 
         public struct MES
         {
-            /*
-            GetLotInfoCheck
-            WIPOperConfigServices.GetOperEdc(dbc, _lotInfo, RouteVerOperInfo);
-            var RouteVerOperInfo = new RouteUtility.RouteVerOperationInfo(dbc, _lotInfo.ROUTE_VER_OPER_SID, RouteUtility.IndexType.SID);
-            */
-            public static int EDC;
+            public struct EDC { 
+                /*
+                GetLotInfoCheck
+                WIPOperConfigServices.GetOperEdc(dbc, _lotInfo, RouteVerOperInfo);
+                var RouteVerOperInfo = new RouteUtility.RouteVerOperationInfo(dbc, _lotInfo.ROUTE_VER_OPER_SID, RouteUtility.IndexType.SID);
+                */
+                public static int by工站取得EDC;
+
+                /*
+                M:\Prd_zz\Library\BLL\ICM\Maintain.QC_INSTRUMENTS_CALIBRATION_RECORDS.cs
+
+                 */
+                public static int 讀取EDC記錄_儀校;
+            }
 
             /*
             H:\GTiMES5.1_Dev\Library\BLL\MES\WIP\LOT_Services\LOT_Services.cs
