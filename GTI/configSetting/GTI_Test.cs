@@ -174,7 +174,7 @@ namespace Genesis
 
     public struct GT_Client
     {
-        
+        //~
         public struct GT_FormCol
         {
             /*
@@ -232,6 +232,7 @@ namespace Genesis
             public static int _子物件往主物件做賦值;
         }
 
+        //~
         public struct comm_Vue
         {
             /* mixins: [reason_obj],
@@ -284,6 +285,7 @@ namespace Genesis
             public static int component;
         }
 
+        //~
         public struct Reazer
         {
             /*
