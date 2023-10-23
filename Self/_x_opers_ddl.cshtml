@@ -1,4 +1,17 @@
-﻿@Html.Partial("~/Areas/MES/Views/Shared/_opers_ddl.cshtml")
+﻿@using System.Dynamic
+@{
+	bool isSingleModel = (bool)ViewData["SingleModel"];
+	dynamic data = new ExpandoObject();
+    if (true)
+	{
+		Layout = "~/Views/Shared/_LayoutSingle.cshtml";
+	}
+    GTI_Test GTest = new GTI_Test(Html, ViewContext.HttpContext);
+}
+@eBundle.QRender_CSS()
+@eBundle.QRender_JS()
+
+@Html.Partial("~/Areas/MES/Views/Shared/_opers_ddl.cshtml")
 @Html.Partial("~/Areas/MES/Views/WIP/ZZ_Partial/_rework.cshtml")
 
 
@@ -36,17 +49,6 @@
 	{{ddl_case3.value2}}
 
 </div>
-@section Styles {
-	@Styles.Render(eBundle.selectize_CSS)
-	@Styles.Render(eBundle.elUI_CSS)
-}
-
-
-@section Scripts {
-	@Scripts.Render(eBundle.selectize_JS)
-	@Scripts.Render(eBundle.Vue_MES)
-	@Scripts.Render(eBundle.elUI_JS)
-}
 
 <script>
 	$(() => {
@@ -68,35 +70,35 @@
 					ddl_case3: {
 						values1: [],
 						values2: [],
-						src:[
-								  {
-									"SID": "GTI20091612080907042",
-									"OPER": "OPER",
-									"OPER_NO": "OPER_NO",
-									"ROUTE": null,
-									"ROUTE_NO": "ROUTE_NO",
-									"Status": "1",
-									"INum": 0
-								  },
-								  {
-									"SID": "GTI20091612114107049",
-									"OPER": null,
-									"OPER_NO": null,
-									"ROUTE": null,
-									"ROUTE_NO": null,
-									"Status": "2",
-									"INum": 0
-								  },
-								  {
-									"SID": "GTI20091612120207050",
-									"OPER": null,
-									"OPER_NO": null,
-									"ROUTE": null,
-									"ROUTE_NO": null,
-									"Status": "3",
-									"INum": 0
-								  }
-								],
+						src: [
+							{
+								"SID": "GTI20091612080907042",
+								"OPER": "OPER",
+								"OPER_NO": "OPER_NO",
+								"ROUTE": null,
+								"ROUTE_NO": "ROUTE_NO",
+								"Status": "1",
+								"INum": 0
+							},
+							{
+								"SID": "GTI20091612114107049",
+								"OPER": null,
+								"OPER_NO": null,
+								"ROUTE": null,
+								"ROUTE_NO": null,
+								"Status": "2",
+								"INum": 0
+							},
+							{
+								"SID": "GTI20091612120207050",
+								"OPER": null,
+								"OPER_NO": null,
+								"ROUTE": null,
+								"ROUTE_NO": null,
+								"Status": "3",
+								"INum": 0
+							}
+						],
 						ops: {
 							tagField: 'SID',
 							labelField: 'OPER_NO',
@@ -120,7 +122,7 @@
 								}
 							}
 						},
-                    },
+					},
 					i18n: {
 						Face: {
 							'OPERATION': '@RES.BLL.Face.OPERATION',

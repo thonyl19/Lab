@@ -1,4 +1,15 @@
-﻿
+﻿@using System.Dynamic
+@{
+	bool isSingleModel = (bool)ViewData["SingleModel"];
+	dynamic data = new ExpandoObject();
+    if (true)
+	{
+		Layout = "~/Views/Shared/_LayoutSingle.cshtml";
+	}
+    GTI_Test GTest = new GTI_Test(Html, ViewContext.HttpContext);
+}
+@eBundle.QRender_CSS()
+@eBundle.QRender_JS()
 <div id="app">
     <el-button size="small" type="info" @@click="isOne=!isOne">是否限制一筆:{{isOne}}</el-button>
     <el-upload class="upload-demo"
@@ -22,32 +33,28 @@
                list-type="picture">
         <el-button size="small" type="primary" slot="trigger" v-if="c_limit">点击上传</el-button>
     </el-upload>
-        <img v-if="cp_upload.imageUrl" :src="cp_upload.imageUrl" class="avatar">
+    <img v-if="cp_upload.imageUrl" :src="cp_upload.imageUrl" class="avatar">
 </div>
 
 @section Styles {
-    @Styles.Render(eBundle.selectize_CSS)
-    @Styles.Render(eBundle.elUI_CSS)
-    <style>
-        .el-upload__input {
-            display: none !important;
-        }
-        .el-upload-list--picture .el-upload-list__item {
-            height: 280px !important;
-        }
+ 
+<style>
+    .el-upload__input {
+        display: none !important;
+    }
 
-        .el-upload-list--picture img {
-            width: 250px !important;
-            height: 250px !important;
-        }
-    </style>
+    .el-upload-list--picture .el-upload-list__item {
+        height: 280px !important;
+    }
+
+    .el-upload-list--picture img {
+        width: 250px !important;
+        height: 250px !important;
+    }
+</style>
 }
 
-@section Scripts {
-    @Scripts.Render(eBundle.selectize_JS)
-    @Scripts.Render(eBundle.Vue_MES)
-    @Scripts.Render(eBundle.elUI_JS)
-}
+ 
 
 <script>
     $(() => {
@@ -57,7 +64,7 @@
             data() {
                 return {
                     //是否限制一筆
-                    isOne:false,
+                    isOne: false,
                     cp_upload: {
                         imageUrl: '',
                         api: '@Url.Content("~/api/Import/Upload")',

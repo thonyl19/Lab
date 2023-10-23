@@ -1,0 +1,99 @@
+﻿{
+    "ID": "e98b40e7-1372-41c8-82c3-d5972a5ab9e7",
+    "Success": true,
+    "Message": null,
+    "MessageList": [],
+    "Redirect": null,
+    "Data": {
+        "form": {
+            "CALIBRATION_RECORDS_SID": "GTI23092613585556358",
+            "INSTRUMENT_ID": "GTI23062015431043743",
+            "INSTRUMENT_NO": "EQP001",
+            "INSTRUMENT_NAME": " AOI 線上光學檢查機",
+            "CALIBRATION_DOC_NO": "校驗單據號碼",
+            "CALIBRATION_DATE": "2023-09-26 01:58:23",
+            "CALIBRATED_BY": "執行校正的人員",
+            "CALIBRATION_RESULT": "T",
+            "REMARKS": "備注",
+            "ATTACHMENTS": null,
+            "CALIBRATED_LOCATION": "校驗地點",
+            "CALIBRATED_UNIT": "校驗單位",
+            "CREATE_USER": "Admin",
+            "CREATE_DATE": "2023-09-26 13:58:55",
+            "UPDATE_USER": "Admin",
+            "UPDATE_DATE": "2023-09-26 13:58:55"
+        },
+        "edcData": [
+            {
+                "EdcVerSid": "GTI20112515194548080",
+                "EdcParameterSid": "GTI20103015173892876",
+                "QCItemSID": "GTI20103015173892876",
+                "DataType": "N",
+                "DataCount": 1,
+                "DispayPointName": null,
+                "DispayPointNameList": null,
+                "ItemSid": "GTI20103015173892876",
+                "ItemNo": "E.C01-A01-072",
+                "ItemName": "SLT500GF-UB裁切A、B尺寸",
+                "mustInput": "T",
+                "UCL": 4.4,
+                "USL": 0,
+                "LCL": 3.6,
+                "LSL": 0,
+                "TL": "4",
+                "EDCSid": "GTI20112515173548052",
+                "EDCThrowSpc": null,
+                "ThrowSpc": null,
+                "EDCVerParaSid": null,
+                "DBTable": null,
+                "DBColumnName": null,
+                "InputValueList": [
+                    {
+                        "1": "2"
+                    },
+                    {
+                        "2": "2"
+                    },
+                    {
+                        "3": ""
+                    },
+                    {
+                        "4": ""
+                    }
+                ]
+            },
+            {
+                "EdcVerSid": "GTI20112515194548080",
+                "EdcParameterSid": "GTI20103015181692877",
+                "QCItemSID": "GTI20103015181692877",
+                "DataType": "S",
+                "DataCount": 1,
+                "DispayPointName": null,
+                "DispayPointNameList": null,
+                "ItemSid": "GTI20103015181692877",
+                "ItemNo": "E.C01-A01-073",
+                "ItemName": "SLT500GF-UB裁切C標準",
+                "mustInput": "T",
+                "UCL": 0,
+                "USL": 0,
+                "LCL": 0,
+                "LSL": 0,
+                "TL": "直角",
+                "EDCSid": "GTI20112515173548052",
+                "EDCThrowSpc": null,
+                "ThrowSpc": null,
+                "EDCVerParaSid": null,
+                "DBTable": null,
+                "DBColumnName": null,
+                "InputValueList": [
+                    {
+                        "1": "AA"
+                    }
+                ]
+            }
+        ]
+    },
+    "Exception": null,
+    "InnerResults": [],
+    "Code": "000"
+}

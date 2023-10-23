@@ -1,23 +1,25 @@
-﻿@{
+﻿@using System.Dynamic
+@{
+	bool isSingleModel = (bool)ViewData["SingleModel"];
+	dynamic data = new ExpandoObject();
+    if (true)
+	{
+		Layout = "~/Views/Shared/_LayoutSingle.cshtml";
+	}
+    GTI_Test GTest = new GTI_Test(Html, ViewContext.HttpContext);
     ViewBag.Title = @Genesis.Common.PageBaseInfo.getCurrentResource("baseTpl").RESOURCE_NAME;
 }
+@eBundle.QRender_CSS()
+@eBundle.QRender_JS()
+
 <h3>
     @ViewBag.Title
 </h3>
-@Html.AntiForgeryToken()
-@section Styles {
-    @Styles.Render(eBundle.elUI_CSS)
-}
-
-@section Scripts {
-    @Scripts.Render(eBundle.Vue_MES)
-    @Scripts.Render(eBundle.elUI_JS)
-}
 
 <div id="app">
     {{msg}}
 </div>
-@Html.Partial("_Test")
+
 <script>
     $(() => {
         new Vue({

@@ -10,21 +10,6 @@
 }
 @eBundle.QRender_CSS()
 @eBundle.QRender_JS()
-
-<div id="app">
-	{{msg}}
+<div>
+	@Html.Raw(Json.Encode(BLL.Base.MESServices.GetFunReason("LotBonus")));
 </div>
-
-
-<script>
-	$(() => {
-		new Vue({
-			el: '#app',
-			data() {
-				return {
-					msg: "baseTpl"
-				}
-			}
-		})
-	});
-</script>

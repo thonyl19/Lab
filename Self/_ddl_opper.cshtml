@@ -1,4 +1,15 @@
-﻿
+﻿@using System.Dynamic
+@{
+	bool isSingleModel = (bool)ViewData["SingleModel"];
+	dynamic data = new ExpandoObject();
+    if (true)
+	{
+		Layout = "~/Views/Shared/_LayoutSingle.cshtml";
+	}
+    GTI_Test GTest = new GTI_Test(Html, ViewContext.HttpContext);
+}
+@eBundle.QRender_CSS()
+@eBundle.QRender_JS()
 <h3>
 	ddl_opper
 </h3>
@@ -11,17 +22,7 @@
 
 </div>
 
-@section Styles {
-	@Styles.Render(eBundle.selectize_CSS)
-	@Styles.Render(eBundle.elUI_CSS)
-}
-
-@section Scripts {
-	@Scripts.Render(eBundle.selectize_JS)
-	@Scripts.Render(eBundle.Vue_MES)
-	@Scripts.Render(eBundle.elUI_JS)
-}
-
+ 
 <script>
 	debugger
 	$(() => {
@@ -38,10 +39,10 @@
 						ops: [{ "SID": "GTI11110115550180956", "No": "other", "Value": "GTI11110115550180956", "Display": "其他", "StatusSid": null, "Status": null, "FromNum": 0.0, "INum": 0.0 }]
 					},
 					i18n: {
-						description:'@RES.BLL.Face.Description',
-						lb_reason:'@RES.BLL.Face.lblREASON_NO',
-						lb_reasongroup:'@RES.BLL.Face.lblREASONGROUP',
-						PleaseScanTheBarcodeOrUseKeywords:"@RES.BLL.Message.PleaseScanTheBarcodeOrUseKeywords"
+						description: '@RES.BLL.Face.Description',
+						lb_reason: '@RES.BLL.Face.lblREASON_NO',
+						lb_reasongroup: '@RES.BLL.Face.lblREASONGROUP',
+						PleaseScanTheBarcodeOrUseKeywords: "@RES.BLL.Message.PleaseScanTheBarcodeOrUseKeywords"
 					}
 				}
 			},

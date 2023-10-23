@@ -1,72 +1,81 @@
-﻿@{
+﻿@using System.Dynamic
+@{
+	bool isSingleModel = (bool)ViewData["SingleModel"];
+	dynamic data = new ExpandoObject();
+    if (true)
+	{
+		Layout = "~/Views/Shared/_LayoutSingle.cshtml";
+	}
+    GTI_Test GTest = new GTI_Test(Html, ViewContext.HttpContext);
 	ViewBag.FunctionName = RES.BLL.Face.FunMapWOStartLot;
 	ViewBag.Title = RES.BLL.Face.FunMapWOStartLot;
-
-	<h3>@ViewBag.Title</h3>
 }
+@eBundle.QRender_CSS()
+@eBundle.QRender_JS()
+<h3>@ViewBag.Title</h3>
 <div id="app">
-	<div class="toolbar">
+    <div class="toolbar">
 
-		<div class="btn-group">
-			<el-button type="primary" class="btn"
-					   icon="el-icon-caret-right"
-					   :disabled="isEmptyRow"
-					   v-on:click="Exec">
-				@RES.BLL.Face.FunctionBarOKButton
-			</el-button>
-		</div>
-	</div>
-	<div class="panel b">
-		<div class="panel-body row">
-			<div class="form-group col-lg-12 has-success  has-feedback">
-				<label>@RES.BLL.Face.WO</label>
-				<input ref="WO" class="form-control" type="text" v-model="CurrentLot.WO"
-					   placeholder="@RES.BLL.Message.PleaseInputWo"
-					   v-on:keyup.enter="Query(CurrentLot.WO)"
-					   :readonly="isSingleMode" />
-			</div>
-		</div>
-		<el-tabs type="border-card" v-model="tab_idx">
-			<el-tab-pane label="待下線子批批號列表">
-				<el-table :data="LotInfoList"
-						  empty-text=" "
-						  style="width: 100%"
-						  v-on:selection-change="SelectionChange">
-					<el-table-column type="selection"
-									 width="55">
-					</el-table-column>
-					<el-table-column prop="LOT"
-									 label="子批批號"
-									 width="180">
-					</el-table-column>
-					<el-table-column prop="QUANTITY"
-									 label="@RES.BLL.Face.QUANTITY">
-					</el-table-column>
-					<el-table-column prop="UNIT"
-									 label="@RES.BLL.Face.UNIT">
-					</el-table-column>
-					<el-table-column prop="PRODUCT"
-									 label="@RES.BLL.Face.PRODUCT">
-					</el-table-column>
-					<el-table-column prop="PARTNO"
-									 label="@RES.BLL.Face.PartNo">
-					</el-table-column>
-					<el-table-column prop="ROUTE"
-									 label="@RES.BLL.Face.ROUTE">
-					</el-table-column>
-					<el-table-column prop="OPERATION"
-									 label="@RES.BLL.Face.OPERATION">
-					</el-table-column>
-					<el-table-column prop="LOT_TYPE"
-									 label="@RES.BLL.Face.LOT_TYPE">
-					</el-table-column>
-					<el-table-column prop="PRIORITY"
-									 label="@RES.BLL.Face.PRIORITY">
-					</el-table-column>
-				</el-table>
-			</el-tab-pane>
-		</el-tabs>
-	</div>
+        <div class="btn-group">
+            <el-button type="primary" class="btn"
+                       icon="el-icon-caret-right"
+                       :disabled="isEmptyRow"
+                       v-on:click="Exec">
+                @RES.BLL.Face.FunctionBarOKButton
+            </el-button>
+        </div>
+    </div>
+    <div class="panel b">
+        <div class="panel-body row">
+            <div class="form-group col-lg-12 has-success  has-feedback">
+                <label>@RES.BLL.Face.WO</label>
+                <input ref="WO" class="form-control" type="text" v-model="CurrentLot.WO"
+                       placeholder="@RES.BLL.Message.PleaseInputWo"
+                       v-on:keyup.enter="Query(CurrentLot.WO)"
+                       :readonly="isSingleMode" />
+            </div>
+        </div>
+        <el-tabs type="border-card" v-model="tab_idx">
+            <el-tab-pane label="待下線子批批號列表">
+                <el-table :data="LotInfoList"
+                          empty-text=" "
+                          style="width: 100%"
+                          v-on:selection-change="SelectionChange">
+                    <el-table-column type="selection"
+                                     width="55">
+                    </el-table-column>
+                    <el-table-column prop="LOT"
+                                     label="子批批號"
+                                     width="180">
+                    </el-table-column>
+                    <el-table-column prop="QUANTITY"
+                                     label="@RES.BLL.Face.QUANTITY">
+                    </el-table-column>
+                    <el-table-column prop="UNIT"
+                                     label="@RES.BLL.Face.UNIT">
+                    </el-table-column>
+                    <el-table-column prop="PRODUCT"
+                                     label="@RES.BLL.Face.PRODUCT">
+                    </el-table-column>
+                    <el-table-column prop="PARTNO"
+                                     label="@RES.BLL.Face.PartNo">
+                    </el-table-column>
+                    <el-table-column prop="ROUTE"
+                                     label="@RES.BLL.Face.ROUTE">
+                    </el-table-column>
+                    <el-table-column prop="OPERATION"
+                                     label="@RES.BLL.Face.OPERATION">
+                    </el-table-column>
+                    <el-table-column prop="LOT_TYPE"
+                                     label="@RES.BLL.Face.LOT_TYPE">
+                    </el-table-column>
+                    <el-table-column prop="PRIORITY"
+                                     label="@RES.BLL.Face.PRIORITY">
+                    </el-table-column>
+                </el-table>
+            </el-tab-pane>
+        </el-tabs>
+    </div>
 </div>
 
 @section Styles {
@@ -78,9 +87,9 @@
 	@eBundle.QRender_JS()
 }
 <script>
-	debugger
-    var _data = @Html.Raw(ViewData["result"]??"{}");
-    let { LotInfoList,WO_SID = "" } = _data;
+    debugger
+    var _data = @Html.Raw(ViewData["result"] ?? "{}");
+    let { LotInfoList, WO_SID = "" } = _data;
     LotInfoList = LotInfoList ?? [];
     $(() => {
         new Vue({
@@ -90,9 +99,9 @@
                 return {
                     //201-20121129-33
                     WO_SID,
-                    tab_idx:"0",
-                    CurrentLot:{},
-                    selectize_ops1:{
+                    tab_idx: "0",
+                    CurrentLot: {},
+                    selectize_ops1: {
                         labelField: 'Display',
                         valueField: 'SID',
                         searchField: ['Display', 'No'],
@@ -133,7 +142,7 @@
                     let { LOT = "" } = this.CurrentLot;
                     var options = {
                         type: 'error',
-                        title: '@RES.BLL.Message.CannotFindData'.replace('{0}',LOT),
+                        title: '@RES.BLL.Message.CannotFindData'.replace('{0}', LOT),
                         confirmButtonText: '@RES.BLL.Face.Close',
                     };
                     $.showMessageFire(options);
@@ -141,7 +150,7 @@
                 msg_WOStartLotSuccessful() {
                     var options = {
                         type: 'success',
-                        title: '@RES.BLL.Face.FunMapWOStartLot @RES.BLL.Message.RuleExecuteSuccessful'.replace('{0}',""),
+                        title: '@RES.BLL.Face.FunMapWOStartLot @RES.BLL.Message.RuleExecuteSuccessful'.replace('{0}', ""),
                         timer: 1000 * 10,
                         confirmButtonText: '@RES.BLL.Face.Close',
                     };
@@ -154,12 +163,12 @@
                     var _self = this;
                     var _ajax = {
                         url: "@Url.Action("Exec", new { area = "WIP" })",
-                        type:'post',
+                        type: 'post',
                         param: {
                             LotInfoList: _self.selectedItems,
                         },
                         success(res) {
-                            let { Success, Data = {}} = res;
+                            let { Success, Data = {} } = res;
                             if (Success) {
                                 _self.Init_UI();
                                 let { LotInfoList = [] } = Data;
@@ -186,9 +195,8 @@
                             WO: WO,
                         },
                         success(res) {
-                            let { WoLotList = null} = res;
-                            if(WoLotList != null)
-                            {
+                            let { WoLotList = null } = res;
+                            if (WoLotList != null) {
                                 _self.LotInfoList = WoLotList;
                             }
                             else {

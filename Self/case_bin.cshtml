@@ -1,5 +1,15 @@
-﻿@{
+﻿@using System.Dynamic
+@{
+	bool isSingleModel = (bool)ViewData["SingleModel"];
+	dynamic data = new ExpandoObject();
+    if (true)
+	{
+		Layout = "~/Views/Shared/_LayoutSingle.cshtml";
+	}
+    GTI_Test GTest = new GTI_Test(Html, ViewContext.HttpContext);
 }
+@eBundle.QRender_CSS()
+@eBundle.QRender_JS()
 <h3>
 	@ViewBag.Title
 	<small></small>
@@ -13,15 +23,7 @@
 	{{data1_add}}
 	<bin-input v-model="data1_add" :set_model="set_model"></bin-input>
 </div>
-@section Styles {
-	@Styles.Render(eBundle.elUI_CSS)
-}
-
-@section Scripts {
-	@Scripts.Render(eBundle.Vue_MES)
-	@Scripts.Render(eBundle.elUI_JS)
-}
-
+ 
 <script>
 	$(() => {
 		new Vue({

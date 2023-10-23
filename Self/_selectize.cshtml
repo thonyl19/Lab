@@ -25,9 +25,10 @@
 				<vue-selectize v-model="form.F" render_sty="GTIMES"
 							   :options="ddl_ops" />
 			</gt-form-col>
-			<gt-form-col label="多選">
+			<gt-form-col label="多選-is_formcontrol">
 				<vue-selectize v-model="form.F1" render_sty="GTIMES" 
 							   :selectize_ops="selectize_ops多選"
+							   :is_formcontrol="false"
 							   :options="ddl_ops" />
 			</gt-form-col>
 		</div>

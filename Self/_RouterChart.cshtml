@@ -1,23 +1,24 @@
-﻿@{
-	ViewBag.Title = @Genesis.Common.PageBaseInfo.getCurrentResource("baseTpl").RESOURCE_NAME;
+﻿@using System.Dynamic
+@{
+	bool isSingleModel = (bool)ViewData["SingleModel"];
+	dynamic data = new ExpandoObject();
+    if (true)
+	{
+		Layout = "~/Views/Shared/_LayoutSingle.cshtml";
+	}
+    GTI_Test GTest = new GTI_Test(Html, ViewContext.HttpContext);
 }
+@eBundle.QRender_CSS()
+@eBundle.QRender_JS()
+
 <h3>
 	@ViewBag.Title
 </h3>
-@Html.AntiForgeryToken()
-@section Styles {
-	@Styles.Render(eBundle.elUI_CSS)
-}
-
-@section Scripts {
-	@Scripts.Render(eBundle.Vue_MES)
-	@Scripts.Render(eBundle.elUI_JS)
-}
 
 <div id="app">
 	<h3>處理 OnceClick  開啟流程圖的程序</h3>
 	<button @@click="test">test</button>
-	
+
 </div>
 
 <script>
@@ -36,7 +37,7 @@
 					debugger;
 					var user = `@BLL.MVC.CurrentProvider.Provider.GetCurrent().UserNo`;
 					var lang = window.getCookie("culture");
-                    var SID = 'GTI20030417273102055';
+					var SID = 'GTI20030417273102055';
 					var Root = $.getBaseUrl();
 					var HostIP = `@System.Web.HttpContext.Current.Request.Url.Authority`;
 					//var urlRouterChart = `@System.Web.Configuration.WebConfigurationManager.AppSettings["urlRouterChart"]`;
@@ -46,7 +47,7 @@
 					var url
 						//= 'http://10.96.0.219/PTTCMES/RouteChart/RouteChart.application?CurrentUser=Admin&RouterVerSID=GTI21012015313526499&HostIP=10.96.0.219&PahtDir=PTTCMES&Lang=zh-TW';
 						//= `http://${host}/${Root}/RouteChart/RouteChart.application?CurrentUser=${user}&RouterVerSID=${SID}&HostIP=10.96.0.219&PahtDir=PTTCMES&Lang=${lang}`;
-                        = `http://${HostIP}${Root}/RouteChart/RouteChart.application?CurrentUser=${user}&RouterVerSID=${SID}&Lang=${lang}&HostIP=${HostIP}&PahtDir=${Root.substring(1)}`;
+						= `http://${HostIP}${Root}/RouteChart/RouteChart.application?CurrentUser=${user}&RouterVerSID=${SID}&Lang=${lang}&HostIP=${HostIP}&PahtDir=${Root.substring(1)}`;
 					window.open(url);
 
 				}
