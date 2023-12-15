@@ -1,0 +1,194 @@
+﻿@{
+
+    Layout = "~/Views/Shared/_LayoutSingle1.cshtml";
+}
+@eBundle.QRender_CSS()
+@eBundle.QRender_JS()
+@Scripts.Render("~/bundles/signalR")
+@Html.AntiForgeryToken()
+<form id="app" v-cloak class="panel b pt-sm">
+    <div class="panel-body">
+
+        <h3>
+            <el-badge :is-dot="!isEnable" class="item">
+                RFID 接收記錄
+            </el-badge>
+        </h3>
+        <div>
+            <el-checkbox v-model="c_Filter">濾除重覆</el-checkbox> <el-checkbox v-model="AutoExec">自動執行</el-checkbox>
+        </div>
+        <el-table :data="tableData" size="small" :default-sort="{prop: 'TimeStamp', order: 'descending'}">
+            <el-table-column label="操作">
+                <template scope="scope">
+                    <el-button size="small" @@click="AutoTR(scope.row.Lot)" v-if="scope.row.Lot!=null">執行</el-button>
+                </template>
+            </el-table-column>
+            <el-table-column prop="Lot" label="批號">
+            </el-table-column>
+            <el-table-column prop="EPC"
+                             label="EPC"></el-table-column>
+            <el-table-column prop="TID"
+                             label="TID"></el-table-column>
+            <el-table-column prop="TimeStamp"
+                             label="TimeStamp"></el-table-column>
+            <el-table-column prop="Counts" v-if="Filter"
+                             label="Counts"></el-table-column>
+        </el-table>
+        
+    </div>
+</form>
+<script src="~/signalr/hubs"></script>
+<script>
+    $(() => {
+        new Vue({
+            el: '#app',
+            data() {
+                return {
+                    Filter: false,
+                    AutoExec: false,
+                    tableData: [],
+                    isEnable: false,
+                    lotMap: {
+                        "E2003412012E010008A6B2BA": "JOCHU.WO-01-06",
+                        "E20034120138010008A6B2BC": "JOCHU.WO-01-08",
+                        "E2003412017BFE000358AB1E": "JOCHU.WO-01-08",//A
+                        "E20034120177FE000358BFFF": "JOCHU.WO-02-09",//B
+                    },
+                    isLock :false,
+                }
+            },
+            mounted() {
+                var _self = this;
+                $.connection.hub.disconnected(function () {
+                    _self.SignalHub_err();
+                });
+                var Hub = $.connection.RFIDCountHub;
+                Hub.client.broadcastRFID = _self.broadcastRFID;
+                this.Start();
+                //var Hub = $.connection.RFIDCountHub;
+                //Hub.client.broadcastRFID = _self.broadcastRFID;
+            },
+            computed: {
+                c_Filter: {
+                    get() { return this.Filter; },
+                    set(val) {
+                        this.Filter = val;
+                        if (val) {
+                            this.transData();
+                        }
+                    }
+                }
+            },
+            methods: {
+                transData() {
+                    const resultMap = new Map();
+                    this.tableData.forEach(item => {
+                        const tid = item.TID;
+                        if (!resultMap.has(tid)) {
+                            resultMap.set(tid, { ...item });
+                        } else {
+                            const existingItem = resultMap.get(tid);
+                            existingItem.Counts += item.Counts;
+                            if (item.TimeStamp > existingItem.TimeStamp) {
+                                existingItem.TimeStamp = item.TimeStamp;
+                            }
+                        }
+                    });
+                    this.tableData = [...resultMap.values()];
+                },
+                broadcastRFID(msg) {
+                    var rfid = JSON.parse(msg);
+                    let { TID, TimeStamp} = rfid;
+                    rfid.Lot = this.lotMap[TID];
+                    rfid.Counts = 1;
+                    if (this.Filter) {
+                        var idx = _.findIndex(this.tableData, { TID });
+                        if (idx !== -1) {
+                            this.tableData[idx].TimeStamp = TimeStamp;
+                            this.tableData[idx].Counts++;
+                        } else {
+                            this.tableData.push(rfid);
+                        }
+                    } else {
+                        this.tableData.push(rfid);
+                    }
+                    if (this.AutoExec && this.isLock == false) {
+                        this.isLock = true;
+                        this.AutoTR(rfid.Lot);
+                    }
+                },
+                AutoTR(searchKey) {
+                    var _self = this;
+                    var url = '@Url.Action("Search","Portal",new {area=""})';
+                    $.submitForm({
+                        url,
+                        param: { searchKey, searchKey_2: searchKey },
+                        success: function (data) {
+                            debugger
+                            if (!data.Success) {
+                                return false;
+                            }
+                            if (data.Redirect != null) {
+                                //
+                                $.blockUI({ message: "請稍等......" });
+                                //location.href = data.Redirect;
+                                window.open(data.Redirect, '_blank');
+                                setTimeout(() => {
+                                    $.unblockUI();
+                                    _self.isLock = false;
+                                }, 1000 * 5);
+                            }  
+                        }
+                    })
+                },
+                Start() {
+                    var _self = this;
+                    if (_self.isEnable == false) {
+                        $.connection.hub.start().done(function () {
+                            _self.isEnable = true;
+                        }).catch(function (err) {
+                            console.error(err.toString());
+                            setTimeout(function () {
+                                _self.Start();
+                            }, 10000);
+                            return
+                        });
+                    }
+                },
+                SignalHub_err() {
+                    var _self = this;
+                    if (_self.isEnable) {
+                        _self.isEnable = false;
+                        this.$notify({
+                            title: '警告',
+                            message: 'SignalHub 連線出現異常.',
+                            type: 'warning',
+                            duration: 0
+                        });
+                        _self.Start();
+                    }
+                },
+
+            },
+        });
+    })
+</script>
+
+<style>
+    iframe {
+        display: inline-block;
+        width: 300px;
+        height: 80px;
+        margin: 3px;
+        border: 1px solid blue;
+    }
+
+    div.op {
+        padding: 6px;
+    }
+
+    .item {
+        margin-top: 10px;
+        margin-right: 40px;
+    }
+</style>

@@ -1,0 +1,286 @@
+﻿@using System.Dynamic
+@{
+	bool isSingleModel = (bool)ViewData["SingleModel"];
+	dynamic data = new ExpandoObject();
+    if (true)
+	{
+		Layout = "~/Views/Shared/_LayoutSingle.cshtml";
+	}
+    GTI_Test GTest = new GTI_Test(Html, ViewContext.HttpContext);
+}
+@eBundle.QRender_CSS()
+@eBundle.QRender_JS(eBundle.ECharts_JS)
+
+<div id="app">
+	<div class="container-fluid">
+		<div class="ds">
+			<el-button type="text" @@click="renew" class="ds1">
+				<el-progress type="circle" :percentage="percentage" :width="20"
+							 :show-text="false" :stroke-width="4"
+							 color="#515253"></el-progress>
+			</el-button>
+			<div style="display: flex; justify-content: center;">
+				<canvas ref="echart" style="width:120rem;height:400px;"></canvas>
+			</div>
+		</div>			
+	</div>
+</div>
+<style>
+	.ds {
+		position: relative;
+	}
+
+	.el-button.ds1 {
+		padding: 0px;
+		opacity: 0.3;
+		position: absolute;
+		left: 3px;
+		top: 3px;
+		z-index: 9999;
+	}
+</style>
+
+<script>
+	$(() => {
+		var geteway = @Html.Raw(ViewData["geteway"] ?? "[]");
+
+		new Vue({
+			el: '#app',
+			data() {
+				return {
+					scop: 5,
+					ddl_supplis: {
+						val: '',
+						src: [
+							{ SID: 'A', No: 'A', Display: 'JOCHU-A', Attr: 10 },
+							{ SID: 'B', No: 'B', Display: 'JOCHU-B', Attr: 13 },
+							{ SID: 'C', No: 'C', Display: 'JOCHU-C', Attr: 8 },
+						],
+						rows: [],
+					},
+					mac: '',
+					activeName: 'first',
+					struct: [{ field: 'hourly', display: '當日每小時碳排量' }, { field: 'daily', display: '當月每日碳排量' }, { field: 'monthly', display: '當年每月碳排量' }],
+					charts: [],
+					geteway,
+					yestodayTotal: 0,
+					todayTotal: 0,
+					lastYearTotal: 0,
+					thisYearTotal: 0,
+					mark: {
+						esg基數: null
+					},
+					src_part: { '100501': 10, '100502': 9.5, '100503': 8, '100301': 8.1, '100302': 7, '100303': 9.2, '100201': 8.5, '100202': 10.3, '100203': 7.6 },
+					baseSrc: [
+						{ "month": "2023/09" },
+						{ "month": "2023/08" },
+						{ "month": "2023/07" },
+						{ "month": "2023/06" },
+						{ "month": "2023/05" },
+						{ "month": "2023/04" },
+						{ "month": "2023/03" },
+						{ "month": "2023/02" },
+						{ "month": "2023/01" },
+						{ "month": "2022/12" },
+						{ "month": "2022/11" },
+						{ "month": "2022/10" }
+					],
+
+					chart: {
+						el:null,
+						renewSec: 10,
+						times: 0,
+						timer: null,
+                        baseSet: null,
+					}
+				}
+			},
+			mounted() {
+				var _self = this;
+				var chart = echarts.init(this.$refs.echart, null);
+				chart.on('mousemove', (params) => {
+					if (params.componentType === "series" && params.seriesType === "bar") {
+						// 鼠标悬停在柱状系列上时，显示对应的数值标签
+						const seriesIndex = params.seriesIndex;
+						const dataIndex = params.dataIndex;
+						chart.dispatchAction({
+							type: 'highlight', // 高亮显示系列
+							seriesIndex: seriesIndex
+						});
+						chart.dispatchAction({
+							type: 'showTip', // 显示提示框
+							seriesIndex: seriesIndex,
+							dataIndex: dataIndex
+						});
+					}
+				});
+
+				// 添加鼠标移出事件监听
+				chart.on('mouseout', (params) => {
+					// 鼠标移出图表时，隐藏所有数值标签
+					chart.dispatchAction({
+						type: 'downplay', // 取消高亮
+					});
+					chart.dispatchAction({
+						type: 'hideTip', // 隐藏提示框
+					});
+				})
+				_self.chart.el = chart;
+				_self.chart.baseSet = this.c_src;
+				_self.chart.el.setOption(_self.chart.baseSet, true);
+                this.chart.el.resize();
+				_self.fn_timer();
+			},
+			computed: {
+				c_dimensions() {
+					var parts = Object.keys(this.src_part);
+					var series = parts.map(name => {
+						return {
+							name, type: 'bar', stack: 'total', label: { show: false },
+							emphasis: {
+								focus: 'series',
+								label: {
+									show: true,// 高亮显示时显示数值标签
+									"position": "top", // 显示在顶部
+									//"formatter": "{c} Units" // 自定义显示格式
+								}
+							},
+							encode: {
+								"x": "month",
+								"y": name
+							}
+
+						};
+					});
+					series.unshift({
+						name: 'MLot 數量',
+						type: 'line',
+						encode: {
+							x: 'month',
+							y: 'qty'
+						},
+						seriesLayoutBy: "column",
+						lineStyle: {
+							color: 'blue'
+						}
+						, label: { show: true }
+					});
+					return {
+						parts,
+						series,
+						dimensions: ['month', 'qty'].concat(parts),
+					}
+				},
+				c_src() {
+					var _self = this;
+					let [esg基數] = this.ddl_supplis.rows;
+					var src = this.src_part;
+					var source = this.baseSrc.map(c => {
+						var qty = 0;
+						_.each(src, (v, k) => {
+							var z = _.random(0, 350);
+							if (z % 10 != 0) {
+								qty += z;
+								c[k] = parseInt(z * v);
+							}
+							//else {
+							//    c[k] = 0;
+							//}
+						})
+						c.qty = qty;
+						return c;
+					});
+					_self.mark = {
+						esg基數,
+						max: _.maxBy(source, 'qty'),
+						min: _.minBy(source, 'qty'),
+					}
+
+					let { series, dimensions } = _self.c_dimensions;
+
+
+					return {
+						tooltip: {
+							trigger: 'axis',
+							axisPointer: {
+								type: 'shadow'
+							},
+						},
+						legend: {
+							// Try 'horizontal'
+							orient: 'vertical',
+							right: 10,
+							top: 'center'
+						},
+						stateAnimation: {
+							duration: 300,
+							easing: 'cubicOut'
+						},
+						dataset: {
+							dimensions,
+							source,
+						},
+						xAxis: {
+							type: 'category',
+						},
+						yAxis: {},
+						series,
+					}
+				},
+				percentage() {
+					debugger
+                    var prgs = this.chart.times / this.chart.renewSec;
+                    if (prgs >= 1) {
+                        this.chart.times = 0;
+                        window.clearTimeout(this.chart.timer);
+                        this.query();
+                        this.fn_timer();
+                        return 0;
+                    }
+                    return prgs * 100;
+                }
+			},
+			methods: {
+                renew() {
+                    this.chart.times = 0;
+                    window.clearTimeout(this.chart.timer);
+                    this.query();
+                    this.fn_timer();
+                },
+                fn_timer() {
+                    var _self = this;
+                    _self.chart.timer = setInterval(() => {
+                        _self.chart.times++;
+                    }, 1000);
+                },
+				query() {
+					let { series, dimensions } = this.c_dimensions;
+                    var src = this.src_part;
+                    var source = this.baseSrc.map(c => {
+                        var qty = 0;
+                        _.each(src, (v, k) => {
+                            var z = _.random(0, 350);
+                            if (z % 10 != 0) {
+                                qty += z;
+                                c[k] = parseInt(z * v);
+                            }
+                        })
+                        c.qty = qty;
+                        return c;
+                    });
+					var data = {
+						dataset: {
+                            dimensions,
+                            source 
+                        }
+					}
+                    this.chart.el.setOption(data);
+                    this.chart.el.resize();
+				},
+
+			}
+		});
+	});
+</script>
+
+

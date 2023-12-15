@@ -8,7 +8,7 @@
 <div id="app" v-cloak>
     <div class="op">
         <input type="text" id=msg />
-        <button type="button" @@click="broadcast" :disabled="isDisabled">Broadcast</button>
+        <button type="button" @@click="broadcast" :disabled="isDisabled">廣播)Broadcast</button>
         <button type="button" @@click="Add" :disabled="isDisabled">Add</button>
         <A><Label>{{count}}</Label></A>
         {{list}}
@@ -53,6 +53,8 @@
             this.SignalHub.client.RemoveUser = function (user, count) {
                 _self.count = count;
                 _self.remove(user);
+            };
+            this.SignalHub.client.broadcastMessage = function (message) {
             };
         },
         methods: {

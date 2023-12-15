@@ -20,7 +20,7 @@
 
             <gt-err-tag sid="cp_usemtlot.GoodQty">
             </gt-err-tag>
-
+            <el-button @@click="Exec">Check</el-button>
         </div>
     </form>
 </div>
@@ -29,10 +29,10 @@
 
     $(() => {
         var form = $("#WipForm");
-        let {  v_rootEl } = Vue.prototype.$UT.Mixins;
+        let { v_rootEl, v_ErrGroup } = Vue.prototype.$UT.Mixins;
 
         new Vue({
-            mixins: [  v_rootEl()],
+            mixins: [v_ErrGroup(),v_rootEl()],
             el: '#app',
             provide() {
                 return {
@@ -47,7 +47,11 @@
                     ErrGroup: {},
                 }
             },
+            mounted() {
+                this.SetCheckList('cp_usemtlot', this.Test);
+            },
             computed: {
+
                 c_ErrMsg: {
                     get() {
                         return this.ErrMsg;
@@ -65,8 +69,11 @@
                 },
             },
             methods: {
+                Test() {
+                },
                 Exec(e) {
                     this.$message('ok');
+                    this.chk_ErrGroup();
                     if (this.cfg.single_checkout) {
                         e.preventDefault();
                     } else if (form.parsley().validate()) {

@@ -1,0 +1,206 @@
+@using System.Dynamic
+@model BLL.MES.DataViews.LotData
+@{
+	bool isSingleModel = (bool)ViewData["SingleModel"];
+	dynamic data = new ExpandoObject();
+	@*Model.CurrentLot = new {STATUS = "Run",LOT = "5D2NW50000-231128-01"};
+    Model.CurrentOperation = new {ATTRIBUTE_03="1",ATTRIBUTE_04="Y"};*@
+	if (true)
+	{
+		Layout = "~/Views/Shared/_LayoutSingle.cshtml";
+	}
+    GTI_Test GTest = new GTI_Test(Html, ViewContext.HttpContext);
+}
+@eBundle.QRender_CSS()
+@eBundle.QRender_JS()
+@Html.Partial("~/Views/Shared/part/_edc.cshtml")
+<pre>
+</pre>
+<div id="app">
+    <form id="WipForm" @@keydown.enter.prevent="preventSubmit">
+        <el-row class="panel b">
+            <el-button-group >
+                <el-button type="primary"  size="small" v-for="(val,key) in TestGroup" :label="key" :key="key" @@click="val()">{{key}}</el-button>
+            </el-button-group>
+
+            <br />
+            <el-row :gutter="12">
+                <el-col :lg="16">
+                    <component is="edc-input" v-model="set_model.EdcList" :set_model="set_model" ref="cp"></component>
+                </el-col>
+            </el-row>
+            {{$store.state.globalvar.OperationPartUseList}}
+</form>
+</div>
+<div id="footerCommand">
+    <button type="button" class="btn btn-lg btn-labeled btn-success  btn_submit" style="margin:10px 30px;">
+        <span class="btn-label">
+            <i class="fa fa-play"></i>
+        </span>@RES.BLL.Face.Exec
+    </button>
+</div>
+<script>
+    Vue.config.devtools = true;
+
+    $(() => {
+        var form = $("#WipForm");
+        Vue.use(Vuex);
+        var test = {
+            API_執行一次: { "EDC": [{ "MOUDLE": "EDC", "RESOURCE_URL": "/api/EDC/ImportExl", "CHECK_MODE": "0", "PARAM": { "lotSid": "CurrentLot.SID" }, "EXTEN_RULE": { "ExecOnce": true, "CallFailed": true, "DynamicItem": true } }] },
+            API_不動態展開: { "EDC": [{ "MOUDLE": "EDC", "RESOURCE_URL": "/api/EDC/ImportExl", "CHECK_MODE": "0", "PARAM": { "lotSid": "CurrentLot.SID" }, "EXTEN_RULE": { "ExecOnce": true, "CallFailed": true, "DynamicItem": false } }] },
+            EDC: [{ "EdcVerSid": "GTI23112214162566247", "EdcParameterSid": "GTI23112214130966198", "QCItemSID": "GTI23112214130966198", "DataType": "S", "DataCount": 1, "DispayPointName": "", "DispayPointNameList": [""], "ItemSid": "GTI23112214130966198", "ItemNo": "O_ID", "ItemName": "O_ID", "mustInput": "F", "UCL": null, "USL": null, "LCL": null, "LSL": null, "TL": "0", "EDCSid": "GTI23112214161866244", "EDCThrowSpc": "F", "ThrowSpc": "F", "EDCVerParaSid": "GTI23112214180766251", "DBTable": "", "DBColumnName": "", "InputValueList": [{ "1": "" }] }, { "EdcVerSid": "GTI23112214162566247", "EdcParameterSid": "GTI23112214133866204", "QCItemSID": "GTI23112214133866204", "DataType": "N", "DataCount": 1, "DispayPointName": "", "DispayPointNameList": [""], "ItemSid": "GTI23112214133866204", "ItemNo": "O_W1", "ItemName": "O_W1", "mustInput": "F", "UCL": 20, "USL": 20, "LCL": 5, "LSL": 5, "TL": "1", "EDCSid": "GTI23112214161866244", "EDCThrowSpc": "F", "ThrowSpc": "F", "EDCVerParaSid": "GTI23112214180766252", "DBTable": "", "DBColumnName": "", "InputValueList": [{ "1": "" }] }, { "EdcVerSid": "GTI23112214162566247", "EdcParameterSid": "GTI23112214135766210", "QCItemSID": "GTI23112214135766210", "DataType": "N", "DataCount": 1, "DispayPointName": "", "DispayPointNameList": [""], "ItemSid": "GTI23112214135766210", "ItemNo": "O_W2", "ItemName": "O_W2", "mustInput": "F", "UCL": null, "USL": null, "LCL": null, "LSL": null, "TL": "1", "EDCSid": "GTI23112214161866244", "EDCThrowSpc": "F", "ThrowSpc": "F", "EDCVerParaSid": "GTI23112214180766253", "DBTable": "", "DBColumnName": "", "InputValueList": [{ "1": "" }] }, { "EdcVerSid": "GTI23112214162566247", "EdcParameterSid": "GTI23112214141366216", "QCItemSID": "GTI23112214141366216", "DataType": "N", "DataCount": 1, "DispayPointName": "", "DispayPointNameList": [""], "ItemSid": "GTI23112214141366216", "ItemNo": "O_W3", "ItemName": "O_W3", "mustInput": "F", "UCL": null, "USL": null, "LCL": null, "LSL": null, "TL": "1", "EDCSid": "GTI23112214161866244", "EDCThrowSpc": "F", "ThrowSpc": "F", "EDCVerParaSid": "GTI23112214180766254", "DBTable": "", "DBColumnName": "", "InputValueList": [{ "1": "" }] }, { "EdcVerSid": "GTI23112214162566247", "EdcParameterSid": "GTI23112214142866222", "QCItemSID": "GTI23112214142866222", "DataType": "N", "DataCount": 1, "DispayPointName": "", "DispayPointNameList": [""], "ItemSid": "GTI23112214142866222", "ItemNo": "O_W4", "ItemName": "O_W4", "mustInput": "F", "UCL": null, "USL": null, "LCL": null, "LSL": null, "TL": "1", "EDCSid": "GTI23112214161866244", "EDCThrowSpc": "F", "ThrowSpc": "F", "EDCVerParaSid": "GTI23112214180766255", "DBTable": "", "DBColumnName": "", "InputValueList": [{ "1": "" }] }, { "EdcVerSid": "GTI23112214162566247", "EdcParameterSid": "GTI23112214150366229", "QCItemSID": "GTI23112214150366229", "DataType": "N", "DataCount": 1, "DispayPointName": "", "DispayPointNameList": [""], "ItemSid": "GTI23112214150366229", "ItemNo": "O_WAve", "ItemName": "O_WAve", "mustInput": "F", "UCL": null, "USL": null, "LCL": null, "LSL": null, "TL": "1", "EDCSid": "GTI23112214161866244", "EDCThrowSpc": "F", "ThrowSpc": "F", "EDCVerParaSid": "GTI23112214180766256", "DBTable": "", "DBColumnName": "", "InputValueList": [{ "1": "" }] }, { "EdcVerSid": "GTI23112214162566247", "EdcParameterSid": "GTI23112214152366235", "QCItemSID": "GTI23112214152366235", "DataType": "N", "DataCount": 1, "DispayPointName": "", "DispayPointNameList": [""], "ItemSid": "GTI23112214152366235", "ItemNo": "O_Weight", "ItemName": "O_Weight", "mustInput": "F", "UCL": null, "USL": null, "LCL": null, "LSL": null, "TL": "1", "EDCSid": "GTI23112214161866244", "EDCThrowSpc": "F", "ThrowSpc": "F", "EDCVerParaSid": "GTI23112214180766257", "DBTable": "", "DBColumnName": "", "InputValueList": [{ "1": "" }] }],
+            備料出站_退庫: [{ "MTR_LOT": "15422-1-1C02-00001", "PARTNO": "3D5000", "PART_NAME": "4518預成形", "UseQty": 5086.55, "QUANTITY": 5256, "WAREHOUSE_NO": "1C02" }, { "MTR_LOT": "3K0010-1-2C01-00001", "PARTNO": "3K0010", "PART_NAME": "Center ring內", "UseQty": 400, "QUANTITY": 500, "WAREHOUSE_NO": "2C00" }],
+            載入EDC: { "ID": "3ad05885-bd9e-40d2-b119-8a99f94cd97d", "Success": true, "Message": null, "MessageList": [], "Redirect": null, "Data": [{ "EdcVerSid": "GTI23112214162566247", "EdcParameterSid": "GTI23112214130966198", "QCItemSID": "GTI23112214130966198", "DataType": "S", "DataCount": 1.0, "DispayPointName": "", "DispayPointNameList": [""], "ItemSid": "GTI23112214130966198", "ItemNo": "O_ID", "ItemName": "O_ID", "mustInput": "F", "UCL": null, "USL": null, "LCL": null, "LSL": null, "TL": "0", "EDCSid": "GTI23112214161866244", "EDCThrowSpc": "F", "ThrowSpc": "F", "EDCVerParaSid": "GTI23112214180766251", "DBTable": "", "DBColumnName": "", "InputValueList": [{ "1": "183.6" }, { "2": "183.6" }, { "3": "183.7" }, { "4": "183.7" }, { "5": "183.7" }, { "6": "183.6" }] }, { "EdcVerSid": "GTI23112214162566247", "EdcParameterSid": "GTI23112214133866204", "QCItemSID": "GTI23112214133866204", "DataType": "N", "DataCount": 1.0, "DispayPointName": "", "DispayPointNameList": [""], "ItemSid": "GTI23112214133866204", "ItemNo": "O_W1", "ItemName": "O_W1", "mustInput": "F", "UCL": 20.0, "USL": 20.0, "LCL": 5.0, "LSL": 5.0, "TL": "1", "EDCSid": "GTI23112214161866244", "EDCThrowSpc": "F", "ThrowSpc": "F", "EDCVerParaSid": "GTI23112214180766252", "DBTable": "", "DBColumnName": "", "InputValueList": [{ "1": "3.473" }, { "2": "3.489" }, { "3": "3.486" }, { "4": "3.484" }, { "5": "3.463" }, { "6": "3.474" }] }, { "EdcVerSid": "GTI23112214162566247", "EdcParameterSid": "GTI23112214135766210", "QCItemSID": "GTI23112214135766210", "DataType": "N", "DataCount": 1.0, "DispayPointName": "", "DispayPointNameList": [""], "ItemSid": "GTI23112214135766210", "ItemNo": "O_W2", "ItemName": "O_W2", "mustInput": "F", "UCL": null, "USL": null, "LCL": null, "LSL": null, "TL": "1", "EDCSid": "GTI23112214161866244", "EDCThrowSpc": "F", "ThrowSpc": "F", "EDCVerParaSid": "GTI23112214180766253", "DBTable": "", "DBColumnName": "", "InputValueList": [{ "1": "3.491" }, { "2": "3.49" }, { "3": "3.489" }, { "4": "3.468" }, { "5": "3.474" }, { "6": "3.493" }] }, { "EdcVerSid": "GTI23112214162566247", "EdcParameterSid": "GTI23112214141366216", "QCItemSID": "GTI23112214141366216", "DataType": "N", "DataCount": 1.0, "DispayPointName": "", "DispayPointNameList": [""], "ItemSid": "GTI23112214141366216", "ItemNo": "O_W3", "ItemName": "O_W3", "mustInput": "F", "UCL": null, "USL": null, "LCL": null, "LSL": null, "TL": "1", "EDCSid": "GTI23112214161866244", "EDCThrowSpc": "F", "ThrowSpc": "F", "EDCVerParaSid": "GTI23112214180766254", "DBTable": "", "DBColumnName": "", "InputValueList": [{ "1": "3.488" }, { "2": "3.492" }, { "3": "3.463" }, { "4": "3.476" }, { "5": "3.494" }, { "6": "3.483" }] }, { "EdcVerSid": "GTI23112214162566247", "EdcParameterSid": "GTI23112214142866222", "QCItemSID": "GTI23112214142866222", "DataType": "N", "DataCount": 1.0, "DispayPointName": "", "DispayPointNameList": [""], "ItemSid": "GTI23112214142866222", "ItemNo": "O_W4", "ItemName": "O_W4", "mustInput": "F", "UCL": null, "USL": null, "LCL": null, "LSL": null, "TL": "1", "EDCSid": "GTI23112214161866244", "EDCThrowSpc": "F", "ThrowSpc": "F", "EDCVerParaSid": "GTI23112214180766255", "DBTable": "", "DBColumnName": "", "InputValueList": [{ "1": "3.494" }, { "2": "3.497" }, { "3": "3.479" }, { "4": "3.486" }, { "5": "3.479" }, { "6": "3.488" }] }, { "EdcVerSid": "GTI23112214162566247", "EdcParameterSid": "GTI23112214150366229", "QCItemSID": "GTI23112214150366229", "DataType": "N", "DataCount": 1.0, "DispayPointName": "", "DispayPointNameList": [""], "ItemSid": "GTI23112214150366229", "ItemNo": "O_WAve", "ItemName": "O_WAve", "mustInput": "F", "UCL": null, "USL": null, "LCL": null, "LSL": null, "TL": "1", "EDCSid": "GTI23112214161866244", "EDCThrowSpc": "F", "ThrowSpc": "F", "EDCVerParaSid": "GTI23112214180766256", "DBTable": "", "DBColumnName": "", "InputValueList": [{ "1": "3.487" }, { "2": "3.492" }, { "3": "3.479" }, { "4": "3.479" }, { "5": "3.478" }, { "6": "3.485" }] }, { "EdcVerSid": "GTI23112214162566247", "EdcParameterSid": "GTI23112214152366235", "QCItemSID": "GTI23112214152366235", "DataType": "N", "DataCount": 1.0, "DispayPointName": "", "DispayPointNameList": [""], "ItemSid": "GTI23112214152366235", "ItemNo": "O_Weight", "ItemName": "O_Weight", "mustInput": "F", "UCL": null, "USL": null, "LCL": null, "LSL": null, "TL": "1", "EDCSid": "GTI23112214161866244", "EDCThrowSpc": "F", "ThrowSpc": "F", "EDCVerParaSid": "GTI23112214180766257", "DBTable": "", "DBColumnName": "", "InputValueList": [{ "1": "12.133" }, { "2": "12.133" }, { "3": "12.133" }, { "4": "12.133" }, { "5": "12.133" }, { "6": "12.133" }] }], "Exception": null, "InnerResults": [], "Code": "000" },
+        }
+        var set_model = {
+            CurrentLot: {
+                QUANTITY: 10,
+                STATUS: "Wait",
+                LOT: "5D2NW50000-231128-01",
+                WO: "5101-150612002",
+                SID:"Test",
+            },
+            scrapList: [],
+            systemConfig: {
+                setp: 1,
+                DecimalPoint: 3
+            },
+            CurrentOperation: {
+                ATTRIBUTE_03: '1',
+                ATTRIBUTE_04: null
+            },
+
+            EdcList: test.EDC,
+            OperScrapList: [
+                { "RefKey": null, "SID": "GTI11110115550180956", "No": "other", "Value": null, "Display": "其他", "StatusSid": null, "Status": null, "FromNum": 0, "INum": 0, "Attr01": null, "Attr02": null, "Attr03": null }
+                , { "RefKey": null, "SID": "GTI22092622011391630", "No": "R.C01-0002", "Value": null, "Display": "過期", "StatusSid": null, "Status": null, "FromNum": 0, "INum": 0, "Attr01": null, "Attr02": null, "Attr03": null }
+                , { "RefKey": null, "SID": "GTI22092622011391632", "No": "R.C01-0004", "Value": null, "Display": "雜質", "StatusSid": null, "Status": null, "FromNum": 0, "INum": 0, "Attr01": null, "Attr02": null, "Attr03": null }
+                , { "RefKey": null, "SID": "GTI22092622011391633", "No": "R.C01-0005", "Value": null, "Display": "品質異常", "StatusSid": null, "Status": null, "FromNum": 0, "INum": 0, "Attr01": null, "Attr02": null, "Attr03": null }]
+        };
+        const store = new Vuex.Store({
+            state: {
+                set_model,
+                globalvar: {
+                    scrapTotal: 0,
+                }
+            },
+            getters: {
+                getData(state) {
+                    return set_model;
+                }
+            }
+
+        })
+
+        new Vue({
+            el: '#app',
+            mixins: [Vue.prototype.$UT.Mixins.v_ErrGroup()],
+            store,
+            provide() {
+                return {
+                    rootEl: this,
+                };
+            },
+            data() {
+                var _self = this;
+                return {
+                    API: {
+                        "EDC": [{ "MOUDLE": "EDC", "RESOURCE_URL": "/api/EDC/ImportExl", "CHECK_MODE": "2", "PARAM": { "lotSid": "CurrentLot.SID" } }],
+                    },
+                    CurrentLot: {
+                        QUANTITY: 10,
+                        STATUS: "Wait",
+                        LOT: "5D2NW50000-231128-01",
+                        WO: "5101-150612002",
+                        SID: "Test",
+                    },
+                    TestGroup: {
+                        執行一次() {
+                            /*
+                            第一次執行,會出現 -- 必須執行EDC 載入資料後才能出站
+                            在 載入測試資料 後, 就可以順利執行
+                             */
+                            _self.API = test.API_執行一次;
+                            _self._控件.Load();
+                            _self.Exec();
+                        },
+                        '執行一次,載入失敗'() {
+                            _self.API = test.API_執行一次;
+                            _self._控件.Load();
+                            _self._控件.callAPI();
+                            _self.Exec();
+                        },
+                        '載入測試資料(動態展開)'() {
+                            _self.API = test.API_執行一次;
+                            _self.API.Test = test.載入EDC;
+                            _self._控件.Load();
+                            _self._控件.callAPI();
+                            _self.Exec();
+                        },
+                        不動態展開() {
+                            _self.API = test.API_不動態展開;
+                            _self.API.Test = test.載入EDC;
+                            _self._控件.Load();
+                            _self._控件.callAPI();
+                            _self.Exec();
+                        },
+
+                    },
+                    test,
+
+
+                    i18n: {
+                        料號: 'AAAA'
+                    },
+
+                    set_model
+                }
+            },
+            computed: {
+                _控件() {
+                    return this.$refs.cp;
+                }
+            },
+            methods: {
+                preventSubmit(event) {
+                    // 檢查是否按下了 Enter 鍵 (keyCode 13 或者 key "Enter")
+                    if (event.keyCode === 13 || event.key === 'Enter') {
+                        event.preventDefault(); // 防止 Enter 的默認行為 (提交表單)
+                    }
+                },
+                Exec(e) {
+                    if (this.chk_ErrGroup()) return;
+                    e?.preventDefault();
+                    this.$message('ok');
+                    if (form.parsley().validate()) {
+
+                    }
+                },
+                測試API(key) {
+                    debugger
+                    var _tar = this.$refs.tar;
+                    switch (key) {
+                        case "null":
+                            _tar.chk_item = null;
+                            break;
+                        default:
+                            this.bb_test.STATE = key;
+                            _tar.chk_item = this.bb_test;
+                            break;
+
+                    }
+                    _tar.set_Exec();
+                },
+                切換進出站() {
+                    let { STATUS } = this.set_model.CurrentLot;
+                    this.set_model.CurrentLot.STATUS = STATUS == 'Run' ? 'Wait' : 'Run';
+                },
+                物料餘料退庫指定() {
+                    let { ATTRIBUTE_04 } = this.set_model.CurrentOperation;
+                    this.set_model.CurrentOperation.ATTRIBUTE_04 = ATTRIBUTE_04 == 'Y' ? '' : 'Y';
+                },
+
+            }
+        })
+    });
+</script>
