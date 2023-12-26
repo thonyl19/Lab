@@ -1,14 +1,9 @@
 @using System.Dynamic
 @model BLL.MES.DataViews.LotData
 @{
-	bool isSingleModel = (bool)ViewData["SingleModel"];
 	dynamic data = new ExpandoObject();
 	data.LOT="Test";
 	Model.CurrentLot = data;
-	if (true)
-	{
-		Layout = "~/Views/Shared/_LayoutSingle.cshtml";
-	}
     GTI_Test GTest = new GTI_Test(Html, ViewContext.HttpContext);
 }
 @eBundle.QRender_CSS()
