@@ -1,0 +1,2318 @@
+﻿            <script>
+    $(() => {
+        Vue.directive('resize', {
+            inserted(el, binding) {
+                const onResizeCallback = binding.value;
+                window.addEventListener('resize', () => {
+                    onResizeCallback(document.documentElement);
+                })
+            }
+        });
+        let { v_model, v_rootEl } = Vue.prototype.$UT.Mixins;
+        var _fn = {
+            ops: {
+                ddl_Grade() {
+                    return {
+                        val: '',
+                        src: [
+                            { SID: 'A', No: 'A', Display: 'A規' },
+                            { SID: 'B', No: 'B', Display: 'B規' },
+                            { SID: 'C', No: 'C', Display: 'C規' },
+                            { SID: 'G', No: 'G', Display: 'Golden' },
+                            { SID: 'S', No: 'S', Display: '報廢品' },
+                        ],
+                        rows: [],
+                        readonly: false
+                    }
+                }
+            },
+            tpl: {
+                status() {
+                    return `
+                    <div class="panel-body form-horizontal gt-form">
+                        <gt-form-col label="Wafer資訊" v-model="c_current.sn"  >
+                            <div class="form-control" readonly>
+                                <span class="label label-primary">{{c_current.sn}}</span> {{c_current.Value}}
+                            </div>
+                        </gt-form-col>
+                        <gt-form-col label="狀態" >
+                            <el-radio-group v-model="c_STATUS" size="mini" :disabled="c_STATUS==-1" >
+					            <el-radio label="Normal">Normal</el-radio>
+					            <el-radio label="Scrap" class="sty-Scrap">Scrap</el-radio>
+					            <el-radio label="Hold" class="sty-Hold">Hold</el-radio>
+				            </el-radio-group>
+                        </gt-form-col>
+                        <gt-form-col label="原因碼" v-model="c_current.Value" v-if="c_STATUS == 'Scrap'" required >
+                            <vue-selectize ref="reason" placeholder="@RES.BLL.Message.PleaseScanTheBarcodeOrUseKeywords" required
+                                v-model="c_reason"
+                                :options="reason_src"
+                                :selectize_ops="ddl_reason.ops"
+                                :rows.sync="ddl_reason.rows"
+                                :is_formcontrol="true"
+                                render_sty="GTIMES"
+                                >
+                            </vue-selectize>
+                        </gt-form-col>
+                    </div>
+                    `
+                },
+                status_tab() {
+                    return `
+                    <el-tab-pane label="Wafer狀態" name="Status">
+                        ${_fn.tpl.status()}
+                    </el-tab-pane>
+                    `
+                },
+                posi_map(){
+                return `
+                    <el-container>
+                        <el-header class="point-size">
+			                <el-radio-group v-model="point_size" size="mini" >
+				                <el-radio-button   v-for="(size,key) in size_type" :label="key" :key="key">{{key}}</el-radio-button>
+			                </el-radio-group>
+                        </el-header>
+                        <el-scrollbar tag="div" ref="area_posi" viewStyle="display:inline-block;"  style="margin-top: 7px;" class="adj">
+		                    <template v-for="(row,idx) in Map_MO">
+				                <template v-for="(point,posi) in row">
+					                <div :ref="point.el_id" :class="['posi',point.isEmpty?'':'used',current.posi==posi?'input':'',point_size]"
+						                @@click="()=> { e_change_point(point); }" >
+						                <i :class="['posi-sn',point.sts_sty]" >{{point.sn}}<div class="die_sty">{{point.Die}}</div></i>
+						                <div class="src-val">{{point.HtmlDisplay}}</div>
+					                </div>
+				                </template>
+			                </template>
+                        </el-scrollbar>
+                    </el-container>`;
+                }
+            },
+            PosiMapBase() {
+                return {
+                    mixins: [Vue.prototype.$UT.Mixins.v_rootEl()],
+                    data() {
+                        var src_model = {
+                            val: "",
+                            sts: "0"
+                        };
+                        return {
+                            row_Count: 24,
+                            piece_size: 6,
+                            MO_Type: "NLRU",
+                            isOnlyEmpty: false,
+                            point_size: 'L',
+                            cities: ['S', 'M', 'L'],
+
+                            SkipMark: true,
+                            ConfirmEmpty: true,
+                            SyncMode: true,
+                            isOnlyEmpty: true,
+                            //移動位置圖
+                            Map_MO: [],//[{ "1-1": "1", "1-2": "2", "1-3": "3", "1-4": "4" }, { "2-4": "8", "2-3": "7", "2-2": "6", "2-1": "5" }, { "3-1": "9", "3-2": "10", "3-3": "11", "3-4": "12" }, { "4-4": "16", "4-3": "15", "4-2": "14", "4-1": "13" }, { "5-1": "17", "5-2": "18", "5-3": "19", "5-4": "20" }, { "6-4": "24", "6-3": "23", "6-2": "22", "6-1": "21" }] ,
+                            //基礎依置來源
+                            srcPOSI: [],
+                            //src_mo: [[1], [2], [3], [4], [5], [6], [7], [8], [9], [10], [11], [12], [13], [14], [15], [16], [17], [18], [19], [20], [21], [22], [23], [24] ],
+                            current: {
+                                sn: 2,
+                                posi: '',
+                                src: src_model
+                            },
+                            src_model,
+                            sts_sty: {
+                                "0": 'sts_g',
+                                "1": 'sts_r'
+                            },
+                            //list: {},
+                        }
+                    },
+                    props: {
+                        list: {
+                            type: Object,
+                            default() {
+                                return {}
+                            }
+                        },
+                        src_mo: {
+                            type: Array,
+                            default() {
+                                return null;//_.range(1, 25).map((el) => { return [el]; });
+                            }
+                        },
+                        box: {
+                            type: Object,
+                            default() {
+                                return {};
+                            }
+                        },
+                        is_checkout: {
+                            type: Boolean,
+                            default() {
+                                return false;
+                            }
+                        },
+                    },
+                    mounted() {
+                        this.Bind();
+                    },
+                    computed: {
+                        c_total_Count() {
+                            let { MAX_CAPACITY = 0 } = this.box;
+                            if (MAX_CAPACITY == 0) {
+                                return _.max(Object.keys(this.list).map(c => parseInt(c)));
+                            }
+                            return MAX_CAPACITY;
+                        },
+                        c_point() {
+                            var point = this.current;
+                            return this.SyncMode
+                                ? this.srcPOSI[point.sn]
+                                : point;
+                        },
+
+                        c_sts: {
+                            get() {
+                                return this.current.src.sts;
+                            },
+                            set(val) {
+                                if (this.SyncMode) {
+                                    this.current.src.sts = val;
+                                    this.confirm_off(this.current);
+                                } else {
+                                    /*
+                                    非同步模式在沒有資料的情形下, chg_sts 視同於 map 的變更 ,
+                                        若不做此設置, 則與 isEmpty 無法 submit 衝突
+                                    */
+                                    if (this.current.isEmpty) {
+                                        this.current.chg_sts();
+                                    } else {
+                                        this.current.src.sts = val;
+                                    }
+
+                                }
+
+                            }
+                        },
+                    },
+
+                    methods: {
+                        Bind(init_sn = 1) {
+                            var _self = this;
+                            this.$nextTick(() => {
+                                _self.Map_MO = _self.genPosiMap(_self.c_total_Count, _self.row_Count);
+                                var src_mo = _self.src_mo || _.range(1, _self.c_total_Count+1).map((el) => { return [el]; })
+                                _self.MapMixMoveOrder(src_mo);
+                                _self.current = _self.srcPOSI[init_sn];
+                                _self.$forceUpdate();
+                            })
+                        },
+                        SetCurrent(point) {
+                            if (this.SyncMode) {
+                                this.current = point;
+                            } else {
+                                let { sn, posi, src } = point;
+                                this.current = this.parsePOSI(sn, posi, src);
+                            }
+                            return this.current;
+                        },
+                        confirm_off(point) {
+                            if (point.src.sts == "1") {
+                                /* todo:
+                                sts:no && val!=null , msg 是否一併刪除批號記錄
+                                sts:no && val==null , msg 是否標記為不使用
+                                */
+                                if (point.isEmpty) {
+                                    // this.$message("msg_off_mark");
+                                    // point.src.sts = "1";
+                                    this.msg_off_mark(point);
+                                } else {
+                                    this.msg_off_empty(point);
+                                }
+                            }
+                            else {
+                                point.update().focus();
+                            }
+                        },
+                        //確認 turn off 並 移除
+                        msg_off_empty(point) {
+                            var _self = this;
+                            this.$confirm('是否一併刪除批號記錄?', '提示', {
+                                type: 'warning'
+                            }).then(() => {
+                                point.src.val = "";
+                                point.update()?.next_point()?.focus();
+                            }).catch(() => {
+                                point.update()?.next_point()?.focus();
+                            });
+                        },
+                        msg_off_mark(point) {
+                            var _self = this;
+                            this.$confirm('是否標記為不使用?', '提示', {
+                                type: 'warning'
+                            }).then(() => {
+                                point.update()?.next_point().focus();
+                            }).catch(() => {
+                                point.src.sts = "0";
+                            });
+                        },
+                        //解決 src 內 mvvm 機制的問題
+                        parseSrc(src) {
+                            Object.defineProperty(src, 'val', {
+                                get() { return this.Value; },
+                                set(val) { return this.Value = val; },
+                            });
+                            this.$set(src, 'sts', 0);
+                            return src;
+                        },
+
+                        ScrollTo(point) {
+                            var el = point.get_el();
+                            if (el == null) return;
+                            var el_scroll = $('.el-aside');
+                            var el_Height = $(el).prop('clientHeight');
+                            var scrollTop = el_Height * (point.sn - 1);
+                            el_scroll.animate({
+                                scrollTop
+                            }, 500);;
+                        },
+                        parsePOSI(sn, posi, srcObj) {
+                            var _self = this;
+                            var src = _self.parseSrc(srcObj);
+                            var _posiObj = {
+                                sn,
+                                posi,
+                                src,
+                                get el_id() {
+                                    return `${this.posi}_${this.sn}`;
+                                },
+                                get Die() {
+                                    let { Die = 0 } = this.src;
+                                    Die = Die == 0 ? "" : `Die:${Die}`;
+                                    return Die;
+                                },
+                                //是否 可置入(必須為空 或 (scrap 且 未被置入 )
+                                get isCanInput() {
+                                    var r = this.isEmpty || (this.isScrap && this.isChengeIn == false);
+                                    return r;
+                                },
+                                //是否為良品且可被移動
+                                get isCanMove() {
+                                    var r = false == (this.isEmpty || this.isScrap || this.isChengeIn || this.isChengeOut);
+                                    return r;
+                                },
+                                get isScrap() {
+                                    return this.src.sts == "1";
+                                },
+                                get isScrapValid() {
+                                    if (this.isScrap) {
+                                        let { REASON } = this.src;
+                                        REASON = REASON ?? "";
+                                        return REASON != "";
+                                    }
+                                    return true;
+                                },
+                                get isChengeIn() {
+                                    return this.FromSN != -1;
+                                },
+                                get isChengeOut() {
+                                    return this.ToSN != -1;
+                                },
+                                get isEmpty() {
+                                    var _v = this.src.val ?? "";
+                                    var _empty = _v === "";
+                                    //return _empty || this.isChengeOut;
+                                    return (_empty || this.isChengeOut) && this.isChengeIn == false;
+                                },
+                                get sts_sty() {
+                                    let { STATUS = 'Normal' } = this.src;
+                                    return `sty-${STATUS}`;;
+                                },
+                                get isHold() {
+                                    return this.src.STATUS == "Hold";
+                                },
+                                get HtmlDisplay() {
+                                    var _v = this.Value ?? "";
+                                    return _v === "" ? '　' : _v;
+                                },
+                                /*
+                                NOTE: point.update 將資料回更 list
+                                */
+                                UpDate() {
+                                    let { val, sts } = this.src;
+                                    if (this.isEmpty && sts == "0") {
+                                        _self.$delete(_self.list, this.posi);
+                                    } else {
+                                        _self.$set(_self.list, this.posi, this.src);
+                                    }
+                                    if (_self.SyncMode == false) _self.srcPOSI[this.sn] = this;
+                                    return this;
+                                },
+                                //執行輸入
+                                Enter() {
+                                    this.UpDate().Focus();
+                                },
+                                //??
+                                Submit() {
+                                    _self.srcPOSI[this.sn] = this;
+                                    this.UpDate().NextPoint()?.Focus();
+                                },
+                                Focus() {
+                                    _self.current = this;
+                                },
+                                Empty() {
+                                    if (this.isEmpty) return this;
+                                    var point = _self.srcPOSI[this.sn];
+                                    _self.Del(point);
+                                    return point;
+                                },
+
+                                LastPoint() {
+                                    var _sn = this.sn;
+                                    var _keys = Object.keys(_self.list);
+                                    for (var idx = _keys.length; idx > 0; idx--) {
+                                        var _posi = _keys[idx - 1];
+                                        var point = _self.srcPOSI[_posi];
+                                        if (point) {
+                                            if (point.sn != _sn && point.isCanMove) return point;
+                                        }
+                                    }
+                                    return null;
+                                },
+                                NextPoint(AutoReStart = true, startSN = null) {
+                                    var next = _self.srcPOSI[this.sn + 1];
+                                    if (next == null) {
+                                        var isNeedReSearch = AutoReStart && startSN == null;
+                                        if (isNeedReSearch) {
+                                            next = _self.srcPOSI[1];
+                                            if (next.isCanUse == false) {
+                                                next = next.next_point(AutoReStart, 1);
+                                            }
+                                            if (next == null) {
+                                                _self.$message("己沒有可以使用的位置!!");
+                                                return next;
+                                            }
+                                        }
+                                    } else if (next.isCanChange == false) {
+                                        next = next.next_point(AutoReStart, startSN);
+                                    }
+                                    return next;
+                                },
+                                Scrap() {
+                                    this.src.sts = "1";
+                                    this.src.STATUS = "Scrap";
+                                    _self.c_Change = true;
+                                    return this;
+                                },
+                                UnScrap() {
+                                    this.src.sts = "0";
+                                    this.src.STATUS = "Normal";
+                                    _self.c_Change = true;
+                                    return this;
+                                },
+                                ChangeStatus() {
+                                    if (_self.readonly || this.isEmpty) return this;
+                                    if (this.isScrap) {
+                                        this.UnScrap();
+                                    } else {
+                                        var _last = this.Scrap().LastPoint()
+                                        if (_last != null && _last.sn > this.sn) {
+                                            this.Change(_last.sn);
+                                        }
+                                    }
+                                    return this;
+                                },
+                                ExChange(SN) {
+                                    this.src._changeTo = SN;
+                                    var _To = this.ChangeTo();
+                                    this.src.ChangeTo = _To.sn;
+                                    _To.src._changeFrom = this.sn;
+                                    _self.c_Change = true;
+                                    return _To;
+                                },
+                                UnExChange() {
+                                    var from_p = this.ChangeFrom();
+                                    this.src._changeFrom = -1;
+                                    this.src.ChangeTo = null;
+
+                                    from_p.src._changeTo = -1;
+                                    _self.c_Change = true;
+                                    return from_p;
+                                },
+                                Change(SN) {
+                                    this.src._changeFrom = SN;
+                                    var _from = this.ChangeFrom();
+                                    _from.src._changeTo = this.sn;
+                                    this.src.ChangeFrom = _from?.src.SID;
+                                    _self.c_Change = true;
+                                    return _from;
+                                },
+                                UnChange() {
+                                    var from_p = this.ChangeFrom();
+                                    this.src._changeFrom = -1;
+                                    this.src.ChangeFrom = null;
+
+                                    from_p.src._changeTo = -1;
+                                    _self.c_Change = true;
+                                    return from_p;
+                                },
+                                RunInHold(confirm) {
+                                    if (confirm || this.FromSN != -1) return;
+                                    var _cur = this;
+                                    var _last = _cur.LastPoint();
+                                    if (_last != null && _last.sn > this.sn) {
+                                        _cur.Change(_last.sn);
+                                    }
+                                },
+
+
+                                ChangeFrom(changeFrom = null) {
+                                    changeFrom = changeFrom || this.FromSN;
+                                    return _self.srcPOSI[changeFrom];
+                                },
+                                ChangeTo() {
+                                    if (this.ToSN != -1) {
+                                        return _self.srcPOSI[this.ToSN];
+                                    }
+                                    return changeTo;
+                                },
+                                get FromSN() {
+                                    return this.src._changeFrom;
+                                },
+
+                                get ToSN() {
+                                    return this.src._changeTo;
+                                },
+
+                                get Value() {
+                                    if (this.FromSN != -1) {
+                                        return this.ChangeFrom()?.src.val;
+                                    }
+                                    return this.src.val;
+                                },
+                                get isHide() {
+                                    var hide = this.FromSN != -1 || this.ToSN != -1 || this.isEmpty;
+                                    return hide ? ' hide' : '';
+                                }
+                            };
+
+                            return _posiObj;
+                        },
+
+                        //位置圖 併入 移動順序
+                        MapMixMoveOrder(arr_MoveOrder) {
+                            var _self = this;
+                            var _Map_MO = this.Map_MO;
+                            _self.srcPOSI = {};
+                            var isNewMix = true;
+                            for (var row_idx in _Map_MO) {
+                                var idx = 0;
+                                _.each(_Map_MO[row_idx], (val, posi) => {
+                                    var sn = arr_MoveOrder[row_idx][idx];
+                                    var src = _self.list[posi] || {};
+                                    var point = _self.parsePOSI(sn, posi, src);
+                                    if (isNewMix && point.isEmpty) {
+                                        point.Focus();
+                                        isNewMix = false;
+                                    }
+                                    _self.srcPOSI[sn] = point;
+                                    Object.defineProperty
+                                        (_Map_MO[row_idx]
+                                            , posi
+                                            , { get() { return _self.srcPOSI[sn]; } });
+                                    idx++;
+                                })
+                            }
+                        },
+                        //依總數 / 行數  產生 {row-col} 格式的位置圖
+                        genPosiMap(total = 24, row_count = 6) {
+                            var map = [];
+                            var range_size = Math.round(total / row_count, 0);
+                            var range_idx = 0;
+                            for (var no = 1; no <= total; no++) {
+                                var _map = {};
+                                range_idx++;
+                                for (var r = 0; r < range_size; r++) {
+                                    _map[`${range_idx}-${r + 1}`] = 0;
+                                }
+                                no += range_size - 1;
+                                map.push(_map);
+                            }
+                            return map;
+                        },
+                        SetInputIndex(point) {
+                            if (this.isOnlyEmpty && point.isEmpty == false) {
+                                this.$message({
+                                    message: '這個位置己使用!'
+                                })
+                                return point;
+                            }
+                            return this.SetCurrent(point);
+                        },
+                        Update(point, isMapEvent = true) {
+                            let { val, sts } = point.src;
+                            var chk = this.Check_Repeat(val);
+                            if (chk) return;
+                            point.update({ val, sts }, isMapEvent);
+                            this.MoveNext();
+                        },
+                        Check_Repeat(chk_val) {
+                            var _self = this;
+                            var result = false;
+                            _.each(this.srcPOSI, (point, sn) => {
+                                let { val } = point.src;
+                                var isSamePosi = point.posi == _self.current.posi;
+                                if (val == chk_val && isSamePosi == false) {
+                                    _self.$message(`批號己重覆(位置:${point.posi},順序:${sn})`);
+                                    result = true;
+                                    return;
+                                }
+                            })
+                            return result;
+                        },
+                        chk_Mark(point) {
+                            return this.SkipMark && point.src.sts == "1";
+                        },
+                        get_AnyEmpty() {
+                            var sn = 0;
+                            do {
+                                sn++;
+                                point = this.srcPOSI[sn];
+                                var isNoEmptyPoint = point == null;
+                                if (isNoEmptyPoint) return null;
+                            }
+                            while (point.isCanUse == false)
+                            return point;
+                        },
+                        MoveNext() {
+                            var _self = this;
+                            var point = this.current;
+                            do {
+                                point = point?.next_point();
+                                var isNoEmptyPoint = point == null;
+                                if (isNoEmptyPoint) {
+                                    _self.$message("己沒有可以使用的位置!!");
+                                    return;
+                                } else if (point.isCanUse == false) {
+                                    point = point.next_point();
+                                }
+                            }
+                            while (point == null)
+                            point?.focus();
+                        },
+                        Del(point) {
+                            var _self = this;
+                            this.$confirm('請確認是否移除此批號?', '提示', {
+                                confirmButtonText: '確定',
+                                cancelButtonText: '取消',
+                                type: 'warning'
+                            }).then(() => {
+                                point.src.val = '';
+                                var isHaveData = (_self.list[point.posi] || "") != "";
+                                if (isHaveData) _self.$delete(_self.list, point.posi);
+                                var isNeedSync = point.posi == _self.current.posi;
+                                if (isNeedSync) _self.SetCurrent(point);
+                                _self.$message({
+                                    type: 'success',
+                                    message: '移除成功!'
+                                });
+                            }).catch(() => {
+                                _self.$message({
+                                    type: 'info',
+                                    message: '已取消'
+                                });
+                            });
+                        },
+                    }
+                }
+            },
+            PosiView() {
+                return {
+                    mixins: [_fn.PosiMapBase()],
+                    template: `
+                        <div class="panel-body">
+                                <el-row v-if="c_confirm">
+                                    <div class="form-horizontal gt-form">
+                                        <gt-form-col label="置換來源">
+                                            <vue-selectize data-id="posi_from" ref="posi_from" v-model="c_target"  render_sty="GTIMES_HIDE"
+                                                    :options="c_list"
+                                                    :selectize_ops="ddl_posi_from"
+                                                    ></vue-selectize>
+                                        </gt-form-col>
+                                        <gt-form-col label="置換到">
+                                            <el-row>
+                                                <el-col :sm="20" :xs="20">
+                                                    <vue-selectize data-id="posi_to" ref="posi_to" v-model="changeFrom"
+                                                            :options="c_empty"
+                                                            :selectize_ops="ddl_posi_to"
+                                                            :readonly="c_readonly_src"
+                                                            ></vue-selectize>
+                                                </el-col>
+                                                <el-col :sm="4" :xs="4">
+                                                    <el-button type="primary" plain size="medium" @@click="Change">置換</el-button>
+                                                </el-col>
+                                            </el-row>
+                                        </gt-form-col>
+                                    </div>
+                                </el-row>
+                                <el-row :gutter="10">
+		                            <template v-for="(row,idx) in Map_MO">
+			                            <template v-for="(point,posi) in row">
+				                            <el-col :xs="12" :sm="8" :md="6" :lg="6" :xl="4" :span="6" :ref="point.el_id" :class="['posi',point.isEmpty?'':'used',current.posi==posi?'input':'',point_size]"
+						                              @@click.native="()=>{Point_Focus(point);}">
+					                            <span :class="['src-val',point.ToSN==-1?'':'changeTo']">{{point.HtmlDisplay}}</span>
+                                                <i :class="['posi-sn fr',point.sts_sty,point.ToSN==-1?'':'changeTo']"
+                                                    >{{point.sn}}</i>
+					                            <i :class="['posi-sn fl',c_highlight,point.sts_sty]"
+                                                    v-if="point.FromSN!=-1"
+                                                    @@click.self.stop="()=>{UnChange(point);}">{{point.FromSN}}</i>
+				                            </el-col>
+			                            </template>
+		                            </template>
+	                            </el-row>
+                            </div>`,
+                    data() {
+                        return {
+                            current: {
+                                sn: -1,
+                                posi: '',
+                            },
+                            isOnlyEmpty: false,
+                            piece_size: 1,
+                            ddl_posi_from: {
+                                tagField: 'sn',
+                                labelField: 'Value',
+                                valueField: 'sn',
+                                searchField: ['sn', 'Value'],
+                            },
+                            ddl_posi_to: {
+                                labelField: 'sn',
+                                valueField: 'sn',
+                                searchField: ['sn'],
+                            },
+                            list_from: [],
+                            list_empty: [],
+                            changeFrom: '',
+                        }
+                    },
+                    props: {
+                        readonly: Vue.prototype.$PropDef.Bool(),
+                        confirm: Vue.prototype.$PropDef.Bool(),
+                        highlight: Vue.prototype.$PropDef.Bool(),
+                    },
+
+                    computed: {
+                        c_confirm() {
+                            return !(!this.confirm || this.readonly);
+                        },
+                        c_readonly_target() {
+                            return this.changeFrom != "";
+                        },
+                        c_readonly_src() {
+                            return this.c_target == -1;
+                        },
+                        c_highlight() {
+                            return this.highlight ? 'adj0' : 'adj'
+                        },
+                        c_target: {
+                            get() {
+                                if (this.current.isCanMove == false) return -1;
+                                return this.current?.sn;
+                            },
+                            set(val) {
+                                var point = this.srcPOSI[val];
+                                this.Point_Focus(point);
+                            },
+                        },
+                        c_src: {
+                            get() {
+                                return this.changeFrom;
+                            },
+                            set(val) {
+                                var posi = this.srcPOSI[val];
+                                if (posi) posi.Focus();
+                            },
+                        },
+                        c_list() {
+                            var _self = this;
+                            var arr = Object.keys(this.list).map((c) => { return _self.srcPOSI[c] });
+                            return arr;
+                        },
+                        c_empty() {
+                            var arr = [];
+                            _.each(this.srcPOSI, (p) => {
+                                if (p.isEmpty && p.isChengeOut == false) arr.push(p);
+                            })
+                            return arr;
+                        },
+
+                        c_Change: {
+                            get() {
+                                var r = _.get(this, '$store.state.isChange', false);
+                                return r;
+                            },
+                            set(val) {
+                                var r = _.get(this, '$store.state.isChange', null);
+                                if (r != null) {
+                                    this.$store.state.isChange = val;
+                                }
+                                this.$forceUpdate();
+                            },
+                        }
+                    },
+                    methods: {
+
+                        ChangeStatus(point, isLock = false) {
+                            if (isLock) return;
+                            if (point.isScrap) {
+                                point.UnScrap();
+                            } else {
+                                point.Scrap();
+                            }
+                        },
+                        Point_Focus(point) {
+                            if (point == null) return;
+                            if (!this.c_readonly_target) {
+                                point.Focus();
+                                this.$emit("point_change", point);
+                            }
+                        },
+                        Max() {
+                            return _.max(Object.keys(this.list));
+                        },
+                        chk_continuous(ScrapIsEmpty = true) {
+                            var _keys = Object.keys(this.srcPOSI);
+
+                            var last_p = null, empty_p = null;
+                            for (var idx = _keys.length; idx >= 1; idx--) {
+                                idx
+                                var cur_p = this.srcPOSI[idx];
+                                var isEmpty = cur_p.isEmpty || cur_p.isChengeOut;
+                                isEmpty
+                                var isHadLast = last_p != null;
+                                isHadLast
+                                if (ScrapIsEmpty && cur_p.isScrap) {
+                                    isEmpty = isEmpty || !cur_p.isChengeIn;
+                                    isEmpty
+                                }
+
+                                if (isEmpty == false && isHadLast == false) {
+                                    last_p = cur_p;
+                                } else if (isEmpty && isHadLast && cur_p.sn != 1) {
+                                    return {
+                                        empty_p: cur_p,
+                                        last_p,
+                                        result: false
+                                    }
+                                }
+                            }
+                            return { empty_p, last_p, result: true };
+                        },
+                        UnChange(point) {
+                            point.UnChange();
+                            var _self = this;
+                            this.$nextTick(() => {
+                                var _arr = _self.c_list;
+                                _self.$refs.posi_from.bind_options(_self.c_list, false);
+                            })
+                        },
+                        Change() {
+                            if (this.current.sn == this.FromSN) {
+                                this.$Alert.Err('置換位置 不可與 來源相同!');
+                                return;
+                            } else if (this.c_target == -1 || this.changeFrom == "") {
+                                this.$Alert.Err('置換或來源位置 必須選取!');
+                                return;
+                            }
+                            this.current.ExChange(this.changeFrom);
+                            this.changeFrom = "";
+                            var _self = this;
+                            this.$nextTick(() => {
+                                var _arr = _self.c_list;
+                                _self.$refs.posi_from.bind_options(_self.c_list, false);
+                            })
+                        },
+                        parseSrc(src) {
+                            this.$set(src, 'val', "");
+                            this.$set(src, 'sts', 0);
+                            let { _changeFrom, STATUS } = src;
+                            if (_changeFrom == null) {
+                                this.$set(src, '_changeFrom', -1);
+                                this.$set(src, '_changeTo', -1);
+                                //src._changeFrom = -1;
+                                //src._changeTo = -1;
+                            }
+                            if (STATUS == null) {
+                                this.$set(src, 'STATUS', null);
+                            }
+
+                            Object.defineProperty(src, 'val', {
+                                get() {
+                                    let { SN_ID } = this;
+                                    SN_ID = SN_ID ?? '';
+                                    return SN_ID;
+                                },
+                                set(val) { return this.SN_ID = val; }
+                            });
+                            Object.defineProperty(src, 'sts', {
+                                get() {
+                                    let { STATUS } = this;
+                                    STATUS = STATUS || "Normal";
+                                    return STATUS == "Scrap" ? "1" : "0";
+                                },
+                                set(val) {
+                                    var def = "Normal";
+                                    if (val == "1") def = "Scrap";
+                                    this.STATUS = def;
+                                }
+                            });
+                            return src;
+                        },
+                        genPosiMap(total = 24, row_count = 6) {
+                            var map = [];
+                            for (var no = 1; no <= total; no++) {
+                                var _map = {};
+                                _map[`${no}`] = 0;
+                                map.push(_map);
+                            }
+                            return map;
+                        },
+
+                    }
+
+                }
+            },
+            PosiMapExchange() {
+                return {
+                    mixins: [_fn.PosiMapBase()],
+                    template: `
+            <div class="panel-body">
+                <el-row v-if="c_confirm">
+                    <div class="form-horizontal gt-form">
+                        <gt-form-col label="置換來源">
+                            <vue-selectize data-id="posi_from" ref="posi_from" v-model="c_target"  render_sty="GTIMES_HIDE"
+                                    :options="c_list"
+                                    :selectize_ops="ddl_posi_from"
+                                    ></vue-selectize>
+                        </gt-form-col>
+                        <gt-form-col label="置換到">
+                            <el-row>
+                                <el-col :sm="20" :xs="20">
+                                    <vue-selectize data-id="posi_to" ref="posi_to" v-model="changeFrom"
+                                            :options="c_empty"
+                                            :selectize_ops="ddl_posi_to"
+                                            :readonly="c_readonly_src"
+                                            ></vue-selectize>
+                                </el-col>
+                                <el-col :sm="4" :xs="4">
+                                    <el-button type="primary" plain size="medium" @@click="Change">置換</el-button>
+                                </el-col>
+                            </el-row>
+                        </gt-form-col>
+                    </div>
+                </el-row>
+                <el-row :gutter="10">
+		            <template v-for="(row,idx) in Map_MO">
+			            <template v-for="(point,posi) in row">
+				            <el-col :xs="12" :sm="8" :md="6" :lg="6" :xl="4" :span="6" :ref="point.el_id" :class="['posi',point.isEmpty?'':'used',current.posi==posi?'input':'',point_size]"
+						              @@click.native="()=>{Point_Focus(point);}">
+					            <span :class="['src-val',point.ToSN==-1?'':'changeTo']">{{point.HtmlDisplay}}</span>
+                                <i :class="['posi-sn fr',point.sts_sty,point.ToSN==-1?'':'changeTo']"
+                                    >{{point.sn}}</i>
+					            <i :class="['posi-sn fl',c_highlight,point.sts_sty]"
+                                    v-if="point.FromSN!=-1"
+                                    @@click.self.stop="()=>{UnChange(point);}">{{point.FromSN}}</i>
+				            </el-col>
+			            </template>
+		            </template>
+	            </el-row>
+            </div>
+                    `,
+                    data() {
+                        return {
+                            current: {
+                                sn: -1,
+                                posi: '',
+                            },
+                            isOnlyEmpty: false,
+                            piece_size: 1,
+                            ddl_posi_from: {
+                                tagField: 'sn',
+                                labelField: 'Value',
+                                valueField: 'sn',
+                                searchField: ['sn', 'Value'],
+                            },
+                            ddl_posi_to: {
+                                labelField: 'sn',
+                                valueField: 'sn',
+                                searchField: ['sn'],
+                            },
+                            list_from: [],
+                            list_empty: [],
+                            changeFrom: '',
+                        }
+                    },
+                    props: {
+                        readonly: Vue.prototype.$PropDef.Bool(),
+                        confirm: Vue.prototype.$PropDef.Bool(),
+                        highlight: Vue.prototype.$PropDef.Bool(),
+                    },
+                    computed: {
+                        c_confirm() {
+                            return !(!this.confirm || this.readonly);
+                        },
+                        c_readonly_target() {
+                            return this.changeFrom != "";
+                        },
+                        c_readonly_src() {
+                            return this.c_target == -1;
+                        },
+                        c_highlight() {
+                            return this.highlight ? 'adj0' : 'adj'
+                        },
+                        c_target: {
+                            get() {
+                                if (this.current.isCanMove == false) return -1;
+                                return this.current?.sn;
+                            },
+                            set(val) {
+                                var point = this.srcPOSI[val];
+                                this.Point_Focus(point);
+                            },
+                        },
+                        c_src: {
+                            get() {
+                                return this.changeFrom;
+                            },
+                            set(val) {
+                                var posi = this.srcPOSI[val];
+                                if (posi) posi.Focus();
+                            },
+                        },
+                        c_list() {
+                            var _self = this;
+                            var arr = Object.keys(this.list).map((c) => { return _self.srcPOSI[c] });
+                            return arr;
+                        },
+                        c_empty() {
+                            var arr = [];
+                            _.each(this.srcPOSI, (p) => {
+                                if (p.isEmpty && p.isChengeOut == false) arr.push(p);
+                            })
+                            return arr;
+                        },
+
+
+                    },
+                    methods: {
+
+                        ChangeStatus(point, isLock = false) {
+                            if (isLock) return;
+                            if (point.isScrap) {
+                                point.UnScrap();
+                            } else {
+                                point.Scrap();
+                            }
+                        },
+                        Point_Focus(point) {
+                            if (point == null) return;
+                            if (!this.c_readonly_target) {
+                                point.Focus();
+                                this.$emit("point_change", point);
+                            }
+                        },
+                        Max() {
+                            return _.max(Object.keys(this.list));
+                        },
+                        chk_continuous(ScrapIsEmpty = true) {
+                            var _keys = Object.keys(this.srcPOSI);
+
+                            var last_p = null, empty_p = null;
+                            for (var idx = _keys.length; idx >= 1; idx--) {
+                                idx
+                                var cur_p = this.srcPOSI[idx];
+                                var isEmpty = cur_p.isEmpty || cur_p.isChengeOut;
+                                isEmpty
+                                var isHadLast = last_p != null;
+                                isHadLast
+                                if (ScrapIsEmpty && cur_p.isScrap) {
+                                    isEmpty = isEmpty || !cur_p.isChengeIn;
+                                    isEmpty
+                                }
+
+                                if (isEmpty == false && isHadLast == false) {
+                                    last_p = cur_p;
+                                } else if (isEmpty && isHadLast && cur_p.sn != 1) {
+                                    return {
+                                        empty_p: cur_p,
+                                        last_p,
+                                        result: false
+                                    }
+                                }
+                            }
+                            return { empty_p, last_p, result: true };
+                        },
+                        UnChange(point) {
+                            point.UnChange();
+                            var _self = this;
+                            this.$nextTick(() => {
+                                var _arr = _self.c_list;
+                                _self.$refs.posi_from.bind_options(_self.c_list, false);
+                            })
+                        },
+                        Change() {
+                            if (this.current.sn == this.FromSN) {
+                                this.$Alert.Err('置換位置 不可與 來源相同!');
+                                return;
+                            } else if (this.c_target == -1 || this.changeFrom == "") {
+                                this.$Alert.Err('置換或來源位置 必須選取!');
+                                return;
+                            }
+                            this.current.ExChange(this.changeFrom);
+                            this.changeFrom = "";
+                            var _self = this;
+                            this.$nextTick(() => {
+                                var _arr = _self.c_list;
+                                _self.$refs.posi_from.bind_options(_self.c_list, false);
+                            })
+                        },
+                        parseSrc(src) {
+                            this.$set(src, 'val', "");
+                            this.$set(src, 'sts', 0);
+                            let { _changeFrom, STATUS } = src;
+                            if (_changeFrom == null) {
+                                this.$set(src, '_changeFrom', -1);
+                                this.$set(src, '_changeTo', -1);
+                                //src._changeFrom = -1;
+                                //src._changeTo = -1;
+                            }
+                            if (STATUS == null) {
+                                this.$set(src, 'STATUS', null);
+                            }
+
+                            Object.defineProperty(src, 'val', {
+                                get() {
+                                    let { SN_ID } = this;
+                                    SN_ID = SN_ID ?? '';
+                                    return SN_ID;
+                                },
+                                set(val) { return this.SN_ID = val; }
+                            });
+                            Object.defineProperty(src, 'sts', {
+                                get() {
+                                    let { STATUS } = this;
+                                    STATUS = STATUS || "Normal";
+                                    return STATUS == "Scrap" ? "1" : "0";
+                                },
+                                set(val) {
+                                    var def = "Normal";
+                                    if (val == "1") def = "Scrap";
+                                    this.STATUS = def;
+                                }
+                            });
+                            return src;
+                        },
+                        genPosiMap(total = 24, row_count = 6) {
+                            var map = [];
+                            for (var no = 1; no <= total; no++) {
+                                var _map = {};
+                                _map[`${no}`] = 0;
+                                map.push(_map);
+                            }
+                            return map;
+                        },
+
+                    }
+                }
+            },
+            PosiMapEDC() {
+                return {
+                    mixins: [_fn.PosiMapBase()],
+                    template: `
+            <el-container style="border: 1px solid #eee;height:80%;" v-resize="setSize" >
+		        <el-aside :width="size_type[point_size]">
+                    ${_fn.tpl.posi_map()}
+		        </el-aside>
+                <el-main>
+                    <el-tabs  v-model="activeName" type="border-card" >
+                        <el-scrollbar height="150px"  ref="area_main"   class="panel"  tag="div">
+                            <gt-hr content="Wafer 狀態" v-if="set_status">
+                                ${_fn.tpl.status()}
+                            </gt-hr>
+                            <slot v-bind:current="current"></slot>
+                        </el-scrollbar>
+                    </el-tabs>
+                </el-main>
+	        </el-container>
+                    `,
+                    data() {
+                        return {
+                            activeName: 'EDC',
+                            s1: ['col-lg-12 col-sm-12 col-xs-12 adj', 'col-lg-3 col-sm-3', 'col-lg-9 col-sm-9'],
+                            current: {
+                                sn: 2,
+                                posi: '',
+                            },
+                            isOnlyEmpty: false,
+                            piece_size: 1,
+                            select_set: {
+                                labelField: 'sn',
+                                valueField: 'sn',
+                                //searchField: ['sn', 'Value'],
+                                searchField: ['sn'],
+                            },
+                            ddl_reason: {
+                                ops: {
+                                    type: Object,
+                                    default: {
+                                        labelField: 'Display',
+                                        valueField: 'No',
+                                        searchField: ['Display', 'No'],
+                                    }
+                                },
+                                rows:[],
+                            },
+                            changeTo: "",
+                            point_size: 'L',
+                            //size_type: ['S', 'M', 'L'],
+                            size_type: {
+                                'L': '250px',
+                                //'M': '150px',
+                                'S': '135px',
+                            },
+                            STATUS_type: ['Normal', 'Scrap', 'Hold'],
+                            empty_list: [],
+                            ops: {
+                                Width: 0, Height: 0
+                            },
+                        }
+                    },
+                    props: {
+                        readonly: {
+                            type: Boolean,
+                            default: false
+                        },
+                        confirm: {
+                            type: Boolean,
+                            default: false
+                        },
+                        highlight: {
+                            type: Boolean,
+                            default: false
+                        },
+                        set_status: {
+                            type: [String,Boolean],
+                            default: true
+                        },
+                        reason_src: {
+                            type: Array,
+                            default() {
+                                return [];
+                            }
+                        }
+                    },
+                    mounted() {
+                        this.setSize(document.documentElement);
+                    },
+                    computed: {
+                        c_reason: {
+                            get() {
+                                let { REASON } = this.current.src;
+                                return REASON;
+                            },
+                            set(val) {
+                                this.current.src.REASON = val;
+                                this.$nextTick(() => {
+                                    let [row0] = this.ddl_reason.rows;
+                                    this.current.src.REASON_SID = row0.SID;
+                                })
+                            }
+                        },
+                        c_current() {
+                            return this.current;
+                        },
+                        c_Hold() {
+                            return this.current.FromSN == -1;
+                        },
+                        c_STATUS: {
+                            get() {
+                                if (this.current.isEmpty) return -1;
+                                let { STATUS } = this.current.src;
+                                if (STATUS == null) STATUS = 'Normal';
+                                //this.$forceUpdate();
+                                return STATUS;
+                            },
+                            set(val) {
+                                this.current.src.STATUS = val;
+                                switch (val) {
+                                    case "Scrap":
+                                    case "Hold":
+                                        this.current.src.GRADE = "";
+                                        this.current.src.SHIP_CASSETTE = "";
+                                        break;
+                                }
+                                if (val != 'Scrap') this.current.src.REASON = "";
+                                this.c_Change = true;
+                            }
+                        },
+                        c_confirm() {
+                            return !(!this.confirm || this.readonly);
+                        },
+                        c_readonly_target() {
+                            return this.changeFrom != "";
+                        },
+                        c_readonly_src() {
+                            return this.c_target == -1;
+                        },
+                        c_highlight() {
+                            return this.highlight ? 'adj0' : 'adj'
+                        },
+                        c_target: {
+                            get() {
+                                if (this.current?.isCanMove == false) return -1;
+                                return this.current?.sn;
+                            },
+                            set(val) {
+                                var point = this.srcPOSI[val];
+                                point?.Focus();
+                            },
+                        },
+                        c_src: {
+                            get() {
+                                return this.changeFrom;
+                            },
+                            set(val) {
+                                var posi = this.srcPOSI[val];
+                                if (posi) posi.Focus();
+                            },
+                        },
+                        c_empty() {
+                            var arr = [];
+                            _.each(this.srcPOSI, (p) => {
+                                if (p.isEmpty) arr.push(p);
+                            })
+                            return arr;
+                        },
+                        c_list() {
+                            debugger;
+                            var _self = this;
+                            var arr = [];
+                            _.each(_self.srcPOSI, (p) => {
+                                if (p.isCanMove) arr.push(p);
+                            })
+                            return arr;
+                        },
+
+                    },
+                    methods: {
+                        e_change_point(point) {
+                            //debugger
+                            if (this.c_Change == false || this.current.isScrap) {
+                                point.Focus()
+                            } else {
+                                let { CheckPointChange } = this.c_Src;
+                                if (_.isFunction(CheckPointChange) && CheckPointChange(this.current)) {
+                                    point.Focus();
+                                };
+                                //if (this.check_point_change(this.current)) {
+                            }
+                        },
+                        setSize(DocEl) {
+                            let { clientWidth, clientHeight } = DocEl;
+                            this.ops.Height = clientHeight - 270;
+                            this.ops.Width = clientWidth;
+                            this.$refs.area_posi.$refs.wrap.style.height = this.ops.Height + 'px';
+                            this.$refs.area_main.$refs.wrap.style.height = this.ops.Height + 10 + 'px';
+                        },
+                        ChangeTo() {
+                            if (this.changeTo != -1) {
+                                var p = this.srcPOSI[this.changeTo];
+                                p.Change(this.current.sn);
+                                this.$forceUpdate();
+                            }
+                        },
+                        _ChangeStatus(point) {
+                            if (point.isScrap) {
+                                point.UnScrap();
+                            } else {
+                                point.Scrap();
+                            }
+                        },
+                        bind_empty_list() {
+                            debugger;
+                            var arr = [];
+                            _.each(this.srcPOSI, (p) => {
+                                if (p.isCanInput) arr.push(p);
+                            })
+                            this.empty_list = arr;
+                        },
+                        Point_Focus(point) {
+                            if (!this.c_readonly_target) point.Focus();
+                        },
+                        Max() {
+                            return _.max(Object.keys(this.list));
+                        },
+                        chk_continuous(ScrapIsEmpty = true) {
+                            var _keys = Object.keys(this.srcPOSI);
+
+                            var last_p = null, empty_p = null;
+                            for (var idx = _keys.length; idx >= 1; idx--) {
+                                idx
+                                var cur_p = this.srcPOSI[idx];
+                                var isEmpty = cur_p.isEmpty || cur_p.isChengeOut;
+                                isEmpty
+                                var isHadLast = last_p != null;
+                                isHadLast
+                                if (ScrapIsEmpty && cur_p.isScrap) {
+                                    isEmpty = isEmpty || !cur_p.isChengeIn;
+                                    isEmpty
+                                }
+
+                                if (isEmpty == false && isHadLast == false) {
+                                    last_p = cur_p;
+                                } else if (isEmpty && isHadLast && cur_p.sn != 1) {
+                                    return {
+                                        empty_p: cur_p,
+                                        last_p,
+                                        result: false
+                                    }
+                                }
+                            }
+                            return { empty_p, last_p, result: true };
+                        },
+                        Change() {
+                            if (this.current.sn == this.FromSN) {
+                                this.$Alert.Err('置換位置 不可與 來源相同!');
+                                return;
+                            } else if (this.c_target == -1 || this.changeFrom == "") {
+                                this.$Alert.Err('置換或來源位置 必須選取!');
+                                return;
+                            }
+                            this.current.Change(this.changeFrom);
+                            this.changeFrom = "";
+                            var _self = this;
+                            this.$nextTick(() => {
+                                var _arr = _self.c_list;
+                                _self.$refs.posi_target.bind_options(_arr, false);
+                                _self.$refs.posi_src.bind_options(_arr, false);
+                            })
+                        },
+                        parseSrc(src) {
+                            this.$set(src, 'val', "");
+                            this.$set(src, 'sts', 0);
+
+                            let { _changeFrom, STATUS } = src;
+                            if (_changeFrom == null) {
+                                this.$set(src, '_changeFrom', -1);
+                                this.$set(src, '_changeTo', -1);
+                                //src._changeFrom = -1;
+                                //src._changeTo = -1;
+                            }
+                            if (STATUS == null) {
+                                this.$set(src, 'STATUS', null);
+                            }
+
+                            Object.defineProperty(src, 'val', {
+                                get() {
+                                    let { SN_ID } = this;
+                                    SN_ID = SN_ID ?? '';
+                                    return SN_ID;
+                                },
+                                set(val) { return this.SN_ID = val; }
+                            });
+                            Object.defineProperty(src, 'sts', {
+                                get() {
+                                    let { STATUS } = this;
+                                    STATUS = STATUS || "Normal";
+                                    return STATUS == "Scrap" ? "1" : "0";
+                                },
+                                set(val) {
+                                    var def = "Normal";
+                                    if (val == "1") def = "Scrap";
+                                    this.STATUS = def;
+                                }
+                            });
+                            return src;
+                        },
+                        genPosiMap(total = 24, row_count = 6) {
+                            var map = [];
+                            for (var no = 1; no <= total; no++) {
+                                var _map = {};
+                                _map[`${no}`] = 0;
+                                map.push(_map);
+                            }
+                            return map;
+                        },
+                    }
+                }
+            },
+            PosiMapEDC_Grade1() {
+                return {
+                    mixins: [_fn.PosiMapEDC()],
+                    template: `
+            <el-container style="border: 1px solid #eee;height:80%;" v-resize="setSize" >
+		        <el-aside :width="size_type[point_size]">
+                    ${_fn.tpl.posi_map()}
+		        </el-aside>
+                <el-main style="padding: 5px;">
+                    <el-tabs  v-model="activeName" type="border-card" >
+                        ${_fn.tpl.status()}
+                        <el-tab-pane label="EDC" name="EDC">
+                            <el-scrollbar height="150px"  ref="area_main"   class="panel"  tag="div">
+                                ${_fn.tpl.status()}
+                                <slot v-bind:current="current">{{current}}</slot>
+                            </el-scrollbar>
+                        </el-tab-pane>
+                        <el-tab-pane label="等級" name="Grade">
+                            <slot name="Grade"></slot>
+                        </el-tab-pane>
+                    </el-tabs>
+                </el-main>
+	        </el-container>
+                    `,
+                    data() {
+                        return {
+                            activeName: 'Status'
+                        };
+                    },
+                }
+            },
+            PosiMapEDC_Grade2() {
+                var _tpl = {
+                    tab_Wafer: `
+                    <el-container style="border: 1px solid #eee;height:80%;" v-resize="setSize" >
+		                <el-aside :width="size_type[point_size]">
+                            ${_fn.tpl.posi_map()}
+		                </el-aside>
+                        <el-main style="padding: 5px;">
+                            <el-scrollbar height="150px"  ref="area_main"   class="panel"  tag="div">
+                                <gt-hr content="狀態設定" v-if="is_checkout">
+                                    <div class="panel-body form-horizontal gt-form">
+                                        ${_fn.tpl.status()}
+                                    </div>
+                                </gt-hr>
+                                <slot v-bind:current="current"></slot>
+                            </el-scrollbar>
+                        </el-main>
+	                </el-container>
+                    `,
+                    tab_Grade: `
+                    <el-table
+						:data="GradeList"
+						style="width: 100%"
+						highlight-current-row
+                        :height="c_table_height" >
+                        <el-table-column label="SN" min-width="200" >
+							<template #default="{row}">
+                                <h5><span class="label label-primary">{{row.SN}}</span> {{row.SN_ID}}</h5>
+							</template>
+						</el-table-column>
+                        <el-table-column
+							label="分規"
+							min-width="250" >
+							<template #default="{row}">
+                                <vue-selectize v-model="row.GRADE"
+                                    :options="grade_list"
+                                    render_sty="GTIMES"
+                                    :icon_search="false"
+                                    ></vue-selectize>
+							</template>
+						</el-table-column>
+					</el-table>`
+                }
+                return {
+                    mixins: [_fn.PosiMapEDC()],
+                    template: `
+                    <el-tabs  v-model="c_activeName" type="border-card" :before-leave="beforeLeaveTab">
+                        <el-tab-pane label="Wafer管理" name="Wafer">
+                            ${_tpl.tab_Wafer}
+                        </el-tab-pane>
+                        <el-tab-pane label="等級" name="Grade" width="80" v-if="is_grade">
+                            ${_tpl.tab_Grade}
+                        </el-tab-pane>
+                    </el-tabs>
+                    `,
+                    data() {
+                        return {
+                            activeName: 'Wafer',
+                            GradeList: [],
+                            ops: {
+                                Width: 0, Height: 0
+                            },
+                        };
+                    },
+                    props: {
+                        is_grade: {
+                            type: Boolean,
+                            default() {
+                                return false;
+                            }
+                        },
+                        grade_list: {
+                            type: Array,
+                            default() {
+                                return [];
+                            }
+                        },
+                    },
+                    computed: {
+                        c_activeName: {
+                            get() {
+                                let { dialogVisible } = this.c_Src;
+                                if (dialogVisible == false) {
+                                    this.initTab_Wafer();
+                                    this.activeName = "Wafer";
+                                    //console.log({ dialogVisible });
+                                }
+                                return this.activeName;
+                            },
+                            set(val) {
+                                this.activeName = val;
+                            }
+                        },
+                        c_table_height() {
+                            if (this.ops == null) return 'auto';
+                            //注意,此變數建基於  v-resize="setSize"
+                            return this.ops.Height - 40;
+                        },
+                    },
+                    methods: {
+                        chk_All(isFocus = true) {
+                            return this.chk_Grade() && this.chk_ScrapValuid(isFocus);
+                        },
+                        chk_Grade() {
+                            var _self = this;
+                            if (this.is_grade == false) return true;
+                            var isValid = _.every(this.list, (el) => {
+                                switch (el.STATUS) {
+                                    case "Scrap":
+                                    case "Hold":
+                                        return true;
+                                        break;
+                                    default:
+                                        return _self.$UT.isNullEmpty(el.GRADE) == false;
+                                        break;
+                                }
+                            });
+                            if (isValid == false) {
+                                var msg = '等級必須選取!';
+                                _self.$alert(msg, '提示', {
+                                    type: 'warning'
+                                })
+                            }
+                            return isValid;
+                        },
+                        chk_ScrapValuid(isFocus = true) {
+                            var _self = this;
+                            if (this.is_checkout == false) return true;
+                            var _list = this.srcPOSI;
+                            var chkScrapValuid = _.every(_list, (point, key) => {
+                                let { isScrapValid = true } = point;
+                                if (isScrapValid == false) {
+                                    if (isFocus) point.Focus();
+                                    var msg = 'Wafer 報廢必須輸入原因碼!';
+                                    _self.$alert('@RES.BLL.Message.PleaseSelectReason', '提示', {
+                                        type: 'warning'
+                                    })
+                                }
+                                return isScrapValid;
+                            })
+                            return chkScrapValuid;
+                        },
+                        initTab_Wafer() {
+                            this.c_GradeList = [];
+                            this.c_Src.isGradeChg = false;
+                        },
+                        beforeLeaveTab(activeName, oldActiveName) {
+                            var _self = this;
+                            switch (activeName) {
+                                case "Grade":
+                                    _self.GradeList = [];
+                                    _.each(_self.list, (el) => {
+                                        //TODO-issue 如果要控制 hold/scrip 做過濾 可從此處理
+                                        switch (el.STATUS) {
+                                            case "Scrap":
+                                            case "Hold":
+                                                break;
+                                            default:
+                                                _self.GradeList.push(el);
+                                                break;
+                                        }
+                                    })
+                                    break;
+                            }
+                        }
+                    }
+                }
+            },
+            WaferGrad() {
+                return {
+                    mixins: [v_model()],
+                    template: `
+                    <el-table
+						:data="c_val"
+						style="width: 100%"
+						highlight-current-row
+                        >
+                        <el-table-column
+							label="SN"
+							min-width="200" >
+							<template #default="{row}">
+                                <h5><span class="label label-primary">{{row.SN}}</span> {{row.SN_ID}}</h5>
+							</template>
+						</el-table-column>
+                        <el-table-column
+							label="出貨包材"
+							min-width="250" >
+							<template #default="{row}">
+                                <vue-selectize v-model="row.GRADE"
+                                    :options="grade_list.src"
+                                    render_sty="GTIMES"
+                                    :icon_search="false"
+                                    ></vue-selectize>
+							</template>
+						</el-table-column>
+					</el-table>
+                    `,
+                    props: {
+                        grade_list: {
+                            type: Array,
+                            default() {
+                                return [];
+                            }
+                        },
+                    },
+                }
+            },
+            WaferPackage() {
+                var _tpl = {
+                    form: `
+                    <div class="form-horizontal gt-form">
+                        <gt-query label="出貨包材號" class="col-lg-6 col-md-12 adj"
+                            placeholder="@RES.BLL.Message.PleaseScanTheBarcodeOrUseKeywords"
+                            v-model="SHIP_CASSETTE.SHIP_CASSETTE_NO"
+                            :query_func="Query"
+                            query_mode=1
+                            :readonly="c_readonly"
+
+                            ></gt-query>
+                        </gt-form-col>
+                        <gt-form-col label="等級">
+                            <el-row :gutter="2">
+                                <el-col :sm="12" :xs="12">
+                                    <vue-selectize v-model="c_GRADE"
+                                        :options="grade_list"
+                                        render_sty="GTIMES"
+                                        :readonly = "c_readonly_GRADE"
+                                        ></vue-selectize>
+                                </el-col>
+                                <el-col :sm="12" :xs="12">
+                                    <el-button type="primary" plain size="medium" @@click="add_SHIP_CASSETTE" :disabled="c_Add_disabled" icon="el-icon-plus"> </el-button>
+                                    <el-button type="warning" plain size="medium" @@click="e_Clear" icon="el-icon-refresh-right"> </el-button>
+                                </el-col>
+                            </el-row>
+                        </gt-form-col>
+                    </div>
+                    `,
+                    table: `
+                        <el-table
+							:data="c_val"
+							style="width: 100%"
+							highlight-current-row
+                            height="60rem" >
+                            <el-table-column
+								label="@Face.Lot"
+								min-width="160" prop="LOT" >
+                                <template #default="{row}" v-if="is_test">
+                                    <el-input v-model="row.LOT" />
+								</template>
+							</el-table-column>
+                            <el-table-column
+								label="SN"
+								min-width="160" >
+								<template #default="{row}">
+                                    <h5><span class="label label-primary">{{row.SERIAL_NUMBER}}</span> {{row.SERIAL_NUMBER_ID}}</h5>
+								</template>
+							</el-table-column>
+
+                            <el-table-column
+								label="等級"
+								min-width="80" prop="GRADE" >
+                                <template #default="{row}" v-if="edit_grade">
+                                    <vue-selectize v-model="row.GRADE"
+                                        :options="grade_list"
+                                        render_sty="GTIMES"
+                                        :icon_search="false"
+                                        ></vue-selectize>
+							    </template>
+							</el-table-column>
+                            <el-table-column
+								label="出貨包材"
+								min-width="250" >
+								<template #default="{row}">
+                                    <vue-selectize v-model="row.SHIP_CASSETTE"
+                                        :options="c_PackageList"
+                                        render_sty="GTIMES"
+                                        :icon_search="false"
+                                        @@change-rows="(selItem)=>{chg_SHIP_CASSETTE(row,selItem)}"
+                                        :selectize_ops="ddl_OPS.ops"
+                                        required
+                                        ></vue-selectize>
+								</template>
+							</el-table-column>
+                            <el-table-column v-if="is_test"
+								label="ROOT_LOT_SID"
+                                prop="ROOT_LOT_SID"
+								min-width="200" >
+							</el-table-column>
+                            <el-table-column v-if="is_test"
+								label="PARENT_LOT_SID"
+                                prop="PARENT_LOT_SID"
+								min-width="200" >
+							</el-table-column>
+						</el-table>
+                    `,
+                    table1: `
+                        <el-table
+							:data="ddl_OPS.src"
+							style="width: 100%"
+							highlight-current-row
+                            :height="c_table_height" >
+                            <el-table-column label="@RES.BLL.Face.gvAction"
+                                                width="60">
+                                <template slot-scope="scope">
+                                    <el-button size="small" circle
+                                                type="danger"
+                                                icon="el-icon-delete"
+                                                @@click="DelRow(scope.$index, scope.row)"></el-button>
+                                </template>
+                            </el-table-column>
+                            <el-table-column prop="SHIP_CASSETTE_NO" :label="i18n.包材代碼" ></el-table-column>
+                            <el-table-column prop="MAX_CAPACITY" :label="i18n.包材容量" ></el-table-column>
+                            <el-table-column prop="GRADE" :label="i18n.包材等級" ></el-table-column>
+                            <el-table-column prop="Used" :label="i18n.己使用數量" ></el-table-column>
+                            <el-table-column prop="Current.Use" :label="i18n.當前使用量" ></el-table-column>
+                            <el-table-column prop="Current.Remain" :label="i18n.剩於可用量" ></el-table-column>
+						</el-table>
+                    `,
+                }
+                return {
+                    mixins: [v_model(), v_rootEl()],
+                    template: `
+                    <div>
+                        ${_tpl.form}
+                        <div class="clearfix hidden-xs"></div>
+                        <el-tabs type="border-card">
+                            <el-tab-pane label="Wafer清單">
+                            ${_tpl.table}
+                            </el-tab-pane>
+                            <el-tab-pane label="包材資訊">
+                            ${_tpl.table1}
+                            </el-tab-pane>
+                        </el-tabs>
+                    </div>
+                    `,
+                    data() {
+                        var _self = this;
+                        return {
+                            "i18n": {
+                                "包材代碼": "包材代碼",
+                                "包材容量": "包材容量",
+                                "包材等級": "包材等級",
+                                "己使用數量": "己使用數量",
+                                "當前使用量": "當前使用量",
+                                "剩於可用量": "剩於可用量"
+                            },
+                            ddl_pack: {
+                                val:'',
+                                src: [],
+                                rows: [],
+                            },
+                            ddl_OPS: {
+                                oldValue:'',
+                                src: [
+                                    //{
+                                    //    "SHIP_CASSETTE_SID": "GTI22060814374473042",
+                                    //    "SHIP_CASSETTE_NO": "Cassettle021",
+                                    //    "CURRENT_CAPACITY": 5,
+                                    //    "MAX_CAPACITY": 6,
+                                    //    "CURRENT_LOT_SIZE": 0,
+                                    //    "GRADE": "A",
+                                    //    "CREATE_USER": "Admin",
+                                    //    "CREATE_DATE": "2022-06-08T14:37:45",
+                                    //    "UPDATE_USER": "Admin",
+                                    //    "UPDATE_DATE": "2022-06-08T14:37:45",
+                                    //    "Used": 5,
+                                    //    get Current() {
+                                    //        let { SHIP_CASSETTE_NO, MAX_CAPACITY, CURRENT_CAPACITY } = this;
+                                    //        var Use = _.filter(_self.value, { SHIP_CASSETTE: SHIP_CASSETTE_NO }).length;
+                                    //        var Remain = MAX_CAPACITY - CURRENT_CAPACITY - Use;
+                                    //        return { Use, Remain };
+                                    //    }
+                                    //},
+                                    //{
+                                    //    "SHIP_CASSETTE_SID": "GTI22060814374473042",
+                                    //    "SHIP_CASSETTE_NO": "Cassettle022",
+                                    //    "CURRENT_CAPACITY": 4,
+                                    //    "MAX_CAPACITY": 5,
+                                    //    "CURRENT_LOT_SIZE": 0,
+                                    //    "GRADE": "B",
+                                    //    "CREATE_USER": "Admin",
+                                    //    "CREATE_DATE": "2022-06-08T14:37:45",
+                                    //    "UPDATE_USER": "Admin",
+                                    //    "UPDATE_DATE": "2022-06-08T14:37:45",
+                                    //    "Used": 4
+                                    //},
+                                ],
+                                ops: {
+                                    valueField: 'SHIP_CASSETTE_NO',
+                                    labelField: "GRADE",
+                                    searchField: ['GRADE', 'SHIP_CASSETTE_NO'],
+                                    render: {
+                                        option(data, escape) {
+                                            let { labelField, valueField, tpl_tag } = this.settings;
+                                            return `
+                                                <div class="option"><H5>${tpl_tag(data, labelField, escape)}${escape(data[valueField])}</H5></div>
+                                            `;
+                                        },
+                                        item(data, escape) {
+                                            let { labelField, valueField, tpl_tag } = this.settings;
+                                            return `<div class="item"><H5>${tpl_tag(data, labelField, escape)}${escape(data[valueField])}</H5></div>`;
+                                        }
+                                    },
+                                    onFocus() {
+                                        _self.ddl_OPS.oldValue = this.getValue();
+                                    }
+                                },
+                            },
+                            SHIP_CASSETTE: { SHIP_CASSETTE_NO: ""},
+                        }
+                    },
+                    props: {
+                        //用來解決 動態高度的問題
+                        ops: {
+                            type: Object,
+                            default() {
+                                return null;
+                            }
+                        },
+                        package_list: {
+                            type: Array,
+                            default() {
+                                return [];
+                            }
+                        },
+                        grade_list: {
+                            type: Array,
+                            default() {return null;}
+                        },
+                        edit_grade: {
+                            type: [Boolean,String],
+                            default() {
+                                return false;
+                            }
+                        },
+                        is_test: {
+                            type: [Boolean, String],
+                            default() {
+                                return false;
+                            }
+                        }
+                    },
+                    mounted() {
+                        if (this.package_list != null)
+                            this.package_list.map(this.bind_SHIP_CASSETTE);
+                    },
+                    computed: {
+                        c_PackageList() {
+                            return this.ddl_OPS.src;
+                        },
+                        c_GRADE() { return false; },
+                        c_readonly() {
+                            let { SHIP_CASSETTE_SID = "" } = this.SHIP_CASSETTE;
+                            return SHIP_CASSETTE_SID !=''
+                        },
+                        c_Add_disabled() {
+                            return this.c_GRADE == "" || this.c_readonly == false;
+                        },
+                        c_table_height() {
+                            if (this.ops == null) return 'auto';
+                            //注意,此變數建基於  v-resize="setSize"
+                            return this.ops.Height - 40;
+                        },
+                        c_GRADE: {
+                            get() {
+                                let { GRADE } = this.SHIP_CASSETTE;
+                                return GRADE || '';
+                            },
+                            set(val) {
+                                this.SHIP_CASSETTE.GRADE = val;
+                            }
+                        },
+                        c_readonly_GRADE() {
+                            return this.c_readonly && this.c_GRADE != '';
+                        }
+                    },
+
+                    methods: {
+                        DelRow(idx, row) {
+                            let { SHIP_CASSETTE_NO } = row;
+                            _.each(this.value, el => {
+                                if (el.SHIP_CASSETTE == "SHIP_CASSETTE_NO") el.SHIP_CASSETTE = "";
+                            });
+                            this.ddl_OPS.src.splice(idx, 1);
+                        },
+                        e_ClearPackage() {
+                            this.$confirm('是否重設包裝選項?', '提示', {
+                                confirmButtonText: '確定',
+                                cancelButtonText: '取消',
+                                type: 'warning'
+                            }).then(() => {
+                                this.$message({
+                                    type: 'success',
+                                    message: '重設完成!'
+                                });
+                                this.ddl_OPS.src = [];
+                                _.each(this.value, (el) => {
+                                    el.SHIP_CASSETTE = '';
+                                })
+                            }).catch(() => {
+                                this.$message({
+                                    type: 'info',
+                                    message: '已取消删除'
+                                });
+                            });
+                        },
+                        e_Clear() {
+                            this.SHIP_CASSETTE.SHIP_CASSETTE_NO = "";
+                            this.SHIP_CASSETTE.SHIP_CASSETTE_SID = "";
+                            this.SHIP_CASSETTE.GRADE = "";
+                        },
+                        chg_SHIP_CASSETTE(curRow, selItem) {
+                            //debugger
+                            //console.log({ curRow });
+                            var msg = "必須選擇符合等級的包材";
+                            if (selItem.length == 0 || curRow.GRADE == null)  return;
+                            var _item = _.find(this.c_PackageList, { SHIP_CASSETTE_NO: selItem[0].SHIP_CASSETTE_NO });;
+                            let { GRADE, SHIP_CASSETTE_NO, Current} = _item;
+                            if (this.is_test) curRow.GRADE = GRADE;
+                            if (curRow.GRADE == GRADE) {
+                                if (Current.Remain >= 0 ) {
+                                    this.c_Src.isGradeChg = true;
+                                    this.c_Change = true;
+                                    curRow.SHIP_CASSETTE = SHIP_CASSETTE_NO;
+                                    return;
+                                } else {
+                                    msg = "包材的容量己經用完";
+                                }
+                            }
+                            this.$message(msg);
+                            this.$nextTick(() => {
+                                curRow.SHIP_CASSETTE = this.ddl_OPS.oldValue;
+                            })
+                        },
+                        ddl_pack_change(row) {
+                            if (row.length == 0) {
+                                this.ddl_Grade.readonly = false;
+                                return;
+                            }
+                            let { Status } = row[0];
+                            var isNew = Status == "";
+                            this.c_GRADE = Status;
+                            this.ddl_Grade.readonly = !isNew;
+                        },
+                        add_SHIP_CASSETTE() {
+                            var _self = this;
+                            let _item = _.merge({}, this.SHIP_CASSETTE);
+                            this.bind_SHIP_CASSETTE(_item);
+                            this.e_Clear();
+                        },
+                        set_Current(item) {
+                            var _self = this;
+                            Object.defineProperty(item, 'Current', {
+                                get() {
+                                    let { SHIP_CASSETTE_NO, MAX_CAPACITY, CURRENT_CAPACITY } = this;
+                                    var Use = _.filter(_self.value, { SHIP_CASSETTE: SHIP_CASSETTE_NO }).length;
+                                    var Remain = MAX_CAPACITY - CURRENT_CAPACITY - Use;
+                                    return { Use, Remain };
+                                }
+                            });
+                            return item;
+                        },
+                        bind_SHIP_CASSETTE(item) {
+                            var _self = this;
+                            this.ddl_OPS.src.push(_self.set_Current(item));
+
+                            let { GRADE, SHIP_CASSETTE_NO, MAX_CAPACITY, CURRENT_CAPACITY } = item;
+                            var CanUse = MAX_CAPACITY - CURRENT_CAPACITY;
+                            _.each(this.value, (el) => {
+                                if (CanUse == 0) return;
+                                if (el.SHIP_CASSETTE == "" || el.SHIP_CASSETTE == null) {
+                                    if (el.GRADE == GRADE) {
+                                        el.SHIP_CASSETTE = SHIP_CASSETTE_NO;
+                                        CanUse--;
+                                    }
+                                }
+                            })
+
+                        },
+                        Query(SHIP_CASSETTE_NO) {
+                            var _self = this;
+                            if (SHIP_CASSETTE_NO != "") {
+                                var isSame = _.some(this.ddl_OPS.src, { SHIP_CASSETTE_NO });
+                                if (isSame) {
+                                    this.$alert(`出貨包材號(${SHIP_CASSETTE_NO})已存在!`, "提示");
+                                    return;
+                                }
+                            }
+                            var param = { SHIP_CASSETTE_NO };
+                            var _ajax = {
+                                url: "@Genesis.Common.PageBaseInfo.GetBaseUrl()/api/info/SHIP_CASSETTE",
+                                type: 'get',
+                                automessage: false,
+                                param,
+                                success: _self.QuerySuccess
+                            };
+                            $.submitForm(_ajax);
+                        },
+                        QuerySuccess(res) {
+                            let { Success, Message, Data } = res
+                            if (Success) {
+                                let { SHIP_CASSETTE, Used } = Data;
+                                SHIP_CASSETTE.Used = Used;
+                                this.SHIP_CASSETTE = SHIP_CASSETTE;
+                                //todo-chk 檢核使用數
+                                //todo-test 需要移除
+                                //this.SHIP_CASSETTE.GRADE = 'A' ;
+                            } else {
+                                this.$Alert.Err(Message).then(() => {
+                                    this.SHIP_CASSETTE = {};
+                                });
+                            }
+                        }
+                    }
+                }
+            },
+            EDC_Log() {
+                return {
+                    mixins: [v_rootEl()],
+                    template: `
+                    <el-button type="primary" size="mini" plain
+                                @@click="e_FetchLogFile"
+                                style="float:right;margin-right:1rem;"
+                                v-show="c_ShowImportLog"
+                                >載入Log</el-button>
+                    `,
+                    data() {
+                        var _self = this;
+                        return {
+
+                        }
+                    },
+                    props: {
+
+                    },
+                    mounted() {
+
+                    },
+                    computed: {
+                        c_ShowImportLog() {
+                            let { IsWaferLogEDC = false } = this.c_Src.Setting.CheckOutSet;
+                            return IsWaferLogEDC;
+                        }
+                    },
+
+                    methods: {
+                        e_FetchLogFile() {
+                            debugger
+                            var _self = this;
+                            let { send_data } = this.c_Src;
+                            var srcPOSI = this.c_Src.$refs.posi.srcPOSI;
+                            if (srcPOSI == null) {
+                                alert('找不到 wafer 控件資訊!'); return;
+                            }
+
+                            var cassetteInfo = {};
+                            var allWafer = Object.values(send_data.PosiMap);
+                            send_data.lotList.forEach(x => {
+                                cassetteInfo[x.LotSID] = allWafer.filter(f => f.LOT == x.Lot).map(m => m.SN_ID);
+                            });
+
+                            var _ajax = {
+                                url: "@Genesis.Common.PageBaseInfo.GetBaseUrl()/api/info/PreloadEDCFromGssLog",
+                                type: 'POST',
+                                param: JSON.stringify(cassetteInfo),
+                                contentType: 'application/json',
+                                automessage: false,
+                                success: (res) => {
+                                    let { Success, Message, Data, Exception } = res;
+                                    if (Success) {
+                                        let { EdcLog } = Data;
+                                        _.each(EdcLog, (Log, WaferSN) => {
+                                            var _mapPosi = _.find(srcPOSI, (o) => { return o.Value == WaferSN });
+                                            if (_mapPosi != null) {
+                                                _.each(Log, el => {
+                                                    var _EdcSid = el.EdcParameterSid;
+                                                    var _mapEdc = _.find(_mapPosi.src.EdcList, (o) => { return o.EdcParameterSid == _EdcSid });
+                                                    if (_mapEdc != null) {
+                                                        var values = el.InputValueList.map((x, idx) => {
+                                                            var item = {};
+                                                            item[idx+1] = Object.values(x)[0];
+                                                            return item;
+                                                        });
+                                                        _mapEdc.InputValueList = values;
+                                                        //_mapEdc.InputValueList = el.InputValueList;
+                                                        _self.isChange = true;
+                                                    }
+                                                })
+                                            }
+
+                                        });
+                                    } else {
+                                        console.log(Message);
+                                        _self.$alert(Message, '提示', {
+                                            type: 'warning'
+                                        });
+                                    }
+                                }
+				            };
+
+					        $.submitForm(_ajax);
+
+                        },
+                    }
+                }
+            },
+        };
+
+        Vue.component('cp-posi-map', _fn.PosiView())
+        Vue.component('cp-posi-map-exchange', _fn.PosiMapExchange());
+        Vue.component('cp-posi-map-edc', _fn.PosiMapEDC());
+        Vue.component('cp-posi-map-edc-grade', _fn.PosiMapEDC_Grade2());
+        Vue.component('cp-wafer-grad', _fn.WaferGrad());
+        Vue.component('cp-wafer-package', _fn.WaferPackage());
+        Vue.component('cp-edc-log', _fn.EDC_Log());
+
+    });
+</script>
+
+
+<style>
+    .posi {
+        white-space: nowrap;
+        border-radius: 5px;
+        border: 2px outset #ebf1de;
+        position: relative;
+        margin-bottom: 3px;
+        margin-left: 5px;
+        padding-right: 5rem !important;
+        user-select: none;
+    }
+
+        .posi.S {
+            font-weight: 900;
+            min-height: 4.3rem;
+            width: 3em;
+            font-size: 2.5rem;
+            margin-left: 20px;
+        }
+
+        .posi.M {
+            min-height: 4rem;
+            font-size: 2.5rem;
+            font-weight: 900;
+            width: 7rem;
+            margin-left: 15px;
+        }
+
+        .posi.L {
+            width: 22rem;
+            font-size: 2rem;
+            font-weight: 800;
+        }
+
+        .posi.used {
+            background-color: #aeaeae55;
+        }
+
+    .src-val {
+        line-height: 4rem;
+        width: auto;
+        text-align: left;
+        font-size: 1.35rem;
+        padding-left: 3px;
+    }
+
+    .posi.S .src-val,
+    .posi.M .src-val,
+    .posi.S .el-icon-delete {
+        display: none;
+    }
+
+    .posi-sn {
+        position: absolute;
+        top: 0px;
+        right: 0px;
+        z-index: 999;
+        cursor: pointer;
+        margin: 0 1rem;
+        font-family: sans-serif;
+        text-align:right;
+    }
+
+        .posi-sn.adj {
+            color: #023bb44f !important;
+        }
+
+    div.posi.input {
+        border: 2px outset rgb(64, 158, 255) !important;
+    }
+
+    div.posi:hover {
+        border: 2px outset red;
+        cursor: pointer;
+    }
+
+    .die_sty {
+        font-size: 1rem;
+        top: -7px;
+        position: relative;
+        color: #0038ff;
+    }
+
+    .sty-Scrap,
+    .sty-Scrap .el-radio__label {
+        color: #ff0000 !important;
+    }
+
+    .sty-Hold,
+    .sty-Hold .el-radio__label {
+        color: #02b429 !important;
+    }
+
+    .el-radio__label {
+        color: #515253 !important;
+    }
+
+
+    .flex-row {
+        display: flex;
+        height: 100%;
+        flex-direction: column;
+    }
+
+    .point-size1 {
+        background: hsl(0deg 0% 75% / 75%);
+    }
+
+    .point-size label {
+        margin-bottom: 0px;
+    }
+
+    .el-header {
+        padding: 0px 5px !important;
+        height: 3rem !important;
+    }
+
+    .adjx .el-scrollbar__wrap {
+        max-height: calc(100vh - 50px);
+        overflow-x: hidden;
+    }
+</style>
+
