@@ -1,7 +1,5 @@
 ﻿@{
 	ViewBag.Title = @Genesis.Common.PageBaseInfo.getCurrentResource("UI 規範04").RESOURCE_NAME;
-	bool isSingleModel = (bool)ViewData["SingleModel"];
-	if (isSingleModel) Layout = "~/Views/Shared/_LayoutSingle.cshtml";
 
 }
 @eBundle.QRender_CSS()
@@ -73,34 +71,40 @@
 		</gt-form-col>
 
 
-		<vue-selectize-router :route.sync="ddl_Route" 　:readonly="readonly" :i18n="{流程編號:'流程編號 AAAAAAAAA'}"
-							  :route_ver.sync="ddl_RouteVer"></vue-selectize-router>
 	</div>
-
-	<h3>x-ddl-group-para -- 己棄用,留做參考</h3>
+	<h3>vue-selectize-router</h3>
 	<div class="row">
-
-		<gt-form-col label="Case1--基本使用">
-			<x-ddl-group-para :value.number.sync="ddl_case1.values" group_no="WO-Priority" :readonly="readonly" />
-
-		</gt-form-col>
-		<gt-form-col label="Case1--單位應用">
-			<x-ddl-group-para :value.number.sync="ddl_case2.values"
-							  :input_value.sync="ddl_case2.values"
-							  group_no="WO-Priority"
-							  :readonly="readonly">
-			</x-ddl-group-para>
-		</gt-form-col>
-		<gt-form-col label="Case2--addon">
-			<x-ddl-group-para :values.sync="ddl_case1.values" group_no="WO-Priority" :readonly="readonly">
-				<template slot="addon">
-					<span class="input-group-btn btn">test</span>
-				</template>
-			</x-ddl-group-para>
-		</gt-form-col>
+		<vue-selectize-router :route.sync="ddl_Route" 　:readonly="readonly" 
+							:i18n="{流程編號:'流程編號 AAAAAAAAA'}"
+							  :route_ver.sync="ddl_RouteVer"></vue-selectize-router>
+		{{ddl_Route}},{{ddl_RouteVer}}
+		
 	</div>
 
-</div>
+		<h3>x-ddl-group-para -- 己棄用,留做參考</h3>
+		<div class="row">
+
+			<gt-form-col label="Case1--基本使用">
+				<x-ddl-group-para :value.number.sync="ddl_case1.values" group_no="WO-Priority" :readonly="readonly" />
+
+			</gt-form-col>
+			<gt-form-col label="Case1--單位應用">
+				<x-ddl-group-para :value.number.sync="ddl_case2.values"
+								  :input_value.sync="ddl_case2.values"
+								  group_no="WO-Priority"
+								  :readonly="readonly">
+				</x-ddl-group-para>
+			</gt-form-col>
+			<gt-form-col label="Case2--addon">
+				<x-ddl-group-para :values.sync="ddl_case1.values" group_no="WO-Priority" :readonly="readonly">
+					<template slot="addon">
+						<span class="input-group-btn btn">test</span>
+					</template>
+				</x-ddl-group-para>
+			</gt-form-col>
+		</div>
+
+	</div>
 @section Styles {
 	@Styles.Render(eBundle.selectize_CSS)
 	@Styles.Render(eBundle.elUI_CSS)
@@ -118,6 +122,7 @@
 		new Vue({
 			el: '#app',
 			data() {
+				var _self = this;
 				return {
 					isErr: false,
 					options: [
@@ -169,9 +174,9 @@
 					},
 					ddl_ops: [{ "RefKey": null, "SID": "GTI22050617441960430", "No": "2-0001-02", "Value": "0", "Display": "製程用cassette-02", "StatusSid": null, "Status": null, "FromNum": 0, "INum": 0, "Attr01": "25", "Attr02": "2500", "Attr03": null, "checked": true, "MTR_LOT": "B6N404B2B3B0" }, { "RefKey": null, "SID": "GTI22051014160261578", "No": "2-0001-05", "Value": "0", "Display": "製程用cassette-05", "StatusSid": null, "Status": null, "FromNum": 0, "INum": 0, "Attr01": "25", "Attr02": "25000", "Attr03": null }, { "RefKey": null, "SID": "GTI22051014205661583", "No": "2-0002-01", "Value": "0", "Display": "出貨用cassette-01", "StatusSid": null, "Status": null, "FromNum": 0, "INum": 0, "Attr01": "25", "Attr02": "25", "Attr03": null, "checked": true, "MTR_LOT": "GTI22051016061362011" }, { "RefKey": null, "SID": "GTI22051014212161584", "No": "2-0002-02", "Value": "0", "Display": "出貨用cassette-02", "StatusSid": null, "Status": null, "FromNum": 0, "INum": 0, "Attr01": "25", "Attr02": "25", "Attr03": null, "checked": true, "MTR_LOT": "B6N404B2B3B0" }, { "RefKey": null, "SID": "GTI22061509422314311", "No": "2-0002-03", "Value": "0", "Display": "出貨用cassette-03", "StatusSid": null, "Status": null, "FromNum": 0, "INum": 0, "Attr01": "1", "Attr02": "1", "Attr03": null }, { "RefKey": null, "SID": "GTI22062409560535275", "No": "2-0002-10", "Value": "0", "Display": "出貨用cassette-10", "StatusSid": null, "Status": null, "FromNum": 0, "INum": 0, "Attr01": "10", "Attr02": "10", "Attr03": null, "checked": true, "MTR_LOT": "B6N404B2B3B0" }, { "RefKey": null, "SID": "GTI22062813103640546", "No": "2-0002-11", "Value": "0", "Display": "出貨用cassette-11", "StatusSid": null, "Status": null, "FromNum": 0, "INum": 0, "Attr01": "10", "Attr02": "10", "Attr03": null, "checked": true, "MTR_LOT": "GTI22051016061362011" }, { "RefKey": null, "SID": "GTI22062814174940990", "No": "2-0002-12", "Value": "0", "Display": "出貨用cassette-12", "StatusSid": null, "Status": null, "FromNum": 0, "INum": 0, "Attr01": "10", "Attr02": "10", "Attr03": null }, { "RefKey": null, "SID": "GTI22063000095848859", "No": "2-0001-12", "Value": "0", "Display": "製程用cassette-12", "StatusSid": null, "Status": null, "FromNum": 0, "INum": 0, "Attr01": "25", "Attr02": "2500", "Attr03": null }, { "RefKey": null, "SID": "GTI22063000101948860", "No": "2-0001-13", "Value": "0", "Display": "製程用cassette-13", "StatusSid": null, "Status": null, "FromNum": 0, "INum": 0, "Attr01": "25", "Attr02": "2500", "Attr03": null }, { "RefKey": null, "SID": "GTI22063000104048861", "No": "2-0001-14", "Value": "0", "Display": "製程用cassette-14", "StatusSid": null, "Status": null, "FromNum": 0, "INum": 0, "Attr01": "25", "Attr02": "2500", "Attr03": null }, { "RefKey": null, "SID": "GTI22063000110548862", "No": "2-0001-15", "Value": "0", "Display": "製程用cassette-15", "StatusSid": null, "Status": null, "FromNum": 0, "INum": 0, "Attr01": "25", "Attr02": "2500", "Attr03": null }, { "RefKey": null, "SID": "GTI22063000142448991", "No": "2-0001-16", "Value": "0", "Display": "製程用cassette-16", "StatusSid": null, "Status": null, "FromNum": 0, "INum": 0, "Attr01": "25", "Attr02": "2500", "Attr03": null }, { "RefKey": null, "SID": "GTI22063009441449250", "No": "2-0001-17", "Value": "0", "Display": "製程用cassette-17", "StatusSid": null, "Status": null, "FromNum": 0, "INum": 0, "Attr01": "8", "Attr02": "8", "Attr03": null }, { "RefKey": null, "SID": "GTI22063009451549252", "No": "2-0001-18", "Value": "0", "Display": "製程用cassette-18", "StatusSid": null, "Status": null, "FromNum": 0, "INum": 0, "Attr01": "8", "Attr02": "8", "Attr03": null }, { "RefKey": null, "SID": "GTI22063011194349934", "No": "2-0001-19", "Value": "0", "Display": "製程用cassette-19", "StatusSid": null, "Status": null, "FromNum": 0, "INum": 0, "Attr01": "10", "Attr02": "10", "Attr03": null }, { "RefKey": null, "SID": "GTI22070422363162951", "No": "2-0003-01", "Value": "0", "Display": "扣留用cassette-01", "StatusSid": null, "Status": null, "FromNum": 0, "INum": 0, "Attr01": "15", "Attr02": "500", "Attr03": null }, { "RefKey": null, "SID": "GTI22082914273720499", "No": "2-0001-20", "Value": "0", "Display": "製程用cassette-20", "StatusSid": null, "Status": null, "FromNum": 0, "INum": 0, "Attr01": "50", "Attr02": "50", "Attr03": null }],
                     ddl_Route: {
-                        onChange(val) {
-                            alert(val);
-                        },
+                        //onChange(val) {
+                        //    _self.$message(val);
+                        //},
                         val: "GTI20101609015509691",
                         old: "",
                         src: [{ "RefKey": null, "SID": "GTI20101609015509699", "No": "C040-30", "Value": "GTI20101609015509699", "Display": "OVP-通用后段", "StatusSid": null, "Status": null, "FromNum": 0, "INum": 0, "Attr01": null, "Attr02": null, "Attr03": null }, { "RefKey": null, "SID": "GTI20101609015509691", "No": "C040-301", "Value": "GTI201016090155096991", "Display": "OVP-通用后段1 ---AAAAAA--- --------", "StatusSid": null, "Status": null, "FromNum": 0, "INum": 0, "Attr01": null, "Attr02": null, "Attr03": null }]
@@ -180,7 +185,7 @@
                     ddl_RouteVer: {
                         val: "",
                         old: "",
-                        src: ,
+                        src: "",
                         ops: { valueField: 'SID' }
                     },
 				}

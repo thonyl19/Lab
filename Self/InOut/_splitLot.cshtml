@@ -1,14 +1,11 @@
 @using System.Dynamic
-@model BLL.MES.DataViews.LotData
 @{
 	dynamic data = new ExpandoObject();
-	@*Model.CurrentLot = new {STATUS = "Run",LOT = "5D2NW50000-231128-01"};
-    Model.CurrentOperation = new {ATTRIBUTE_03="1",ATTRIBUTE_04="Y"};*@
     GTI_Test GTest = new GTI_Test(Html, ViewContext.HttpContext);
 }
 @eBundle.QRender_CSS()
 @eBundle.QRender_JS()
-@Html.Partial("~/Areas/ZZ_DAE/Views/OperTask/_BomMlot.cshtml")
+@Html.Partial("~/Areas/MES/Views/WIP/Partial2/_splitLot.cshtml")
 <pre>
 </pre>
 <div id="app">
@@ -21,10 +18,9 @@
             <br />
             <el-row :gutter="12">
                 <el-col :lg="12">
-                    <component is="cp-bom-mlot" :set_model="set_model" ref="cp" :test1="test"></component>
+                    <component is="cp-split" v-model="set_model.defect" :set_model="set_model" ref="cp" :test1="test"></component>
                 </el-col>
             </el-row>
-            {{$store.state.globalvar.OperationPartUseList}}
     </form>
     <div id="footerCommand">
         <button type="button" class="btn btn-lg btn-labeled btn-success  btn_submit" style="margin:10px 30px;" @@click="Exec">
@@ -66,7 +62,170 @@
         }
         var set_model = {
             CurrentLot: test.Lot.Case2,
-            scrapList: [],
+            OperDefectList: [
+                {
+                    "ItemType": null,
+                    "Attr": null,
+                    "Attr04": null,
+                    "Attr05": null,
+                    "Attr06": null,
+                    "Attr07": null,
+                    "Attr08": null,
+                    "Attr09": null,
+                    "Attr10": null,
+                    "RefKey": null,
+                    "SID": "GTI22092622013291648",
+                    "No": "D.C00-0001",
+                    "Value": null,
+                    "Display": "重量不足",
+                    "StatusSid": null,
+                    "Status": null,
+                    "FromNum": 0,
+                    "INum": 0,
+                    "Attr01": null,
+                    "Attr02": null,
+                    "Attr03": null
+                },
+                {
+                    "ItemType": null,
+                    "Attr": null,
+                    "Attr04": null,
+                    "Attr05": null,
+                    "Attr06": null,
+                    "Attr07": null,
+                    "Attr08": null,
+                    "Attr09": null,
+                    "Attr10": null,
+                    "RefKey": null,
+                    "SID": "GTI22092622013291649",
+                    "No": "D.C00-0002",
+                    "Value": null,
+                    "Display": "外觀不良",
+                    "StatusSid": null,
+                    "Status": null,
+                    "FromNum": 0,
+                    "INum": 0,
+                    "Attr01": null,
+                    "Attr02": null,
+                    "Attr03": null
+                },
+                {
+                    "ItemType": null,
+                    "Attr": null,
+                    "Attr04": null,
+                    "Attr05": null,
+                    "Attr06": null,
+                    "Attr07": null,
+                    "Attr08": null,
+                    "Attr09": null,
+                    "Attr10": null,
+                    "RefKey": null,
+                    "SID": "GTI22092622013291650",
+                    "No": "D.C00-0003",
+                    "Value": null,
+                    "Display": "濕度不良",
+                    "StatusSid": null,
+                    "Status": null,
+                    "FromNum": 0,
+                    "INum": 0,
+                    "Attr01": null,
+                    "Attr02": null,
+                    "Attr03": null
+                },
+                {
+                    "ItemType": null,
+                    "Attr": null,
+                    "Attr04": null,
+                    "Attr05": null,
+                    "Attr06": null,
+                    "Attr07": null,
+                    "Attr08": null,
+                    "Attr09": null,
+                    "Attr10": null,
+                    "RefKey": null,
+                    "SID": "GTI22092622013291651",
+                    "No": "D.C00-0004",
+                    "Value": null,
+                    "Display": "溫度不良",
+                    "StatusSid": null,
+                    "Status": null,
+                    "FromNum": 0,
+                    "INum": 0,
+                    "Attr01": null,
+                    "Attr02": null,
+                    "Attr03": null
+                },
+                {
+                    "ItemType": null,
+                    "Attr": null,
+                    "Attr04": null,
+                    "Attr05": null,
+                    "Attr06": null,
+                    "Attr07": null,
+                    "Attr08": null,
+                    "Attr09": null,
+                    "Attr10": null,
+                    "RefKey": null,
+                    "SID": "GTI22092622013291652",
+                    "No": "D.C00-0005",
+                    "Value": null,
+                    "Display": "毛邊",
+                    "StatusSid": null,
+                    "Status": null,
+                    "FromNum": 0,
+                    "INum": 0,
+                    "Attr01": null,
+                    "Attr02": null,
+                    "Attr03": null
+                },
+                {
+                    "ItemType": null,
+                    "Attr": null,
+                    "Attr04": null,
+                    "Attr05": null,
+                    "Attr06": null,
+                    "Attr07": null,
+                    "Attr08": null,
+                    "Attr09": null,
+                    "Attr10": null,
+                    "RefKey": null,
+                    "SID": "GTI22092622013291653",
+                    "No": "D.C00-0006",
+                    "Value": null,
+                    "Display": "破片",
+                    "StatusSid": null,
+                    "Status": null,
+                    "FromNum": 0,
+                    "INum": 0,
+                    "Attr01": null,
+                    "Attr02": null,
+                    "Attr03": null
+                },
+                {
+                    "ItemType": null,
+                    "Attr": null,
+                    "Attr04": null,
+                    "Attr05": null,
+                    "Attr06": null,
+                    "Attr07": null,
+                    "Attr08": null,
+                    "Attr09": null,
+                    "Attr10": null,
+                    "RefKey": null,
+                    "SID": "GTI22092622013291654",
+                    "No": "D.C00-0007",
+                    "Value": null,
+                    "Display": "其他",
+                    "StatusSid": null,
+                    "Status": null,
+                    "FromNum": 0,
+                    "INum": 0,
+                    "Attr01": null,
+                    "Attr02": null,
+                    "Attr03": null
+                }
+            ],
+            defect: [{ "SID": "GTI22092622013291648", "No": "D.C00-0001", "Display": "重量不足", "INum": "5" }],
             //                dataModel.systemConfig = SystemConfig;
             //                //number設置小數點位數
             //                dataModel.systemConfig.setp = "0." + "1".padStart(SystemConfig.DecimalPoint, "0");
@@ -84,10 +243,14 @@
                 { "RefKey": null, "SID": "GTI11110115550180956", "No": "other", "Value": null, "Display": "其他", "StatusSid": null, "Status": null, "FromNum": 0, "INum": 0, "Attr01": null, "Attr02": null, "Attr03": null }
                 , { "RefKey": null, "SID": "GTI22092622011391630", "No": "R.C01-0002", "Value": null, "Display": "過期", "StatusSid": null, "Status": null, "FromNum": 0, "INum": 0, "Attr01": null, "Attr02": null, "Attr03": null }
                 , { "RefKey": null, "SID": "GTI22092622011391632", "No": "R.C01-0004", "Value": null, "Display": "雜質", "StatusSid": null, "Status": null, "FromNum": 0, "INum": 0, "Attr01": null, "Attr02": null, "Attr03": null }
-                , { "RefKey": null, "SID": "GTI22092622011391633", "No": "R.C01-0005", "Value": null, "Display": "品質異常", "StatusSid": null, "Status": null, "FromNum": 0, "INum": 0, "Attr01": null, "Attr02": null, "Attr03": null }]
+                , { "RefKey": null, "SID": "GTI22092622011391633", "No": "R.C01-0005", "Value": null, "Display": "品質異常", "StatusSid": null, "Status": null, "FromNum": 0, "INum": 0, "Attr01": null, "Attr02": null, "Attr03": null }],
+            send_data: {
+                scrapList:[],
+            },
         };
         const store = new Vuex.Store({
             state: {
+                MainData: set_model,
                 set_model,
                 globalvar: {
                     scrapTotal: 0,
@@ -128,7 +291,7 @@
                         出站_無餘料退庫() {
                             //這個測試,需要重新整理後,測試才會準確
                             /*
-                            1.有 輸入框/刪除欄 
+                            1.有 輸入框/刪除欄
                             2.Reload 不顯示
                             3.扣料數量欄位 可輸入,且右邊會帶出 料批數量
                             */
@@ -140,7 +303,7 @@
                         },
                         備料出站_退庫() {
                             /*
-                            測試,執行料批號退庫程序 是否己執行 
+                            測試,執行料批號退庫程序 是否己執行
                             1.應顯示 -- 請先完成料批退庫程序
                             */
                             _self.TestGroup.出站_有餘料退庫();
@@ -170,7 +333,7 @@
                         出站_無餘料退庫_數字輸入驗証() {
                             /*
                             測試,扣料數量 不得大於 料批數量
-                            1.當點選 執行時 ,會觸發  檢核數值和必填 
+                            1.當點選 執行時 ,會觸發  檢核數值和必填
                             2.重覆測試時, 應要剔除 重覆
                             */
                             _self.TestGroup.出站_無餘料退庫();
@@ -208,7 +371,7 @@
             computed: {
                 _控件() {
                     return this.$refs.cp;
-                } 
+                }
             },
             methods: {
                 preventSubmit(event) {
@@ -246,7 +409,7 @@
                     let { ATTRIBUTE_04 } = this.set_model.CurrentOperation;
                     this.set_model.CurrentOperation.ATTRIBUTE_04 = ATTRIBUTE_04 == 'Y' ? '' : 'Y';
                 },
-                 
+
             }
         })
     });

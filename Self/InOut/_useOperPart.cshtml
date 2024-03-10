@@ -1,0 +1,343 @@
+@using System.Dynamic
+@model BLL.MES.DataViews.LotData
+@{
+	dynamic data = new ExpandoObject();
+	@*Model.CurrentLot = new {STATUS = "Run",LOT = "5D2NW50000-231128-01"};
+    Model.CurrentOperation = new {ATTRIBUTE_03="1",ATTRIBUTE_04="Y"};*@
+    GTI_Test GTest = new GTI_Test(Html, ViewContext.HttpContext);
+}
+@eBundle.QRender_CSS()
+@eBundle.QRender_JS()
+@Html.Partial("~/Areas/MES/Views/WIP/Partial2/_useOperPart.cshtml")
+<pre>
+</pre>
+<div id="app">
+	<form id="WipForm" @@keydown.enter.prevent="preventSubmit">
+		<el-row class="panel b">
+			<el-button-group>
+				<el-button type="primary" size="small" v-for="(val,key) in TestGroup" :label="key" :key="key" @@click="val()">{{key}}</el-button>
+			</el-button-group>
+
+			<br />
+			<el-row :gutter="12">
+				<el-col :lg="12">
+					<component is="cp-usemtlot" :set_model="set_model" ref="cp" :test1="test"></component>
+				</el-col>
+			</el-row>
+	</form>
+	<div id="footerCommand">
+		<button type="button" class="btn btn-lg btn-labeled btn-success  btn_submit" style="margin:10px 30px;" @@click="Exec">
+			<span class="btn-label">
+				<i class="fa fa-play"></i>
+			</span>@RES.BLL.Face.Exec
+		</button>
+	</div>
+
+</div>
+<script>
+	Vue.config.devtools = true;
+
+	$(() => {
+		var form = $("#WipForm");
+		Vue.use(Vuex);
+		var test = {
+			//利用這裡,把測試的 Bom 注入物件中
+			List_Bom: [{ "SID": "GTI23121310451276778", "BOM_FORM_NO": "5101-231211001", "PARTNO_SID": "GTI23083016242153823", "PARTNO": "2001", "PART_NAME": "2001", "CATEGORY": "Leaf", "QTY": 120, "DESCRIBE": null, "CREATE_USER": "EIS", "CREATE_DATE": "2023-12-13T10:45:12", "UPDATE_USER": "Admin", "UPDATE_DATE": "2023-12-13T11:38:07", "WAREHOUSE_NO": "1B01", "ATTRIBUTE_01": "1", "ATTRIBUTE_02": "0.80000", "ATTRIBUTE_03": null, "ATTRIBUTE_04": null, "ATTRIBUTE_05": null, "ATTRIBUTE_06": null, "ATTRIBUTE_07": null, "ATTRIBUTE_08": null, "ATTRIBUTE_09": null, "ATTRIBUTE_10": null, "ATTRIBUTE_11": null, "ATTRIBUTE_12": null, "ATTRIBUTE_13": null, "ATTRIBUTE_14": null, "ATTRIBUTE_15": null, "ATTRIBUTE_16": null, "QUOTE_ONCE": "T" }, { "SID": "GTI23121310451276779", "BOM_FORM_NO": "5101-231211001", "PARTNO_SID": "GTI23083016242153853", "PARTNO": "2102", "PART_NAME": "2102", "CATEGORY": "Leaf", "QTY": 20, "DESCRIBE": null, "CREATE_USER": "EIS", "CREATE_DATE": "2023-12-13T10:45:12", "UPDATE_USER": "Admin", "UPDATE_DATE": "2023-12-13T11:38:07", "WAREHOUSE_NO": "1B01", "ATTRIBUTE_01": "1", "ATTRIBUTE_02": "0.13300", "ATTRIBUTE_03": null, "ATTRIBUTE_04": null, "ATTRIBUTE_05": null, "ATTRIBUTE_06": null, "ATTRIBUTE_07": null, "ATTRIBUTE_08": null, "ATTRIBUTE_09": null, "ATTRIBUTE_10": null, "ATTRIBUTE_11": null, "ATTRIBUTE_12": null, "ATTRIBUTE_13": null, "ATTRIBUTE_14": null, "ATTRIBUTE_15": null, "ATTRIBUTE_16": null, "QUOTE_ONCE": "T" }, { "SID": "GTI23121310451276780", "BOM_FORM_NO": "5101-231211001", "PARTNO_SID": "GTI23112314170967203", "PARTNO": "2201", "PART_NAME": "101", "CATEGORY": "Leaf", "QTY": 3, "DESCRIBE": null, "CREATE_USER": "EIS", "CREATE_DATE": "2023-12-13T10:45:12", "UPDATE_USER": "Admin", "UPDATE_DATE": "2023-12-13T11:38:07", "WAREHOUSE_NO": "1B01", "ATTRIBUTE_01": "1", "ATTRIBUTE_02": "0.02000", "ATTRIBUTE_03": null, "ATTRIBUTE_04": null, "ATTRIBUTE_05": null, "ATTRIBUTE_06": null, "ATTRIBUTE_07": null, "ATTRIBUTE_08": null, "ATTRIBUTE_09": null, "ATTRIBUTE_10": null, "ATTRIBUTE_11": null, "ATTRIBUTE_12": null, "ATTRIBUTE_13": null, "ATTRIBUTE_14": null, "ATTRIBUTE_15": null, "ATTRIBUTE_16": null, "QUOTE_ONCE": "T" }, { "SID": "GTI23121310451276781", "BOM_FORM_NO": "5101-231211001", "PARTNO_SID": "GTI23112314170967205", "PARTNO": "2202", "PART_NAME": "TAIC", "CATEGORY": "Leaf", "QTY": 1.8, "DESCRIBE": null, "CREATE_USER": "EIS", "CREATE_DATE": "2023-12-13T10:45:12", "UPDATE_USER": "Admin", "UPDATE_DATE": "2023-12-13T11:38:07", "WAREHOUSE_NO": "1B01", "ATTRIBUTE_01": "1", "ATTRIBUTE_02": "0.01200", "ATTRIBUTE_03": null, "ATTRIBUTE_04": null, "ATTRIBUTE_05": null, "ATTRIBUTE_06": null, "ATTRIBUTE_07": null, "ATTRIBUTE_08": null, "ATTRIBUTE_09": null, "ATTRIBUTE_10": null, "ATTRIBUTE_11": null, "ATTRIBUTE_12": null, "ATTRIBUTE_13": null, "ATTRIBUTE_14": null, "ATTRIBUTE_15": null, "ATTRIBUTE_16": null, "QUOTE_ONCE": "T" }],
+			List_Bom_只有一筆料: [{ "SID": "GTI23121310451276778", "BOM_FORM_NO": "5101-231211001", "PARTNO_SID": "GTI23083016242153823", "PARTNO": "2001", "PART_NAME": "2001", "CATEGORY": "Leaf", "QTY": 120, "DESCRIBE": null, "CREATE_USER": "EIS", "CREATE_DATE": "2023-12-13T10:45:12", "UPDATE_USER": "Admin", "UPDATE_DATE": "2023-12-13T11:38:07", "WAREHOUSE_NO": "1B01", "ATTRIBUTE_01": "1", "ATTRIBUTE_02": "0.80000", "ATTRIBUTE_03": null, "ATTRIBUTE_04": null, "ATTRIBUTE_05": null, "ATTRIBUTE_06": null, "ATTRIBUTE_07": null, "ATTRIBUTE_08": null, "ATTRIBUTE_09": null, "ATTRIBUTE_10": null, "ATTRIBUTE_11": null, "ATTRIBUTE_12": null, "ATTRIBUTE_13": null, "ATTRIBUTE_14": null, "ATTRIBUTE_15": null, "ATTRIBUTE_16": null, "QUOTE_ONCE": "T" }],
+			List_Bom_Case: [{ "SID": "GTI23112315412468262", "BOM_FORM_NO": "AAA5101-150612002", "PARTNO_SID": "GTI23112314171067261", "PARTNO": "3D5000", "PART_NAME": "4518預成形", "CATEGORY": "Leaf", "QTY": 5256, "DESCRIBE": null, "CREATE_USER": "EIS", "CREATE_DATE": "2023-11-23T15:41:24", "UPDATE_USER": "EIS", "UPDATE_DATE": "2023-11-23T15:41:24", "WAREHOUSE_NO": "1C02", "ATTRIBUTE_01": "1", "ATTRIBUTE_02": "10.51200", "ATTRIBUTE_03": null, "ATTRIBUTE_04": null, "ATTRIBUTE_05": null, "ATTRIBUTE_06": null, "ATTRIBUTE_07": null, "ATTRIBUTE_08": null, "ATTRIBUTE_09": null, "ATTRIBUTE_10": null, "ATTRIBUTE_11": null, "ATTRIBUTE_12": null, "ATTRIBUTE_13": null, "ATTRIBUTE_14": null, "ATTRIBUTE_15": null, "ATTRIBUTE_16": null, "QUOTE_ONCE": "F", "check": 0 }, { "SID": "GTI23112315412468263", "BOM_FORM_NO": "5101-150612002", "PARTNO_SID": "GTI23112314171067294", "PARTNO": "3K0010", "PART_NAME": "Center ring內", "CATEGORY": "Leaf", "QTY": 500, "DESCRIBE": null, "CREATE_USER": "EIS", "CREATE_DATE": "2023-11-23T15:41:24", "UPDATE_USER": "EIS", "UPDATE_DATE": "2023-11-23T15:41:24", "WAREHOUSE_NO": "2C01", "ATTRIBUTE_01": "5", "ATTRIBUTE_02": "1.00000", "ATTRIBUTE_03": null, "ATTRIBUTE_04": null, "ATTRIBUTE_05": null, "ATTRIBUTE_06": null, "ATTRIBUTE_07": null, "ATTRIBUTE_08": null, "ATTRIBUTE_09": null, "ATTRIBUTE_10": null, "ATTRIBUTE_11": null, "ATTRIBUTE_12": null, "ATTRIBUTE_13": null, "ATTRIBUTE_14": null, "ATTRIBUTE_15": null, "ATTRIBUTE_16": null, "QUOTE_ONCE": "F", "check": 0 }],
+			備料出站_退庫: [{ "MTR_LOT": "15422-1-1C02-00001", "PARTNO": "3D5000", "PART_NAME": "4518預成形", "UseQty": 5086.55, "QUANTITY": 5256, "WAREHOUSE_NO": "1C02" }, { "MTR_LOT": "3K0010-1-2C01-00001", "PARTNO": "3K0010", "PART_NAME": "Center ring內", "UseQty": 400, "QUANTITY": 500, "WAREHOUSE_NO": "2C00" }],
+			多料批: [{ "LIST_MT_SID": "GTI23112815390069536", "MES_MTR_LOT": "15127-1-1C01-00001", "QUANTITY": 418.70000, "ACTION_LINK_SID": null }, { "LIST_MT_SID": "GTI23112815390069535", "MES_MTR_LOT": "15127-1-1C01-00002", "QUANTITY": 418.70000, "ACTION_LINK_SID": null }],
+			單一料批: { "WH_MTR_LOT": "2001-15409-1-1B01", "PARTNO": "2001", "WAREHOUSE_NO": "1B01", "Items": [{ "LIST_MT_SID": "GTI23121413324877843", "MES_MTR_LOT": "2001-15409-1-1B01-00001", "QUANTITY": 150.00000, "ACTION_LINK_SID": null }] },
+			Lot: {
+				Case1: {
+					QUANTITY: 10,
+					STATUS: "Wait",
+					LOT: "5D2NW50000-231128-01",
+					WO: "5101-150612002",
+				},
+				Case2: {
+					QUANTITY: 10,
+					STATUS: "Wait",
+					LOT: "3B0000-231213-01",
+					WO: "5101-231211001",
+				}
+			}
+		}
+		var set_model = {
+			CurrentLot: test.Lot.Case2,
+			scrapList: [],
+			systemConfig: {
+				setp: 1,
+				DecimalPoint: 3
+			},
+            "OperationPartUseList": [
+                {
+                    "MTR_LOT_SID": "GTI22112117405594219",
+                    "MTR_LOT": "GTI22112117405594219",
+                    "MTR_LOT_1": "",
+                    "MTR_LOT_2": "",
+                    "MTR_BATCH_NO": "",
+                    "MTR_BATCH_SEQ": null,
+                    "STATUS": "Run",
+                    "QUANTITY": 200,
+                    "UNIT": "Roll",
+                    "QTY_1": null,
+                    "UNIT_1": "",
+                    "QTY_2": null,
+                    "UNIT_2": "",
+                    "OPER_SID": "",
+                    "OPERATION_NO": "",
+                    "OPERATION": "",
+                    "WO_SID": "",
+                    "WO": "",
+                    "LOT_SID": "",
+                    "LOT": "",
+                    "PRODUCT_SID": "",
+                    "PRODUCT": "系統預設產品資料",
+                    "PARTNO_SID": "GTI22112117231794206",
+                    "PARTNO": "300300",
+                    "PARTNO_VER_SID": "GTI22112117231894207",
+                    "PARTNO_VERSION": 0,
+                    "PRIORITY": "Normal",
+                    "CLOSE_DATE": null,
+                    "OWNER": "",
+                    "EQP_SID": "GTI22120910222003769",
+                    "EQP_NO": "PS-1",
+                    "ROOT_MTR_LOT_SID": "GTI22112117405594219",
+                    "PARENT_MTR_LOT_SID": "",
+                    "DATECODE": "",
+                    "VENDOR_SID": "",
+                    "VENDOR_NO": "",
+                    "WAREHOUSE_SID": "",
+                    "WAREHOUSE_NO": "",
+                    "WAREHOUSE_NAME": "",
+                    "EXPIRATION_DATE": "0001-01-01 00:00:00",
+                    "EXTEND_EXPIRATION_DATE": "0001-01-01 00:00:00",
+                    "ATTRIBUTE_01": "",
+                    "ATTRIBUTE_02": "",
+                    "ATTRIBUTE_03": "",
+                    "ATTRIBUTE_04": "",
+                    "ATTRIBUTE_05": "",
+                    "ATTRIBUTE_06": "",
+                    "ATTRIBUTE_07": "",
+                    "ATTRIBUTE_08": "",
+                    "ATTRIBUTE_09": "",
+                    "ATTRIBUTE_10": "",
+                    "ATTRIBUTE_11": null,
+                    "ATTRIBUTE_12": null,
+                    "ATTRIBUTE_13": null,
+                    "ATTRIBUTE_14": null,
+                    "ATTRIBUTE_15": null,
+                    "ATTRIBUTE_16": null,
+                    "CREATE_USER": "Admin",
+                    "CREATE_DATE": "2022-11-21 17:40:54",
+                    "UPDATE_USER": "Admin",
+                    "UPDATE_DATE": "2022-12-20 11:30:09",
+                    "SID": "GTI22112117405594219",
+                    "No": "GTI22112117405594219",
+                    "Name": "GTI22112117405594219",
+                    "Identity": "GTI22112117405594219",
+                    "TableName": "MT_LOT",
+                    "IsExist": true,
+                    "UseQty": 200,
+                    "PartInfo": {
+                        "SID": "GTI22112117231794206",
+                        "No": "300300",
+                        "Name": "濾布捲",
+                        "Spec": "濾布捲",
+                        "ConsumptNum": 1000,
+                        "DefaultUseQty": 2,
+                        "UsedNum": 200
+                    },
+                    "Export": 29
+                },
+                {
+                    "MTR_LOT_SID": "GTI22112117405594220",
+                    "MTR_LOT": "GTI22112117405594220",
+                    "MTR_LOT_1": "",
+                    "MTR_LOT_2": "",
+                    "MTR_BATCH_NO": "",
+                    "MTR_BATCH_SEQ": null,
+                    "STATUS": "Run",
+                    "QUANTITY": 200,
+                    "UNIT": "Roll",
+                    "QTY_1": null,
+                    "UNIT_1": "",
+                    "QTY_2": null,
+                    "UNIT_2": "",
+                    "OPER_SID": "",
+                    "OPERATION_NO": "",
+                    "OPERATION": "",
+                    "WO_SID": "",
+                    "WO": "",
+                    "LOT_SID": "",
+                    "LOT": "",
+                    "PRODUCT_SID": "",
+                    "PRODUCT": "系統預設產品資料",
+                    "PARTNO_SID": "GTI22112117231794206",
+                    "PARTNO": "300300",
+                    "PARTNO_VER_SID": "GTI22112117231894207",
+                    "PARTNO_VERSION": 0,
+                    "PRIORITY": "Normal",
+                    "CLOSE_DATE": null,
+                    "OWNER": "",
+                    "EQP_SID": "GTI22120910222003769",
+                    "EQP_NO": "PS-1",
+                    "ROOT_MTR_LOT_SID": "GTI22112117405594220",
+                    "PARENT_MTR_LOT_SID": "",
+                    "DATECODE": "",
+                    "VENDOR_SID": "",
+                    "VENDOR_NO": "",
+                    "WAREHOUSE_SID": "",
+                    "WAREHOUSE_NO": "",
+                    "WAREHOUSE_NAME": "",
+                    "EXPIRATION_DATE": "0001-01-01 00:00:00",
+                    "EXTEND_EXPIRATION_DATE": "0001-01-01 00:00:00",
+                    "ATTRIBUTE_01": "",
+                    "ATTRIBUTE_02": "",
+                    "ATTRIBUTE_03": "",
+                    "ATTRIBUTE_04": "",
+                    "ATTRIBUTE_05": "",
+                    "ATTRIBUTE_06": "",
+                    "ATTRIBUTE_07": "",
+                    "ATTRIBUTE_08": "",
+                    "ATTRIBUTE_09": "",
+                    "ATTRIBUTE_10": "",
+                    "ATTRIBUTE_11": null,
+                    "ATTRIBUTE_12": null,
+                    "ATTRIBUTE_13": null,
+                    "ATTRIBUTE_14": null,
+                    "ATTRIBUTE_15": null,
+                    "ATTRIBUTE_16": null,
+                    "CREATE_USER": "Admin",
+                    "CREATE_DATE": "2022-11-21 17:40:54",
+                    "UPDATE_USER": "Admin",
+                    "UPDATE_DATE": "2022-12-20 11:30:09",
+                    "SID": "GTI22112117405594220",
+                    "No": "GTI22112117405594220",
+                    "Name": "GTI22112117405594220",
+                    "Identity": "GTI22112117405594220",
+                    "TableName": "MT_LOT",
+                    "IsExist": true,
+                    "UseQty": 200,
+                    "PartInfo": {
+                        "SID": "GTI22112117231794206",
+                        "No": "300300",
+                        "Name": "濾布捲",
+                        "Spec": "濾布捲",
+                        "ConsumptNum": 1000,
+                        "DefaultUseQty": 2,
+                        "UsedNum": 400
+                    },
+                    "Export": 29
+                }
+			],
+            "UseEqumentInfo": { "IP": "", "PORT": "", "PROPERTY_SN": "", "EQP_DEVICE_NO": "", "EQP_SEQ": "", "LOCATION": "", "STATE_SID": "", "STATE_NO": "", "TYPE_SID": "", "TYPE_NO": "", "DESCRIPTION": "", "OWNER": "", "VENDOR": "", "AREA_SID": "", "MAP_SID": "", "CURRENT_CAPACITY": 0, "MAX_CAPACITY": 0, "CURRENT_LOT_SIZE": 0, "MAX_LOT_SIZE": 0, "CURRENT_BATCH_SIZE": 0, "MAX_BATCH_SIZE": 0, "LAST_CHANGE_STATE_TIME": null, "ENABLE_FLAG": "", "QUOTE_ONCE": "", "CREATE_USER": "", "CREATE_DATE": "0001-01-01 00:00:00", "UPDATE_USER": "", "UPDATE_DATE": "0001-01-01 00:00:00", "ATTRIBUTE_01": "", "ATTRIBUTE_02": "", "ATTRIBUTE_03": "", "ATTRIBUTE_04": "", "ATTRIBUTE_05": "", "ATTRIBUTE_06": "", "ATTRIBUTE_07": "", "ATTRIBUTE_08": "", "ATTRIBUTE_09": "", "ATTRIBUTE_10": "", "ATTRIBUTE_11": 0, "ATTRIBUTE_12": 0, "ATTRIBUTE_13": 0, "ATTRIBUTE_14": null, "ATTRIBUTE_15": null, "ATTRIBUTE_16": null, "SID": "", "No": "123", "Name": "", "Identity": "", "TableName": "FC_EQUIPMENT", "IsExist": false } ,
+		};
+		const store = new Vuex.Store({
+			state: {
+				set_model,
+				globalvar: {
+					scrapTotal: 0,
+				}
+			},
+			getters: {
+				getData(state) {
+					return set_model;
+				}
+			}
+
+		})
+
+		new Vue({
+			el: '#app',
+			mixins: [Vue.prototype.$UT.Mixins.v_ErrGroup()],
+			store,
+			provide() {
+				return {
+					rootEl: this,
+				};
+			},
+			data() {
+				var _self = this;
+				return {
+					TestGroup: {
+						進站() {
+							_self.set_model.CurrentLot.STATUS = 'Wait';
+						},
+						 
+					},
+					test,
+					value: [{
+						PARTNO: 'PARTNO',
+						PART_NAME: 'PART_NAME',
+						scraps: [
+							{ "RefKey": null, "SID": "GTI11110115550180956", "No": "other", "Value": null, "Display": "其他", "StatusSid": null, "Status": null, "FromNum": 0, "INum": 10, "Attr01": null, "Attr02": null, "Attr03": null }
+							, { "RefKey": null, "SID": "GTI22092622011391630", "No": "R.C01-0002", "Value": null, "Display": "過期", "StatusSid": null, "Status": null, "FromNum": 0, "INum": 20, "Attr01": null, "Attr02": null, "Attr03": null }
+						],
+						單位: 'kg',
+						長度: 100,
+					}],
+
+					i18n: {
+						料號: 'AAAA'
+					},
+					bb_test: {
+						"SID": "4378FE38-A049-45B4-B6F6-A749D87F259F",
+						"OPERATION": "EOL-L08",
+						"PROJECT": "CM22BTX03",
+						"CREATE_DATE": "2023-08-07T16:10:00",
+						"MODULE_ID": "0x05C0686TEST",
+						"STATE": "NG",
+						"ACTION_LINK_SID": null,
+						"SN": "TWO-230807A-000009"
+					},
+					set_model
+				}
+			},
+			computed: {
+				_控件() {
+					return this.$refs.cp;
+				}
+			},
+			methods: {
+				preventSubmit(event) {
+					// 檢查是否按下了 Enter 鍵 (keyCode 13 或者 key "Enter")
+					if (event.keyCode === 13 || event.key === 'Enter') {
+						event.preventDefault(); // 防止 Enter 的默認行為 (提交表單)
+					}
+				},
+				Exec(e) {
+					this.$message('ok');
+					e.preventDefault();
+					$('form').parsley().validate();
+					this.chk_ErrGroup();
+				},
+				測試API(key) {
+					debugger
+					var _tar = this.$refs.tar;
+					switch (key) {
+						case "null":
+							_tar.chk_item = null;
+							break;
+						default:
+							this.bb_test.STATE = key;
+							_tar.chk_item = this.bb_test;
+							break;
+
+					}
+					_tar.set_Exec();
+				},
+				切換進出站() {
+					let { STATUS } = this.set_model.CurrentLot;
+					this.set_model.CurrentLot.STATUS = STATUS == 'Run' ? 'Wait' : 'Run';
+				},
+				物料餘料退庫指定() {
+					let { ATTRIBUTE_04 } = this.set_model.CurrentOperation;
+					this.set_model.CurrentOperation.ATTRIBUTE_04 = ATTRIBUTE_04 == 'Y' ? '' : 'Y';
+				},
+
+			}
+		})
+	});
+</script>

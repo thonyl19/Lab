@@ -1,0 +1,73 @@
+﻿@using System.Dynamic
+@{
+	bool isSingleModel = (bool)ViewData["SingleModel"];
+	dynamic data = new ExpandoObject();
+    if (true)
+	{
+		Layout = "~/Views/Shared/_LayoutSingle.cshtml";
+	}
+    GTI_Test GTest = new GTI_Test(Html, ViewContext.HttpContext);
+    ViewBag.Title = @Genesis.Common.PageBaseInfo.getCurrentResource("baseTpl").RESOURCE_NAME;
+}
+@eBundle.QRender_CSS()
+@eBundle.QRender_JS()
+
+<h3>
+    @ViewBag.Title
+</h3>
+
+<div id="app">
+    {{list}}
+    <el-input v-model="searchData"></el-input> <el-button @@click="Exec()">Exec</el-button>
+    {{userMenu}}
+</div>
+
+<script>
+    $(() => {
+        var returnMenu = [];
+        function GetAllItemList(menuList) {
+
+            if (!menuList) {
+                return;
+            }
+            $.each(menuList, function (index, item) {
+                if (item.nodes != null)
+                    GetAllItemList(item.nodes);
+            })
+
+            if (menuList.length != 0) {
+                //
+                returnMenu = returnMenu.concat(menuList);
+                //returnMenu.push(menuList);
+            }
+            return returnMenu;
+        }
+
+        new Vue({
+            el: '#app',
+            data() {
+                return {
+                    msg: "baseTpl---A",
+                    list: [],
+                    searchData: '在製',
+                    userMenu:[],
+                }
+            },
+            mounted() {
+
+            },
+            methods: {
+                Exec() {
+                    let baseUrl = "@Genesis.Common.PageBaseInfo.GetBaseUrl()";
+                    var menuKey = baseUrl + "userMenu";
+                    this.userMenu = $.localStorage.get(menuKey);
+                    var allList = GetAllItemList(this.userMenu);
+                    var _key = this.searchData.toUpperCase();
+                    this.list = $.grep(allList, function (item, index) {
+                        return item.LangText.toUpperCase().indexOf(_key) != -1 && item.Url != "" && item.Url != baseUrl;
+                    })
+                },
+            }
+        })
+    });
+</script>
