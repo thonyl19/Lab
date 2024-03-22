@@ -5,7 +5,8 @@
 }
 @eBundle.QRender_CSS()
 @eBundle.QRender_JS()
-@Html.Partial("~/Areas/MES/Views/WIP/Partial2/_CartonCheckIn.cshtml")
+@Html.Partial("~/Areas/ZZ_DAE/Views/OperTaskPart/_lot_remark.cshtml")
+
 <pre>
 </pre>
 <div id="app">
@@ -18,8 +19,8 @@
             <br />
             <el-row :gutter="12">
                 <el-col :lg="12">
-                    {{set_model.LotList}}
-                    <component is="gti-carton-checkin" v-model="set_model.LotList" :set_model="set_model" ref="cp" :test1="test" :cfg="cfg"></component>
+                    {{c_cfg}}
+                    <component is="cp-dae-lot-note" v-model="set_model.LotList" :set_model="set_model" ref="cp" :test1="test" :cfg="cfg"></component>
                 </el-col>
             </el-row>
     </form>
@@ -62,7 +63,7 @@
             }
         }
         var set_model = {
-            LotList:[],
+            LotList: [],
             Setting: {
                 AnySet: {
                     IsWarehousingOp: false,
@@ -72,6 +73,9 @@
                         required: 'test',
                         CodeRule: 'test',
                     }
+                },
+                CheckInSet: {
+                    LotRemark: { dynJson:''}
                 }
             },
             CurrentLot: test.Lot.Case1,
@@ -239,11 +243,6 @@
                 }
             ],
             defect: [{ "SID": "GTI22092622013291648", "No": "D.C00-0001", "Display": "秖ぃì", "INum": "5" }],
-            //                dataModel.systemConfig = SystemConfig;
-            //                //number砞竚计翴计
-            //                dataModel.systemConfig.setp = "0." + "1".padStart(SystemConfig.DecimalPoint, "0");
-            //                if(SystemConfig.DecimalPoint === 0)
-            //dataModel.systemConfig.setp = "1";
             systemConfig: {
                 setp: 1,
                 DecimalPoint: 3
@@ -383,6 +382,9 @@
             computed: {
                 _北ン() {
                     return this.$refs.cp;
+                },
+                c_cfg() {
+                    return this.$store.state.set_model.Setting.CheckInSet;
                 }
             },
             methods: {
@@ -412,4 +414,17 @@
 
                     }
                     _tar.set_Exec();
-               
+                },
+                ち传秈() {
+                    let { STATUS } = this.set_model.CurrentLot;
+                    this.set_model.CurrentLot.STATUS = STATUS == 'Run' ? 'Wait' : 'Run';
+                },
+                緇癶畐﹚() {
+                    let { ATTRIBUTE_04 } = this.set_model.CurrentOperation;
+                    this.set_model.CurrentOperation.ATTRIBUTE_04 = ATTRIBUTE_04 == 'Y' ? '' : 'Y';
+                },
+
+            }
+        })
+    });
+</script>
