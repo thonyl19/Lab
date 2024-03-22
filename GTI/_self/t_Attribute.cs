@@ -1,9 +1,23 @@
-﻿using Microsoft.VisualStudio.TestTools.UnitTesting;
+﻿using Genesis.Library.BLL.Base;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
 using System;
+using System.ComponentModel.DataAnnotations;
 using System.Reflection;
 
 namespace UnitTestProject
 {
+
+	public static class StatusExtensions
+	{
+		public static string AttrShortName(this Enum _enum)
+		{
+			var memberInfo = _enum.GetType().GetMember(_enum.ToString());
+			var displayAttribute = (DisplayAttribute)Attribute.GetCustomAttribute(memberInfo[0], typeof(DisplayAttribute));
+			return displayAttribute?.ShortName ?? _enum.ToString();
+		}
+	}
+
+
 	[TestClass]
 	public class t_Attribute
 	{
@@ -73,6 +87,25 @@ namespace UnitTestProject
 		}
 
 
+
+
+		[TestMethod]
+		public void t_TTTT()
+		{
+			//var z = BulkHelper.GetProperty(Genesis.Library.BLL.ICM.Definition.Status.Verifying.GetType(), "ShortName");
+
+			//var status = Genesis.Library.BLL.ICM.Definition.Status.Verifying;
+			//var memberInfo = status.GetType().GetMember(status.ToString());
+			//var displayAttribute = (DisplayAttribute)Attribute.GetCustomAttribute(memberInfo[0], typeof(DisplayAttribute));
+
+			//var z = displayAttribute?.ShortName ?? status.ToString();
+
+
+			//var z1 = Genesis.Library.BLL.ICM.Definition.Status.Used.AttrShortName();
+
+		}
+
+		
 
 	}
 }

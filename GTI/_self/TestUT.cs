@@ -28,7 +28,7 @@ namespace UnitTestProject.TestUT
 			sw.Stop();
 			TimeSpan ts2 = sw.Elapsed;
 			//Console.WriteLine($"Stopwatch總共花費{ts2.TotalMilliseconds}ms.");
-			return new { result , Cost = $"Stopwatch總共花費{ts2.TotalMilliseconds}ms." };
+			return new { result , Cost = $"Stopwatch總共花費{ts2.TotalSeconds.ToString()} sec." };
 		}
 	}
 
@@ -252,6 +252,7 @@ namespace UnitTestProject.TestUT
 				this.Close();
 			}
 			return ao_obj;
+
 		}
 
 

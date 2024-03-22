@@ -13,10 +13,12 @@ using System.Collections.Generic;
 using System.Configuration;
 using System.Data;
 using System.Diagnostics;
+using System.Globalization;
 using System.Linq;
 using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Reflection;
+using System.Resources;
 using UnitTestProject.TestUT;
 using static Genesis.Library.BLL.Label.LabelBaseService;
 
@@ -299,8 +301,41 @@ namespace UnitTestProject
 		}
 
 
+		[TestMethod]
+		public void t_x1()
+		{
+			CultureInfo cultureInfo = CultureInfo.GetCultureInfo("zh-TW"); // 使用特定的文化，例如 en-US
 
-			
+			//// 建立 ResourceManager
+			//ResourceManager resourceManager = new ResourceManager("RES.BLL.Face", typeof(LocalizationExample).Assembly);
+
+			//// 使用 GetString 方法取得特定鍵對應的值
+			//string processingLineText = resourceManager.GetString("ProcessingLine", cultureInfo);
+			var a = new ResourceManager("RES.BLL.Face", typeof(RES.BLL.Face).Assembly);
+			var a1 = typeof(RES.BLL.Face);
+			Assembly a2 = a1.Assembly;
+			string[] resNames1 = a2.GetManifestResourceNames();
+			var ttt = a.GetString("RES.BLL.mes.resources", cultureInfo)?.ToString().Trim();
+
+
+			Assembly assem = typeof(RES.BLL.Face).Assembly;
+
+			// Enumerate the resource files.
+			string[] resNames = assem.GetManifestResourceNames();
+			if (resNames.Length == 0)
+				Console.WriteLine("   No resources found.");
+
+			//foreach (var resName in resNames)
+			//	Console.WriteLine("   Resource: {0}", resName.Replace(".resources", ""));
+
+
+
+			var _val = new ResourceManager("RES.BLL.Face", typeof(RES.BLL.Face).Assembly).GetString("QuoteOnce1")?.ToString().Trim();
+			var z = typeof(RES.BLL.Face);
+			var _val1 = new ResourceManager(z).GetString("QuoteOnce")?.ToString().Trim();
+		}
+
+
 
 
 

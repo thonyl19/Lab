@@ -1,4 +1,6 @@
 ﻿using Microsoft.VisualStudio.TestTools.UnitTesting;
+using System;
+using System.Collections.Generic;
 using System.Linq;
 using UnitTestProject.TestUT;
 
@@ -33,6 +35,20 @@ namespace UnitTestProject
 					return x.Length;
 				})
 				.ThenBy(x => x).ToList();
+
+		}
+
+		[TestMethod]
+		public void t_Equals()
+		{
+			string root = @"C:\users";
+			string root2 = @"C:\Users";
+			var t = new
+			{
+				T1 = root == root2,
+				T2 = root.Equals(root2),
+				T3 = root.Equals(root2, StringComparison.OrdinalIgnoreCase),
+			};
 		}
 
 	}

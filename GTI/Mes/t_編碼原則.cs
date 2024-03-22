@@ -18,7 +18,7 @@ namespace UnitTestProject
     /// 編碼原則
     /// </summary>
     [TestClass]
-	public class t_GetCodes
+	public class t_GetCodes : _testBase
 	{
 		static class _log
 		{
@@ -76,7 +76,7 @@ namespace UnitTestProject
 					, EnInfo
 					, 1 
 					,new Dictionary<EncodeFormatUtility.ParameterType, object>() {
-						{ EncodeFormatUtility.ParameterType.LOT, lotNo },
+						{ EncodeFormatUtility.ParameterType.INPUT_DICT_STR_STR, lotNo },
 					}
 					//是否自動 commit , T)則會直接把 code 寫入 AD_ENCODE_FORMAT_CONTROL
 					, false);
@@ -109,7 +109,41 @@ namespace UnitTestProject
 		}
 
 
-		
+
+		[TestMethod]
+		public void t_使用COLUMN做編碼()
+		=> _DBTest(Txn => {
+			var MESDBC = Txn.DBC;
+			var EnInfo = new EncodeFormatUtility.EncodeFormatInfo
+						  (MESDBC, "DAE_MTR_LOT", EncodeFormatUtility.IndexType.No);
+			
+			var args = new Dictionary<EncodeFormatUtility.ParameterType, object>()
+			{
+				{ EncodeFormatUtility.ParameterType.LOT, "5D0AS27400-231004-01" }
+			};
+			var Code = EncodeFormatUtility.Coder.GetCodes(MESDBC, "EIS", EnInfo, 1, args, false);
+		}, false, true);
+
+
+
+
+
+		[TestMethod]
+		public void t_使用INPUT做編碼1()
+		=> _DBTest(Txn => {
+			var MESDBC = Txn.DBC;
+			var EnInfo = new EncodeFormatUtility.EncodeFormatInfo
+						  (MESDBC, "DAE_MTR_LOT", EncodeFormatUtility.IndexType.No);
+			Dictionary<EncodeFormatUtility.ParameterType, object> args = new Dictionary<EncodeFormatUtility.ParameterType, object>();
+			args.Add(EncodeFormatUtility.ParameterType.INPUT_DICT_STR_STR,
+					//編碼程式上必須配合設定 對應的  INPUT - KEY1  的值
+					new Dictionary<string, string>() { { "KEY1", "12345" } }
+			);
+			var Code = EncodeFormatUtility.Coder.GetCodes(MESDBC, "EIS", EnInfo, 1, args, false);
+			//return Code.Codes[0].ToString();
+		}, false, true);
+
+
 
 		/// <summary>
 		/// 編碼處理原型 
@@ -166,7 +200,7 @@ namespace UnitTestProject
 		}
 
 
-
+		
 
 		/*
 

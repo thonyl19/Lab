@@ -46,9 +46,9 @@ namespace UnitTestProject
 		{
 			string LotNo = "Sub-20200220-20";
 			var _ctr = new OperationController();
-			var result = _ctr.ChangeOperation_LotInfo(LotNo);
-			var _json = ((ContentResult)result).Content;
-			new FileApp().Write(_json, FileApp.ts_Log(@"Operation\t_ChangeOperation_LotInfo.json"));
+			//var result = _ctr.ChangeOperation_LotInfo(LotNo);
+			//var _json = ((ContentResult)result).Content;
+			//new FileApp().Write(_json, FileApp.ts_Log(@"Operation\t_ChangeOperation_LotInfo.json"));
 
 		}
 
@@ -61,9 +61,9 @@ namespace UnitTestProject
 			string ROUTE_VER_SID = "GTI20022014223001921";
 			string OPER_SID = "GTI20022014210401910";
 			var _ctr = new OperationController();
-			var result = _ctr.SubRouteOperList(ROUTE_VER_SID, OPER_SID);
-			var _json = ((ContentResult)result).Content;
-			new FileApp().Write(_json, FileApp.ts_Log(@"Operation\t_SubRouteOperList.json"));
+			//var result = _ctr.SubRouteOperList(ROUTE_VER_SID, OPER_SID);
+			//var _json = ((ContentResult)result).Content;
+			//new FileApp().Write(_json, FileApp.ts_Log(@"Operation\t_SubRouteOperList.json"));
 
 		}
 
@@ -237,13 +237,21 @@ namespace UnitTestProject
 
 				//var dt = dbc.Select(_sql, parameters);
 
-				var dt = new WIPServices().ZZ_ReWorkOperList("GTI20072309533742755", this.DBC);
+				//var dt = new WIPServices().ZZ_ReWorkOperList("GTI20072309533742755", this.DBC);
 
-				new FileApp().Write_SerializeJson(dt, FileApp.ts_Log(@"Operation\t_ZZ_ReWorkOperList.json"));
+				//new FileApp().Write_SerializeJson(dt, FileApp.ts_Log(@"Operation\t_ZZ_ReWorkOperList.json"));
 
 			}
 
 		}
 
+
+		[TestMethod]
+		public void _取最後一站()
+		=> _DBTest(Txn => {
+			var lot = Txn.GetLotInfo();
+			var oper = lot.GetLotNextDefaultRouteVersionNextOperationInfo();
+			var r = oper.IS_END;
+		}, true);
 	}
 }

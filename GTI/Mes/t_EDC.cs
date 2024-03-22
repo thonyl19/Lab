@@ -41,10 +41,16 @@ namespace UnitTestProject
 		}, true);
 
 
+		[TestMethod]
+		public void t_QC_INSP_EDC()
+		{
+			var r = QMSService.QC_INSP_EDC_seq("6CD91018-54FC-495F-9BEE-DAECA975E8F1");
 
-		
+			//Genesis.Library.BLL.ICM.Definition.Status.VerifyPlaning 
+		}
 
-		
+
+
 	}
 
 

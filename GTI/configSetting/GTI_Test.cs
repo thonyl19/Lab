@@ -55,6 +55,7 @@ namespace Genesis
             }
         }
         HtmlHelper htm;
+        HttpRequestBase _Req;
         public GTI_Test(HtmlHelper htm, HttpContextBase HttpCon, string[] list = null)
         {
             init(htm, GTI_Test.IsDebuggingEnabled, HttpCon.Request, list);
@@ -67,6 +68,7 @@ namespace Genesis
         private void init(HtmlHelper htm, bool IsDebuggingEnabled, HttpRequestBase Req, string[] list)
         {
             this.htm = htm;
+            this._Req = Req;
             if (IsDebuggingEnabled)
             {
                 List<string> _base = new List<string>() { "__gt_test:Vue.prototype.$GTI_Test.__gt_test," };
@@ -89,7 +91,7 @@ namespace Genesis
                         ServicesBase.isTest = true;
                         Debug = "debugger;";
                     }
-                    isUItest(Req);
+                    UItest = Req.Params["UItest"];
                 }
             }
             else
@@ -100,50 +102,67 @@ namespace Genesis
             }
         }
 
-        public static string UItest = null;
+        public string UItest = null;
 
         internal static bool isUItest(HttpRequestBase Req)
         {
-            if (Req != null)
-            {
-                UItest = Req.Params["UItest"] ?? "";
+            if (Req != null){
+                var _UItest = Req.Params["UItest"] ?? "";
+                var _path = Req.RequestContext.HttpContext.Server.MapPath($"~/Areas/Example/Views/Self/UITest/{_UItest}.json");
+                return System.IO.File.Exists(_path);
             }
-            return UItest != "";
+            return false;
         }
+ 
         public IHtmlString param_UItest(string key = "dataModel")
         {
             var _code = "";
-            if (string.IsNullOrWhiteSpace(UItest)==false)
-            {
-                string Baseurl = $"http://localhost:59394/GenesisNewMes/Example/Self/UITest?name={UItest}";
-                HttpClient client = new HttpClient();
-                client.DefaultRequestHeaders.Clear();
-                client.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
-                var r = client.GetAsync(Baseurl).Result;
-                var res = r.Content.ReadAsStringAsync().Result;
-                //var _o = JsonConvert.DeserializeObject(res);// res.Replace("\"", "");
-                _code = $"{key} = {res};";//JSON.parse({_o.ToJson()});
+            if (!string.IsNullOrWhiteSpace(UItest)) {
+                var _path = this._Req.RequestContext.HttpContext.Server.MapPath($"~/Areas/Example/Views/Self/UITest/{UItest}.json");
+                if (System.IO.File.Exists(_path)){
+                    var UItest_Code = System.IO.File.ReadAllText(_path);
+                    if (!string.IsNullOrWhiteSpace(UItest_Code)){
+                        _code = $"{key} = {UItest_Code};";
+                    }
+                }
             }
             return Test(_code, 1);
         }
-        public static T param_UItest1<T>()
+
+        //改用
+        //public IHtmlString param_UItest_20240310(string key = "dataModel")
+        //{
+        //    var _code = "";
+        //    if (string.IsNullOrWhiteSpace(_UItest) == false)
+        //    {
+        //        string Baseurl = $"http://localhost:59394/GenesisNewMes/Example/Self/UITest?name={_UItest}";
+        //        HttpClient client = new HttpClient();
+        //        client.DefaultRequestHeaders.Clear();
+        //        client.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
+        //        var r = client.GetAsync(Baseurl).Result;
+        //        var res = r.Content.ReadAsStringAsync().Result;
+        //        if (r.IsSuccessStatusCode) { 
+        //            //var _o = JsonConvert.DeserializeObject(res);// res.Replace("\"", "");
+        //            _code = $"{key} = {res};";//JSON.parse({_o.ToJson()});
+        //        }
+        //    }
+        //    return Test(_code, 1);
+        //}
+
+        public static T param_UItest1<T>(HttpRequestBase Req)
         {
             T _obj = default(T);
-            var _code = "";
-            if (UItest != "")
-            {
-                string Baseurl = $"http://localhost:59394/GenesisNewMes/Example/Self/UITest?name={UItest}";
-                HttpClient client = new HttpClient();
-                client.DefaultRequestHeaders.Clear();
-                client.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
-                var r = client.GetAsync(Baseurl).Result;
-                var res = r.Content.ReadAsStringAsync().Result;
-                _obj = res.ToObject<T>();
-
-                //Type _type = typeof(T);
-                //if (_type == typeof(LotData)) {
-                //    (_obj as LotData).LOT_Ext.Add("UItest_Src", res);
-                //}
+            if (Req != null){
+                var _UItest = Req.Params["UItest"] ?? "";
+                if (_UItest != ""){
+                    var _path = Req.RequestContext.HttpContext.Server.MapPath($"~/Areas/Example/Views/Self/UITest/{_UItest}.json");
+                    if (System.IO.File.Exists(_path)){
+                        var UItest_Code = System.IO.File.ReadAllText(_path);
+                        if (!string.IsNullOrWhiteSpace(UItest_Code)){
+                            _obj = UItest_Code.ToObject<T>();
+                        }
+                    }
+                }
             }
             return _obj;
         }
@@ -2228,7 +2247,7 @@ namespace Genesis.Areas.Example.Controllers
         /// <param name="name"></param>
         /// <param name="SingleModel"></param>
         /// <returns></returns>
-        public ActionResult InOut(string name, string Case = "0", bool SingleModel = false)
+        public ActionResult InOut(string name, string Case = "0", bool SingleModel = true)
         {
             ViewData["SingleModel"] = SingleModel;
             //var _data = ControllerContext.HttpContext.Server.MapPath($"../../Areas/example/Views/Act/InOut/~Case{Case}.json");
@@ -2240,7 +2259,7 @@ namespace Genesis.Areas.Example.Controllers
 
         public ActionResult SignalR_Item(string id = null)
         {
-            //ViewData["Count"] = UserCountHub._Users.Count.ToString();
+            //ViewData["Count"] = Hubs.UserCountHub._Users.Count.ToString();
             return View("SignalR/Item");
         }
 
@@ -2359,11 +2378,17 @@ namespace Genesis.Areas.DDD.Controllers
             return null;
         });
 
+        /*
+        ~\Genesis_MVC\Common\LogActionFilterAttribute.cs 
+            skipAction.Add("NeedUpdateAuthMenus");
+            skipAction.Add("GetResource");
+            skipAction.Add("Dashboard_vue");
+         */
         //[EnableCors(origins: "http://allowed-origin.com", headers: "*", methods: "GET")]
         [AllowAnonymous]
         [Route("Table")]
         [Route("Table/{Table}")]
-        public ActionResult TableInfo(string Table = null) {
+        public ActionResult GetResource(string Table = null) {
             using (_dbc ?? DBC)
             {
                 var sql_table_list = @"
@@ -2468,7 +2493,7 @@ namespace Genesis.Areas.DDD.Controllers
             "Message.zh-TW.resx"
         };
 
-        [Route("i18n/{keyword}")]
+        [Route("i18n/Search/{keyword}")]
         public ActionResult i18nSearch(string keyword)
         => _Content(o =>
         {
@@ -2480,7 +2505,7 @@ namespace Genesis.Areas.DDD.Controllers
                 var fileName = $"{_path}/../../Library/RES/BLL/{file}";
                 XDocument doc = XDocument.Load(fileName);
                 var query = from elem in doc.Descendants("data")
-                            where elem.Value.Contains(keyword) 
+                            where elem.Value.Contains(keyword)
                                 || elem.Attribute("name").Value.Contains(keyword)
                             select new
                             {
@@ -2494,7 +2519,8 @@ namespace Genesis.Areas.DDD.Controllers
                     {
                         results.Add($"{item.Key}~${item.Value}", item.Value);
                     }
-                    else { 
+                    else
+                    {
                         results.Add(item.Key, item.Value);
                     }
                 }
@@ -2508,10 +2534,13 @@ namespace Genesis.Areas.DDD.Controllers
         [HttpPost]
         [Route("i18n/Add/{res}/{key}/")]
         public ActionResult i18nAdd(string res, string key, string en, string tw, string cn)
-        => _Content(o =>
+        => _Content(o=>I18nAdd(res, key, en, tw, cn));
+
+        IResult I18nAdd(string res, string key, string en, string tw, string cn)
         {
             Type _t = null;
-            switch (res.ToUpper()) {
+            switch (res.ToUpper())
+            {
                 case "FACE":
                     _t = typeof(RES.BLL.Face);
                     break;
@@ -2522,21 +2551,32 @@ namespace Genesis.Areas.DDD.Controllers
             if (_t == null) return new Result("查無符合的 BLL.res");
             var rm = new ResourceManager(_t);
             var MatchItem = rm.GetObject(key);
-            if (MatchItem != null) {
+            if (MatchItem != null)
+            {
                 var r = new Result("Key值己存在");
-                r.Data = new { key , MatchItem };
+                r.Data = new { key, MatchItem };
                 return r;
             }
 
             var root = Server.MapPath("~/");
             var tarFile = $@"{root}..\Library\RES\BLL\{res}.resx";
-            if (FileHelper.IsExistFile(tarFile) == false) {
+            if (FileHelper.IsExistFile(tarFile) == false)
+            {
                 return Result.NotExist("語系檔").Data = new { tarFile };
             }
 
+            var is產品語系檔 = root.Substring(0, 2) == "M:";
+            if (is產品語系檔 == false)
+            {
+                var tmp = new { en, tw, cn };
+                vFile.WriteAllText($@"{root}Areas\Example\Views\Self\~i18n\{res}_{key}.json", tmp.ToJson(true));
+            }
+
             ResXResourceSet resxSet = new ResXResourceSet(tarFile);
-            using (ResXResourceWriter resxWriter = new ResXResourceWriter(tarFile)){
-                foreach (DictionaryEntry entry in resxSet){
+            using (ResXResourceWriter resxWriter = new ResXResourceWriter(tarFile))
+            {
+                foreach (DictionaryEntry entry in resxSet)
+                {
                     var _key = entry.Key.ToString();
                     resxWriter.AddResource(_key, entry.Value);
                 }
@@ -2545,9 +2585,14 @@ namespace Genesis.Areas.DDD.Controllers
                 resxWriter.Generate();
             }
 
-            for (var i = 0; i < 2; i++) {
+
+
+
+            for (var i = 0; i < 2; i++)
+            {
                 string val = tw, res_tp = ".zh-TW";
-                if (i == 1) { 
+                if (i == 1)
+                {
                     val = cn;
                     res_tp = ".zh-CN";
                 }
@@ -2563,9 +2608,60 @@ namespace Genesis.Areas.DDD.Controllers
                 string newContent = Regex.Replace(fileContent, pattern, replacement);
                 vFile.WriteAllText(tarFile1, newContent);
             }
+            return new Result(true);
+        }
+
+        public struct d_i18n
+        {
+            public string en;
+            public string tw;
+            public string cn;
+        }
+
+        [Route("i18n/AutoAdd")]
+        public ActionResult AutoAdd()
+        => _Content(o =>
+        {
+            var root = Server.MapPath("~/");
+            var is產品語系檔 = root.Substring(0, 2) == "M:";
+            if (is產品語系檔 == false) return new Result("目前不是在產品環境");
+            string directoryPath = $@"{root}Areas\Example\Views\Self\~i18n\";
+
+            if (Directory.Exists(directoryPath))
+            {
+                // 取得目錄中的 JSON 檔案清單
+                string[] jsonFiles = Directory.GetFiles(directoryPath, "*.json");
+
+                foreach (string jsonFile in jsonFiles)
+                {
+                    try
+                    {
+                        var _fileName = Path.GetFileNameWithoutExtension(jsonFile);
+                        var arr = _fileName.Split('_');
+                        //var res = _fileName[0];
+                        //var key = _fileName[1];
+
+                        //$@"{directoryPath}{jsonFile}"
+                        string jsonContent = vFile.ReadAllText(jsonFile);
+                        // 解析 JSON 內容到物件
+                        var data = JsonConvert.DeserializeObject<d_i18n>(jsonContent);
+                        var r = I18nAdd(arr[0], arr[1], data.en, data.tw, data.cn);
+                        if (r.Success) {
+                            vFile.Move(jsonFile, $@"{directoryPath}{_fileName}.---");
+                        }
+                    }
+                    catch (Exception ex)
+                    {
+                        Console.WriteLine($"Error processing {jsonFile}: {ex.Message}");
+                    }
+                }
+            }
+            else
+            {
+                Console.WriteLine("Directory does not exist.");
+            }
             return o;
         });
-
 
         [Route("i18n/parseTxt")]
         public ActionResult parseTxt()
@@ -2575,19 +2671,21 @@ namespace Genesis.Areas.DDD.Controllers
             var list = new string[] { "Face", "Message" };
             var root = Server.MapPath("~/");
             List<string> result;
-            foreach (var res in list) { 
+            foreach (var res in list)
+            {
                 var tarFile = $@"{root}..\Library\RES\BLL\{res}.zh-TW.resx";
-                if (FileHelper.IsExistFile(tarFile) == false){
+                if (FileHelper.IsExistFile(tarFile) == false)
+                {
                     return Result.NotExist("語系檔").Data = new { res };
                 }
                 var resxSet = new ResXResourceReader(tarFile);
-                
+
                 result = new List<string>();
                 foreach (DictionaryEntry entry in resxSet)
                 {
                     result.Add(entry.Value.ToString());
                 }
-                
+
                 var data = string.Join("\n", result);
                 var tarFile1 = $@"{root}..\Library\RES\BLL\{res}.txt";
                 vFile.WriteAllText(tarFile1, data);

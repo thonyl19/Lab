@@ -402,6 +402,13 @@ namespace UnitTestProject
 				Console.WriteLine("類別不存在");
 			}
 		}
+
+
+		[TestMethod]
+		public void t_()
+		=> _DBTest(Txn => {
+			var r = Txn.GetParameterInfo("PACK_LINE");
+		},false,true);
 	}
 
 

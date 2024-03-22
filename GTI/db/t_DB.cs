@@ -29,7 +29,6 @@ using System.IO;
 using System.Linq;
 using System.Linq.Dynamic.Core;
 using System.Linq.Expressions;
-using System.Transactions;
 using System.Web.UI.WebControls;
 using UnitTestProject.TestUT;
 using static BLL.MES.WIPInjectServices;
@@ -1057,6 +1056,7 @@ SELECT 	LOT.ROUTE_VER_SID,
 		=> _DBTest((txn) =>
 		{
             //txn.EFQuery<AD_LOG>().Create
+			
 
             var unWork = new EFUnitOfWork(txn.DbContext);
             var _sid = mes.getSID();
@@ -1072,7 +1072,7 @@ SELECT 	LOT.ROUTE_VER_SID,
             };
 
             unWork.Repository<AD_LOG>().Create(_AD_LOG);
-
+			
 			//unWork.DTC();
 			//unWork.DTC(new Genesis.Library.BLL.DTC.Wafer.DTC_SetShipCassetteGrade("", ""));
 
@@ -1728,6 +1728,16 @@ SELECT 	LOT.ROUTE_VER_SID,
 		}
 
 		[TestMethod]
+		public void _EFQuery_1()
+		=>_DBTest((tx) =>
+		{
+			//var r = (from a in tx.EFQuery_MES.WP_LOT where a.LOT_SID == "GTI22092622284791779" select a ).AsNoTracking().FirstOrDefault();
+
+		});
+		
+
+
+		[TestMethod]
 		public void _EFQuery_JOIN()
 		=> TxnBase.LzDBQuery((txn)=>{
 			var _repo = new { 
@@ -1782,16 +1792,7 @@ SELECT 	LOT.ROUTE_VER_SID,
 
 		},true);
 
-		[TestMethod]
-		public void t_LotChangeAttributeTxn()
-		=> TxnBase.LzDBTrans_t((tx) =>
-		{
-			var lot = tx.GetLotInfo("GTI22031515091645302");
-			var _txn = new LotChangeAttributeTxn(lot, "ATTRIBUTE_35", lot.ATTRIBUTE_35, "A");
-			tx.DoTransaction(_txn);
-			//lot.ReLoad();
-			return tx.result;
-		});
+
 
 
 		public void _x()
@@ -1979,39 +1980,71 @@ delete AD_SHIFT where SHIFT_SID = @SHIFT_SID
 
 
 
-		//     [TestMethod]
-		//     public void _測試新增欄位()
-		//     => _DBTest((txn) =>
-		//     {
-		//         var sql = @"
-		// select  top 1 *
-		//from ZZ_LOT_ROLL   with(nolock)
+        //     [TestMethod]
+        //     public void _測試新增欄位()
+        //     => _DBTest((txn) =>
+        //     {
+        //         var sql = @"
+        // select  top 1 *
+        //from ZZ_LOT_ROLL   with(nolock)
 
-		//";
+        //";
 
-		//         var r = txn.DapperQuery<ZZ_LOT_ROLL>(sql)
-		//             .FirstOrDefault();
-		//         FileApp._tmpJson(r);
-		//     }, true);
+        //         var r = txn.DapperQuery<ZZ_LOT_ROLL>(sql)
+        //             .FirstOrDefault();
+        //         FileApp._tmpJson(r);
+        //     }, true);
 
-		//[TestMethod]
-		//      public void _DapperQuery()
-		//      => _DBTest((txn) =>
-		//      {
-		//	var arg = new { EQP_SID = "GTI23070514415145713" };
-		//          var sql = @"
-		//		SELECT  A.*
-		//		FROM	ESG_EMISSION_EQUIPMENT_RELATION A
-		//				INNER JOIN FC_EQUIPMENT B
-		//					ON A.EQP_NO = B.EQP_NO
-		//		WHERE	B.EQP_SID = @EQP_SID 
+        [TestMethod]
+        public void _DapperQuery()
+        => _DBTest((txn) =>
+        {
+            var arg = new { EQP_SID = "GTI23070514415145713" };
+            var sql = @"
+				SELECT  A.*
+				FROM	ESG_EMISSION_EQUIPMENT_RELATION A
+						INNER JOIN FC_EQUIPMENT B
+							ON A.EQP_NO = B.EQP_NO
+				WHERE	B.EQP_SID = @EQP_SID 
 
-		//	";
+			";
 
-		//          var r = txn.DapperQuery<ESG_EMISSION_EQUIPMENT_RELATION>(sql, arg)
-		//              .FirstOrDefault();
-		//          FileApp._tmpJson(r);
-		//      }, true);
+            //var r = txn.DapperQuery<ESG_EMISSION_EQUIPMENT_RELATION>(sql, arg)
+            //    .FirstOrDefault();
+            //FileApp._tmpJson(r);
+
+        }, true);
+
+
+		[TestMethod]
+		public void _Todo()
+		=> _DBTest((txn) =>
+		{
+			//todo
+			var x = new TxnACTION() { Desc = "Test" };
+			//txn.SetOnce_ACTION(x).DoTransaction();
+		}, true);
+
+		[TestMethod]
+
+		public void t_測試Txn跟EF更新同一筆資料的問題()
+		=> _DBTest((txn) =>
+		{
+			var lot_no = "4B201-240319-01";
+
+
+			var lot = txn.GetLotInfo(lot_no, isQueryByLotNO: true);
+            var _txn = new LotChangeAttributeTxn(lot, "ATTRIBUTE_35", lot.ATTRIBUTE_35, "C");
+			txn.DoTransaction(_txn);
+
+			var z1 = txn.EFQuery_MES.WP_LOT.Where(c => c.LOT == lot_no)
+				//.AsNoTracking()
+				.FirstOrDefault();
+			z1.ATTRIBUTE_36 = 20;
+
+
+			txn.EFQuery_MES.SaveChanges();
+		},true,true);
 
 
 	}

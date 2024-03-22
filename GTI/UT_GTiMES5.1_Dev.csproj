@@ -40,37 +40,17 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <ItemGroup>
-    <Compile Include="GTI_helper.cs" />
-    <Compile Include="Mes\分條出站.cs" />
-    <Compile Include="Mes\分條進站.cs" />
-    <Compile Include="Mes\MesInOut.cs" />
-    <Compile Include="Mes\基礎出站.cs" />
-    <Compile Include="Mes\基礎進站.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="db\MockMES.cs" />
-    <Compile Include="TestUT.cs" />
-    <Compile Include="t_Autofac.cs" />
-    <Compile Include="t_AD.cs" />
-    <Compile Include="t_Attribute.cs" />
-    <Compile Include="t_BOGUS.cs" />
-    <Compile Include="t_DB.cs" />
-    <Compile Include="t_Entity.cs" />
-    <Compile Include="t_GetCodes.cs" />
-    <Compile Include="t_HoldLot.cs" />
-    <Compile Include="t_Lot.cs" />
-    <Compile Include="t_MTR.cs" />
-    <Compile Include="t_Reflection.cs" />
-    <Compile Include="t_RouteOper.cs" />
-    <Compile Include="t_WIP.cs" />
-    <Compile Include="t_WO.cs" />
-    <Compile Include="t_ZZ.cs" />
-    <Compile Include="t_MES.cs" />
-    <Compile Include="t_PartType.cs" />
-    <Compile Include="t_QTimer.cs" />
-    <Compile Include="t_EDC.cs" />
-    <Compile Include="t_DTC.cs" />
-    <Compile Include="UnitTestEdc.cs" />
-    <Compile Include="UnitTest_.cs" />
+    <Compile Include="ZZ\t_HM.cs" />
+    <Compile Include="_self\GTI_helper.cs" />
+    <Compile Include="_self\LocalizationExample.cs" />
+    <Compile Include="_self\TestUT.cs" />
+    <Compile Include="_self\t_Attribute.cs" />
+    <Compile Include="_self\t_Autofac.cs" />
+    <Compile Include="_self\t_Reflection.cs" />
+    <Compile Include="_self\UnitTestEdc.cs" />
+    <Compile Include="_self\UnitTest_.cs" />
     <Compile Include="_std.cs" />
   </ItemGroup>
   <ItemGroup>
@@ -122,7 +102,7 @@
     <Folder Include="Log\Wafer\" />
     <Folder Include="Log\WIP\" />
     <Folder Include="Log\WO\" />
-    <Folder Include="ZZ\" />
+    <Folder Include="Mes\" />
   </ItemGroup>
   <ItemGroup>
     <PackageReference Include="Autofac">
@@ -321,6 +301,7 @@
     <Reference Include="System" />
     <Reference Include="System.Configuration" />
     <Reference Include="System.Data" />
+    <Reference Include="System.DirectoryServices.AccountManagement" />
     <Reference Include="System.Runtime.Serialization" />
     <Reference Include="System.Security" />
     <Reference Include="System.Transactions" />
@@ -332,21 +313,16 @@
     <Service Include="{508349B6-6B84-4DF5-91F0-309BEEBAD82D}" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="D:\Product.GTiMES4.5\ADM\ADM.csproj">
-      <Project>{6b61c35a-1ebe-4afa-955c-852bee6b555f}</Project>
-      <Name>ADM</Name>
-    </ProjectReference>
-    <ProjectReference Include="D:\Product.GTiMES4.5\MTR\MTR.csproj">
-      <Project>{59c65604-cbfa-4f56-a6fb-e6e3de5365b6}</Project>
-      <Name>MTR</Name>
-    </ProjectReference>
-    <ProjectReference Include="M:\Prd_Dev\Genesis_MVC\Genesis.csproj">
-      <Project>{a520b863-a9ed-4cff-acd9-ec3ade58b8ad}</Project>
-      <Name>Genesis</Name>
-    </ProjectReference>
+    <WCFMetadata Include="Connected Services\" />
+  </ItemGroup>
+  <ItemGroup>
     <ProjectReference Include="M:\Prd_Dev\Library\BLL\BLL.csproj">
       <Project>{add17dc1-60bd-47f9-a51f-704c027767c5}</Project>
       <Name>BLL</Name>
+    </ProjectReference>
+    <ProjectReference Include="M:\Prd_Dev\Library\Dal\Dal.csproj">
+      <Project>{1eba4623-1d86-4bb9-b2a3-fa89e0132345}</Project>
+      <Name>Dal</Name>
     </ProjectReference>
     <ProjectReference Include="M:\Prd_Dev\Library\Frame.Code\Frame.Code.csproj">
       <Project>{ccbe423c-3e06-4715-8c65-518e3322265a}</Project>
@@ -360,13 +336,6 @@
       <Project>{4d318d82-259f-4e42-870c-a09883281158}</Project>
       <Name>RES</Name>
     </ProjectReference>
-    <ProjectReference Include="M:\Prd_Dev\Library\Dal\Dal.csproj">
-      <Project>{1eba4623-1d86-4bb9-b2a3-fa89e0132345}</Project>
-      <Name>Dal</Name>
-    </ProjectReference>
-  </ItemGroup>
-  <ItemGroup>
-    <WCFMetadata Include="Connected Services\" />
   </ItemGroup>
   <Import Project="$(VSToolsPath)\TeamTest\Microsoft.TestTools.targets" Condition="Exists('$(VSToolsPath)\TeamTest\Microsoft.TestTools.targets')" />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />

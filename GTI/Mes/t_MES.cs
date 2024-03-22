@@ -25,6 +25,7 @@ using Genesis.Gtimes.Transaction;
 using Genesis.Gtimes.Transaction.CAR;
 using Genesis.Library.BLL.ADM;
 using System.Reflection;
+using Genesis.Gtimes.Transaction.WIP;
 
 namespace UnitTestProject
 {
@@ -791,6 +792,21 @@ namespace UnitTestProject
 		{
 
 		}, true);
+
+
+		/// <summary>
+		/// TODO:
+		/// </summary>
+		[TestMethod]
+		public void t_GoToNextTaskTxn()
+		=> _DBTest((Txn) =>
+		{
+			var LotInfo = Txn.GetLotInfo("5D0AS27400-231004-01", isQueryByLotNO: true);
+			var  otvrf = new OperationUtility.OperationTypeVerRuleFunction(Txn.DBC);
+			var operTypeVerRule = otvrf.GetNextRouteVersionOperationRuleInfo(LotInfo.OPER_TYPE_VER_SID, LotInfo.FUN_SEQ);
+			Txn.DoTransaction(new WIPTransaction.GoToNextTaskTxn(LotInfo));
+		}, true,true);
+
 
 
 		[TestMethod]
