@@ -7,9 +7,62 @@
 @eBundle.QRender_JS()
 
 <div id="app">
-	{{msg}}
+    <gti-check-item></gti-check-item>
 </div>
+<style>
+    .gti-check-item ul {
+        list-style: none; /* 移除小點 */
+        padding: 0; /* 移除預設內邊距 */
+        margin: 0; /* 移除預設外邊距 */
+        overflow: hidden; /* 清除浮動 */
+    }
 
+    .gti-check-item .input-text.pass {
+        color: #009f95;
+    }
+
+    .gti-check-item li {
+        float: left; /* 向右浮動 */
+        min-width: 10rem; /* 填滿父元素寬度的四分之一 */
+        box-sizing: border-box; /* 盒模型設置為邊框盒 */
+        padding: 10px; /* 添加填充 */
+        text-align: center; /* 文字置中 */
+    }
+
+    .gti-check-item .checked,
+    .gti-check-item .checked .label {
+        color: green;
+    }
+
+        /* 可選：使 li 元素的高度相等，以確保它們在同一行上 */
+        .gti-check-item li::after {
+            content: "";
+            display: block;
+            clear: both;
+        }
+
+    .container {
+        position: relative;
+        margin: 5px;
+    }
+
+    .input-field {
+        width: 100%;
+        box-sizing: border-box;
+        padding-right: 40px; /* 為右側文字留出空間 */
+    }
+
+    .input-text {
+        position: absolute;
+        top: 0;
+        right: 25px;
+        padding: 9px 3px;
+        pointer-events: none; /* 避免文字擋住輸入事件 */
+        color: red;
+        font-weight: 900;
+    }
+
+</style>
 
 <script>
 	$(() => {
