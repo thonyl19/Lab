@@ -29,7 +29,10 @@
             <form id="form_main" class="panel-body form-horizontal gt-form row">
                 <gt-form-col label='Key' v-model="form.key">
                 </gt-form-col>
-                <gt-form-col label='英文' v-model="form.en">
+                <gt-form-col label='英文'>
+                    <el-input  v-model="form.en">
+                        <el-button slot="append" icon="el-icon-s-tools" @@click="trans_key"></el-button>
+                    </el-input>
                 </gt-form-col>
                 <gt-form-col label='繁中'>
                     <el-input v-model="c_tw">
@@ -100,6 +103,9 @@
                          
                     },
                     methods: {
+                        trans_key() {
+                            this.form.key = this.capitalizeWordsAndJoin(this.form.en);
+                        },
                         trans() {
                             this.trans_list.push(this.form.tw);
                         },

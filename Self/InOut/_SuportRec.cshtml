@@ -15,8 +15,10 @@
     <form id="WipForm">
         @Html.AntiForgeryToken()
         <div class="panel b">
-            @*<input type="submit" @@click="Exec" value="Exec" />*@
-            <cp-suport-rec :set_model="set_model"></cp-suport-rec>
+            <el-button-group>
+                <el-button type="primary" size="small" v-for="(val,key) in TestGroup" :label="key" :key="key" @@click="val()">{{key}}</el-button>
+            </el-button-group>
+            <cp-suport-rec ref="CpSuportRec" :set_model="set_model"></cp-suport-rec>
         </div>
     </form>
 </div>
@@ -33,7 +35,13 @@
                 };
             },
             data() {
+                var _self = this;
                 return {
+                    TestGroup: {
+                        FastAI() {
+                            _self.$refs.CpSuportRec.fastAI('Admin');
+                        },
+                    },
                     value: [{
                         PARTNO: 'PARTNO',
                         PART_NAME: 'PART_NAME',
