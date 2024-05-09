@@ -51,14 +51,6 @@ namespace UnitTestProject
 		
 		}, true);
 
-		[TestMethod]
-        public void t_LotConsumptionTxn()
-		=> _DBTest((Txn) => {
-			var CurrentLot = Txn.GetLotInfo("3B0000-231213-01",isQueryByLotNO:true);
-			var mLot = Txn.GetMLotInfo("2001-15409-1-1B01");
-			var consumpMLot = new LotUtility.LotConsumptionMlotQuantity(mLot, (decimal)50, 0, 0);
-			Txn.DoTransaction(new WIPTransaction.LotConsumptionTxn(CurrentLot, consumpMLot));
-		}, true);
 
 
         [TestMethod]
@@ -66,6 +58,7 @@ namespace UnitTestProject
         => TxnBase.LzDBTrans_t((tx) =>
         {
             var lot = tx.GetLotInfo("GTI22031515091645302");
+			 
 			// 很奇怪, 使用 LotChangeAttributeTxn  會出現跟 WIPTransaction 發生衝突的問題 ,只能先註解掉 
 			//var _txn = new LotChangeAttributeTxn(lot, "ATTRIBUTE_35", lot.ATTRIBUTE_35, "A");
 			//tx.DoTransaction(_txn);

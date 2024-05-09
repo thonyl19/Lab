@@ -100,8 +100,8 @@ namespace UnitTestProject
 		//				{ EncodeFormatUtility.ParameterType.PARTNO, _lotInfo.PARTNO }
 		//		}, false);
 
-			List<LotSplitInfo> SplitInfoList = _Func.SplitLots(txn, SplitList, "BagNo");
-			var _newLot = txn.GetLotInfo(SplitInfoList[0].LOT_SID);
+			//List<LotSplitInfo> SplitInfoList = _Func.SplitLots(txn, SplitList, "BagNo");
+			//var _newLot = txn.GetLotInfo(SplitInfoList[0].LOT_SID);
 
 
 		}, true, true);
@@ -111,11 +111,11 @@ namespace UnitTestProject
 		=> _DBTest((txn) =>
 		{
 			//var obj = FileApp.Read_SerializeJson<WIPFormSendParameter>(_log.t_StationCheckIn("~20230317"));
-			var lot = txn.GetLotInfo("GTI24022611472828753", isKeep: true);
-			var SplitList = new List<CustomerList>() { new CustomerList() { INum = 10 ,No = "test"} }; ;
+			//var lot = txn.GetLotInfo("GTI24022611472828753", isKeep: true);
+			//var SplitList = new List<CustomerList>() { new CustomerList() { INum = 10 ,No = "test"} }; ;
  
-			List<LotSplitInfo> SplitInfoList = _Func.SplitLots_人工給號(txn, SplitList);
-			var _newLot = txn.GetLotInfo(SplitInfoList[0].LOT_SID);
+			//List<LotSplitInfo> SplitInfoList = _Func.SplitLots_人工給號(txn, SplitList);
+			//var _newLot = txn.GetLotInfo(SplitInfoList[0].LOT_SID);
 		}, true, true);
 		
 	}

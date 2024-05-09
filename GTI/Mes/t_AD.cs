@@ -14,6 +14,9 @@
     using UnitTestProject.TestUT;
     using static Genesis.Library.BLL.MES.DataViews.System;
     using _v8n = BLL.MES.FluentValidation;
+    using _mdl_mvc = MDL.GenesisMVC.Tables;
+    using BLL.MES;
+
 
     //[assembly:NeutralResourcesLanguage("en")]
     /// <summary>
@@ -105,6 +108,29 @@
             }
             new FileApp().Write_SerializeJson(systemConfig, _log.t_MESSystemConfig);
         }
+
+        //{
+        //    MESSystemConfig systemConfig;
+        //    DbContext dbContext = MVCContext.Create();
+
+
+        //    //var ret = new List<mesMdl.AD_USER>();
+        //    //var dbMvcContext = DbResMgr.OfferDbContext(typeof(MVCContext));
+        //    //var _userRoleServices = LoadRepository<mdl.AD_USER_ROLE>(dbMvcContext);
+        //    //var _userServices = LoadRepository<mesMdl.AD_USER>(DbContext);
+        //    //var expression = ExtLinq.True<mdl.AD_USER_ROLE>();
+        //    //new FileApp().Write_SerializeJson(systemConfig, _log.t_MESSystemConfig);
+
+        //    var mailList = from respGroup in PfRespGroupServices.GetAllListIQueryable()
+        //                   join respGroupUser in PfRespGroupUserListServices.GetAllListIQueryable() on respGroup.PF_RESP_GROUP_SID
+        //                       equals respGroupUser.PF_RESP_GROUP_SID
+        //                   join user in AdUserServices.GetAllListIQueryable() on respGroupUser.USER_SID equals user.USER_SID
+        //                   where respGroup.MAIL_FLAG == "T" && respGroup.PF_RESP_GROUP_SID == respGroupSid
+        //                   select user.EMAIL;
+
+        //}
+
+
 
         /// <summary>
         /// The t_.

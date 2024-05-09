@@ -1,6 +1,8 @@
 ﻿using BLL.MES;
 using Genesis.Gtimes.MTR;
 using Genesis.Gtimes.Transaction.MTR;
+using Genesis.Gtimes.Transaction.WIP;
+using Genesis.Gtimes.WIP;
 using Genesis.Library.BLL.MES.WRP;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using UnitTestProject.TestUT;
@@ -39,11 +41,20 @@ namespace UnitTestProject
 
 		}
 
+		[TestMethod]
+		public void t_LotConsumptionTxn()
+=> _DBTest((Txn) => {
+	var CurrentLot = Txn.GetLotInfo("3B0000-231213-01", isQueryByLotNO: true);
+	var mLot = Txn.GetMLotInfo("2001-15409-1-1B01");
+	var consumpMLot = new LotUtility.LotConsumptionMlotQuantity(mLot, (decimal)50, 0, 0);
+	Txn.DoTransaction(new WIPTransaction.LotConsumptionTxn(CurrentLot, consumpMLot));
+}, true);
+
 
 		/// <summary>
 		/// 變更物料批號數量
 		/// </summary>
-        [TestMethod]
+		[TestMethod]
         public void t_ChangeMtrLotQtyTxn()
 		  => _DBTest((Txn) =>
 		  {

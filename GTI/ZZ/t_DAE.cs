@@ -25,6 +25,12 @@ using static Genesis.Library.BLL.ADM.BomServices;
 using static Genesis.Library.BLL.WRP.CrewServices;
 using _Prd = Genesis.Library.BLL.MES.OperTask;
 using _Func = Genesis.Library.BLL.MES.OperTask.Func;
+using BLL.DataViews.Edc;
+using static Genesis.Library.BLL.DTC.Lot;
+using static Genesis.Gtimes.WIP.LotUtility;
+using Genesis.Library.BLL.ADM;
+using Genesis.Gtimes.Transaction.WIP;
+using System.Data.Entity;
 
 namespace UnitTestProject
 {
@@ -83,7 +89,15 @@ namespace UnitTestProject
 					return FileApp.ts_Log(@"ZZ\DAE\按Bom表檢查物料清單.json");
 				}
 			}
- 
+
+			internal static string Rule_站別檢驗單解Hold
+			{
+				get
+				{
+					return FileApp.ts_Log(@"ZZ\DAE\Rule_站別檢驗單解Hold.json");
+				}
+			}
+			
 		}
 
 
@@ -250,10 +264,14 @@ namespace UnitTestProject
 
 		[TestMethod]
 		public void t_ZZ_WO_MT_LOT_LIST()
-		=> _DBTest(Txn => {
-			var z1 = ApiService.ZZ_WO_MT_LOT_LIST("5101-150519001", "15127-1-1C01");
-		},false, true);
+		{ 
+			//var z1 = ApiService.ZZ_WO_MT_LOT_LIST("5101-150519001", "15127-1-1C01");
+			var z2 = ApiService.ZZ_WO_MT_LOT_LIST("5101-231211007", "3B3530-23902-1");
 
+			FileApp._tmpJson(z2);
+
+		}
+		 
 		[TestMethod]
 		public void t_ZZ_MT_LOT_USED()
 		=> _DBTest(Txn => {
@@ -402,6 +420,221 @@ namespace UnitTestProject
 			//var r = WIPServices.CheckBatchLot("D5101-230831001-05", "D5101-230831001-04",true) ;
 			//var r = WIPServices.CheckBatchLot("D5101-230831001-05", "D5101-230831001-04", true);
 		}
+
+		[TestMethod]
+		public void t_IPQC檢驗單個數規則()
+		{
+			Assert.AreEqual(2, _Func.IPQC檢驗單建立規則(10, 10, 1));
+			Assert.AreEqual(2, _Func.IPQC檢驗單建立規則(6, 10, 1));
+			Assert.AreEqual(3, _Func.IPQC檢驗單建立規則(18, 10, 1));
+			Assert.AreEqual(3, _Func.IPQC檢驗單建立規則(18, 10, 1));
+			//var r = WIPServices.CheckBatchLot("D5101-230831001-05", "D5101-230831001-04",true) ;
+			//var r = WIPServices.CheckBatchLot("D5101-230831001-05", "D5101-230831001-04", true);
+		}
+
+		[TestMethod]
+		public void t_站別檢驗單_進站新增()
+		=> _DBTest(Txn => {
+			var Lot = Txn.GetLotInfo("5A0AS27400-240320-01", isQueryByLotNO: true);
+			var Oper = Txn.GetOperationInfo(Lot.OPER_SID);
+			QC_INSP QC_INSP = Txn.EFQuery_MES.QC_INSP.FirstOrDefault(c => c.INSP_SID == "GTI24032715004269118");
+			string PARTNO = "PARTNO";
+			decimal 定量檢驗數 = 5;
+			int 檢驗單數 = 5;
+			_Func.站別檢驗單_進站新增(Txn, Oper, Lot, QC_INSP, PARTNO, 定量檢驗數, 檢驗單數);
+		},true,true);
+
+
+		[TestMethod]
+		public void t_站別檢驗單_出站檢核()
+		=> _DBTest(Txn => {
+			var Lot = Txn.GetLotInfo("5A0AS27400-240320-01", isQueryByLotNO: true);
+			var Oper = Txn.GetOperationInfo(Lot.OPER_SID);
+			QC_INSP QC_INSP = Txn.EFQuery_MES.QC_INSP.FirstOrDefault(c => c.INSP_SID == "GTI24032715004269118");
+			string PARTNO = "PARTNO";
+			decimal 定量檢驗數 = 5;
+			int 檢驗單數 = 3;
+			_Func.站別檢驗單_出站檢核(Txn, Oper, Lot, QC_INSP, PARTNO, 定量檢驗數, 檢驗單數);
+		},true,true);
+
+
+
+		[TestMethod]
+		public void t_Maintain_PagerQuery()
+		=> _DBTest(Txn => {
+			var r = ProductionLotIPQCService.Maintain_PagerQuery(Txn).ToList();
+		}, true, true);
+
+
+		[TestMethod]
+		public void t_Form()
+		=> _DBTest(Txn => {
+			var r = ProductionLotIPQCService.Form("GTI24032721223169308") ;
+		}, true, true);
+
+
+		[TestMethod]
+		public void t_Hold()
+		=> _DBTest(Txn => {
+			var Lot = Txn.GetLotInfo("5B0AS24200-240416-01", isQueryByLotNO: true);
+
+
+			var z1 = Txn.GetReasonCodeInfo("INSP_HOLD_REASON",ReasonUtility.IndexType.No);
+			var holdLot = new LotHoldCreateInfo(Lot,z1,"");
+			Txn.DoTransaction
+					(new WIPTransaction.HoldLotTxn(holdLot)
+					, new WIPTransaction.EndOfLotTxn(Lot));
+		}, true, true);
+
+
+
+		 struct d_Rule_站別檢驗單解Hold {
+			public ZZ_DAE_IPQC_LOT form ;
+			public List<ZZ_DAE_IPQC_LOT_RECORD> body ;
+		}
+
+		[TestMethod]
+		public void t_Rule_站別檢驗單解Hold()
+		=> _DBTest(Txn => {
+			var _Accept = nameof(RES.BLL.Face.Accept);
+			var _Reject = nameof(RES.BLL.Face.Reject);
+
+			//var r = new d_Rule_站別檢驗單解Hold();
+			//r.form = Txn.EFQuery_MES.ZZ_DAE_IPQC_LOT
+			//	.FirstOrDefault(c => c.QC_LOT_SID == "GTI24032721221569307");
+
+			//r.body = Txn.EFQuery_MES.ZZ_DAE_IPQC_LOT_RECORD
+			//		.Where(c => c.QC_LOT_SID == r.form.QC_LOT_SID)
+			//		.ToList();
+
+			//FileApp.WriteSerializeJson(r,_log.Rule_站別檢驗單解Hold);
+			var r = FileApp.Read_SerializeJson<d_Rule_站別檢驗單解Hold>(_log.Rule_站別檢驗單解Hold);
+			var INSP_SEQ_SID = r.body[2].INSP_SEQ_SID;
+			var lot = Txn.GetLotInfo("5B0AS24200-240416-01", isQueryByLotNO: true);
+			Assert.IsTrue(ProductionLotIPQCService.Rule_站別檢驗單解Hold(Txn, INSP_SEQ_SID, _Accept, r.body, lot));
+			//r.body[1].QC_RESULT = _Reject;
+			//Assert.IsFalse(ProductionLotIPQCService.Rule_站別檢驗單解Hold(Txn, INSP_SEQ_SID, _Accept, r.body));
+		}, true, true);
+		
+
+		[TestMethod]
+		public void t_DAE_CancelCheckIn()
+		=> _DBTest(Txn => {
+			var lot = Txn.GetLotInfo("GTI24032010550267244");
+			//Txn.DoTransaction(new DAE_CancelCheckIn(lot));
+			
+			//DAE_CancelCheckIn
+			var type_lot = typeof(Genesis.Library.BLL.DTC.Lot);
+			Type _type = type_lot.GetNestedType("DAE_CancelCheckIn");
+			ConstructorInfo constructor = _type.GetConstructor(new[] { typeof(LotInfo) });
+			if (constructor != null)
+			{
+				var args = new[] { lot }; // 传递给静态方法的参数
+				var cmd = (IDataTransactionCmd)constructor.Invoke(args);
+				Txn.DoTransaction(cmd);
+			}
+
+		}, true, true);
+
+
+		[TestMethod]
+		public void t_刪除測試()
+		=> _DBTest(Txn => {
+
+			var _list = Txn.EFQuery_MES.ZZ_DAE_IPQC_LOT_RECORD.Where(c => 
+				c.QC_LOT_SID == "GTI24042213190769060" && 
+				c.INSP_SEQ > 1)
+				.AsNoTracking()
+				.ToList();
+			_list.ForEach(e => {
+				Txn.EFQuery_MES.ZZ_DAE_IPQC_LOT_RECORD.Attach(e);
+				var _cd_3 = Txn.EFQuery_MES.ZZ_DAE_IPQC_CHECKITEM
+					.Where(c => c.INSP_SEQ_SID == e.INSP_SEQ_SID);
+				var _cd_4 = Txn.EFQuery_MES.ZZ_DAE_IPQC_CHECKITEM_RAW
+					.Where(c => _cd_3.Any(t => t.SEQ_EDC_SID == c.SEQ_EDC_SID));
+
+				Txn.EFQuery_MES.ZZ_DAE_IPQC_CHECKITEM_RAW.RemoveRange(_cd_4);
+				Txn.EFQuery_MES.ZZ_DAE_IPQC_CHECKITEM.RemoveRange(_cd_3);
+			});
+			Txn.EFQuery_MES.ZZ_DAE_IPQC_LOT_RECORD.RemoveRange(_list);
+			Txn.EFQuery_MES.SaveChanges();
+ 
+
+		}, true, true);
+
+
+		[TestMethod]
+		public void t_UpdateWoList()
+		{
+			var entity = new FC_TOOL() { TOOL_NO= "AS010DAE150202" };
+			var z1 = ToolBindingWoServices.ToolBindingWoData(entity.TOOL_NO);
+			
+			
+			//var AuthorizedGroup = new List<string>() {
+			//	"5101-231211006","5101-231211011"
+			//};
+			//var z = ToolBindingWoServices.UpdateWoList(entity, AuthorizedGroup, true);
+
+
+		} 
+		
+
+		[TestMethod]
+		public void t_Form1()
+		=> _DBTest(Txn => {
+			var INSP_SEQ_SID = "GTI24032721223169309";
+
+			var _edcData_main = Txn.EFQuery_MES.ZZ_DAE_IPQC_CHECKITEM
+					.Where(c => c.INSP_SEQ_SID == INSP_SEQ_SID);
+			var _edcData = (from a in Txn.EFQuery_MES.QC_INSP_EDC
+								join b in _edcData_main 
+									on a.INSP_EDC_SID equals b.INSP_EDC_SID
+							//where _edcData_main.Any(c=> c.INSP_EDC_SID == a.INSP_EDC_SID)
+							select new { a, b.SEQ_EDC_SID }
+							).ToList();
+			var _edcData_item = (from a in Txn.EFQuery_MES.ZZ_DAE_IPQC_CHECKITEM_RAW
+								 where _edcData_main.Any(c => c.SEQ_EDC_SID == a.SEQ_EDC_SID)
+                                 select a
+                                 //group a by new { a.SEQ_EDC_SID } into grp
+                                 //select new
+                                 //{
+                                 //    key = grp.Key,
+                                 //    val = grp.GroupBy(c=>c.QC_SEQ).ToDictionary(kv => kv.Key, kv => kv.QC_DATA).ToList() //
+                                 //    //grp.ToList()
+                                 //}
+                                ////new Dictionary<string, string>() { { (a.QC_SEQ + 1).ToString(), a.QC_DATA }
+                                //)
+                                //.ToDictionary(k => k.key
+                                //, v => v)
+                                //;
+                                ).ToList();
+
+            var edcData = _edcData
+                    .Select(t => 
+					new EdcModel()
+                    {
+                        EdcVerSid = t.a.EDC_VER_SID,
+                        EdcParameterSid = t.a.EDC_PARA_SID,
+                        QCItemSID = t.a.INSP_EDC_SID,
+                        DataType = t.a.DATATYPE,
+                        DataCount = int.Parse(t.a.TEST_POINT),
+                        ItemSid = t.a.INSP_EDC_SID,
+                        ItemNo = t.a.PARA_NO,
+                        ItemName = t.a.PARAMETER,
+                        mustInput = t.a.MUST_INPUT,
+                        UCL = t.a.UCL,
+                        USL = t.a.USL,
+                        LCL = t.a.LCL,
+                        LSL = t.a.LSL,
+                        TL = t.a.TL,
+                        EDCSid = t.a.EDC_SID,
+                        InputValueList = ProductionLotIPQCService.parse_InputValueList_4OutPut(_edcData_item, t.SEQ_EDC_SID)
+                    })
+                    .ToList();
+
+
+        }, true, true);
+
 	}
 }
 

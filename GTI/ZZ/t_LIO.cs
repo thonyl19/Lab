@@ -37,6 +37,15 @@ namespace UnitTestProject
 					return FileApp.ts_Log(@"ZZ\LIO\BB_Tesing.json");
 				}
 			}
+
+			internal static string get_ZZ_EQUIP_MEASURED_HIS_LOT_ATTR
+			{
+				get
+				{
+					return FileApp.ts_Log(@"ZZ\LIO\get_ZZ_EQUIP_MEASURED_HIS_LOT_ATTR.json");
+				}
+			}
+			
 		}
 
  
@@ -155,6 +164,23 @@ namespace UnitTestProject
 			var NEXT_OPER_SID = "GTI23010917340392788";
 			var r = WIPOperConfigServices.StationEQP(NEXT_OPER_SID);
 		}
+
+
+		[TestMethod]
+		public void t_get_ZZ_EQUIP_MEASURED_HIS_LOT_ATTR()
+		=> _DBTest(Txn => {
+			//var xx =   Txn.EFQuery_MES.ZZ_EQUIP_MEASURED_HIS_LOT_ATTR
+			//.Where(a0 => Txn.EFQuery_MES.ZZ_EQUIP_MEASURED_HIS
+			//	.Where(a1 => a1.LOT == "A" && a1.MEASURE_SID == a0.MEASURE_SID)
+			//	.OrderByDescending(a1 => a1.UPLOADED_TIME)
+			//	.Take(1)
+			//	.Any()
+			//).ToList();
+
+			var r = ApiService.get_ZZ_EQUIP_MEASURED_HIS_LOT_ATTR("A", null, null);
+			FileApp.WriteSerializeJson(r.Data, _log.get_ZZ_EQUIP_MEASURED_HIS_LOT_ATTR);
+
+		}, true,true);
 	}
 }
 

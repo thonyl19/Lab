@@ -60,7 +60,14 @@ namespace UnitTestProject
 			//var act = lot.GetCurrentCarrierInfo().CURRENT_CAPACITY;
 			//Assert.AreEqual(exp, act, $"扣數後, 數值應為 {exp}");
 		}, true);
-		
+
+
+
+		[TestMethod]
+		public void _DTC_SendMail()
+		=> _DBTest(Txn => {
+			//Txn.DoTransaction(new AL.SendMail("anthony_lin@genesis.com.tw", "Test"));
+		},true,true);
 
 
 	}

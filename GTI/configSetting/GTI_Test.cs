@@ -30,6 +30,9 @@ using System.IO;
 using System.Text.RegularExpressions;
 using vFile = System.IO.File;
 using MDL.OracleMES.Tables;
+using System.Web.Routing;
+using System.Diagnostics;
+using System.Reflection;
 
 namespace Genesis
 {
@@ -2239,6 +2242,121 @@ namespace Genesis.Areas.Example.Controllers
             ViewData["SingleModel"] = SingleModel;
             return View(name);
         }
+
+        //public ActionResult QC_INSTRUMENTS_CALIBRATION_RECORDS_PMS_Save(QC_INSTRUMENTS_CALIBRATION_RECORDS form, List<EdcModel> edcData, string isTest = null)
+        //=> _Content1(o => Maintain.QC_INSTRUMENTS_CALIBRATION_RECORDS_Save(form, edcData, isTest == "T"));
+
+        public static ExpandoObject GetCurrentMethodParameters(int index = 1)
+        {
+            // 取得當前執行緒的堆疊框架
+            StackTrace stackTrace = new StackTrace();
+            StackFrame stackFrame = stackTrace.GetFrame(index); // 1 表示取得呼叫者的堆疊框架
+
+            // 取得呼叫方法的方法資訊
+            MethodBase method = stackFrame.GetMethod();
+
+            // 取得傳入參數集合
+            ParameterInfo[] parameters = method.GetParameters();
+
+            dynamic parameterValues = new ExpandoObject();
+
+            // 將參數值加入動態物件
+            foreach (var parameter in parameters)
+            {
+                ((IDictionary<string, object>)parameterValues)[parameter.Name] = parameter.DefaultValue;
+            }
+
+            return parameterValues;
+        }
+
+        public static ExpandoObject GetCurrentMethodParameters(string ActionName)
+        {
+            StackTrace stackTrace = new StackTrace();
+            dynamic parameterValues = new ExpandoObject();
+            // 從堆疊中尋找目標呼叫者
+            for (int i = 1; i < stackTrace.FrameCount; i++)
+            {
+                StackFrame stackFrame = stackTrace.GetFrame(i);
+                MethodBase method = stackFrame.GetMethod();
+
+                // 檢查呼叫者的類型和方法名稱
+                if (method.ReflectedType != null &&
+                    method.Name == ActionName)
+                {
+                    ParameterInfo[] parameters = method.GetParameters();
+
+
+                    // 將參數值加入動態物件
+                    foreach (var parameter in parameters)
+                    {
+                        ((IDictionary<string, object>)parameterValues)[parameter.Name] = parameter.DefaultValue;
+                    }
+
+                    break;
+                }
+            }
+            // 取得傳入參數集合
+            return parameterValues;
+        }
+
+        public dynamic Check_RedirectToCustomAction(bool isNeedExec)
+        {
+            if (!isNeedExec) return null;
+
+            var controllerContext = ControllerContext;
+            string ProjectCustomer = "DAE";// ServicesBase.ProjectCustomer ?? "";
+            if (ProjectCustomer == "") return null;
+
+            dynamic Arg = new ExpandoObject();
+            string ActionName = controllerContext.RouteData.Values["action"].ToString();
+            Arg.CusActionName = $"{ActionName}_{ProjectCustomer}";
+            var actionMethod = controllerContext.Controller
+                .GetType()
+                .GetMethod(Arg.CusActionName);
+            if (actionMethod == null) return null;
+
+            var queryParameter = HttpContext.Request.QueryString;
+            var routeValues = new RouteValueDictionary();
+            foreach (string key in queryParameter)
+            {
+                routeValues.Add(key, queryParameter[key]);
+            }
+            Arg.RouteParam = routeValues;
+            return Arg;
+        }
+
+
+        public ActionResult _Content1(Func<IResult, IResult> func, bool isCus = false)
+        {
+            IResult result = new Result(true);
+            try
+            {
+                var Arg = Check_RedirectToCustomAction(isCus);
+                if (Arg != null)
+                {
+                    //return Content(((object) Arg).ToJson(true));
+                    return RedirectToAction(Arg.CusActionName, Arg.RouteParam);
+                }
+                result = func(result);
+            }
+            catch (Exception ex)
+            {
+                result.Success = false;
+                result.Message = ex.Message;
+                result.Data = ex.Data;
+                Logger.Error(ex.Message, ex);
+            }
+
+            return Content(result.ToJson(true));
+        }
+
+        [AllowAnonymous]
+        public ActionResult test1(string name, bool SingleModel = true)
+        => _Content1(o => new Result(true) { Data = "Test1" },true);
+
+        [AllowAnonymous]
+        public ActionResult test1_DAE(string name, bool SingleModel = true)
+        => _Content(o => new Result(true) { Data = new { name , SingleModel } });
 
         [AllowAnonymous]
         /// <summary>

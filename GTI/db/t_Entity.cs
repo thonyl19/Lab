@@ -109,7 +109,7 @@ namespace UnitTestProject
 		[TestMethod]
 		public void t_測試MODEL是否有特定屬性2()
 		{
-			var z = BLL.MES.WIPInfoServices.CartonCheckIn("20230226001-01",true);
+			//var z = BLL.MES.WIPInfoServices.CartonCheckIn("20230226001-01",true);
 			
 		}
 

@@ -36,11 +36,14 @@ using static BLL.MES.WIPServices;
 using static Genesis.Gtimes.Transaction.WIP.WIPTransaction;
 using mdl = MDL.MES;
 using vDbCtx = MDL.MESContext;
+using _mdl_mvc = MDL.GenesisMVC.Tables;
+using MDL;
+using static BLL.MES.TableQueryService;
 
 namespace UnitTestProject
 {
-    //TODO-BK
-    [TestClass]
+	//TODO-BK
+	[TestClass]
 	public class t_DB : _testBase
 	{
 
@@ -48,7 +51,7 @@ namespace UnitTestProject
 		public string _path = @"C:\Code\GTIMES_2015\UnitTestProject\Log\";
 		static class _log
 		{
-            internal static  string t_Process_PosiMap_cmd_CHANGE_SERIAL
+			internal static string t_Process_PosiMap_cmd_CHANGE_SERIAL
 			{
 				get
 				{
@@ -72,8 +75,8 @@ namespace UnitTestProject
 			}
 
 
- 
-			
+
+
 		}
 
 		[TestMethod]
@@ -1055,29 +1058,29 @@ SELECT 	LOT.ROUTE_VER_SID,
 		public void t_CreateUnitWork_txn()
 		=> _DBTest((txn) =>
 		{
-            //txn.EFQuery<AD_LOG>().Create
-			
+			//txn.EFQuery<AD_LOG>().Create
 
-            var unWork = new EFUnitOfWork(txn.DbContext);
-            var _sid = mes.getSID();
-            var _AD_LOG = new mdl.AD_LOG()
-            {
-                FUN_NAME = "Maintain",
-                ACTION = "UPDATE",
-                TARGET_PK = _sid,
-                TARGET_TABLE = "ZZ_EMP_ATTEND",
-                VALUE_LINK_SID = _sid,
-                CREATE_USER = "TEST",
-                CREATE_DATE = mes.getTime(),
-            };
 
-            unWork.Repository<AD_LOG>().Create(_AD_LOG);
-			
+			var unWork = new EFUnitOfWork(txn.DbContext);
+			var _sid = mes.getSID();
+			var _AD_LOG = new mdl.AD_LOG()
+			{
+				FUN_NAME = "Maintain",
+				ACTION = "UPDATE",
+				TARGET_PK = _sid,
+				TARGET_TABLE = "ZZ_EMP_ATTEND",
+				VALUE_LINK_SID = _sid,
+				CREATE_USER = "TEST",
+				CREATE_DATE = mes.getTime(),
+			};
+
+			unWork.Repository<AD_LOG>().Create(_AD_LOG);
+
 			//unWork.DTC();
 			//unWork.DTC(new Genesis.Library.BLL.DTC.Wafer.DTC_SetShipCassetteGrade("", ""));
 
 			unWork.Save();
-        });
+		});
 
 
 
@@ -1575,11 +1578,11 @@ SELECT 	LOT.ROUTE_VER_SID,
 		}
 
 
-        [TestMethod]
-        public void t_fn()
-        {
+		[TestMethod]
+		public void t_fn()
+		{
 			new TxnBase("test", this.DBC)
-				.Exec((_txn)=>{
+				.Exec((_txn) => {
 					var t = _txn.EFQuery<WP_LOT_WAFER_MAPPING>().Reads(c => c.LOT == "WO_T074_001").ToList();
 				});
 
@@ -1592,14 +1595,14 @@ SELECT 	LOT.ROUTE_VER_SID,
 			using (var dbc = new MDL.MESContext())
 			{
 
-				var obj = FileApp.Read_SerializeJson<Dictionary<int, WAFER_MAPPING>> ( _log.t_Process_PosiMap_cmd_CHANGE_SERIAL);
+				var obj = FileApp.Read_SerializeJson<Dictionary<int, WAFER_MAPPING>>(_log.t_Process_PosiMap_cmd_CHANGE_SERIAL);
 
 				TransactionUtility.TransactionBase txnBase = new TransactionUtility.TransactionBase("----", "test", DateTime.Now, "FunctionRightName");
 				TransactionUtility.GtimesTxn gtimesTxn = new TransactionUtility.GtimesTxn(this.DBC, txnBase);
 				TransactionUtility.AddSQLCommandTxn sqlcmd = new TransactionUtility.AddSQLCommandTxn();
 
-                try
-                {
+				try
+				{
 					using (IDbTransaction tx = DBC.GetTransaction())
 					{
 						var cmd = WIPServices.Process_PosiMap_cmd_UpdateStatus
@@ -1624,13 +1627,13 @@ SELECT 	LOT.ROUTE_VER_SID,
 					}
 				}
 				catch (Exception ex)
-                {
+				{
 
-                    throw ex;
-                }
+					throw ex;
+				}
 
-				
-            }
+
+			}
 
 		}
 
@@ -1729,34 +1732,34 @@ SELECT 	LOT.ROUTE_VER_SID,
 
 		[TestMethod]
 		public void _EFQuery_1()
-		=>_DBTest((tx) =>
-		{
+		=> _DBTest((tx) =>
+		 {
 			//var r = (from a in tx.EFQuery_MES.WP_LOT where a.LOT_SID == "GTI22092622284791779" select a ).AsNoTracking().FirstOrDefault();
 
 		});
-		
+
 
 
 		[TestMethod]
 		public void _EFQuery_JOIN()
-		=> TxnBase.LzDBQuery((txn)=>{
-			var _repo = new { 
+		=> TxnBase.LzDBQuery((txn) => {
+			var _repo = new {
 				QC_ITEMGROUP_ITEM = txn.EFQuery<QC_ITEMGROUP_ITEM>(),
 				QC_ITEMGROUP = txn.EFQuery<QC_ITEMGROUP>(),
 				QC_ITEM = txn.EFQuery<QC_ITEM>()
 			};
 			txn.result.Data = (from a in _repo.QC_ITEMGROUP_ITEM.Reads()
-						 join b in _repo.QC_ITEM.Reads() 
-							on a.QC_ITEM_SID equals b.QC_ITEM_SID
-						 join c in _repo.QC_ITEMGROUP.Reads()
-							on a.QC_ITEMGROUP_SID equals c.QC_ITEMGROUP_SID
-						 where b.ENABLE_FLAG == nameof(EnableFlag.T)
-						 select new SelectModel
-						 {
-							 SID = c.QC_ITEMGROUP_SID,
-							 No = c.QC_ITEMGROUP_NO,
-							 Display = c.QC_ITEMGROUP_NAME,
-						 }
+							   join b in _repo.QC_ITEM.Reads()
+								  on a.QC_ITEM_SID equals b.QC_ITEM_SID
+							   join c in _repo.QC_ITEMGROUP.Reads()
+								  on a.QC_ITEMGROUP_SID equals c.QC_ITEMGROUP_SID
+							   where b.ENABLE_FLAG == nameof(EnableFlag.T)
+							   select new SelectModel
+							   {
+								   SID = c.QC_ITEMGROUP_SID,
+								   No = c.QC_ITEMGROUP_NO,
+								   Display = c.QC_ITEMGROUP_NAME,
+							   }
 						)
 						.Distinct()
 						.AsQueryable()
@@ -1784,13 +1787,13 @@ SELECT 	LOT.ROUTE_VER_SID,
 			UpdateCommandBuilder update = new UpdateCommandBuilder(tx.DBC, "WP_LOT");
 			update.UpdateColumn("ATTRIBUTE_35", "Test")
 					.WhereAnd("LOT_SID", "GTI22031515091645302");
-			
+
 			//tx.Sqlcmd.Commands.Add(update.GetCommand());
 			//tx.DoTranCurSqlCmd();
-			
+
 			tx.DoTransaction(update.GetCommand());
 
-		},true);
+		}, true);
 
 
 
@@ -1827,11 +1830,11 @@ SELECT 	LOT.ROUTE_VER_SID,
 
 		[TestMethod]
 		public void t_DTC_Carrierload()
-		=> _DBTest((txn) =>{
+		=> _DBTest((txn) => {
 			var CarrierInfo = GTI_helper.getCarrierInfo("SELECT * from FC_CARRIER WHERE CARRIER_NO = '2-0001-12'");
 			var LotInfo = GTI_helper.getLotInfo();
 			//txn.DoTransaction(new DTC_Carrierload(CarrierInfo, LotInfo));
-		},true);
+		}, true);
 
 
 		[TestMethod]
@@ -1888,10 +1891,10 @@ SELECT 	LOT.ROUTE_VER_SID,
 			var r = txn.DBC.Select(sql, parameters);
 			var t = ServicesBase.SQLDebug(txn.DBC, sql, parameters);
 			var l = new List<string>();
-            foreach (var el in r.Columns)
-            {
+			foreach (var el in r.Columns)
+			{
 				l.Add(el.ToString());
-            }
+			}
 
 			var c = string.Join(",", l.ToArray());
 
@@ -1899,7 +1902,7 @@ SELECT 	LOT.ROUTE_VER_SID,
 
 
 
-		},true);
+		}, true);
 
 		[TestMethod]
 		public void _DTC_Del()
@@ -1947,7 +1950,7 @@ delete AD_SHIFT where SHIFT_SID = @SHIFT_SID
 			where A.ACTION_LINK_SID =  @link_sid
 			";
 
-			var r = txn.DBC.Select(sql );
+			var r = txn.DBC.Select(sql);
 			FileApp._tmpJson(r);
 		}, true);
 
@@ -1961,11 +1964,11 @@ delete AD_SHIFT where SHIFT_SID = @SHIFT_SID
 			var IdleState_SID = "GTI11092111313080782";
 			var query = (from t in (from t1 in txn.EFQuery<FC_CARRIER>().Reads()
 									where t1.ENABLE_FLAG == "F"
-									   //&& (isOnlyIdle == false
-										  // || isOnlyIdle && t1.STATE_SID == IdleState_SID)
+									//&& (isOnlyIdle == false
+									// || isOnlyIdle && t1.STATE_SID == IdleState_SID)
 									select t1)
-									//很奇怪,在專案可以執行,但這裡無法用
-									//.AsEnumerable()
+							 //很奇怪,在專案可以執行,但這裡無法用
+							 //.AsEnumerable()
 						 select new SelectModel
 						 {
 							 SID = t.CARRIER_SID,
@@ -1980,27 +1983,27 @@ delete AD_SHIFT where SHIFT_SID = @SHIFT_SID
 
 
 
-        //     [TestMethod]
-        //     public void _測試新增欄位()
-        //     => _DBTest((txn) =>
-        //     {
-        //         var sql = @"
-        // select  top 1 *
-        //from ZZ_LOT_ROLL   with(nolock)
+		//     [TestMethod]
+		//     public void _測試新增欄位()
+		//     => _DBTest((txn) =>
+		//     {
+		//         var sql = @"
+		// select  top 1 *
+		//from ZZ_LOT_ROLL   with(nolock)
 
-        //";
+		//";
 
-        //         var r = txn.DapperQuery<ZZ_LOT_ROLL>(sql)
-        //             .FirstOrDefault();
-        //         FileApp._tmpJson(r);
-        //     }, true);
+		//         var r = txn.DapperQuery<ZZ_LOT_ROLL>(sql)
+		//             .FirstOrDefault();
+		//         FileApp._tmpJson(r);
+		//     }, true);
 
-        [TestMethod]
-        public void _DapperQuery()
-        => _DBTest((txn) =>
-        {
-            var arg = new { EQP_SID = "GTI23070514415145713" };
-            var sql = @"
+		[TestMethod]
+		public void _DapperQuery()
+		=> _DBTest((txn) =>
+		{
+			var arg = new { EQP_SID = "GTI23070514415145713" };
+			var sql = @"
 				SELECT  A.*
 				FROM	ESG_EMISSION_EQUIPMENT_RELATION A
 						INNER JOIN FC_EQUIPMENT B
@@ -2009,11 +2012,31 @@ delete AD_SHIFT where SHIFT_SID = @SHIFT_SID
 
 			";
 
-            //var r = txn.DapperQuery<ESG_EMISSION_EQUIPMENT_RELATION>(sql, arg)
-            //    .FirstOrDefault();
-            //FileApp._tmpJson(r);
+			//var r = txn.DapperQuery<ESG_EMISSION_EQUIPMENT_RELATION>(sql, arg)
+			//    .FirstOrDefault();
+			//FileApp._tmpJson(r);
 
-        }, true);
+		}, true);
+
+
+		[TestMethod]
+		public void _Join()
+		=> _DBTest((txn) =>
+		{
+			string keyword = "x";
+
+			var z = (from a in txn.EFQuery_MES.FC_SOP
+					 where txn.EFQuery_MES.FC_SOP_VER
+							.Any(t => t.SOP_SID == a.SOP_SID
+							&& t.VERSION == a.DEFAULT_VERSION
+							&& t.VERSION_STATE == nameof(RES.BLL.Face.Enable))
+						&& (keyword == null
+							|| a.SOP_SID.Contains(keyword)
+							|| a.SOP_NO.Contains(keyword)
+							|| a.SOP_NAME.Contains(keyword))
+					 select a).ToList();
+
+		}, true, true);
 
 
 		[TestMethod]
@@ -2022,31 +2045,231 @@ delete AD_SHIFT where SHIFT_SID = @SHIFT_SID
 		{
 			//todo
 			var x = new TxnACTION() { Desc = "Test" };
-			//txn.SetOnce_ACTION(x).DoTransaction();
+			txn.SetOnce_ACTION(x).DoTransaction();
 		}, true);
 
-		[TestMethod]
 
-		public void t_測試Txn跟EF更新同一筆資料的問題()
+		[TestMethod]
+		public void _Todo1()
 		=> _DBTest((txn) =>
 		{
-			var lot_no = "4B201-240319-01";
+			var x = new List<string>() { "5101-231214011" };
+
+			var _repo = new
+			{
+				WP_WO = txn.EFQuery<WP_WO>()
+			};
+			foreach (var item in x)
+			{
+				var z = _repo.WP_WO.Reads(c => c.WO == item).AsNoTracking().ToList();
+				if (z.Count == 1)
+				{
+					var _wo = z[0];
+					_wo.ATTRIBUTE_02 = item;
+					_repo.WP_WO.Update(_wo);
+				}
+			}
+			_repo.WP_WO.SaveChanges();
+
+			foreach (var item in x)
+			{
+				var _wo = txn.EFQuery_MES.WP_WO.Where(c => c.WO == item).FirstOrDefault();
+				if (_wo != null)
+				{
+					_wo.ATTRIBUTE_02 = item;
+					//txn.EFQuery_MES.WP_WORemove.u(_wo);
+				}
+				txn.EFQuery_MES.SaveChanges();
+			}
+		}, true, true);
 
 
-			var lot = txn.GetLotInfo(lot_no, isQueryByLotNO: true);
-            var _txn = new LotChangeAttributeTxn(lot, "ATTRIBUTE_35", lot.ATTRIBUTE_35, "C");
-			txn.DoTransaction(_txn);
+		[TestMethod]
+		public void _Todo2()
+		=> _DBTest((Txn) =>
+		{
+			//DbContext dbc = MVCContext.Create();
 
-			var z1 = txn.EFQuery_MES.WP_LOT.Where(c => c.LOT == lot_no)
-				//.AsNoTracking()
-				.FirstOrDefault();
-			z1.ATTRIBUTE_36 = 20;
+			//var _repo = new
+			//{
+			//	AD_USER_ROLE = new Dal.Repository.EFRepository<_mdl_mvc.AD_USER_ROLE>(dbc),
+			//};
+			//var ROLE = Txn.EFQuery_MVC.AD_ROLE.FirstOrDefault(c => c.ROLE_NO == "HoldLotMail");
+			//var b1 = Txn.EFQuery_MVC.AD_USER_ROLE.Where(c=> c.ROLE_SID == ROLE.SID)
+			//	.Select(p=>p.USER_SID)
+			//	.ToList();
+			//var c1 = Txn.EFQuery_MES.AD_USER.Where(c => b1.Contains(c.USER_SID))
+			//	.ToList();
+
+			/* var 
+			 * query = from a in context.Set<A>()
+			   join b in context.Set<B>() on a.SomeColumn equals b.SomeColumn // 根據需要修改JOIN條件
+			   select new { A = a, B = b };
+
+   /-- 在此之後的操作在記憶體中執行
+			   var groupedData = query.AsEnumerable() 
+				   .GroupBy(x => keySelector(x.A)) // 按照keySelector定義的鍵進行分組
+				   .ToDictionary(g => g.Key, g => g.Select(x => new ResultType {  
+				   }).ToList());
+
+			   return groupedData;
+
+			 var ff = (from a in Txn.EFQuery_MVC.AD_ROLE.Where(c => c.ROLE_NO == "HoldLotMail")
+					 join b in Txn.EFQuery_MVC.AD_USER_ROLE
+						   on a.SID equals b.ROLE_SID into joinAll
+						   from b in joinAll.DefaultIfEmpty()
+				   group new  { a, b } by new { a.ROLE_NO ,b.USER_SID} into z
+					 select new
+					 {
+					   ROLE_NO = z.Key.ROLE_NO
+					   ,r = z.ToList()
+					 }).ToList();
+			 */
 
 
+			/*暫時 mark
+						var q1 = (from a in Txn.EFQuery_MVC.AD_ROLE.Where(c => c.ROLE_NO == "HoldLotMail")
+								  join b in Txn.EFQuery_MVC.AD_USER_ROLE
+										on a.SID equals b.ROLE_SID into joinAll
+								  from c in joinAll.DefaultIfEmpty()
+								  select new { a,c.USER_SID })
+									.GroupBy(x => x.a)
+									.ToDictionary(g => g.Key, g => g.Select(x=>x.USER_SID).ToList());
+
+									*/
+
+		}, true, true);
+
+
+		[TestMethod]
+		public void t_ParaNoRelationUserRole() {
+			/*暫時 mark
+			var r = TableQueryService.ParaNoRelationUserRole("ZZ_HOLD_LOT_MAIL");
+			if (r.Success) {
+				var r1 = r.parseData<d_ParaNoRelationUserRole>();
+				var mail = string.Join(";", r1.uses_info
+					.Where(c => c.EMAIL != null)
+					.Select(c => c.EMAIL)
+					.ToArray());
+			}
+			*/
+		}
+
+		/*
+		結論,實體DB 少表,不影響 原有的程序存取 
+		 */
+		[TestMethod]
+		public void t_DB缺表測試()
+		=> _DBTest((txn) =>
+		{
+			var _基本查詢 = txn.EFQuery_MES.AD_AREA.FirstOrDefault();
+
+			//var _缺表 = txn.EFQuery_MES.ZZ_Test.FirstOrDefault();
+
+		}, true, true);
+
+
+		/*
+		結論,實體表少欄位,不影響 讀取/新增
+		 */
+		[TestMethod]
+		public void t_DB缺欄位測試()
+		=> _DBTest((txn) =>
+		{
+			//var r = new ZZ_Test()
+			//{
+			//	CHECKLIST_SID = "12345"
+			//};
+
+			//var _缺表 = txn.EFQuery_MES.ZZ_Test.FirstOrDefault();
+			//txn.EFQuery_MES.ZZ_Test.Add(r);
 			txn.EFQuery_MES.SaveChanges();
-		},true,true);
+		}, true, true);
 
 
+		[TestMethod]
+		public void t_getParentLot()
+		=> _DBTest((txn) =>
+		{
+			//var r = RDLCService.getParentLot("Test_SplitWafer-01.02.01");
+		}, true, true);
+		
+
+		/*
+		結論,實體表少欄位,不影響 讀取/新增
+		 */
+		[TestMethod]
+		public void t_遞迴查詢()
+		=> _DBTest((txn) =>
+        {
+
+            var _list = new List<WP_LOT>();
+
+            var _lot = GetLot(txn, "GTI22042810431075651");
+
+			do
+			{
+                if (_lot != null) _list.Add(_lot);
+                _lot = GetLot(txn, _lot.PARENT_LOT_SID);
+            } while (_lot != null);
+
+
+
+        }, true, true);
+
+        private WP_LOT GetLot(ITxnBase txn, string LOT_SID)
+        {
+			if (LOT_SID == null) return null;
+            return txn.EFQuery_MES.WP_LOT.Where(l => l.LOT_SID == LOT_SID).First();
+        }
+ 
+		/// <summary>
+		/// 經實測 , 這個方法無法 ,並無法真正的遞迴取出所有資料
+		/// </summary>
+		/// <param name="lots"></param>
+		/// <param name="inputLot"></param>
+		/// <returns></returns>
+        private static IQueryable<d_WP_LOT> RecursiveLots(IQueryable<WP_LOT> lots, string inputLot)
+		{
+			// 初始選擇，找出指定 LOT 的記錄
+			var initialQuery = lots.Where(l => l.LOT_SID == inputLot).Select(l=>new d_WP_LOT()
+			{
+				LOT_SID = l.LOT_SID,
+				PARENT_LOT_SID = l.PARENT_LOT_SID
+
+			});
+			var z1 = initialQuery.ToList();
+
+			// 遞歸部分，使用 Join 來連接遞歸查詢
+			var recursiveQuery = from l in lots
+								 join rl in initialQuery on l.LOT_SID equals rl.PARENT_LOT_SID
+								 select new d_WP_LOT()
+								 {
+									LOT_SID = l.LOT_SID,
+									 PARENT_LOT_SID = l.PARENT_LOT_SID 
+								 
+								 };
+
+			var z2 = recursiveQuery.ToList();
+
+			// 合併初始選擇和遞歸部分，並使用 Union 方法來實現遞歸查詢
+			var finalQuery = initialQuery.Union(recursiveQuery);
+
+			return finalQuery;
+		}
+
+		public class d_WP_LOT
+		{
+			public string LOT_SID { get; set; }
+			public string PARENT_LOT_SID { get; set; }
+
+			public d_WP_LOT() { }
+			public d_WP_LOT(string LOT_SID, string PARENT_LOT_SID)
+			{
+				this.LOT_SID = LOT_SID;
+				this.PARENT_LOT_SID = PARENT_LOT_SID;
+			}
+		}
 	}
 
  

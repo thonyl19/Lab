@@ -66,13 +66,13 @@ namespace UnitTestProject
             CodeNo = CodeNo ?? FunctionName.LotSplit;
             SplitList = SplitList ?? new List<CustomerList>() { new CustomerList() { INum = 1 } };
 
-            switch (CodeNo) {
-                case FunctionName.人工給號:
-                    _check.Invalid("人工給號 ,分批清單必須設定" , SplitList == null, SplitList);
-                    break;
-                default:
-                    break;
-            }
+            //switch (CodeNo) {
+            //    case FunctionName.人工給號:
+            //        _check.Invalid("人工給號 ,分批清單必須設定" , SplitList == null, SplitList);
+            //        break;
+            //    default:
+            //        break;
+            //}
 
             return txn.GetEnCodes(CodeNo, SplitList.Count, _lotInfo, false);
         }
