@@ -66,12 +66,21 @@
 									  group_no="WO-Priority" />
 		</gt-form-col>
 
-		<gt-form-col label="dll api">
-			<vue-selectize-dllapi v-model="form.F" action="LINE" />
-		</gt-form-col>
-
 
 	</div>
+	
+	<h3>vue-selectize-ddlapi</h3>
+	<div class="row">
+		<gt-form-col label="一般 ">
+			<vue-selectize-ddlapi v-model="form.F" action="LINE"></vue-selectize-ddlapi> <br />
+			<vue-selectize-ddlapi v-model="form.F" action="LINE" :readonly="!readonly"></vue-selectize-ddlapi>
+		</gt-form-col>
+		<gt-form-col label="沒有查詢鈕">
+			<vue-selectize-ddlapi v-model="form.F" action="LINE" :readonly="!readonly" :icon_search="false"></vue-selectize-ddlapi> <br />
+			<vue-selectize-ddlapi v-model="form.F" action="LINE" :icon_search="false"></vue-selectize-ddlapi>
+		</gt-form-col>
+	</div>
+
 	<h3>vue-selectize-router</h3>
 	<div class="row">
 		<vue-selectize-router :route.sync="ddl_Route" 　:readonly="readonly" 

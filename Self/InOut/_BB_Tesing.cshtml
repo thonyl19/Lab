@@ -8,27 +8,22 @@
 }
 @eBundle.QRender_CSS()
 @eBundle.QRender_JS()
-@Html.Partial("~/Areas/ZZ_LIO/Views/_BB_Tesing.cshtml")
+@Html.Partial("~/Areas/ZZ_LIO/Views/OperTaskPart/_BB_Tesing.cshtml")
 @Html.Partial("~/Areas/MES/Views/WIP/Partial2/_scrap.cshtml")
 <pre>
 </pre>
 <div id="app">
     <form id="WipForm">
         <el-row class="panel b">
-            <el-button @@click="測試attr()">
-                ATTRIBUTE_02:{{set_model.CurrentOperation.ATTRIBUTE_02}}
-            </el-button>
-            <el-button @@click="測試API('NG')">測試 NG</el-button>
-            <el-button @@click="測試API('Pass')">測試 Pass</el-button>
-            <el-button @@click="測試API('')">空值</el-button>
-            <el-button @@click="測試API('null')">null</el-button>
-
+            <el-button-group>
+                <el-button type="primary" size="small" v-for="(val,key) in TestGroup" :label="key" :key="key" @@click="val()">{{key}}{{TestGroup_v[key]}}</el-button>
+            </el-button-group>
             <br />
             <el-row :gutter="12">
-                <cp-lio-bb-testing ref="tar" :set_model="set_model">
+                <cp-lio-bb-testing ref="tar" :set_model="set_model" :test="test">
                 </cp-lio-bb-testing>
                 <el-col :lg="12">
-                    <cp-scrap v-model="set_model.scrapList" :set_model="set_model"></cp-scrap>
+                    <cp-scrap v-model="set_model.scrapList" :set_model="set_model" ></cp-scrap>
                 </el-col>
             </el-row>
 </form>
@@ -50,6 +45,7 @@
         var set_model = {
             CurrentLot: {
                 QUANTITY: 10,
+                LOT: 'A',
             },
             scrapList: [],
             //                dataModel.systemConfig = SystemConfig;
@@ -62,6 +58,7 @@
                 DecimalPoint: 3
             },
             CurrentOperation: {
+                No:'a',
                 ATTRIBUTE_02: 'T'
             },
             OperScrapList: [
@@ -70,6 +67,38 @@
                 , { "RefKey": null, "SID": "GTI22092622011391632", "No": "R.C01-0004", "Value": null, "Display": "雜質", "StatusSid": null, "Status": null, "FromNum": 0, "INum": 0, "Attr01": null, "Attr02": null, "Attr03": null }
                 , { "RefKey": null, "SID": "GTI22092622011391633", "No": "R.C01-0005", "Value": null, "Display": "品質異常", "StatusSid": null, "Status": null, "FromNum": 0, "INum": 0, "Attr01": null, "Attr02": null, "Attr03": null }]
         };
+
+        var test =  {
+                        "ID": "5d34821c-d670-4d61-9663-9eb07d3f345b",
+                        "Success": true,
+                        "Message": null,
+                        "MessageList": [],
+                        "Redirect": null,
+                        "Data": {
+                            "MEASURE_SID": "10504314-8706-41bb-b138-1b872ac31eb9",
+                            "DATA_TYPE": "REG",
+                            "LOT": "a",
+                            "PROJECT": "a",
+                            "WO": "a",
+                            "OPERATION_NO": "a",
+                            "EQUIP_NO": "a",
+                            "ALLOW_PASS": "a",
+                            "RESULT": "a",
+                            "RESULT_GRADE": "a",
+                            "ERROR_CODE": "a",
+                            "SOURCE_STIME": "2024-04-04T00:00:00",
+                            "SOURCE_ETIME": "2024-04-04T00:00:00",
+                            "NOTES": "a",
+                            "UPLOADED_USER": "a",
+                            "UPLOADED_TIME": "2024-04-04T00:00:00",
+                            "UPLOADED_IPV4": "a",
+                            "CREATION_TIME": "2024-04-04T00:00:00",
+                            "ACTION_LINK_SID": "a"
+                        },
+                        "Exception": null,
+                        "InnerResults": [],
+                        "Code": "000"
+                    }
         const store = new Vuex.Store({
             state: {
                 set_model,
@@ -95,7 +124,41 @@
                 };
             },
             data() {
+                var _self = this;
                 return {
+                    TestGroup: {
+                        ATTRIBUTE_02() {
+                            let { ATTRIBUTE_02 } = _self.set_model.CurrentOperation;
+                            _self.set_model.CurrentOperation.ATTRIBUTE_02 = ATTRIBUTE_02 == 'T' ? 'F' : 'T';
+                            _self.TestGroup_v['ATTRIBUTE_02'] = `:${_self.set_model.CurrentOperation.ATTRIBUTE_02}`;
+                        },
+                        '測試 N'() {
+                            _self.測試API('N');
+                        },
+                        '測試 Y'() {
+                            _self.測試API('Y');
+                        },
+                        '測試 空值'() {
+                            _self.測試API('');
+                        },
+                        '測試 null'() {
+                            _self.測試API(null);
+                        },
+                        '測試 Api_Err'() {
+                            _self.test = test;
+                            _self.test.Success = false;
+                            _self.test.Message = '1234';
+                            //_self.測試API('N');
+                            var _tar = _self.$refs.tar;
+                            _tar.getAPI();
+                        },
+                        '測試 正常Api'() {
+                            _self.test = null;
+                            var _tar = _self.$refs.tar;
+                            _tar.getAPI();
+                        },
+                    },
+                    TestGroup_v: {},
                     value: [{
                         PARTNO: 'PARTNO',
                         PART_NAME: 'PART_NAME',
@@ -106,7 +169,7 @@
                         單位: 'kg',
                         長度: 100,
                     }],
-                    
+
                     i18n: {
                         料號: 'AAAA'
                     },
@@ -120,7 +183,8 @@
                         "ACTION_LINK_SID": null,
                         "SN": "TWO-230807A-000009"
                     },
-                    set_model
+                    set_model,
+                    test
                 }
             },
             computed: {
@@ -137,18 +201,9 @@
                     }
                 },
                 測試API(key) {
-                    debugger
                     var _tar = this.$refs.tar;
-                    switch (key) {
-                        case "null":
-                            _tar.chk_item = null;
-                            break;
-                        default:
-                            this.bb_test.STATE = key;
-                            _tar.chk_item = this.bb_test;
-                            break;
-
-                    }
+                    this.test.Data.ALLOW_PASS = key;
+                    _tar.chk_item = this.test.Data;
                     _tar.set_Exec();
                 },
                 測試attr() {
