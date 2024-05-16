@@ -14,11 +14,12 @@
 <div id="app">
     <el-checkbox v-model="del_mode">del_mode</el-checkbox>
     <el-checkbox v-model="readonly">readonly</el-checkbox>
+    <el-checkbox v-model="set_mode">set_mode 是否顯示設定圖示</el-checkbox>
     <gt-hr content="基本用法" :active="active">
-        <gti-rwd-layout v-model="case1" rwd_width="1000" 
-            :i18n="i18n" rwd="false" 
-            :del_mode="del_mode" 
-            :readonly="readonly"></gti-rwd-layout>
+        <gti-rwd-layout v-model="case1" rwd_width="1000"
+                        :i18n="i18n" :set_mode="set_mode"
+                        :del_mode="del_mode"
+                        :readonly="readonly"></gti-rwd-layout>
     </gt-hr>
     <gt-hr content="基本用法-order" :active="active">
         <gti-rwd-layout v-model="case1" rwd_width="1000"
@@ -29,7 +30,7 @@
     <gt-hr content="進階用法-自定義表單" :active="active">
         <gti-rwd-layout v-model="tableData" :pda_mode="isPDA">
             <template slot="form">
-               111111 {{tableData}}
+                111111 {{tableData}}
             </template>
         </gti-rwd-layout>
     </gt-hr>
@@ -201,6 +202,7 @@
                     del_mode: true,
                     readonly: false,
                     active: true,
+                    set_mode: true,
                     case1:[{ "SID": "326c3575-00b4-41c6-b09e-04c050545efc", "LOT_SID": "GTI19061310370703456", "LOT": "Gti-20190613-05", "OUTPUT_QTY": null, "ROUTE_VER_OPER_SID": "GTI19041123550700964", "STATUS": "Create", "OPERATION_SID": "GTI19041123373400918", "OPERATION": "設備進站", "ACTION": "CalculatWorkHour", "APPLICATION_NAME": "StationCheckOut", "ACTION_LINK_SID": "GTI20071514082626209", "ACTION_LINK_SID_TRACE": "GTI20071514082626209", "WO_SID": "Gtimes2019Demo", "WO": "Gtimes2019Demo", "LINE_SID": null, "LINE_NO": null, "SHIFT_SID": "GTI20071015443415664", "SHIFT_NO": "MorningShift", "SHIFT": "早班", "REPORT_TYPE": "ActualWorkingHours", "REPORT_USER_NUM": 3, "WORK_TOTAL": 159550, "WORK_DATE": null, "EQUIPMENT_LIST": null, "EQUIPMENT_TOTAL": null, "CREATE_USER": "Joseph", "CREATE_DATE": "2020-07-15 00:00:00", "UPDATE_USER": "Joseph", "UPDATE_DATE": "2020-07-15 00:00:00" }, { "SID": "54c7134f-fc06-4b79-b960-0b5c6ee1d6ef", "LOT_SID": "GTI19061310370703457", "LOT": "Gti-20190613-06", "OUTPUT_QTY": null, "ROUTE_VER_OPER_SID": "GTI19041123550700964", "STATUS": "Create", "OPERATION_SID": "GTI19041123373400918", "OPERATION": "設備進站", "ACTION": "CalculatWorkHour", "APPLICATION_NAME": "StationCheckOut", "ACTION_LINK_SID": "GTI20072211244640681", "ACTION_LINK_SID_TRACE": "GTI20072211244640681", "WO_SID": "Gtimes2019Demo", "WO": "Gtimes2019Demo", "LINE_SID": null, "LINE_NO": null, "SHIFT_SID": "GTI20071015443415664", "SHIFT_NO": "MorningShift", "SHIFT": "早班", "REPORT_TYPE": "ActualWorkingHours", "REPORT_USER_NUM": 2, "WORK_TOTAL": 0, "WORK_DATE": null, "EQUIPMENT_LIST": null, "EQUIPMENT_TOTAL": 0, "CREATE_USER": "Joseph", "CREATE_DATE": "2020-07-22 00:00:00", "UPDATE_USER": "Joseph", "UPDATE_DATE": "2020-07-22 00:00:00" }, { "SID": "c68c5153-bfee-4e63-9c57-a0d638c248b8", "LOT_SID": "GTI19061310370703460", "LOT": "Gti-20190613-09", "OUTPUT_QTY": 25, "ROUTE_VER_OPER_SID": "GTI19041123550700964", "STATUS": "Create", "OPERATION_SID": "GTI19041123373400918", "OPERATION": "設備進站", "ACTION": "CalculatWorkHour", "APPLICATION_NAME": "StationCheckOut", "ACTION_LINK_SID": "GTI20081111575883131", "ACTION_LINK_SID_TRACE": "GTI20081111575883131", "WO_SID": "Gtimes2019Demo", "WO": "Gtimes2019Demo", "LINE_SID": null, "LINE_NO": null, "SHIFT_SID": "GTI20071015443415664", "SHIFT_NO": "MorningShift", "SHIFT": "早班", "REPORT_TYPE": "ActualWorkingHours", "REPORT_USER_NUM": 1, "WORK_TOTAL": 0, "WORK_DATE": "2020-08-11 00:00:00", "EQUIPMENT_LIST": null, "EQUIPMENT_TOTAL": 0, "CREATE_USER": "Joseph", "CREATE_DATE": "2020-08-11 00:00:00", "UPDATE_USER": "Joseph", "UPDATE_DATE": "2020-08-11 00:00:00" }, { "SID": "d2652077-eb9a-4990-b8e8-72f8cf1f0b49", "LOT_SID": "GTI19061310370703461", "LOT": "Gti-20190613-10", "OUTPUT_QTY": 30, "ROUTE_VER_OPER_SID": "GTI19041123550700964", "STATUS": "Create", "OPERATION_SID": "GTI19041123373400918", "OPERATION": "設備進站", "ACTION": "CalculatWorkHour", "APPLICATION_NAME": "StationCheckOut", "ACTION_LINK_SID": "GTI20081112141783229", "ACTION_LINK_SID_TRACE": "GTI20081112141783229", "WO_SID": "Gtimes2019Demo", "WO": "Gtimes2019Demo", "LINE_SID": null, "LINE_NO": null, "SHIFT_SID": "GTI20071015443415664", "SHIFT_NO": "MorningShift", "SHIFT": "早班", "REPORT_TYPE": "ActualWorkingHours", "REPORT_USER_NUM": 1, "WORK_TOTAL": 0, "WORK_DATE": "2020-08-11 00:00:00", "EQUIPMENT_LIST": "Stepper_001", "EQUIPMENT_TOTAL": 0, "CREATE_USER": "Joseph", "CREATE_DATE": "2020-08-11 00:00:00", "UPDATE_USER": "Joseph", "UPDATE_DATE": "2020-08-11 00:00:00" }, { "SID": "e64bfed6-695a-40b4-8299-1f4238b078df", "LOT_SID": "GTI19061310370703472", "LOT": "Gti-20190613-21", "OUTPUT_QTY": null, "ROUTE_VER_OPER_SID": "GTI19041123550700964", "STATUS": "Create", "OPERATION_SID": "GTI19041123373400918", "OPERATION": "設備進站", "ACTION": "CalculatWorkHour", "APPLICATION_NAME": "StationCheckOut", "ACTION_LINK_SID": "GTI20072213302640885", "ACTION_LINK_SID_TRACE": "GTI20072213302640885", "WO_SID": "Gtimes2019Demo", "WO": "Gtimes2019Demo", "LINE_SID": null, "LINE_NO": null, "SHIFT_SID": "GTI20071015443415664", "SHIFT_NO": "MorningShift", "SHIFT": "早班", "REPORT_TYPE": "ActualWorkingHours", "REPORT_USER_NUM": 2, "WORK_TOTAL": 0, "WORK_DATE": null, "EQUIPMENT_LIST": null, "EQUIPMENT_TOTAL": 0, "CREATE_USER": "Joseph", "CREATE_DATE": "2020-07-22 00:00:00", "UPDATE_USER": "Joseph", "UPDATE_DATE": "2020-07-22 00:00:00" }],
                     tableData: [{ "id": 1, "date": "2016-05-02", "name": "王小虎", "address": "上海市普陀区金沙江路 1518 弄" }, { "id": 2, "date": "2016-05-04", "name": "王小虎", "address": "上海市普陀区金沙江路 1517 弄" }, { "id": 3, "date": "2016-05-01", "name": "王小虎", "address": "上海市普陀区金沙江路 1519 弄", "children": [{ "id": 31, "date": "2016-05-01", "name": "王小虎", "address": "上海市普陀区金沙江路 1519 弄" }, { "id": 32, "date": "2016-05-01", "name": "王小虎", "address": "上海市普陀区金沙江路 1519 弄" }] }, { "id": 4, "date": "2016-05-03", "name": "王小虎", "address": "上海市普陀区金沙江路 1516 弄" }],
                     order: ['test', 'ACTION', 'OPERATION'],

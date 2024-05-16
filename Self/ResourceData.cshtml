@@ -1,0 +1,370 @@
+﻿@using MDL.MES;
+@{
+    ViewBag.Title = Genesis.Common.PageBaseInfo.getCurrentResource().RESOURCE_NAME;
+    GTI_Test GTest = new GTI_Test(Html, HttpContext.Current.IsDebuggingEnabled);
+    bool isSingleModel = (bool)ViewData["SingleModel"];
+    if (isSingleModel)
+    {
+        Layout = "~/Views/Shared/_LayoutSingle.cshtml";
+        @eBundle.QRender_CSS();
+        @eBundle.QRender_JS();
+    }
+    else
+    {
+        <h3>
+            @ViewBag.Title
+        </h3>
+    }
+}
+@Html.AntiForgeryToken()
+
+<div id="app" v-cloak style="position:relative;">
+    <gt-toolbar :e_save="e_save" :e_del="e_del" fixed="top">
+        <template>
+            <el-button type="info" size="mini" icon="el-icon-copy-document"
+                       @@click="Copy" v-if="!isAddMode">
+                {{i18n.複製}}
+            </el-button>
+            <el-button type="info" size="mini"
+                           @@click="Add_ROLE" v-if="!isAddMode">
+                    建立權限
+                </el-button>
+        </template>
+    </gt-toolbar>
+    <div class="container-fluid">
+        <form id="FormData">
+            @Html.AntiForgeryToken()
+            <div class="panel b mt-lg">
+                <div class="panel-body form-horizontal gt-form">
+                    <gt-form-col label="@RES.BLL.Face.Node" prompt_sty="has-req">
+                        <vue-selectize v-model="form.PARENT_SID"
+                                       render_sty="GTIMES_TREE"
+                                       :options="nodes"
+                                       required />
+                    </gt-form-col>
+                    <gt-form-col label="@RES.BLL.Face.ResourcesNo" prompt_sty="has-req">
+                        <el-input v-model="form.RESOURCE_NO" placeholder="" :disabled="!isAddMode" required>
+							<el-button slot="append" icon="el-icon-share" @@click="sync(1)"></el-button>
+						</el-input>
+                    </gt-form-col>
+                    <gt-form-col label="@RES.BLL.Face.FUN_TYPE" prompt_sty="">
+                        <vue-selectize v-model="form.RESOURCE_TYPE" :options="opsFuncType" render_sty="GTIMES" @*:disabled="!isAddMode"*@></vue-selectize>
+                    </gt-form-col>
+                    <gt-form-col label="@RES.BLL.Face.zhTW">
+                        <el-input v-model="c_tw"  placeholder="">
+							<el-button slot="append" icon="el-icon-share" @@click="c_tw=lang.zhTW"></el-button>
+						</el-input>
+                    </gt-form-col>
+                    <gt-form-col label="@RES.BLL.Face.zhCN">
+                        <el-input v-model="lang.zhCN" placeholder=""></el-input>
+                    </gt-form-col>
+                    <gt-form-col label="@RES.BLL.Face.enUS" prompt_sty="has-req">
+                        <el-input v-model="lang.enUS" placeholder="" required>
+							<el-button slot="append" icon="el-icon-share" @@click="sync(2)"></el-button>
+						</el-input>
+                    </gt-form-col>
+                    <gt-form-col label="@RES.BLL.Face.ResourcesUrl">
+                        <el-input v-model="form.URL" placeholder=""></el-input>
+                        <small id="emailHelp" class="form-text text-muted">@RES.BLL.Message.NeedUseMVCPatch</small>
+                    </gt-form-col>
+                    <gt-form-col label="@RES.BLL.Face.Hidden">
+                        <el-switch v-model="form.IS_HIDDEN"
+                                   active-text="@RES.BLL.Face.Hidden"
+                                   inactive-text="@RES.BLL.Face.Visible"
+                                   style="padding-top: 7px;">
+                        </el-switch>
+                    </gt-form-col>
+                    <gt-form-col label="@RES.BLL.Face.ResourcesImg">
+                        <el-input v-model="form.ICON" placeholder=""></el-input>
+                    </gt-form-col>
+                </div>
+
+
+                <gt-hr :active="false"></gt-hr>
+
+                <div class="panel-body form-horizontal gt-form">
+
+                    <gt-form-col label="@Face.EnableTimingMonitoring">
+                        <el-switch v-model="query.@nameof(AD_QUERY_PARAMETER.ENABLE_FLAG)"
+                                   active-text="@RES.BLL.Face.Yes"
+                                   inactive-text="@RES.BLL.Face.No"
+                                   active-value="T"
+                                   inactive-value="F"
+                                   style="padding-top: 7px;">
+                        </el-switch>
+                    </gt-form-col>
+
+                    <div class="row"></div>
+
+                    <gt-form-col label="@RES.BLL.Face.REFRESH_TIME" prompt_sty="has-req">
+                        <div class="input-group">
+                            <input type="number" class="form-control bd-fix" v-model.trim="query.@nameof(AD_QUERY_PARAMETER.DEFAULT_REFRESH_TIME)" required />
+                            <label class="input-group-addon">@RES.BLL.Face.Number</label>
+                        </div>
+                    </gt-form-col>
+
+                    <gt-form-col label="@Face.SHOW_TIME_UNIT">
+                        <el-radio-group v-model="query.@nameof(AD_QUERY_PARAMETER.SHOW_TIME_UNIT)">
+                            <el-radio label="H">@Face.Hour</el-radio>
+                            <el-radio label="M">@Face.Minute</el-radio>
+                            <el-radio label="S">@Face.Sec</el-radio>
+                        </el-radio-group>
+                    </gt-form-col>
+
+                    <gt-form-col :label="c_trans()">
+                        <div class="input-group">
+                            <input type="number" class="form-control bd-fix" v-model.trim="query.@nameof(AD_QUERY_PARAMETER.SHOW_TIME_EXCEEDTIME)" />
+                            <label class="input-group-addon">@RES.BLL.Face.Number</label>
+                        </div>
+                    </gt-form-col>
+
+                    <gt-form-col label='@Face.SHOW_TIME_EXCEEDCOLOR' render_sty="GTIMES" prompt_sty="has-req" :readonly="true" required>
+                        <input type="text" v-model.trim="query.@nameof(AD_QUERY_PARAMETER.SHOW_TIME_EXCEEDCOLOR)" class="form-control rep-input" :readonly="true" required />
+                        <el-color-picker v-model="query.@nameof(AD_QUERY_PARAMETER.SHOW_TIME_EXCEEDCOLOR)"></el-color-picker>
+                    </gt-form-col>
+
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+
+@section Styles {
+    @Styles.Render(eBundle.selectize_CSS)
+    @Styles.Render(eBundle.elUI_CSS)
+}
+
+
+@section Scripts {
+    @Scripts.Render(eBundle.selectize_JS)
+    @Scripts.Render(eBundle.Vue_MES)
+    @Scripts.Render(eBundle.elUI_JS)
+    @Scripts.Render("~/bundles/parsley")
+	@Scripts.Render("https://cdn.jsdelivr.net/npm/opencc-js@1.0.5/dist/umd/t2cn.js")
+}
+<script>
+    Vue.config.devtools = true;
+	var _mode = '@Html.Raw(ViewData["mode"])';
+	$(() => {
+		const converter = OpenCC.Converter({ from: 'hk', to: 'cn' });
+		var _result = @Html.Raw(ViewData["result"]??"{}");
+		console.log(_result);
+		let { Data, Message = "", Success } = _result;
+        let { form = { SID: null ,LANGUAGE_JSON:"{\"zhTW\":null,\"zhCN\":null,\"enUS\":null}"}, nodes = null, opsFuncType = null, query = { AD_QUERY_PARAMETER_SID: null} } = Data || {};
+        let lang = JSON.parse(form.LANGUAGE_JSON);
+		vue = {
+			el: '#app',
+			data() {
+                var url = new URL(location);
+                var keyVal = url.searchParams.get('keyVal') ?? "";
+				return {
+					rendered: false,
+					activeTab: 'A',
+                    form: form,
+                    query: query,
+                    lang: lang,
+					nodes: nodes,
+                    opsFuncType: opsFuncType,
+					v_enable: _mode === 'Edit',
+					e_delete_visable: _mode === 'Edit',
+                    e_btn_enable: true,
+					readonly: _mode === 'Edit',
+                    keyVal,
+					//TODO-i18n
+					i18n: {
+						清除條件: '@Face.Clear',
+						請輸入搜尋內容: '@RES.BLL.Message.PlsInputSeachContent',
+						複製:'@Face.COPY'
+                    },
+				}
+			},
+			mounted() {
+                @GTest.mounted
+				var _self = this;
+				_self.rendered = true;
+				if (Success == false && Message != "") {
+					this.$Alert.Err(Message);
+					return;
+				}
+			},
+			computed: {
+				c_tw: {
+					get() {
+						return this.lang.zhTW;
+					},
+					set(val) {
+						this.lang.zhTW = val;
+						this.lang.zhCN = converter(val);
+					}
+				},
+				isAddMode() {
+					let { SID = "" } = this.form;
+					return SID == "" || SID == undefined;
+                },
+				e_save() {
+					return {
+						visable: true,
+						//enable: this.e_btn_enable,
+						fn: this.Save
+					}
+				},
+				e_del() {
+					return {
+                        visable: !this.isAddMode,
+						fn: this.Delete
+					}
+                },
+                c_trans() {
+                    let self = this;
+                    return () => {
+                        let unit = self.query.@nameof(AD_QUERY_PARAMETER.SHOW_TIME_UNIT);
+                        let label = '@(Face.SHOW_TIME_EXCEEDTIME2)';
+                        switch (unit) {
+                            case 'H':
+                                label = '@(string.Format(Face.SHOW_TIME_EXCEEDTIME, Face.Hour))';
+                                break;
+                            case 'M':
+                                label = '@(string.Format(Face.SHOW_TIME_EXCEEDTIME, Face.Minute))';
+                                break;
+                            case 'S':
+                                label = '@(string.Format(Face.SHOW_TIME_EXCEEDTIME, Face.Sec))';
+                                break;
+                            default:
+                        }
+                        return label;
+                    };
+                },
+			},
+			methods: {
+                @GTest.methods
+				Add_ROLE(){
+					var param = {
+						RESOURCE_SID:this.form.SID
+					}
+					$.submitForm({
+						url: '@Url.Action("Add_ROLE")',
+						param,
+						type: 'post',
+						automessage: false,
+						success: function (data) {
+							if (data.Success) {
+								_self.$Alert.Info(data.Message);
+							}
+						}
+					});
+				},
+				sync(type){
+					var __ = type == 1
+						? {old:this.lang.enUS,new:this.form.RESOURCE_NO}
+						: {old:this.form.RESOURCE_NO,new:this.lang.enUS}
+						;
+					switch(type){
+						case 1:
+							this.lang.enUS = __.new;
+							break;
+						case 2:
+							this.form.RESOURCE_NO = __.new;
+							break;
+					}
+					navigator.clipboard.writeText(__.new);
+					if (this.form.URL == ''){
+						this.form.URL = __.new;
+					}else{
+						this.form.URL = this.form.URL.replace(__.old,__.new);
+					}
+				},
+				t_Add() {
+					var _s = this.lang.zhTW;
+                    var _arr = _s.split(',');
+                    let [zhCN, zhTW, enUS, URL, RESOURCE_NO] = _arr;
+                    _.extend(this.lang, { zhCN, zhTW, enUS});
+                    _.extend(this.form, { URL, RESOURCE_NO});
+					this.Save();
+				},
+				Copy() {
+					this.form.SID = "";
+				},
+				Clear() {
+                    Object.keys(this.form).forEach(key => (this.form[key] = ''));
+				},
+				doSave(url) {
+                    if ($("#FormData").parsley().validate()) {
+						this.form.LANGUAGE_JSON = JSON.stringify(lang);
+						this.form.RESOURCE_NAME = lang.enUS;
+                        var _ajax = {
+                            url,
+                            param: {
+                                form: this.form,
+                                query: this.query
+                            },
+                            type: 'post',
+                            success: this.Save_success
+                        };
+                        $.submitForm(_ajax);
+                    }
+                },
+				Save() {
+					 this.doSave('@Url.Action(nameof(Genesis.Areas.SYSAdmin.Controllers.ResourceController.UpdateExt))');
+				},
+				Save_success(res) {
+					var _self = this;
+					let { Success, Message, Data, Exception } = res;
+
+                    if (Success) {
+                        let { form, query } = Data;
+                        _self.form = form;
+                        _self.query = query;
+						_self.$UT.parent_reload();
+                        if (form.SID) {
+                            this.e_btn_enable = true;
+                            this.readonly = true;
+                            this.v_enable = true;
+                            this.e_delete_visable = true;
+                        }
+					} else {
+						this.$Alert.Warning(Message);
+						console.log(Exception);
+					}
+				},
+				Delete() {
+					var _self = this;
+					var sid = _self.form.SID;
+					Swal.fire({
+						//title: "確定要刪除 [" + row['DEFECTGROUP'] + "] 嗎？",
+						title: '@RES.BLL.Message.DeleteConfirm',
+						//text: "刪除後無法還原!",
+						type: 'warning',
+						showCancelButton: true,
+						confirmButtonColor: '#3085d6',
+						cancelButtonColor: '#d33',
+						confirmButtonText: '@RES.BLL.Face.Delete',
+						cancelButtonText: '@RES.BLL.Face.Cancel'
+					}).then(function (result) {
+						if (result.value) {
+							$.submitForm({
+								url: '@Url.Action("Delete")',
+								param: { id: sid },
+                                automessage: false,
+								success: function (data) {
+									if (data.Success) {
+                                        _self.$Alert.Info(data.Message).then(() => {
+											_self.$UT.parent_reload();
+											var layer_idx = parent.layer.getFrameIndex(window.name);
+											parent.layer.close(layer_idx);
+										});
+									}
+								}
+							});
+						}
+					});
+				}
+			},
+			destored() {
+				//全域變數註消程序
+				this.$UT.parent_reload(true);
+			}
+		};
+		new Vue(vue);
+	});
+</script>
+
