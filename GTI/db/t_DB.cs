@@ -2193,7 +2193,19 @@ delete AD_SHIFT where SHIFT_SID = @SHIFT_SID
 		{
 			//var r = RDLCService.getParentLot("Test_SplitWafer-01.02.01");
 		}, true, true);
-		
+
+		[TestMethod]
+		public void t_Case1()
+		=> _DBTest((Txn) =>
+		{
+		var _wo = (from a in Txn.EFQuery_MES.WP_WO.Where(c => c.WO == "YK12345678555")
+				   join b in Txn.EFQuery_MES.PF_PARTNO
+					   on a.PARTNO equals b.PARTNO
+				   select new { a, b }).First();
+
+			//var r = RDLCService.getParentLot("Test_SplitWafer-01.02.01");
+		}, true, true);
+
 
 		/*
 		結論,實體表少欄位,不影響 讀取/新增
@@ -2222,14 +2234,21 @@ delete AD_SHIFT where SHIFT_SID = @SHIFT_SID
 			if (LOT_SID == null) return null;
             return txn.EFQuery_MES.WP_LOT.Where(l => l.LOT_SID == LOT_SID).First();
         }
- 
+
+		[TestMethod]
+		public void t_DTC_Carrierload1()
+		=> _DBTest((txn) => {
+			var x = txn.EFQuery_MES.WP_WO.FirstOrDefault();
+		}, true,true);
+
+
 		/// <summary>
 		/// 經實測 , 這個方法無法 ,並無法真正的遞迴取出所有資料
 		/// </summary>
 		/// <param name="lots"></param>
 		/// <param name="inputLot"></param>
 		/// <returns></returns>
-        private static IQueryable<d_WP_LOT> RecursiveLots(IQueryable<WP_LOT> lots, string inputLot)
+		private static IQueryable<d_WP_LOT> RecursiveLots(IQueryable<WP_LOT> lots, string inputLot)
 		{
 			// 初始選擇，找出指定 LOT 的記錄
 			var initialQuery = lots.Where(l => l.LOT_SID == inputLot).Select(l=>new d_WP_LOT()

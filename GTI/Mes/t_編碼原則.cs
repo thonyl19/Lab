@@ -10,6 +10,7 @@ using System.Collections.Generic;
 using System.Configuration;
 using System.Data;
 using UnitTestProject.TestUT;
+using static BLL.MES.LOT_Services;
 //using Genesis.Gtimes.ADM.EncodeFormatUtility;
 
 namespace UnitTestProject
@@ -125,8 +126,13 @@ namespace UnitTestProject
 		}, false, true);
 
 
-
-
+		[TestMethod]
+		public void t_x()
+		=> _DBTest(Txn => {
+			var lot = Txn.GetLotInfo("45105-2404300004-05", isQueryByLotNO: true);
+			var x = Txn.GetEnCodes(FunctionName.LotSplit, 100, lot);
+		}, false, true);
+ 
 
 		[TestMethod]
 		public void t_使用INPUT做編碼1()

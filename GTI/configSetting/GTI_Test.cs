@@ -33,6 +33,8 @@ using MDL.OracleMES.Tables;
 using System.Web.Routing;
 using System.Diagnostics;
 using System.Reflection;
+using static BLL.MVC.ResourceServices;
+using MDL.GenesisMVC.Tables;
 
 namespace Genesis
 {
@@ -2840,6 +2842,85 @@ namespace Genesis.Areas.DDD.Controllers
             }
             return o;
         });
+    }
+}
+
+namespace Genesis.Areas.SYSAdmin.Controllers
+{
+    public partial class ResourceController : BaseController
+    {
+        public ActionResult ResourceData_t(string keyVal)
+        {
+            ViewData["result"] = ResourceServices.Query(keyVal).ToJson(true);
+            ViewData["SingleModel"] = true;
+            ViewData["mode"] = string.IsNullOrEmpty(keyVal) ? "Add" : "Edit";
+            var _view = "~/Areas/Example/Views/Self/ResourceData.cshtml";
+            return View(_view);
+        }
+
+        [HttpPost]
+        [HandlerAjaxOnly]
+        [ValidateAntiForgeryToken]
+        public ActionResult UpdateExt(DataModel model)
+        {
+            if (string.IsNullOrEmpty(model.form.SID))
+            {
+                return Content(Insert(model).ToJson());
+            }
+            else
+            {
+                return Content(ResourceServices.Update(model).ToJson());
+            }
+        }
+
+
+        [HttpPost]
+        [HandlerAjaxOnly]
+        [ValidateAntiForgeryToken]
+        public IResult Add_ROLE(string RESOURCE_SID)
+        => WIPInjectServices.TxnBase.LzDBTrans(null,Txn =>{
+            return Add_ROLE(Txn, RESOURCE_SID);
+        });
+
+ 
+
+        public IResult Insert(DataModel model)
+        => WIPInjectServices.TxnBase.LzDBTrans(null,Txn =>
+        {
+            var res = model.form;
+            IResult _r = ResourceServices.Insert(model);
+            if (_r.Success)
+            {
+                var RESOURCE_SID = _r.Data.form?.SID;
+                Check.Invalid("無法取得 RESOURCE_SID", RESOURCE_SID == null);
+                return Add_ROLE(Txn, RESOURCE_SID);
+            }
+            Txn.result = _r;
+            return Txn.result;
+        });
+
+        IResult Add_ROLE(WIPInjectServices.ITxnBase Txn,string RESOURCE_SID)
+        {
+            var role = Txn.EFQuery_MVC.AD_ROLE.Where(c => c.ROLE_NO == "Admin").FirstOrDefault();
+            Check.Invalid("AD_ROLE 查無 Admin 帳號", role == null);
+
+            var ROLE_res = new AD_ROLE_RESOURCE()
+            {
+                SID = Txn.GetSID(),
+                ROLE_SID = role.SID,
+                RESOURCE_SID = RESOURCE_SID,
+                RESOURCE_TYPE = "0"
+            };
+            var chk = Txn.EFQuery_MVC.AD_ROLE_RESOURCE
+                .Where(c => c.RESOURCE_SID == RESOURCE_SID
+                    && c.ROLE_SID == role.SID)
+                .Any();
+            if (chk == false) { 
+                Txn.EFQuery_MVC.AD_ROLE_RESOURCE.Add(ROLE_res);
+                Txn.EFQuery_MVC.SaveChanges();
+            }
+            return Txn.result;
+        }
     }
 }
 //bk
