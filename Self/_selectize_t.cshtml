@@ -7,18 +7,27 @@
 @eBundle.QRender_CSS()
 @eBundle.QRender_JS()
 <div id="app">
-	<textarea v-model="c_data"></textarea> 
 	<div class="row form-horizontal gt-form">
-		<gt-form-col label="工作站">
+		<gt-form-col label="vue-selectize-ddlapi">
 			<vue-selectize-ddlapi ref="selectOperation"
 								  action="Operation"
 								  :auto_drowdown="true"
 								  :options="data"
 								  v-model="val"
 								  render_sty="GTIMES" />
+
+		</gt-form-col>
+		<gt-form-col label="vue-selectize-lookuptable">
+
+			<vue-selectize-lookuptable 
+				parameter="LookupTable_A"
+				:auto_drowdown="true"
+				v-model="val"
+				render_sty="GTIMES"></vue-selectize-lookuptable>
 		</gt-form-col>
 	</div>
-
+	<h5>動態繋結</h5>
+	<el-input type="textarea"  v-model="c_data"  :rows="4"></el-input> 
 	 
 
 </div>

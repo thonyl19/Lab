@@ -18,6 +18,8 @@
 
 <div id="app">
     {{msg}}
+    <el-button @@click="test">teste</el-button>
+
 </div>
 
 <script>
@@ -27,6 +29,11 @@
             data() {
                 return {
                     msg: "baseTpl---A"
+                }
+            },
+            methods: {
+                test() {
+                    alert('test');
                 }
             }
         })

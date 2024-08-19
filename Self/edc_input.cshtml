@@ -271,6 +271,7 @@
             }
         ]
         new Vue({
+            mixins: [Vue.prototype.$UT.Mixins.v_ErrGroup()],
             provide() {
                 return {
                     rootEl: this
@@ -291,7 +292,8 @@
                     },
                     readonly: false,
                     isChange: false,
-                    api_check_mode:3
+                    api_check_mode: 3,
+                    API: { "EDC": [{ "MOUDLE": "EDC", "RESOURCE_URL": "/Example/Act/EDC_API", "CHECK_MODE": "2", "PARAM": { "LOT": "CurrentLot.LOT" }, "EXTEN_RULE": { "ExecOnce": false, "CallFailed": false, "DynamicItem": false } }] },
                 }
             },
             watch: {

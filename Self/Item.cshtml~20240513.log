@@ -1,0 +1,165 @@
+@{
+    var action = ViewContext.RouteData.Values["action"].ToString();
+	var controller = ViewContext.RouteData.Values["controller"].ToString().ToUpper();
+	GTI_Test GTest = new GTI_Test(Html, HttpContext.Current.IsDebuggingEnabled, ViewContext.HttpContext.Request);
+	ViewBag.Title = Genesis.Common.PageBaseInfo.getCurrentResource(action.ToString()).RESOURCE_NAME;
+	bool sidepage = ViewContext.HttpContext.Request["sidepage"] == "T";
+	if (sidepage){
+        <h3>
+            @ViewBag.Title
+        </h3>
+    } else {
+        Layout = "~/Views/Shared/_LayoutSingle.cshtml";
+        @eBundle.QRender_CSS();
+        @eBundle.QRender_JS();
+    }
+}
+@eBundle.QRender_CSS()
+@eBundle.QRender_JS()
+@Html.AntiForgeryToken()
+<div id="app" v-cloak>
+	<gt-toolbar  :e_Add="e_Add" :e_save="e_Save" :e_del="e_del" fixed="top" :is_change="is_change">
+	</gt-toolbar>
+	<form id="form_main" Area-Main class="panel b pt-sm">
+	</form>
+</div>
+<script>
+$(() => {
+    var _data = @Html.Raw(ViewData["result"] ?? "{}");
+	console.log(_data);
+	let { Data, Message, Success } = _data;
+    let { form = {} } = Data || {};
+
+	new Vue({
+		el: '#app',
+		data() {
+			return {
+				form,
+				i18n:{
+				},
+				readonly: false,
+                is_change: false,
+			}
+		},
+		mounted() {
+			var _self = this;
+			@Html.Raw(HttpContext.Current.IsDebuggingEnabled?"window.__vm = this;":"");	
+		},
+        computed: {
+            isAddMode() {
+                let { SID } = this.form;
+                return SID == null;
+            },
+            e_del() {
+                return {
+                    visable: this.isAddMode == false,
+                    fn: this.e_Del
+                }
+            },
+        },
+		methods: {
+			_test() {
+				this.MessageDelSuccess();
+			},
+			e_clear() {
+				for (key in this.form) {
+					this.form[key] = "";
+				}
+				this.form["ENABLE_FLAG"] = 'All';
+			},
+			e_Add() {
+				this.act_Item(null);
+			},
+            act_Item(SID) {
+                var _self = this;
+                var confirm_arg = {
+                    showClose:false,
+                    closeOnClickModal: false,
+                    closeOnPressEscape:false,
+                    dangerouslyUseHTMLString:true,
+                    confirmButtonText: `@RES.BLL.Face.FunctionBarConfirmButton`,
+                    cancelButtonText: `@RES.BLL.Face.FunctionBarCancelButton`,
+                    type: 'info'
+                };
+                this.$confirm('執行新增將跳離當前頁面，請確認.','提示', confirm_arg).then(() => {
+                    _self.$URL.chgSearchParam({ SID}, true);
+                });
+            },
+            e_Del() {
+                var _self = this;
+				Swal.fire({
+					title: '@Message.DeleteConfirm',
+					type: 'warning',
+					showCancelButton: true,
+					confirmButtonColor: '#3085d6',
+					cancelButtonColor: '#d33',
+					confirmButtonText: '@Face.Delete',
+					cancelButtonText: '@Face.Cancel'
+				}).then(function (result) {
+                    if (result.value) {
+                        var param = {
+                            form: _self.form,
+                        };
+						@GTest.param_test
+                        @GTest.Test("console.log({ param });")
+                        var _ajax = {
+							url: '@Url.Action($"{action}_Delete")',
+                            param ,
+                            type: 'post',
+                            success(res) {
+                                console.log(res);
+                                let { Success, Message, Data, Exception } = res;
+								if (Success) {
+                                    _self.$Alert.Success('@RES.BLL.Message.DeleteSuccessfulmsg').then(() => {
+                                        _self.$UT.parent_reload();
+                                        _self.$UT.layer_close();
+                                    });
+                                } else {
+                                    _self.$Alert.Warning(Message);
+                                }
+							}
+						}
+                        $.submitForm(_ajax);
+					}
+                });
+
+            },
+            e_Save() {
+                var _self = this;
+                if ($("#form_main").parsley().validate()) {
+                    var param = {
+                        form: this.form,
+                    };
+                    @GTest.param_test
+                    console.log({ param });
+
+                    var _ajax = {
+                        url: '@Url.Action($"{action}_Save")',
+                        param,
+                        type: 'post',
+                        success: function(res) {
+                            let { Success, Message, Data, Exception } = res;
+                            console.log(Data);
+                            if (Success) {
+                                _self.$Alert.Success('@RES.BLL.Message.SaveSuccessful').then(() => {
+                                    _self.$UT.parent_reload();
+                                    @GTest.Test("return;")
+                                    var arg = null;
+                                    if (_self.isAddMode) {
+                                        var SID = _.get(Data, 'form.EMISSION_SID');
+                                        arg = { SID };
+                                    }
+                                    _self.$UT.page_reload(arg);
+                                });
+                            } else {
+                                _self.$Alert.Warning(Message || res.info);
+                            }
+                        }
+                    };
+                    $.submitForm(_ajax);
+                }
+            },
+		}
+	})
+});
+</script>

@@ -1,4 +1,4 @@
-﻿@{ 
+﻿﻿﻿@{
     var action = ViewContext.RouteData.Values["action"].ToString();
 	var controller = ViewContext.RouteData.Values["controller"].ToString().ToUpper();
 	ViewBag.Title = Genesis.Common.PageBaseInfo.getCurrentResource(action.ToString()).RESOURCE_NAME;
@@ -11,7 +11,7 @@
 	@ViewBag.Title
 </h3>
 <div id="app" v-cloak>
-	<gt-toolbar  :e_Add="e_Add" :e_Exec="c_Exec" :e_query="click_Query" :e_clear="e_clear" >
+	<gt-toolbar  :e_Add="e_Add" :e_query="click_Query" :e_clear="e_clear" >
 	</gt-toolbar>
 	<div Area-Main class="panel b">
 		<gt-searchcd active_names="1" class="gt-form form-horizontal">
@@ -93,15 +93,6 @@ $(() => {
 		mounted() {
 			var _self = this;
 			@Html.Raw(HttpContext.Current.IsDebuggingEnabled?"window.__vm = this;":"");	
-		},
-		computed:{
-			c_Exec() {
-				var enable = true;
-				return {
-					enable,
-					fn: this.Exec
-				}
-			},
 		},
 		methods: {
 			e_clear() {
@@ -239,35 +230,8 @@ $(() => {
 				} else {
 					this.$Alert.Warning(Message);
 				}
-			},
-			Exec() {
-				var _self = this;
-				var param = {
-					WaferSN: _self.SN,
-					NewGarde: _self.ddl_Grade.val,
-					ReasonNo: _self.reason,
-					Desc: _self.description
-				}
-				var _ajax = {
-					url: "@Url.Action("Exec")",
-					type:'post',
-					param,
-					success(res) {
-						let { Success, Data = {}, Message} = res;
-						if (Success) {
-							var msg = '@RES.BLL.Message.NormalSuccessful'.replace('{0}', "@ViewBag.Title");
-							_self.$Alert.msg_ExecSuccessful(msg);
-						} else {
-							_self.$Alert.Err(Message);
-
-						}
-					}
-				};
-				$.submitForm(_ajax);
-			},
-		
+			}
 		}
 	})
 });
 </script>
-@GTest.Test("<style>.el-icon-caret-right:before {color: red !important;}</style>")

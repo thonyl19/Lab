@@ -1,0 +1,147 @@
+﻿<script>
+    $(() => {
+        let { v_model, v_rootEl } = Vue.prototype.$UT.Mixins;
+        Vue.component('cp-lio-bb-testing', {
+            mixins: [v_rootEl()],
+            template: `
+<el-col :md="24" :lg="8"  v-if="c_isShow">
+    <div class="panel" v-cloak style="height:25rem;" >
+        <div class="panel-heading b panel-header-radius gti-wip-title" >
+            <h3 class="panel-title">{{i18n.title}} <i class='el-icon-refresh-right ' @@click="getAPI"></i></h3>
+        </div>
+        <div class="panel-body">
+            {{chk_result}}
+        </div>
+    </div>
+</el-col>
+            `,
+			props: {
+				"set_model": {
+					type: Object,
+					default: []
+				},
+				"cfg": {
+					type: Object,
+                    default() {
+                        return {}
+                    }
+				}
+			},
+            data: function () {
+                return {
+                    chk_item: {},
+                    i18n: {
+                        title: '@Face.lb_BB_Tesing',
+                        "SN":"SN",
+                        "STATE": "@Face.STATE",
+                        "MODULE_ID": "MODULE_ID",
+                        "CREATE_DATE": "@Face.CREATE_DATE",
+                        查無資料: "@Message.NoDataFound",
+                        未判定:"@Face.QCTemp",
+                    },
+                    chk_result: "@Message.NoDataFound",
+                    ErrMsg:'',
+                };
+            },
+            mounted() {
+                if (this.c_isShow) {
+                    this.getAPI();
+                }
+            },
+            computed: {
+                c_isAutoCheckIn() {
+                    var isAutoCheckIn = _.get(this.set_model, 'CurrentOperation.ATTRIBUTE_02', 'F');
+                    return isAutoCheckIn == 'T';
+                },
+                c_isShow() {
+                    return this.c_isAutoCheckIn ;
+                },
+
+            },
+            methods: {
+                getAPI() {
+                    var OPERATION = _.get(this.set_model, 'CurrentLot.OPER_SID', null);
+                    var SN = _.get(this.set_model, 'CurrentLot.LOT', null);
+                    var _self = this;
+                    var param = { SN, OPERATION };
+                    //http://localhost:59394/GenesisNewMes/api/info/ZZ_BB_TESTING_HIST?SN=0307017&OPERATION=L08-0001
+                    var url = _self.$URL.chg_Path('api/info/ZZ_BB_TESTING_HIST');
+                    var _ajax = {
+                        url,
+                        type: 'get',
+                        param,
+                        automessage: false,
+                        success(res) {
+                            let { Success, Message, Data } = res;
+                            var isTest = false;
+                            if (isTest) {
+                                Success = true;
+                                Data = { STATE:'Pass'}
+                            }
+                            if (Success) {
+                                _self.chk_item = Data;
+                                _self.set_Exec();
+                            }
+                            else {
+                                _self.ErrMsg = Message;
+                                _self.SetErrGroup('bb_testing.Err', Message);
+                                _self.chk_item = {};
+                            }
+                        }
+                    };
+                    $.submitForm(_ajax);
+                },
+                formatDate(row, column, cellValue) {
+                    return moment(cellValue).format('YYYY-MM-DD hh:mm:ss');
+                },
+                set_Exec() {
+                    if (this.chk_item == "") {
+                        this.chk_result = this.i18n.查無資料;
+                    }
+                    let { STATE } = this.chk_item || {};
+                    if (STATE == null || STATE == "") STATE = this.i18n.未判定
+                    this.chk_result = STATE;
+                    if (!this.c_isAutoCheckIn) return;
+
+                    let { $store } = this;
+                    var isGood = true;
+                    if ($store) {
+                        if ($store.state.globalvar['ExtenParam'] == null) this.$set($store.state.globalvar, 'ExtenParam', {});
+                        this.$set($store.state.globalvar.ExtenParam, 'BB_Tesing', this.chk_item);
+
+                        var _scrap = $store.getters.getData.scrapList
+                        isGood = _scrap == null || _scrap.length == 0;
+
+                        if (isGood == false) {
+                            this.SetErrGroup('bb_testing.Err', null);
+                        } else if (this.ErrMsg!="") {
+                            this.SetErrGroup('bb_testing.Err', this.ErrMsg);
+                        }
+                    }
+
+                    var disabled = (this.chk_result != 'Pass' && isGood);
+                    $('#footerCommand .btn_submit').prop("disabled", disabled);
+                },
+
+            },
+            watch: {
+                '$store.getters.getData.scrapList'() {
+                    this.set_Exec();
+                },
+                splitList: {
+                    handler: function (newValue) {
+                        var _self = this;
+                        _self.$emit('input', _self.splitList);
+                    },
+                    deep: true
+                }
+            },
+
+        });
+
+
+    });
+
+
+</script>
+

@@ -1,0 +1,911 @@
+﻿@{
+    ViewBag.Title = "Productivity Dashboard";
+    // http://localhost:59394/GenesisNewMes/Example/Act/test?name=echart-oee&SingleModel=false
+    bool isSingleModel = (bool)ViewData["SingleModel"];
+    if (isSingleModel)
+    {
+        Layout = "~/Views/Shared/_LayoutSingle.cshtml";
+    }
+}
+
+
+@section Styles {
+    @eBundle.QRender_CSS()
+    @Styles.Render(eBundle.elUI_CSS)
+    <link rel="stylesheet" type="text/css" href="~/Content/app/css/app_el.css" />
+
+    <style type="text/css">
+
+
+        .page-title {
+            font-size: 24px;
+            color: #929292;
+            margin: -15px;
+            margin-bottom: 20px;
+            padding: 9px 15px 15px 15px;
+            font-weight: normal;
+            background-color: #fafbfc;
+            border-bottom: 1px solid #cfdbe2;
+        }
+
+        .page-title-night {
+            font-size: 24px;
+            color: rgb(255, 255, 255);
+            margin: -15px;
+            margin-bottom: 20px;
+            padding: 9px 15px 15px 15px;
+            font-weight: normal;
+            background-color: rgb(60, 60, 60);
+            border-bottom: 1px solid rgb(94, 94, 94);
+        }
+
+        .page-title-full {
+            font-size: 24px;
+            color: #fff;
+            margin: 0px;
+            margin-bottom: 20px;
+            padding: 9px 15px 15px 15px;
+            font-weight: normal;
+            background-color: #000;
+            /*border-bottom: 1px solid #cfdbe2;*/
+        }
+
+        .cht-title {
+            padding: 8px;
+            background-color: rgb(60, 72, 87);
+            color: #fff;
+            display: block;
+        }
+
+        .cht-title-night {
+            padding: 8px;
+            background-color: rgb(60, 60, 60);
+            color: #fff;
+            display: block;
+        }
+
+        /*.cht-div {
+            background-color: #fff;
+        }*/
+
+        .cht div {
+            margin: 0 auto !important;
+        }
+
+        .cht-div-A .cht {
+            height: 44vh;
+        }
+
+        .cht-div-B .cht {
+            height: 20vh;
+            margin-bottom: 1vh;
+        }
+
+        .cht-div-C .cht {
+            height: 17vh;
+            margin-bottom: 1vh;
+        }
+
+        .cht-div-D .cht {
+            height: 17vh;
+            margin-top: 1vh;
+            margin-bottom: 1vh;
+        }
+
+        .cht-div-C, .cht-div-D {
+            margin-top: 1vh;
+        }
+
+            .cht-div-B, .cht-div-C {
+                padding: 0 !important;
+            }
+    </style>
+}
+@section Scripts {
+    @eBundle.QRender_JS()
+    @Scripts.Render(eBundle.ECharts_JS)
+    @Scripts.Render(eBundle.Vue_MES)
+    @Scripts.Render(eBundle.elUI_JS)
+
+<script>
+        $(() => {
+            // 四捨五入至小數點 N 位
+            function round(num, decimal) {
+                return Math.round((num + Number.EPSILON) * Math.pow(10, decimal)) / Math.pow(10, decimal);
+            }
+            // 千分位
+            function comma(num) {
+                let c = /\B(?<!\.\d*)(?=(\d{3})+(?!\d))/g
+                return num.toString().replace(c, ',')
+            }
+            function vmin(size) {
+                let width = window.innerWidth;
+                let height = window.innerHeight;
+                let base = width < height ? width : height;
+                let newSize = Math.round(base / size);
+                return newSize;
+            };
+            function vmax(size) {
+                let width = window.innerWidth;
+                let height = window.innerHeight;
+                let base = width > height ? width : height;
+                let newSize = Math.round(base / size);
+                return newSize;
+            };
+
+            let capacityData = [
+                {
+                    time: 8,
+                    oee: 30,
+                    availability: 20,
+                    quality: 30,
+                    performance: 40,
+                },
+                {
+                    time: 9,
+                    oee: 40,
+                    availability: 35,
+                    quality: 40,
+                    performance: 45
+                },
+                {
+                    time: 10,
+                    oee: 40,
+                    availability: 35,
+                    quality: 40,
+                    performance: 45
+                },
+                {
+                    time: 11,
+                    oee: 40,
+                    availability: 35,
+                    quality: 40,
+                    performance: 45
+                },
+                {
+                    time: 12,
+                    oee: 40,
+                    availability: 35,
+                    quality: 40,
+                    performance: 45
+                },
+                {
+                    time: 13,
+                    oee: 52,
+                    availability: 60,
+                    quality: 58,
+                    performance: 45,
+                },
+                {
+                    time: 14,
+                    oee: 73.6,
+                    availability: 70,
+                    quality: 80,
+                    performance: 80
+                },
+                {
+                    time: 15,
+                    oee: 80,
+                    availability: 80,
+                    quality: 80,
+                    performance: 80
+                },
+                {
+                    time: 16,
+                    oee: 86,
+                    availability: 90,
+                    quality: 88,
+                    performance: 84
+                },
+                {
+                    time: 17,
+                    oee: 80,
+                    availability: 58,
+                    quality: 98,
+                    performance: 86
+                }
+            ];
+
+            // Capacity Trend
+            let colorB = [
+                { l: 60, c: '#ff0000' },
+                { l: 88, c: '#ff9933' },
+                { l: 100, c: '#33cc33' },
+            ];
+            let opacityB = .3;
+
+            
+           
+
+            // Top Rank
+            let RankColor = [
+                { title: 'Yield', color: '#33cccc' },
+                { title: 'Defective Product', color: '#e60000' },
+                { title: 'Abnormality Reason', color: '#ff0066' },
+                { title: 'Down Reason', color: '#9933ff' }
+            ];
+            let DataD = [
+                { eqpNo: 'A001', val: 75 },
+                { eqpNo: 'A002', val: 80 },
+                { eqpNo: 'A003', val: 85 },
+                { eqpNo: 'A004', val: 90 },
+                { eqpNo: 'A005', val: 95 }
+            ];
+
+            let DataE = [
+                { eqpNo: 'A001', val: 75 },
+                { eqpNo: 'A002', val: 80 },
+                { eqpNo: 'A003', val: 85 },
+                { eqpNo: 'A004', val: 90 },
+                { eqpNo: 'A005', val: 95 }
+            ];
+
+            let DataF = [
+                { eqpNo: 'A001', val: 75 },
+                { eqpNo: 'A002', val: 80 },
+                { eqpNo: 'A003', val: 85 },
+                { eqpNo: 'A004', val: 90 },
+                { eqpNo: 'A005', val: 95 }
+            ];
+
+            let DataG = [
+                { eqpNo: 'A001', val: 75 },
+                { eqpNo: 'A002', val: 80 },
+                { eqpNo: 'A003', val: 85 },
+                { eqpNo: 'A004', val: 90 },
+                { eqpNo: 'A005', val: 95 }
+            ];
+
+            var _data = @Html.Raw("{ Data:{} }");
+            let {
+                form = {
+                    // 基本資料
+                    EQP_NO: 'A01',
+                    SHIFT: '5/28 白班',
+                    WO: '51A2-201200041',
+                    WO_QTY: 1100,
+                    PARTNO: 'P16328340SB',
+                    STD_WKTIME: '10:30',
+                    STD_PEOPLE: 3,
+                    PT_SEC: 3.9,
+                    FIRST_CHECKIN_TIME: '08:00',
+                    // 機台狀態
+                    EQP_STATE_X: [
+                        '08:00', '08:10', '08:20', '08:30', '08:40', '08:50',
+                        '09:00', '09:10', '09:20', '09:30', '09:40', '09:50',
+                        '10:00', '10:10', '10:20', '10:30', '10:40', '10:50',
+                        '11:00', '11:10', '11:20', '11:30', '11:40', '11:50',
+                        '12:00'
+                    ],
+                    EQP_STATE: [{
+                        START_TIME: '08:00',
+                        END_TIME: '08:10',
+                        TOTAL_MIN: 5,
+                        STATE_NO: 'Run',
+                        PARAMETER_NAME: '運轉',
+                        STATE_COLOR: '#7CF84A',
+
+                    }, {
+                        START_TIME: '08:10',
+                        END_TIME: '08:20',
+                        TOTAL_MIN: 10,
+                        STATE_NO: 'Down',
+                        PARAMETER_NAME: '停机-设备异常',
+                        STATE_COLOR: '#EF2D2D',
+
+                    }, {
+                        START_TIME: '08:20',
+                        END_TIME: '08:30',
+                        TOTAL_MIN: 10,
+                        STATE_NO: 'Mold',
+                        PARAMETER_NAME: '停机-模具异常',
+                        STATE_COLOR: '#FF0000',
+
+                        }],
+                    // 生產資訊
+                    YIELD_X: ['08:00', '09:00', '10:00', '11:00', '12:00'],
+                    YIELD_UNIT: 'pcs',
+                    YIELD: [{
+                        TIME: '08:00',
+                        TARGET_QTY: 100,
+                        REAL_QTY: 50
+                    }, {
+                        TIME: '09:00',
+                        TARGET_QTY: 200,
+                        REAL_QTY: 150
+                    },{
+                        TIME: '10:00',
+                        TARGET_QTY: 300,
+                        REAL_QTY: 250
+                    }, {
+                        TIME: '11:00',
+                        TARGET_QTY: 400,
+                        REAL_QTY: 300
+                    }, {
+                        TIME: '12:00',
+                        TARGET_QTY: 500,
+                        REAL_QTY: 420
+                    }],
+                }
+            } = _data.Data;
+
+            new Vue({
+                el: '#app',
+                data() {
+                    return {
+                        //
+                        singleModel: '@ViewData["SingleModel"]' == 'True',
+                        nightMode: '@ViewData["NightMode"]' == 'True',
+
+                        capacityData,
+
+                        chartA: null,
+                        vmax,
+                        vmin,
+
+                        //A
+                        //getSeriesFormatA,
+
+                        //B
+                        chartB: null,
+                        colorB,
+                        opacityB,
+                        //getOptionB,
+
+                        form,
+
+                        //C
+                        //getOptionC,
+
+                        // DEFG
+                        chartD: null,
+                        chartE: null,
+                        chartF: null,
+                        chartG: null,
+                        RankColor,
+                        DataD,
+                        DataE,
+                        DataF,
+                        DataG,
+                        //getTop5RankOption,
+
+                        comma,
+                        round,
+
+                        // LINE
+                        options: [{
+                            value: 'L01',
+                            label: 'L01'
+                        }, {
+                            value: 'L02',
+                            label: 'L02'
+                        }, {
+                            value: 'L03',
+                            label: 'L03'
+                        }, {
+                            value: 'L04',
+                            label: 'L04'
+                        }, {
+                            value: 'L05',
+                            label: 'L05'
+                        }],
+                        value: ''
+                    }
+                },
+                mounted: function () {
+
+                    let _self = this;
+
+                    _self.resetAllChart();
+
+                    //window.onresize = function () {
+
+                    //    _self.initA();
+
+                    //    _self.initB();
+
+                    //    _self.initC();
+
+                    //    _self.initTop5();
+                    //};
+                },
+                computed: {
+                    textColor() {
+                        return this.nightMode ? 'rgb(238, 241, 250)' : 'rgb(60, 72, 87)';
+                    }
+                },
+                methods: {
+                    resetAllChart() {
+                        let _self = this;
+                        _self.nightMode = !_self.nightMode;
+
+                        $('.content-wrapper').css('background-color', _self.nightMode ? 'rgb(40, 40, 40)' : 'rgb(245, 247, 250)');
+                        $('.wrapper').css('background-color', _self.nightMode ? 'rgb(40, 40, 40)' : 'rgb(245, 247, 250)');
+                        $('.wrapper > footer').css('border-top', _self.nightMode ? '1px solid rgb(94, 94, 94)' : '1px solid rgb(207, 219, 226)');
+                        $('.wrapper > footer').css('color', _self.nightMode ? 'rgb(199, 199, 199)' : 'rgb(81, 73, 58)');
+                        if (this.singleModel) {
+                            $('body').css('background-color', _self.nightMode ? 'rgb(40, 40, 40)' : 'rgb(245, 247, 250)');
+                        }
+
+                        _self.chartA?.dispose();
+                        _self.chartB?.dispose();
+                        _self.chartC?.dispose();
+                        _self.chartD?.dispose();
+                        _self.chartE?.dispose();
+                        _self.chartF?.dispose();
+                        _self.chartG?.dispose();
+
+                        _self.chartA = echarts.init(document.getElementById("chartA"), null);
+                        _self.chartB = echarts.init(document.getElementById("chartB"), null);
+                        _self.chartC = echarts.init(document.getElementById("chartC"), null);
+                        _self.chartD = echarts.init(document.getElementById("chartD"), null);
+                        _self.chartE = echarts.init(document.getElementById("chartE"), null);
+                        _self.chartF = echarts.init(document.getElementById("chartF"), null);
+                        _self.chartG = echarts.init(document.getElementById("chartG"), null);
+                        //_self.chartA = echarts.init(document.getElementById("chartA"), this.nightMode ? 'dark' : null);
+                        //_self.chartB = echarts.init(document.getElementById("chartB"), this.nightMode ? 'dark' : null);
+                        //_self.chartC = echarts.init(document.getElementById("chartC"), this.nightMode ? 'dark' : null);
+                        //_self.chartD = echarts.init(document.getElementById("chartD"), this.nightMode ? 'dark' : null);
+                        //_self.chartE = echarts.init(document.getElementById("chartE"), this.nightMode ? 'dark' : null);
+                        //_self.chartF = echarts.init(document.getElementById("chartF"), this.nightMode ? 'dark' : null);
+                        //_self.chartG = echarts.init(document.getElementById("chartG"), this.nightMode ? 'dark' : null);
+                        _self.initA();
+                        _self.initB();
+                        _self.initC();
+                        _self.initTop5();
+                    },
+                    initA() {
+                        let _self = this;
+                        let lastData = _self.capacityData.reduce((prev, curr) => (prev && prev.time > curr.time) ? prev : curr);
+                        let mainTitleSize = vmin(25);
+                        let mainValueSize = vmin(20);
+                        let subTitleSize = vmin(45);
+                        let subValueSize = vmin(28);
+                        let option = {
+                            series: [
+                                _self.getSeriesFormatA('50%', '30%', '40%', 'OEE', mainTitleSize, mainValueSize, lastData.oee),
+                                _self.getSeriesFormatA('16%', '72%', '30%', 'Availability', subTitleSize, subValueSize, lastData.availability),
+                                _self.getSeriesFormatA('50%', '72%', '30%', 'Quality', subTitleSize, subValueSize, lastData.quality),
+                                _self.getSeriesFormatA('84%', '72%', '30%', 'Performance', subTitleSize, subValueSize, lastData.performance)
+                            ]
+                        };
+                        _self.chartA.clear();
+                        _self.chartA.setOption(option);
+                        _self.chartA.resize();
+                    },
+                    initB() {
+                        let _self = this;
+                        let locX = [8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20];
+                        let markArea = [];
+                        _self.capacityData.forEach(x => {
+                            markArea.push([{ xAxis: `${x.time}`, itemStyle: { color: _self.colorB.find(y => x.oee < y.l).c, opacity: _self.opacityB } }, { xAxis: `${x.time + 1}` }]);
+                            x.time = `${x.time}`;
+                        });
+                        let option = _self.getOptionB(locX, _self.capacityData, markArea);
+                        _self.chartB.clear();
+                        _self.chartB.setOption(option);
+                        _self.chartB.resize();
+                    },
+                    initC() {
+                        let _self = this;
+                        let option = _self.getOptionC();
+                        _self.chartC.clear();
+                        _self.chartC.setOption(option);
+                        _self.chartC.resize();
+                    },
+                    initTop5() {
+                        let _self = this;
+                        let optD = _self.getTop5RankOption(_self.RankColor[0].title, _self.DataD);
+                        _self.chartD.clear();
+                        _self.chartD.setOption(optD);
+                        _self.chartD.resize();
+
+                        let optE = _self.getTop5RankOption(_self.RankColor[1].title, _self.DataE);
+                        _self.chartE.clear();
+                        _self.chartE.setOption(optE);
+                        _self.chartE.resize();
+
+                        let optF = _self.getTop5RankOption(_self.RankColor[2].title, _self.DataF);
+                        _self.chartF.clear();
+                        _self.chartF.setOption(optF);
+                        _self.chartF.resize();
+
+                        let optG = _self.getTop5RankOption(_self.RankColor[3].title, _self.DataG);
+                        _self.chartG.clear();
+                        _self.chartG.setOption(optG);
+                        _self.chartG.resize();
+                    },
+                    changeScreenMode() {
+                        window.location.href = window.location.href.replace(`SingleModel=${this.singleModel}`, `SingleModel=${!this.singleModel}`);
+                    },
+                    // Capacity Percentage
+                    getSeriesFormatA(locX, locY, radius, title, titleSize, detailSize, value = 0) {
+                        let rangeColor = [
+                            { l: 60, c: '#e62e00' },
+                            { l: 88, c: '#ff6600' },
+                            { l: 100, c: '#009933' },
+                        ];
+                        return {
+                            type: 'gauge',
+                            startAngle: 200,
+                            endAngle: -20,
+                            center: [locX, locY],
+                            radius: radius,
+                            min: 0,
+                            max: 100,
+                            splitNumber: 10,
+                            itemStyle: {
+                                color: rangeColor.find(x => value < x.l).c
+                            },
+                            progress: {
+                                show: true,
+                                width: vmin(60),
+                            },
+                            axisLine: {
+                                lineStyle: {
+                                    width: vmin(75),
+                                }
+                            },
+                            pointer: {
+                                show: false
+                            },
+                            axisTick: {
+                                show: false
+                            },
+                            splitLine: {
+                                show: false
+                            },
+                            axisLabel: {
+                                show: false
+                            },
+                            title: {
+                                offsetCenter: [0, '70%'],
+                                fontSize: titleSize,
+                                color: this.textColor
+                            },
+                            detail: {
+                                fontSize: detailSize,
+                                offsetCenter: [0, 0],
+                                valueAnimation: true,
+                                formatter: '{value}%',
+                                color: 'inherit'
+                            },
+                            data: [
+                                {
+                                    value: value,
+                                    name: title
+                                }
+                            ]
+                        };
+                    },
+                    getOptionB(locX, datasetSource, markAreaData) {
+                        return {
+                            animation: false,
+                            title: {
+                                show: false
+                            },
+                            legend: {
+                                data: window.innerWidth < 1100 ? ['OEE', 'AVL', 'Q', 'PER'] : ['OEE', 'Availability', 'Quality', 'Performance'],
+                                top: '8%',
+                                textStyle: {
+                                    fontSize: 16,
+                                    fontWeight: 800,
+                                    color: this.textColor
+                                }
+                            },
+                            grid: {
+                                left: '2%',
+                                right: '4%',
+                                bottom: '3%',
+                                containLabel: true
+                            },
+                            xAxis: {
+                                type: 'category',
+                                boundaryGap: false,
+                                data: locX,
+                                axisLabel: {
+                                    formatter: function (val) {
+                                        return window.innerWidth < 1100 ? `${val}` : `${val}`.length > 1 ? `${val}:00` : `0${val}:00`;
+                                    },
+                                    fontSize: vmin(60),
+                                    fontWeight: 800,
+                                    color: this.textColor
+                                }
+                            },
+                            yAxis: {
+                                type: 'value',
+                                max: 100,
+                                splitNumber: 2,
+                                axisLabel: {
+                                    formatter: "{value} %",
+                                    fontSize: vmin(60),
+                                    fontWeight: 800,
+                                    color: this.textColor
+                                }
+                            },
+                            dataset: {
+                                source: datasetSource
+                            },
+                            series: [
+                                {
+                                    name: 'OEE',
+                                    type: 'line',
+                                    smooth: true,
+                                    encode: {
+                                        x: 'time',
+                                        y: 'oee'
+                                    },
+                                    itemStyle: {
+                                        color: '#000'
+                                    },
+                                    markArea: {
+                                        data: markAreaData
+                                    }
+                                },
+                                {
+                                    name: window.innerWidth < 1100 ? 'AVL' : 'Availability',
+                                    type: 'line',
+                                    smooth: true,
+                                    encode: {
+                                        x: 'time',
+                                        y: 'availability'
+                                    },
+                                    itemStyle: {
+                                        color: '#0000ff'
+                                    }
+                                },
+                                {
+                                    name: window.innerWidth < 1100 ? 'Q' : 'Quality',
+                                    type: 'line',
+                                    smooth: true,
+                                    encode: {
+                                        x: 'time',
+                                        y: 'quality'
+                                    },
+                                    itemStyle: {
+                                        color: '#0099cc'
+                                    }
+                                },
+                                {
+                                    name: window.innerWidth < 1100 ? 'PER' : 'Performance',
+                                    type: 'line',
+                                    smooth: true,
+                                    encode: {
+                                        x: 'time',
+                                        y: 'performance'
+                                    },
+                                    itemStyle: {
+                                        color: '#cc00cc'
+                                    }
+                                },
+                            ]
+                        };
+                    },
+                    getOptionC() {
+                        return option = {
+                            legend: {
+                                top: '8%',
+                                textStyle: {
+                                    fontSize: 16,
+                                    fontWeight: 800,
+                                    color: this.textColor
+                                }
+                            },
+                            grid: {
+                                left: '6%',
+                                right: '10%',
+                                bottom: '3%',
+                                containLabel: true
+                            },
+                            yAxis: {
+                                type: 'category',
+                                axisLabel: {
+                                    show: false
+                                }
+                            },
+                            xAxis: {
+                                type: 'value',
+                                max: 100,
+                                axisLabel: {
+                                    show: true,
+                                    formatter: window.innerWidth < 1100 ? '{value}\nhrs' : '{value} hrs',
+                                    fontSize: 16,
+                                    fontWeight: 800,
+                                    color: this.textColor
+                                },
+                                splitNumber: 1
+                            },
+                            series: [
+                                {
+                                    name: 'RUN',
+                                    data: [33],
+                                    type: 'bar',
+                                    stack: 'total',
+                                    label: {
+                                        show: true,
+                                        //formatter: window.innerWidth < 1100 ? '{c}\nhrs' : '{c} hrs',
+                                        fontSize: 16,
+                                        fontWeight: 800
+                                    },
+                                    itemStyle: {
+                                        color: '#009933',
+                                    }
+                                },
+                                {
+                                    name: 'DOWN',
+                                    data: [33],
+                                    type: 'bar',
+                                    stack: 'total',
+                                    label: {
+                                        show: true,
+                                        //formatter: window.innerWidth < 1100 ? '{c}\nhrs' : '{c} hrs',
+                                        fontSize: 16,
+                                        fontWeight: 800
+                                    },
+                                    itemStyle: {
+                                        color: '#9933ff'
+                                    }
+                                },
+                                {
+                                    name: 'IDLE',
+                                    data: [34],
+                                    type: 'bar',
+                                    stack: 'total',
+                                    label: {
+                                        show: true,
+                                        //formatter: window.innerWidth < 1100 ? '{c}\nhrs' : '{c} hrs',
+                                        fontSize: 16,
+                                        fontWeight: 800
+                                    },
+                                    itemStyle: {
+                                        color: '#d9d9d9'
+                                    }
+                                }
+                            ]
+                        };
+                    },
+                    getTop5RankOption(title, data) {
+                        
+                        return {
+                            title: {
+                                text: window.innerWidth < 1100 ? title.replace(' ', '\n') : title,
+                                textStyle: {
+                                    fontSize: vmin(45),
+                                    fontWeight: 800,
+                                    color: RankColor.find(x => x.title == title).color,
+                                },
+                                //top: '8%',
+                                left: '3%',
+                            },
+                            grid: {
+                                left: '3%',
+                                right: '4%',
+                                bottom: '3%',
+                                containLabel: true
+                            },
+                            yAxis: {
+                                type: 'category',
+                                axisLabel: {
+                                    fontSize: vmin(70),
+                                    fontWeight: 800,
+                                    color: this.textColor
+                                }
+                            },
+                            xAxis: {
+                                type: 'value',
+                                max: 100,
+                                axisLabel: {
+                                    show: false
+                                }
+                            },
+                            dataset: {
+                                source: data
+                            },
+                            series: [
+                                {
+                                    encode: {
+                                        x: 'val',
+                                        y: 'eqpNo'
+                                    },
+                                    type: 'bar',
+                                    showBackground: true,
+                                    label: {
+                                        show: true,
+                                        formatter: '{@@val}%',
+                                        fontSize: vmin(70),
+                                        fontWeight: 800,
+                                        position: 'insideRight',
+                                    },
+                                    itemStyle: {
+                                        color: RankColor.find(x => x.title == title).color,
+                                    },
+                                    backgroundStyle: {
+                                        color: 'rgba(180, 180, 180, 0.3)'
+                                    }
+                                }
+                            ]
+                        };
+                    }
+                }
+            });
+        })
+</script>
+}
+
+@*<h3>ddd</h3>*@
+
+<div id="app">
+
+    <div :class="{'page-title':!singleModel, 'page-title-full':singleModel, 'page-title-night':!singleModel&&nightMode}">
+        <el-button :icon="singleModel ? 'el-icon-monitor' : 'el-icon-data-analysis'" circle @@click="changeScreenMode"></el-button>
+        <el-button :icon="nightMode ? 'el-icon-sunny' : 'el-icon-moon'" circle @@click="resetAllChart"></el-button>
+        <div style="display: inline-block; vertical-align: middle; margin-left: 6px;">
+            @ViewBag.Title
+            <i class="fa fa-caret-right" style="margin-left: 20px;"></i>
+        </div>
+        <el-select v-model="value" placeholder="请选择" style="margin-left: 20px">
+            <el-option v-for="item in options"
+                       :key="item.value"
+                       :label="item.label"
+                       :value="item.value">
+            </el-option>
+        </el-select>
+        <div style="display: inline-block; vertical-align: middle; margin-left: 6px;">Line 001</div>
+
+    </div>
+
+    <div v-cloak class="dbd-c container-fluid">
+
+        <div class="row">
+            <div class="col-sm-6">
+                <div class="cht-div cht-div-A">
+                    <span :class="{'cht-title':!nightMode, 'cht-title-night':nightMode}">Capacity Percentage</span>
+                    <div id="chartA" class="cht"></div>
+                </div>
+            </div>
+            <div class="col-sm-6">
+
+                <div class="row" style="margin: 0">
+                    <div class="col-sm-12 cht-div cht-div-B">
+                        <span :class="{'cht-title':!nightMode, 'cht-title-night':nightMode}">Capacity Trend</span>
+                        <div id="chartB" class="cht"></div>
+                    </div>
+                </div>
+                <div class="row" style="margin: 0">
+                    <div class="col-sm-12 cht-div cht-div-C">
+                        <span :class="{'cht-title':!nightMode, 'cht-title-night':nightMode}">Machine Status</span>
+                        <div id="chartC" class="cht"></div>
+                    </div>
+                </div>
+
+            </div>
+
+        </div>
+
+        <div class="row">
+            <div class="col-sm-12">
+                <div class="cht-div cht-div-D">
+                    <span :class="{'cht-title':!nightMode, 'cht-title-night':nightMode}">Top 5 Machine Analysis</span>
+                    <div class="row">
+                        <div class="col-sm-3">
+                            <div id="chartD" class="cht"></div>
+                        </div>
+                        <div class="col-sm-3">
+                            <div id="chartE" class="cht"></div>
+                        </div>
+                        <div class="col-sm-3">
+                            <div id="chartF" class="cht"></div>
+                        </div>
+                        <div class="col-sm-3">
+                            <div id="chartG" class="cht"></div>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+
+        </div>
+    </div>
+
+
+</div>

@@ -43,7 +43,7 @@
                                        required />
                     </gt-form-col>
                     <gt-form-col label="@RES.BLL.Face.ResourcesNo" prompt_sty="has-req">
-                        <el-input v-model="form.RESOURCE_NO" placeholder="" :disabled="!isAddMode" required>
+                        <el-input v-model="form.RESOURCE_NO" placeholder=""   required>
 							<el-button slot="append" icon="el-icon-share" @@click="sync(1)"></el-button>
 						</el-input>
                     </gt-form-col>
@@ -197,7 +197,7 @@
 						this.lang.zhCN = converter(val);
 					}
 				},
-				isAddMode() {
+                isAddMode() {
 					let { SID = "" } = this.form;
 					return SID == "" || SID == undefined;
                 },
@@ -236,7 +236,6 @@
                 },
 			},
 			methods: {
-                @GTest.methods
 				Add_ROLE(){
 					var param = {
 						RESOURCE_SID:this.form.SID
@@ -314,13 +313,9 @@
                         let { form, query } = Data;
                         _self.form = form;
                         _self.query = query;
-						_self.$UT.parent_reload();
-                        if (form.SID) {
-                            this.e_btn_enable = true;
-                            this.readonly = true;
-                            this.v_enable = true;
-                            this.e_delete_visable = true;
-                        }
+                        let { SID: keyVal } = form;
+                        this.$URL.chgSearch({ keyVal, Test:'T'}, true);
+
 					} else {
 						this.$Alert.Warning(Message);
 						console.log(Exception);

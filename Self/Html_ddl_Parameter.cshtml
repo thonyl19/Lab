@@ -1,0 +1,15 @@
+﻿@using System.Dynamic
+@{
+	bool isSingleModel = (bool)ViewData["SingleModel"];
+	dynamic data = new ExpandoObject();
+    if (true)
+	{
+		Layout = "~/Views/Shared/_LayoutSingle.cshtml";
+	}
+    GTI_Test GTest = new GTI_Test(Html, ViewContext.HttpContext);
+}
+@eBundle.QRender_CSS()
+@eBundle.QRender_JS()
+<div>
+	@Html.Raw(Json.Encode(BLL.MES.DDLServices.ddl_Parameter("Grade")));
+</div>

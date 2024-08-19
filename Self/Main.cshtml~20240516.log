@@ -1,4 +1,4 @@
-﻿@{ 
+﻿﻿﻿@{
     var action = ViewContext.RouteData.Values["action"].ToString();
 	var controller = ViewContext.RouteData.Values["controller"].ToString().ToUpper();
 	ViewBag.Title = Genesis.Common.PageBaseInfo.getCurrentResource(action.ToString()).RESOURCE_NAME;

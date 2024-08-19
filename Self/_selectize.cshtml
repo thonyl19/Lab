@@ -40,13 +40,6 @@
 							  :readonly="readonly">
 			</x-ddl-group-para>
 		</gt-form-col>
-		<gt-form-col label="ddl-group-para 2型" prompt_sty="has-req is-err">
-			<x-ddl-group-para :value.number.sync="form.C"
-							  :input_value.number.sync="form.D"
-							  group_no="WO-Priority"
-							  :readonly="readonly">
-			</x-ddl-group-para>
-		</gt-form-col>
 		<gt-form-col label="ddl-dyn-load" :prompt_sty="`has-req ${isErr? 'is-err':''}`">
 			<x-ddl-dyn-load :value.sync="form.E" :readonly="readonly" />
 		</gt-form-col>
@@ -54,19 +47,25 @@
 			<vue-selectize-dynquery :value.sync="form.E" required
 									:readonly="readonly"
 									:options="options" />
+			api/ddl/para_group/
 		</gt-form-col>
+		<h3>vue-selectize-group-para</h3>
 		<gt-form-col label="vue-selectize-group-para">
 			<vue-selectize-group-para v-model="form.F"
 									  :readonly="readonly"
 									  group_no="WO-Priority" />
 		</gt-form-col>
 		<gt-form-col label="vue-selectize-group-para">
-			<vue-selectize-group-para v-model="form.F" :input_value.sync="form.F"
+			<vue-selectize-group-para v-model="form.C" :input_value.sync="form.F"
 									  :readonly="readonly"
 									  group_no="WO-Priority" />
 		</gt-form-col>
 
-
+		<gt-form-col label="vue-selectize-group-para-2">
+			<vue-selectize-group-para-2 v-model="form.F" :input_value.sync="form.F"
+									  :readonly="readonly"
+									  group_no="WO-Priority" />
+		</gt-form-col>
 	</div>
 	
 	<h3>vue-selectize-ddlapi</h3>
@@ -74,6 +73,7 @@
 		<gt-form-col label="一般 ">
 			<vue-selectize-ddlapi v-model="form.F" action="LINE"></vue-selectize-ddlapi> <br />
 			<vue-selectize-ddlapi v-model="form.F" action="LINE" :readonly="!readonly"></vue-selectize-ddlapi>
+			<vue-selectize-ddlapi v-model="form.F" action="Parameter/LookupTable"  :icon_search="false" :auto_query="true"></vue-selectize-ddlapi>
 		</gt-form-col>
 		<gt-form-col label="沒有查詢鈕">
 			<vue-selectize-ddlapi v-model="form.F" action="LINE" :readonly="!readonly" :icon_search="false"></vue-selectize-ddlapi> <br />

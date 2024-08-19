@@ -1,0 +1,76 @@
+﻿@using System.Dynamic
+@{
+    dynamic data = new ExpandoObject();
+    GTI_Test GTest = new GTI_Test(Html, ViewContext.HttpContext);
+}
+@eBundle.QRender_CSS()
+@eBundle.QRender_JS()
+
+<div id="app">
+    <el-button @@click="test">teste</el-button>
+</div>
+
+
+<script>
+	$(() => {
+		new Vue({
+			el: '#app',
+			data() {
+				return {
+					msg: "baseTpl"
+				}
+			},
+			methods: {
+				test() {
+                    var _self = this;
+                    var param = {
+                        CurrentLotNo: '',
+                        EdcList: ''
+                    };
+
+                    var data = JSON.stringify(param);
+
+                    var _ajax = {
+                        url: `@Genesis.Common.PageBaseInfo.GetBaseUrl()/api/info/LoadEdcHistoryByLot1`,
+                        type:'post',
+                        contentType: "application/json", // 告诉服务器请求体的格式为 JSON
+                        param,
+                        success(res) {
+                            let { Success = false, Data = {} } = res;
+                            if (Success) {
+                                let { lotInfo,form,edcData } = Data;
+                                _self.lotInfo = lotInfo;
+                                _self.form = form;
+                                _self.edcData = edcData;
+                            }
+                            else {
+                                _self.$Alert.msg_NoData();
+                            }
+                        }
+                    };
+                    $.submitForm(_ajax);
+                    return _self.c_LOT;
+				}
+			}
+		})
+	});
+</script>
+		[Route("api/info/LoadEdcHistoryByLot")]
+		[HttpGet]
+		[AllowAnonymousAttribute]
+		public IResult LoadEdcHistoryByLot(string CurrentLotNo, string EdcList)
+		=> Result.WebApi(() => Library.BLL.LzQuery.QMS.Test());
+
+		[HttpPost]
+		[AllowAnonymousAttribute]
+		[Route("LoadEdcHistoryByLot1")]
+		public IResult LoadEdcHistoryByLot1([FromBody] EdcHistoryRequest param)
+		=> Result.WebApi(() => Library.BLL.LzQuery.QMS.Test("Post"));
+	}
+
+
+	public class EdcHistoryRequest
+	{
+		public string CurrentLotNo { get; set; }
+		public string EdcList { get; set; }
+	}
