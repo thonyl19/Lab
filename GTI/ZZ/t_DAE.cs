@@ -31,6 +31,9 @@ using static Genesis.Gtimes.WIP.LotUtility;
 using Genesis.Library.BLL.ADM;
 using Genesis.Gtimes.Transaction.WIP;
 using System.Data.Entity;
+using Genesis.Library.BLL.FC;
+using _Svc = Genesis.Library.BLL.FC.EquipmentService;
+using Genesis;
 
 namespace UnitTestProject
 {
@@ -97,7 +100,38 @@ namespace UnitTestProject
 					return FileApp.ts_Log(@"ZZ\DAE\Rule_站別檢驗單解Hold.json");
 				}
 			}
-			
+			internal static string EqpSetUpTool
+			{
+				get
+				{
+					return FileApp.ts_Log(@"ZZ/DAE\EqpSetUpTool.json");
+				}
+			}
+
+			internal static string t_FIPQCService_Query
+			{
+				get
+				{
+					return FileApp.ts_Log(@"ZZ/DAE\t_FIPQCService_Query.json");
+				}
+			}
+
+ 
+			internal static string FIPQCService_Exec
+			{
+				get
+				{
+					return FileApp.ts_Log(@"ZZ/DAE\FIPQCService_Exec.json");
+				}
+			}
+			internal static string ExecFirstLotTerminate
+			{
+				get
+				{
+					return FileApp.ts_Log(@"ZZ/DAE\ExecFirstLotTerminate.json");
+				}
+			}
+
 		}
 
 
@@ -340,7 +374,7 @@ namespace UnitTestProject
 
 
 		[TestMethod]
-		public void t_11()
+		public void _轉換成Xls()
 		=> _DBTest(Txn => {
 			//MDL.MESContext()
 			var _repo = new {
@@ -409,9 +443,26 @@ namespace UnitTestProject
 		public void t_Tool累計使用次數_DAE()
 		{
 			
-			var r = _Func.Tool累計使用次數_DAE_公式(25, 5);
+			var r = _Func.Tool累計使用次數_DAE_單模次數(25, 5);
 			//var r = _Func.Tool累計使用次數_DAE_公式(25,10);
 		}
+
+
+        [TestMethod]
+        public void t_InspFormNew_DAE()
+        {
+			var r = QMSService.InspFormNew_DAE("SIPQC_02");
+
+		}
+
+		[TestMethod]
+		public void t_QCResult_FIPQC_DAE()
+		{
+			var r = QMSService.QCResult_FIPQC_DAE("INSP24072204");
+
+		}
+
+		
 
 
 		[TestMethod]
@@ -460,10 +511,10 @@ namespace UnitTestProject
 
 
 		[TestMethod]
-		public void t_Maintain_PagerQuery()
+		public void _Maintain_PagerQuery()
 		=> _DBTest(Txn => {
 			var r = ProductionLotIPQCService.Maintain_PagerQuery(Txn).ToList();
-		}, true, true);
+		}, false, true);
 
 
 		[TestMethod]
@@ -576,8 +627,32 @@ namespace UnitTestProject
 			//var z = ToolBindingWoServices.UpdateWoList(entity, AuthorizedGroup, true);
 
 
-		} 
-		
+		}
+
+		[TestMethod]
+		public void t_FIPQCService_Query()
+		{
+			var z1 = Genesis.Library.BLL.QMS.FIPQCService.Query("4B201-240611-01");
+			FileApp.WriteSerializeJson(z1,_log.t_FIPQCService_Query);
+
+		}
+
+
+		[TestMethod]
+		public void t_QueryToolByToolType()
+		{
+			var z1 = EquipmentService.QueryToolByToolType("DAE230208");
+		}
+
+
+		[TestMethod]
+		public void t_SetUpTool_Exec()
+		{
+			TxnBase.Test = GTI_Test.TxnBase_T;
+			var _r = FileApp.Read_SerializeJson<_Svc.d_SetUpToolArg>(_log.EqpSetUpTool);
+			_Svc.SetUpTool_Exec(_r,true);
+		}
+
 
 		[TestMethod]
 		public void t_Form1()
@@ -635,6 +710,52 @@ namespace UnitTestProject
 
         }, true, true);
 
+
+		public class d_FIPQCService_Exec
+		{
+			public string LOT { get; set; }
+			public QC_INSP form { get; set; }
+			public List<EdcModel> edcData { get; set; }
+			/// <summary>
+ 
+		}
+
+
+		[TestMethod]
+		public void t_FIPQCService_Exec()
+		{
+			var _r = FileApp.Read_SerializeJson<d_FIPQCService_Exec>(_log.FIPQCService_Exec);
+			Genesis.Library.BLL.QMS.FIPQCService.Exec(_r.LOT,_r.form,_r.edcData, true);
+		}
+
+		[TestMethod]
+		public void t_ExecFirstLotTerminate()
+		{
+			var _r = FileApp.Read_SerializeJson<CommonLOT_Form>(_log.ExecFirstLotTerminate);
+			_r.LOT = "5D0AS27400-240717-01";
+			LOT_Services.ExecFirstLotTerminate(_r,true);
+		}
+
+
+
+		[TestMethod]
+		public void t_TTTTT()
+		=> _DBTest(Txn => {
+			var zz = Txn.QueryableQMS().by檢驗單號取得EDC資料("Test");
+			var zz1 = Txn.QueryableQMS().by檢驗單號取得EDC資料("Test");
+			var zz2 = Txn.QueryableQMS().by檢驗單號取得EDC資料("Test");
+			var zzz = Txn.EFQuery_MES.WP_LOT.FirstOrDefault();
+			var zzz1 = Txn.GetLotInfo(zzz.LOT, isQueryByLotNO: true);
+		}, true, true);
+
+
+
+		[TestMethod]
+		public void t_CheckOut_人員支援記錄()
+		=> _DBTest(Txn => {
+			var _lot = Txn.GetLotInfo("3OB000-240716-01", isQueryByLotNO: true);
+			Func.CheckOut_人員支援記錄(Txn, _lot);
+		}, true, true);
 	}
 }
 

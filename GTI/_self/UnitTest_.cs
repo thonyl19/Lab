@@ -19,13 +19,14 @@ using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Reflection;
 using System.Resources;
-using UnitTestProject.TestUT;
+using System.Threading.Tasks;
+using static BLL.MES.WIPInjectServices;
 using static Genesis.Library.BLL.Label.LabelBaseService;
 
-namespace UnitTestProject
+namespace UnitTestProject.TestUT
 {
     [TestClass]
-	public class UnitTest_
+	public class UnitTest_ : _testBase
 	{
 		public string _path = @"C:\Code\GTIMES_2015\UnitTestProject\Log\";
 		[TestMethod]
@@ -262,27 +263,28 @@ namespace UnitTestProject
 		public void t_GTiMES_saltkey1()
 		{
 			var A = "RrYm72OF0OGCOKQFFAlvJg==";
-			var B = "P3wRbcoQHxFlvgTT";
+			var B = "B5K1MrMZWQwmZUXd";
 			var T = Encrypter.DecryptAES(A,B);
 			//
 			//var T = pwd.EncryptAES(A, B);
 
 		}
 
-		[TestMethod]
-		public void t_GTiMES_saltkey2()
-		{
-			var A = "RrYm72OF0OGCOKQFFAlvJg==";
-			var B = "P3wRbcoQHxFlvgTT";
-			var T = Encrypter.DecryptAES(A, B);
+ 
+
+        [TestMethod]
+        public void t_GTiMES_saltkey2()
+        => _DBTest(Txn =>
+        {
+			//var T = Encrypter.DecryptAES(userEntity.PWD, userEntity.SECOND_PWD);
 			//
 			//Genesis.Mes.Library.Security.Password pwd = new Genesis.Mes.Library.Security.Password();
-			//pwd.DecryptAES(password, userEntity.PWD, userEntity.SECOND_PWD);
+			//pwd.DecryptAES(password, userEntity.PWD, userEntity.SECOND_PWD);			return Txn.result;
+		});
 
-		}
 
 
-		[TestMethod]
+        [TestMethod]
 		public void t_x()
 		{
 			var UItest = "RollCheckIn_Case1";
@@ -351,6 +353,15 @@ namespace UnitTestProject
 			return null;
 		}
 
+		private async Task SubFunctionAsync(int delayTime)
+		{
+			Console.WriteLine($"Sub function will start after {delayTime} ms");
+
+			// 等待指定的時間
+			await Task.Delay(delayTime);
+
+			Console.WriteLine("Sub function executed after delay");
+		}
 
 	}
 

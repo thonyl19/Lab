@@ -633,7 +633,7 @@ namespace UnitTestProject
 			var RouteVerOperInfo = Txn.GetRouteVerOper();
 
 			//實際的處理程序,但 無法做單元測試
-			var __t = WIPOperConfigServices.GetCustomDefectInfo(Txn.DBC, lot, RouteVerOperInfo);
+			//var __t = WIPOperConfigServices.GetCustomDefectInfo(Txn.DBC, lot, RouteVerOperInfo);
 		});
 
 
@@ -855,7 +855,26 @@ namespace UnitTestProject
 			//SopVerServices.SetDefaultVersion("GTI20112317424387712","GTI23090610572252945", true);
 		}
 
- 
-	
+		/// <summary>
+		/// TODO:
+		/// </summary>
+		[TestMethod]
+		public void t_QueryableADM_GetCode()
+		=> _DBTest((Txn) =>{
+			//var z = Txn.LzQuery.ADM.GetCode("InspNoByLot");
+		}, true,true);
+
+
+		/// </summary>
+		[TestMethod]
+		public void t_GetPartNoOperSopData_OperSid()
+		=> _DBTest((Txn) => {
+			var _lotInfo = Txn.GetLotInfo("45105-2404290006-01", isQueryByLotNO: true);
+			var RouteVerOperInfo = Txn.GetRouteVerOper(_lotInfo.ROUTE_VER_OPER_SID);
+			var z = WIPOperConfigServices.GetOperSop(Txn.DBC, _lotInfo, RouteVerOperInfo);
+		}, false, true);
+
+
+
 	}
 }

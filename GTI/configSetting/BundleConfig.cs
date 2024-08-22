@@ -1,8 +1,33 @@
-﻿using BundleTransformer.Core.Transformers;
+﻿using BLL.InterFace;
+using BLL.MES;
+using BLL.MES.DataViews;
+using BLL.MVC;
+using BundleTransformer.Core.Transformers;
+using Frame.Code;
+using Genesis.Common;
+using Genesis.Gtimes.Common;
+using Microsoft.AspNet.SignalR;
+using Newtonsoft.Json;
 using System;
+using System.Collections;
+using System.Collections.Generic;
+using System.Configuration;
+using System.Diagnostics;
+using System.Dynamic;
+using System.IO;
 using System.Linq;
+using System.Reflection;
+using System.Resources;
+using System.Text.RegularExpressions;
+using System.Threading;
+using System.Threading.Tasks;
 using System.Web;
+using System.Web.Mvc;
 using System.Web.Optimization;
+using System.Web.Routing;
+using System.Xml.Linq;
+using static BLL.MVC.ResourceServices;
+using vFile = System.IO.File;
 
 namespace Genesis
 {
@@ -823,15 +848,707 @@ namespace Genesis
 
 		}
 	}
+}
 
-	public interface IGTI_Test
+namespace Genesis.Areas.Example.Controllers
+{
+	public partial class SelfController : BaseController
 	{
-		string Debug { get; set; }
-		IHtmlString methods { get; set; }
-		IHtmlString mounted { get; set; }
-		IHtmlString param_test { get; }
+		[AllowAnonymous]
+		public ActionResult test(string name, bool SingleModel = true)
+		{
+			dynamic data = new ExpandoObject();
+			ViewData["SingleModel"] = SingleModel;
+			return View(name);
+		}
 
-		IHtmlString Test(string code, int mode = 0);
+		//public ActionResult QC_INSTRUMENTS_CALIBRATION_RECORDS_PMS_Save(QC_INSTRUMENTS_CALIBRATION_RECORDS form, List<EdcModel> edcData, string isTest = null)
+		//=> _Content1(o => Maintain.QC_INSTRUMENTS_CALIBRATION_RECORDS_Save(form, edcData, isTest == "T"));
+
+		public static ExpandoObject GetCurrentMethodParameters(int index = 1)
+		{
+			// 取得當前執行緒的堆疊框架
+			StackTrace stackTrace = new StackTrace();
+			StackFrame stackFrame = stackTrace.GetFrame(index); // 1 表示取得呼叫者的堆疊框架
+
+			// 取得呼叫方法的方法資訊
+			MethodBase method = stackFrame.GetMethod();
+
+			// 取得傳入參數集合
+			ParameterInfo[] parameters = method.GetParameters();
+
+			dynamic parameterValues = new ExpandoObject();
+
+			// 將參數值加入動態物件
+			foreach (var parameter in parameters)
+			{
+				((IDictionary<string, object>)parameterValues)[parameter.Name] = parameter.DefaultValue;
+			}
+
+			return parameterValues;
+		}
+
+		public static ExpandoObject GetCurrentMethodParameters(string ActionName)
+		{
+			StackTrace stackTrace = new StackTrace();
+			dynamic parameterValues = new ExpandoObject();
+			// 從堆疊中尋找目標呼叫者
+			for (int i = 1; i < stackTrace.FrameCount; i++)
+			{
+				StackFrame stackFrame = stackTrace.GetFrame(i);
+				MethodBase method = stackFrame.GetMethod();
+
+				// 檢查呼叫者的類型和方法名稱
+				if (method.ReflectedType != null &&
+					method.Name == ActionName)
+				{
+					ParameterInfo[] parameters = method.GetParameters();
+
+
+					// 將參數值加入動態物件
+					foreach (var parameter in parameters)
+					{
+						((IDictionary<string, object>)parameterValues)[parameter.Name] = parameter.DefaultValue;
+					}
+
+					break;
+				}
+			}
+			// 取得傳入參數集合
+			return parameterValues;
+		}
+
+		public dynamic Check_RedirectToCustomAction(bool isNeedExec)
+		{
+			if (!isNeedExec) return null;
+
+			var controllerContext = ControllerContext;
+			string ProjectCustomer = "DAE";// ServicesBase.ProjectCustomer ?? "";
+			if (ProjectCustomer == "") return null;
+
+			dynamic Arg = new ExpandoObject();
+			string ActionName = controllerContext.RouteData.Values["action"].ToString();
+			Arg.CusActionName = $"{ActionName}_{ProjectCustomer}";
+			var actionMethod = controllerContext.Controller
+				.GetType()
+				.GetMethod(Arg.CusActionName);
+			if (actionMethod == null) return null;
+
+			var queryParameter = HttpContext.Request.QueryString;
+			var routeValues = new RouteValueDictionary();
+			foreach (string key in queryParameter)
+			{
+				routeValues.Add(key, queryParameter[key]);
+			}
+			Arg.RouteParam = routeValues;
+			return Arg;
+		}
+
+
+		public ActionResult _Content1(Func<IResult, IResult> func, bool isCus = false)
+		{
+			IResult result = new Result(true);
+			try
+			{
+				var Arg = Check_RedirectToCustomAction(isCus);
+				if (Arg != null)
+				{
+					//return Content(((object) Arg).ToJson(true));
+					return RedirectToAction(Arg.CusActionName, Arg.RouteParam);
+				}
+				result = func(result);
+			}
+			catch (Exception ex)
+			{
+				result.Success = false;
+				result.Message = ex.Message;
+				result.Data = ex.Data;
+				Logger.Error(ex.Message, ex);
+			}
+
+			return Content(result.ToJson(true));
+		}
+
+		[AllowAnonymous]
+		public ActionResult test1(string name, bool SingleModel = true)
+		=> _Content1(o => new Result(true) { Data = "Test1" }, true);
+
+		[AllowAnonymous]
+		public ActionResult test1_DAE(string name, bool SingleModel = true)
+		=> _Content(o => new Result(true) { Data = new { name, SingleModel } });
+
+		[AllowAnonymous]
+		/// <summary>
+		/// 針對 進出站的控件做 測試
+		/// </summary>
+		/// <param name="name"></param>
+		/// <param name="SingleModel"></param>
+		/// <returns></returns>
+		public ActionResult InOut(string name, string Case = "0", bool SingleModel = true)
+		{
+			ViewData["SingleModel"] = SingleModel;
+			//var _data = ControllerContext.HttpContext.Server.MapPath($"../../Areas/example/Views/Act/InOut/~Case{Case}.json");
+			//string text = System.IO.File.ReadAllText(_data);
+			//ViewData["result"] = JsonConvert.DeserializeObject(text);
+
+			return View($"InOut/{name}", new LotData());
+		}
+
+		public ActionResult SignalR_Item(string id = null)
+		{
+			//ViewData["Count"] = Hubs.UserCountHub._Users.Count.ToString();
+			return View("SignalR/Item");
+		}
+
+		[AllowAnonymous]
+		[HttpGet]
+		public ActionResult UITest(string name)
+		{
+			var _path = Server.MapPath($"~/Areas/Example/Views/Self/UITest/{name}.json");
+			var code = System.IO.File.ReadAllText(_path);
+			return Content(code);
+		}
+	}
+	public partial class ActController : BaseController
+	{
+
+
+		public ActionResult Code(string name, bool SingleModel = false)
+		{
+			ViewData["SingleModel"] = SingleModel;
+			return View($"Code/{name}");
+		}
+
+		[AllowAnonymous]
+		[HttpGet]
+		public ActionResult TestEDC(string file = "EDC_API")
+		{
+			var _data = ControllerContext.HttpContext.Server.MapPath($"../../Areas/example/Views/Self/UITest/{file}.json");
+			string text = System.IO.File.ReadAllText(_data);
+
+			var EdcLog = JsonConvert.DeserializeObject<object>(text);
+			var _r = new Result(true)
+			{
+				Data = EdcLog
+			};
+			return Content(_r.ToJson(true));
+		}
+
 	}
 
+
+
+	public class ChatConnection : PersistentConnection
+	{
+		private static int _connections = 0;
+
+		protected override Task OnConnected(IRequest request, string connectionId)
+		{
+			Interlocked.Increment(ref _connections);
+			//廣播訊息
+			Connection.Broadcast("新的連線加入，連線ID：" + connectionId + ",已有連線數：" + _connections);
+			return Connection.Send(connectionId, "雙向連線成功，連線ID：" + connectionId);
+		}
+
+		/// <summary>
+		/// 連線斷開 
+		/// </summary>
+		protected override Task OnDisconnected(IRequest request, string connectionId, bool stopCalled)
+		{
+			Interlocked.Decrement(ref _connections);
+			return Connection.Broadcast(connectionId + "退出連線，已有連線數：" + _connections);
+		}
+
+		protected override Task OnReceived(IRequest request, string connectionId, string data)
+		{
+			var message = connectionId + "傳送內容>>" + data;
+			return Connection.Broadcast(message);
+		}
+	}
+}
+namespace Genesis.Areas.DDD.Controllers
+{
+
+	public class DDDAreaRegistration : AreaRegistration
+	{
+		public override string AreaName
+		{
+			get
+			{
+				return "DDD";
+			}
+		}
+
+		public override void RegisterArea(AreaRegistrationContext context)
+		{
+			context.MapRoute(
+				"DDD_default",
+				"DDD/{controller}/{action}/{id}",
+				new { action = "Index", id = UrlParameter.Optional }
+			);
+		}
+	}
+
+	[RoutePrefix("DDD/DBA")]
+	public class DBAController : BaseController
+	{
+		DBController _dbc;
+		internal DBController DBC
+		{
+			get
+			{
+				if (_dbc == null)
+				{
+
+					var Conn = ConfigurationManager.ConnectionStrings["sql.mes"];
+					_dbc = new DBController(Conn);
+				}
+				return this._dbc;
+			}
+		}
+
+		[Route("IP/{IP}")]
+		public ActionResult LotInfo(string IP = "226")
+		=> _Content((o) => {
+			using (_dbc ?? DBC)
+			{
+
+			}
+			return null;
+		});
+
+		/*
+		~\Genesis_MVC\Common\LogActionFilterAttribute.cs 
+			skipAction.Add("NeedUpdateAuthMenus");
+			skipAction.Add("GetResource");
+			skipAction.Add("Dashboard_vue");
+		 */
+		//[EnableCors(origins: "http://allowed-origin.com", headers: "*", methods: "GET")]
+		[AllowAnonymous]
+		[Route("Table")]
+		[Route("Table/{Table}")]
+		public ActionResult GetResource(string Table = null)
+		{
+			using (_dbc ?? DBC)
+			{
+				var sql_table_list = @"
+                SELECT name
+                FROM sys.tables;
+                ";
+
+				var sql_table_schema = $@"
+                    SELECT 
+		                    c.name AS Filed,
+		                    ISNULL(p.value, '') AS [Desc],
+		                    t.Name AS Type,
+		                    c.max_length/2 AS Length,
+		                    IIF(c.is_nullable=0,'N','Y') AS abeNull
+                    FROM  sys.columns c
+			                    INNER JOIN  sys.types t 
+				                    ON c.user_type_id = t.user_type_id
+			                    LEFT OUTER JOIN sys.extended_properties p 
+				                    ON p.major_id = c.object_id AND p.minor_id = c.column_id
+                    WHERE 
+		                    OBJECT_NAME(c.object_id) = '{Table}'
+                ";
+				var _sql = Table == null ? sql_table_list : sql_table_schema;
+				return Content(_dbc.Select(_sql).ToJson(true));
+
+			}
+			return Content("");
+		}
+	}
+	[RoutePrefix("DDD/Wafer")]
+	public class WaferController : BaseController
+	{
+		[Route("LotInfo")]
+		[Route("LotInfo/{LotSID}")]
+		public ActionResult LotInfo(string LotSID = null, string Lot = null)
+		=> _Content((o) => Wafer_Services.QueryLotInfo(LotSID, Lot));
+
+		///*
+		//因為無法處理 SN_ID 有帶 小數 - _ 等字符的問題,所以只採用這種方式 
+		//*/
+		public ActionResult ID(string SN_ID)
+		=> _Content(o => Wafer_Services.WaferInfo(SN_ID));
+	}
+
+	[RoutePrefix("DDD/ADM")]
+	public class ADMController : BaseController
+	{
+		[Route("Test")]
+		public ActionResult Test()
+		{
+			//var context = GlobalHost.ConnectionManager.GetHubContext<GTiHub>();
+			//if (string.IsNullOrWhiteSpace(connectionIds))
+			//{
+			//    context.Clients
+			//           .All
+			//           .ShowMessage(name, country);
+			//}
+			//else
+			//{
+			//    //不支援多筆
+			//    context.Clients
+			//           .Clients(new List<string>
+			//           {
+			//       connectionIds
+			//           })
+			//           .ShowMessage(name, country);
+			//}
+			IResult result = new Result(true);
+			return Content(result.ToJson());
+		}
+
+		/// <summary>
+		/// Fix 程序,只要 帶入 AD_FUNCTION.FUN_SID 即可
+		/// </summary>
+		/// <param name="FUN_NAME"></param>
+		/// <param name="FUN_SID"></param>
+		/// <param name="FUN_URL"></param>
+		/// <param name="FUN_FILE_NAME"></param>
+		/// <returns></returns>
+		[Route("Reason")]
+		[Route("Reason/{FUN_NAME}")]
+		[Route("Reason/{FUN_NAME}/{FUN_SID}")]
+		public ActionResult Reason(string FUN_NAME, string FUN_SID, string FUN_URL = null, string FUN_FILE_NAME = null)
+		=> _Content((o) => DDLServices.Reason(FUN_NAME, FUN_SID, FUN_URL, FUN_FILE_NAME));
+
+		[Route("Lot")]
+		[Route("Lot/{LOT_SID}")]
+		[Route("Lot/{LOT_SID}/info/{ActName}")]
+		[Route("Lot/info/{ActName}")]
+		public ActionResult LotInfo(string LOT_SID, string LOT = null, string ActName = null)
+		=> _Content((o) => LOT_Services.QueryLotInfo(LOT_SID, LOT, ActName));
+
+		//TODO-tmp 用某個流程 ,直接 查出現下有那些站,站內有那些批號
+	}
+
+	[RoutePrefix("DDD/APP")]
+	public class APPController : BaseController
+	{
+		private readonly string[] _localizationFiles = new[]
+		{
+			"Face.zh-TW.resx",
+			"Message.zh-TW.resx"
+		};
+
+		[Route("i18n/Search/{keyword}")]
+		public ActionResult i18nSearch(string keyword)
+		=> _Content(o =>
+		{
+			var result = new Dictionary<string, Dictionary<string, string>>();
+			foreach (var file in _localizationFiles)
+			{
+					//var results = new Dictionary<string, string>();
+					var _path = System.Web.HttpContext.Current.Server.MapPath("~/");
+				var fileName = $"{_path}/../../Library/RES/BLL/{file}";
+				XDocument doc = XDocument.Load(fileName);
+				var query = from elem in doc.Descendants("data")
+							where elem.Value.Contains(keyword)
+								|| elem.Attribute("name").Value.Contains(keyword)
+							select new
+							{
+								Key = elem.Attribute("name").Value,
+								Value = elem.Element("value").Value
+							};
+				var results = new Dictionary<string, string>();
+				foreach (var item in query)
+				{
+					if (results.ContainsKey(item.Key))
+					{
+						results.Add($"{item.Key}~${item.Value}", item.Value);
+					}
+					else
+					{
+						results.Add(item.Key, item.Value);
+					}
+				}
+				var mainkey = file.Replace(".zh-TW.resx", "");
+				result.Add(mainkey, results);
+			}
+			return new Result(true) { Data = result };
+		});
+
+		[AllowAnonymous]
+		[HttpPost]
+		[Route("i18n/Add/{res}/{key}/")]
+		public ActionResult i18nAdd(string res, string key, string en, string tw, string cn)
+		=> _Content(o => I18nAdd(res, key, en, tw, cn));
+
+		IResult I18nAdd(string res, string key, string en, string tw, string cn)
+		{
+			Type _t = null;
+			switch (res.ToUpper())
+			{
+				case "FACE":
+					_t = typeof(RES.BLL.Face);
+					break;
+				case "MESSAGE":
+					_t = typeof(RES.BLL.Message);
+					break;
+			}
+			if (_t == null) return new Result("查無符合的 BLL.res");
+			var rm = new ResourceManager(_t);
+			var MatchItem = rm.GetObject(key);
+			if (MatchItem != null)
+			{
+				var r = new Result("Key值己存在");
+				r.Data = new { key, MatchItem };
+				return r;
+			}
+
+			var root = Server.MapPath("~/");
+			var tarFile = $@"{root}..\Library\RES\BLL\{res}.resx";
+			if (FileHelper.IsExistFile(tarFile) == false)
+			{
+				return Result.NotExist("語系檔").Data = new { tarFile };
+			}
+
+			var is產品語系檔 = root.Substring(0, 2) == "M:";
+			if (is產品語系檔 == false)
+			{
+				var tmp = new { en, tw, cn };
+				vFile.WriteAllText($@"{root}Areas\Example\Views\Self\~i18n\{res}_{key}.json", tmp.ToJson(true));
+			}
+
+			ResXResourceSet resxSet = new ResXResourceSet(tarFile);
+			using (ResXResourceWriter resxWriter = new ResXResourceWriter(tarFile))
+			{
+				foreach (DictionaryEntry entry in resxSet)
+				{
+					var _key = entry.Key.ToString();
+					resxWriter.AddResource(_key, entry.Value);
+				}
+
+				resxWriter.AddResource(key, en);
+				resxWriter.Generate();
+			}
+
+
+
+
+			for (var i = 0; i < 2; i++)
+			{
+				string val = tw, res_tp = ".zh-TW";
+				if (i == 1)
+				{
+					val = cn;
+					res_tp = ".zh-CN";
+				}
+				var tarFile1 = $@"{root}..\Library\RES\BLL\{res}{res_tp}.resx";
+				string fileContent = vFile.ReadAllText(tarFile1);
+				// 使用正則表達式進行置換
+				string pattern = $@"</data>\s*</root>";
+				string replacement = $@"</data>
+	<data name=""{key}"" xml:space=""preserve"">
+		<value>{val}</value>
+	</data>
+</root>";
+				string newContent = Regex.Replace(fileContent, pattern, replacement);
+				vFile.WriteAllText(tarFile1, newContent);
+			}
+			return new Result(true);
+		}
+
+		public struct d_i18n
+		{
+			public string en;
+			public string tw;
+			public string cn;
+		}
+
+		[Route("GTI_Test/t_Process")]
+		public ActionResult t_Process()
+		=> Content(vFile.ReadAllText(GTI_Test.g_path.t_Process));
+
+
+		[Route("i18n/AutoAdd")]
+		public ActionResult AutoAdd()
+		=> _Content(o =>
+		{
+			var root = Server.MapPath("~/");
+			var is產品語系檔 = root.Substring(0, 2) == "M:";
+			if (is產品語系檔 == false) return new Result("目前不是在產品環境");
+			string directoryPath = $@"{root}Areas\Example\Views\Self\~i18n\";
+
+			if (Directory.Exists(directoryPath))
+			{
+					// 取得目錄中的 JSON 檔案清單
+					string[] jsonFiles = Directory.GetFiles(directoryPath, "*.json");
+
+				foreach (string jsonFile in jsonFiles)
+				{
+					try
+					{
+						var _fileName = Path.GetFileNameWithoutExtension(jsonFile);
+						var arr = _fileName.Split('_');
+							//var res = _fileName[0];
+							//var key = _fileName[1];
+
+							//$@"{directoryPath}{jsonFile}"
+							string jsonContent = vFile.ReadAllText(jsonFile);
+							// 解析 JSON 內容到物件
+							var data = JsonConvert.DeserializeObject<d_i18n>(jsonContent);
+						var r = I18nAdd(arr[0], arr[1], data.en, data.tw, data.cn);
+						if (r.Success)
+						{
+							vFile.Move(jsonFile, $@"{directoryPath}{_fileName}.---");
+						}
+					}
+					catch (Exception ex)
+					{
+						Console.WriteLine($"Error processing {jsonFile}: {ex.Message}");
+					}
+				}
+			}
+			else
+			{
+				Console.WriteLine("Directory does not exist.");
+			}
+			return o;
+		});
+
+		[Route("i18n/parseTxt")]
+		public ActionResult parseTxt()
+		=> _Content(o =>
+		{
+			Type _t = null;
+			var list = new string[] { "Face", "Message" };
+			var root = Server.MapPath("~/");
+			List<string> result;
+			foreach (var res in list)
+			{
+				var tarFile = $@"{root}..\Library\RES\BLL\{res}.zh-TW.resx";
+				if (FileHelper.IsExistFile(tarFile) == false)
+				{
+					return Result.NotExist("語系檔").Data = new { res };
+				}
+				var resxSet = new ResXResourceReader(tarFile);
+
+				result = new List<string>();
+				foreach (DictionaryEntry entry in resxSet)
+				{
+					result.Add(entry.Value.ToString());
+				}
+
+				var data = string.Join("\n", result);
+				var tarFile1 = $@"{root}..\Library\RES\BLL\{res}.txt";
+				vFile.WriteAllText(tarFile1, data);
+			}
+			return o;
+		});
+		[Route("i18n/parseTxt/callback")]
+		public ActionResult callback()
+		=> _Content(o =>
+		{
+			Type _t = null;
+			var list = new string[] { "Face", "Message" };
+			var root = Server.MapPath("~/");
+			List<string> result;
+			foreach (var res in list)
+			{
+				var tarFile = $@"{root}..\Library\RES\BLL\{res}-zh-TW.resx";
+				var src = $@"{root}..\Library\RES\BLL\{res}.txt";
+				if (FileHelper.IsExistFile(tarFile) == false)
+				{
+					return Result.NotExist("語系檔").Data = new { res };
+				}
+				var resxSet = new ResXResourceReader(tarFile);
+
+				result = new List<string>();
+				foreach (DictionaryEntry entry in resxSet)
+				{
+					result.Add(entry.Value.ToString());
+				}
+
+				var data = string.Join("\n", result);
+				var tarFile1 = $@"{root}..\Library\RES\BLL\{res}.txt";
+				vFile.WriteAllText(tarFile1, data);
+			}
+			return o;
+		});
+	}
+}
+
+namespace Genesis.Areas.SYSAdmin.Controllers
+{
+	public partial class ResourceController : BaseController
+	{
+		public ActionResult ResourceData_t(string keyVal)
+		{
+			ViewData["result"] = ResourceServices.Query(keyVal).ToJson(true);
+			ViewData["SingleModel"] = true;
+			ViewData["mode"] = string.IsNullOrEmpty(keyVal) ? "Add" : "Edit";
+			var _view = "~/Areas/Example/Views/Self/ResourceData.cshtml";
+			return View(_view);
+		}
+
+		[HttpPost]
+		[HandlerAjaxOnly]
+		[ValidateAntiForgeryToken]
+		public ActionResult UpdateExt(DataModel model)
+		{
+			if (string.IsNullOrEmpty(model.form.SID))
+			{
+				return Content(Insert(model).ToJson());
+			}
+			else
+			{
+				return Content(ResourceServices.Update(model).ToJson());
+			}
+		}
+
+
+		[HttpPost]
+		[HandlerAjaxOnly]
+		[ValidateAntiForgeryToken]
+		public ActionResult Add_ROLE(string RESOURCE_SID)
+		=> _Content(c => f_Add_ROLE(RESOURCE_SID));
+
+
+
+		public ActionResult Insert(DataModel model)
+		=> _Content((c) => ResourceServices.Insert(model));
+		//=>_Content((c) => WIPInjectServices.TxnBase.LzDBTrans(null, Txn => {
+		//    var res = model.form;
+
+		//    Txn.result = ResourceServices.Insert(model);
+		//    return Txn.result;
+		//}));
+
+
+		/// <summary>
+		/// 
+		/// </summary>
+		/// <param name="Txn"></param>
+		/// <param name="RESOURCE_SID"></param>
+		/// <returns></returns>
+		public static IResult f_Add_ROLE(string RESOURCE_SID)
+		=> WIPInjectServices.TxnBase.LzDBTrans(null, Txn => {
+				/* 因為專案編譯的需求 先 mark 掉
+				var role = Txn.EFQuery_MVC.AD_ROLE.Where(c => c.ROLE_NO == "Admin").FirstOrDefault();
+				Check.Invalid("AD_ROLE 查無 Admin 帳號", role == null);
+
+				var ROLE_res = new AD_ROLE_RESOURCE()
+				{
+					SID = Txn.GetSID(),
+					ROLE_SID = role.SID,
+					RESOURCE_SID = RESOURCE_SID,
+					RESOURCE_TYPE = "0"
+				};
+				var chk = Txn.EFQuery_MVC.AD_ROLE_RESOURCE
+					.Where(c => c.RESOURCE_SID == RESOURCE_SID
+						&& c.ROLE_SID == role.SID)
+					.Any();
+				if (chk == false)
+				{
+					Txn.EFQuery_MVC.AD_ROLE_RESOURCE.Add(ROLE_res);
+					Txn.EFQuery_MVC.SaveChanges();
+				}
+				*/
+			return Txn.result;
+		});
+
+	}
 }

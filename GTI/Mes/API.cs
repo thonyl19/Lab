@@ -137,7 +137,7 @@ namespace UnitTestProject
 		[TestMethod]
 		public void t_GetAPI()
 		{
-			var s = WIPOperConfigServices.GetAPI(true,true, "GTI23010916485492704");
+			var s = WIPOperConfigServices.GetAPI(true,true, "GTI20102219432869825");
 			FileApp.WriteSerializeJson(s, _log.t_GetAPI);
 		}
 
@@ -147,6 +147,17 @@ namespace UnitTestProject
 		{
 			var s = DDLServices.API_Param();
 			FileApp.WriteSerializeJson(s, _log.t_API_Param);
+		}
+
+
+
+
+		[TestMethod]
+		public void t_Fix_原因碼問題()
+		{
+			var x = DDLServices.Reason("EquipmentSetUpTool",null,null,null);
+			var ss = x.Data.AD_FUNCTION_LIST.FUN_SID;
+			DDLServices.Reason("Fix","EquipmentSetUpTool",null,null);
 		}
 
 

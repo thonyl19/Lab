@@ -55,7 +55,7 @@ namespace UnitTestProject
 		[TestMethod]
 		public void t_SMT_BOM_ITEM_SaveMain(){ 
 			var _r = FileApp.Read_SerializeJson<SMT_BOM>(_log.SMT_BOM_ITEM_SaveMain);
-			Maintain.SMT_BOM_ITEM_SaveMain(_r, true);
+			//Maintain.SMT_BOM_ITEM_SaveMain(_r, true);
 		}
 
 

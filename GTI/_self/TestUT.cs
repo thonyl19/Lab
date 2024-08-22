@@ -13,6 +13,7 @@ using System.Text;
 using System.Text.RegularExpressions;
 using System.Xml.Serialization;
 using static BLL.MES.WIPInjectServices;
+using BLL.MES;
 
 namespace UnitTestProject.TestUT
 {
@@ -525,7 +526,7 @@ namespace UnitTestProject.TestUT
 			}
 		}
 
-		internal void _DBTest(Action<ITxnBase> fn, bool isTransMode = false, bool isTest = false)
+		internal void _DBTest(Action<ITxnBase> fn, bool isTransMode = false, bool isTest = true)
 		{
 			if (isTransMode)
 			{

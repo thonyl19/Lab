@@ -39,12 +39,13 @@ using vDbCtx = MDL.MESContext;
 using _mdl_mvc = MDL.GenesisMVC.Tables;
 using MDL;
 using static BLL.MES.TableQueryService;
+using Genesis.Gtimes.Transaction.WIP;
 
 namespace UnitTestProject
 {
 	//TODO-BK
 	[TestClass]
-	public class t_DB : _testBase
+	public partial class t_DB : _testBase
 	{
 
 
@@ -1831,8 +1832,9 @@ SELECT 	LOT.ROUTE_VER_SID,
 		[TestMethod]
 		public void t_DTC_Carrierload()
 		=> _DBTest((txn) => {
-			var CarrierInfo = GTI_helper.getCarrierInfo("SELECT * from FC_CARRIER WHERE CARRIER_NO = '2-0001-12'");
-			var LotInfo = GTI_helper.getLotInfo();
+			//var CarrierInfo = GTI_helper.getCarrierInfo("SELECT * from FC_CARRIER WHERE CARRIER_NO = '2-0001-12'");
+			var CarrierInfo = txn.DapperQuery<FC_CARRIER>("SELECT * from FC_CARRIER WHERE CARRIER_NO = '2-0001-12'");
+			var LotInfo = GTI_helper.getLotInfo(txn);
 			//txn.DoTransaction(new DTC_Carrierload(CarrierInfo, LotInfo));
 		}, true);
 
@@ -1907,11 +1909,14 @@ SELECT 	LOT.ROUTE_VER_SID,
 		[TestMethod]
 		public void _DTC_Del()
 		=> _DBTest(Txn => {
+			var t = Txn.EFQuery_MES.AD_SHIFT.FirstOrDefault();
+
+
 			var sql = @"
 delete AD_SHIFT where SHIFT_SID = @SHIFT_SID
 			";
 			var parameters = new List<IDbDataParameter>();
-			DBC.AddCommandParameter(parameters, "SHIFT_SID", "GTI22111617402893180");
+			DBC.AddCommandParameter(parameters, "SHIFT_SID", t.SHIFT_SID);
 			sql = DBC.GetCommandText(sql, SQLStringType.OracleSQLString);
 			var cmd = DBC.CreateCommand(sql, parameters);
 			Txn.DoTransaction(cmd);
@@ -1979,7 +1984,7 @@ delete AD_SHIFT where SHIFT_SID = @SHIFT_SID
 							 Attr01 = (t.MAX_CAPACITY - t.CURRENT_CAPACITY).ToString(),
 							 Attr02 = t.MAX_USE_COUNT.ToString(),
 						 }).ToList();
-		});
+		},false);
 
 
 
@@ -2062,12 +2067,12 @@ delete AD_SHIFT where SHIFT_SID = @SHIFT_SID
 			foreach (var item in x)
 			{
 				var z = _repo.WP_WO.Reads(c => c.WO == item).AsNoTracking().ToList();
-				if (z.Count == 1)
-				{
-					var _wo = z[0];
-					_wo.ATTRIBUTE_02 = item;
-					_repo.WP_WO.Update(_wo);
-				}
+				//if (z.Count == 1)
+				//{
+				//	var _wo = z[0];
+				//	_wo.ATTRIBUTE_02 = item;
+				//	_repo.WP_WO.Update(_wo);
+				//}
 			}
 			_repo.WP_WO.SaveChanges();
 
@@ -2170,7 +2175,11 @@ delete AD_SHIFT where SHIFT_SID = @SHIFT_SID
 
 
 		/*
-		結論,實體表少欄位,不影響 讀取/新增
+		結論,Model 與 實體表 不一致 的問題
+		1.模型比表多欄位
+		讀取 OK , 寫入時 ,如果 Model 的欄位有設必填  就會出錯 ,否則不會 
+		2.模型比表少欄位
+		讀取 OK ,
 		 */
 		[TestMethod]
 		public void t_DB缺欄位測試()
@@ -2204,7 +2213,8 @@ delete AD_SHIFT where SHIFT_SID = @SHIFT_SID
 				   select new { a, b }).First();
 
 			//var r = RDLCService.getParentLot("Test_SplitWafer-01.02.01");
-		}, true, true);
+		}, false, true);
+
 
 
 		/*
@@ -2216,8 +2226,9 @@ delete AD_SHIFT where SHIFT_SID = @SHIFT_SID
         {
 
             var _list = new List<WP_LOT>();
+			var _test = txn.EFQuery_MES.WP_LOT.FirstOrDefault(c => c.PARENT_LOT_SID != null);
 
-            var _lot = GetLot(txn, "GTI22042810431075651");
+            var _lot = GetLot(txn, _test.LOT_SID);
 
 			do
 			{
@@ -2225,7 +2236,7 @@ delete AD_SHIFT where SHIFT_SID = @SHIFT_SID
                 _lot = GetLot(txn, _lot.PARENT_LOT_SID);
             } while (_lot != null);
 
-
+			
 
         }, true, true);
 
@@ -2235,11 +2246,76 @@ delete AD_SHIFT where SHIFT_SID = @SHIFT_SID
             return txn.EFQuery_MES.WP_LOT.Where(l => l.LOT_SID == LOT_SID).First();
         }
 
+		//      [TestMethod]
+		//      public void _Extend()
+		//=> _DBTest((txn) =>
+		//{
+		//	var lot = TxnBaseLzQuery.Extend(txn.DBC).WIP.LotInfo_是否存在("3B3530-240717-01");
+		//}, true,true);
 		[TestMethod]
-		public void t_DTC_Carrierload1()
+		public void _EFQuery_MES_Transaction測試x()
+		=> _DBTest((txn) => { 
+		 
+		},true,true);
+
+		/// <summary>
+		/// 測試 GTI_Txn 4.5 語法  與 EF 併行 , 基本上己經成功完成 ,但需要注意一點的地方就是 ,
+		/// EF 要讀取 GTI_Txn 4.5 執行後的資料 , 必須一定要使用 AsNoTracking() ,
+		///		否則取到的 會是 GTI_Txn 4.5 執行前的資料
+		///	但測試時發現  GTI_Txn 4.5 在讀取 EF 的異動資料 ,並沒有 前述的情形
+		///	
+		/// 20240709) 後來再優化 EFQuery_MES 後 , AsNoTracking 已經非必要 , 確定可以取得最新資料
+		/// </summary>
+		[TestMethod]
+		public void _EFQuery_MES_Transaction測試()
 		=> _DBTest((txn) => {
-			var x = txn.EFQuery_MES.WP_WO.FirstOrDefault();
+			/*
+			 select  db_name(dbid) as dbname , count(*) 'connections count'
+				from master..sysprocesses
+				where spid > 50 and db_name(dbid) = 'JOCHUXM15_GTIMES5'
+				group by  db_name(dbid)
+				order by count(*) desc
+			 
+			 */
+			var x = txn.EFQuery_MES.WP_LOT.FirstOrDefault(c=>c.STATUS == "Run");
+			var _lot = txn.GetLotInfo(x.LOT_SID);
+
+			txn.DoTransaction( new WIPTransaction.HoldLotTxn(_lot)
+				,new WIPTransaction.EndOfLotTxn(_lot));
+
+			x.ATTRIBUTE_01 = "TEST2";
+			txn.EFQuery_MES.SaveChanges();
+
+			var x1 = txn.EFQuery<WP_LOT>().Read(c => c.LOT_SID == x.LOT_SID);
+			/*
+			此說明前的程序, 都只會共用一條連線 
+			*/
+
+
+				
+			//Check.Invalid("", true);
+			_lot = _lot.ReLoad(txn.DBC);
+			var r = TxnBase.LzDBQuery(ttx => {
+				var zz = ttx.EFQuery_MES.WP_LOT.FirstOrDefault();
+				return ttx.result;
+			});
+
+			var r1 = TxnBase.LzDBQuery(ttx => {
+				var zz = ttx.EFQuery_MES.WP_LOT.FirstOrDefault();
+				return ttx.result;
+			});
+
+
+			/// 這段 語法一定會掛掉 , 因為 在 Transaction 機制下, 沒辦法再做 read()
+			var r2 = TxnBase.LzDBQuery(ttx => {
+				var zz = ttx.EFQuery_MES.WP_LOT.FirstOrDefault();
+				return ttx.result;
+			},txn.DBC);
+
+
 		}, true,true);
+
+
 
 
 		/// <summary>
