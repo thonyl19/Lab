@@ -7,7 +7,6 @@ using BLL.DataViews.Res;
 using Dal.Repository;
 using Genesis.Library.BLL.Base;
 using Genesis.Library.BLL.WRP;
-using MDL;
 using MDL.MES;
 using Moq;
 using NUnit.Framework;

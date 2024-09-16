@@ -143,7 +143,7 @@ namespace UnitTestProject
             var data = FileApp.Read_SerializeJson<WIPFormSendParameter>(_log.t_WIPFormSendParameter_平行工站);
             var lot = svcWIP.f批號平行工作站_是否存在(data.Lot,data.RouterVerOperSid);
             var eqp = txn.GetEquipmentInfo("GTI24051515281998218");
-            var _tx = new Genesis.Library.BLL.DTC.Lot.Insert_PARALLEL_DEFECT(lot, data.DefectList, eqp);
+            var _tx = new Genesis.Library.BLL.DTC.Lot.Insert_PARALLEL_DEFECT(lot, data.DefectList, eqp,true);
             txn.DoTransaction(_tx);
         }, true, true);
 
@@ -205,7 +205,7 @@ namespace UnitTestProject
             var data = FileApp.Read_SerializeJson<WIPFormSendParameter>(_log.t_WIPFormSendParameter_平行工站);
             var _CurrentLot_實體 = svcWIP.f批號平行工作站_是否存在(data.Lot,data.RouterVerOperSid);
             var eqp = txn.GetEquipmentInfo("GTI24051515281998218");
-            var _tx = new Genesis.Library.BLL.DTC.Lot.Insert_PARALLEL_SCRAP(_CurrentLot_實體, data.ScrapList, eqp);
+            var _tx = new Genesis.Library.BLL.DTC.Lot.Insert_PARALLEL_SCRAP(_CurrentLot_實體, _CurrentLot_實體, data.ScrapList, eqp);
             txn.DoTransaction(_tx);
         }, true, true);
 
@@ -219,7 +219,10 @@ namespace UnitTestProject
             var data = FileApp.Read_SerializeJson<WIPFormSendParameter>(_log.t_WIPFormSendParameter_平行工站);
             var _CurrentLot_實體 = svcWIP.f批號平行工作站_是否存在(data.Lot,data.RouterVerOperSid);
             var eqp = txn.GetEquipmentInfo("GTI24051515281998218");
-            var _tx = new Genesis.Library.BLL.DTC.Lot.Insert_PARALLEL_EDC(_CurrentLot_實體, data.SerialEdcList, eqp);
+            var _tx = new Genesis.Library.BLL.DTC.Lot.Insert_PARALLEL_EDC(_CurrentLot_實體, data.SerialEdcList, eqp) {
+                //指定使用者 
+                userInfo = txn.GetUserInfo()
+            };
             txn.DoTransaction(_tx);
         }, true, true);
 

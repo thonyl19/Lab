@@ -1,5 +1,6 @@
 ﻿using BLL.MES;
 using Dal.Repository;
+using Genesis.Gtimes.ADM;
 using Genesis.Gtimes.Common;
 using MDL.MES;
 using Newtonsoft.Json;
@@ -29,6 +30,22 @@ namespace UnitTestProject.TestUT
             Txn.result.Data = Txn.GetCarrierInfo(_d.CARRIER_NO);
             return Txn.result;
         }).Data;
+
+        public static EquipmentUtility.EquipmentInfo getEquipmentInfo(ITxnBase Txn, string cd_sql = null)
+        {
+            cd_sql = cd_sql ?? "SELECT * from FC_EQUIPMENT WHERE STATE_NO = 'Idle'";
+            var _d = Txn.DapperQuery<FC_EQUIPMENT>(cd_sql)
+                .FirstOrDefault();
+            return Txn.GetEquipmentInfo(_d.EQP_SID);
+        }
+
+        public static UserUtility.UserInfo getUserInfo(ITxnBase Txn, string cd_sql = null)
+        {
+            cd_sql = cd_sql ?? "SELECT * from AD_USER WHERE ENABLE_FLAG = 'T'";
+            var _d = Txn.DapperQuery<AD_USER>(cd_sql)
+                .FirstOrDefault();
+            return Txn.GetUserInfo(_d.ACCOUNT_NO);
+        }
 
         public static LotInfo getLotInfo(string cd_sql = null)
         => TxnBase.LzDBQuery(Txn => {

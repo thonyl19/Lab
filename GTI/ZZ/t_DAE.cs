@@ -221,7 +221,7 @@ namespace UnitTestProject
 								OPER_SEQ = P0.OPER_SEQ,
 								OPERATION_NO = P0.OPERATION_NO,
 								OPERATION = P0.OPERATION,
-								STD_HOUR = Z1.STD_HOUR
+								//STD_HOUR = Z1.STD_HOUR
 							}
 				 ).ToList();
 

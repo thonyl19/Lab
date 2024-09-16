@@ -16,6 +16,7 @@
     using _v8n = BLL.MES.FluentValidation;
     using _mdl_mvc = MDL.GenesisMVC.Tables;
     using BLL.MES;
+    using Genesis.WebApi;
 
 
     //[assembly:NeutralResourcesLanguage("en")]
@@ -234,5 +235,16 @@
                 //return null;
             }
         }
+
+
+        [TestMethod]
+        public void t_Creat_CatchData()
+        {
+            var _obj = new MDL.MES.AD_CATCH_DATA() {DATA = "test" };
+            var x = ServController.Creat_CatchData("Admin", "GTI22030910552936287", "Test", _obj, true);
+
+        }
+
+        
     }
 }

@@ -11,7 +11,7 @@
     <AppDesignerFolder>Properties</AppDesignerFolder>
     <RootNamespace>UnitTestProject</RootNamespace>
     <AssemblyName>UnitTestProject</AssemblyName>
-    <TargetFrameworkVersion>v4.6.1</TargetFrameworkVersion>
+    <TargetFrameworkVersion>v4.8</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
     <ProjectTypeGuids>{3AC096D0-A1C2-E12C-1390-A8335801FDAB};{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}</ProjectTypeGuids>
     <VisualStudioVersion Condition="'$(VisualStudioVersion)' == ''">15.0</VisualStudioVersion>
@@ -21,6 +21,7 @@
     <TestProjectType>UnitTest</TestProjectType>
     <NuGetPackageImportStamp>
     </NuGetPackageImportStamp>
+    <TargetFrameworkProfile />
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
     <DebugSymbols>true</DebugSymbols>
@@ -43,6 +44,7 @@
     <Compile Include="db\t_DB.cs" />
     <Compile Include="db\t_DB_BulkExtensions.cs" />
     <Compile Include="Mes\API.cs" />
+    <Compile Include="Mes\t_Lot.cs" />
     <Compile Include="Mes\t_ZZ.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="db\MockMES.cs" />
@@ -51,10 +53,8 @@
     <Compile Include="_self\LocalizationExample.cs" />
     <Compile Include="_self\TestUT.cs" />
     <Compile Include="_self\t_Attribute.cs" />
-    <Compile Include="_self\t_Autofac.cs" />
     <Compile Include="_self\t_Reflection.cs" />
     <Compile Include="_self\UnitTestEdc.cs" />
-    <Compile Include="_self\UnitTest_.cs" />
     <Compile Include="_std.cs" />
   </ItemGroup>
   <ItemGroup>
@@ -322,6 +322,10 @@
     <WCFMetadata Include="Connected Services\" />
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="M:\Prd_Dev\Genesis_MVC\Genesis.csproj">
+      <Project>{a520b863-a9ed-4cff-acd9-ec3ade58b8ad}</Project>
+      <Name>Genesis</Name>
+    </ProjectReference>
     <ProjectReference Include="M:\Prd_Dev\Library\BLL\BLL.csproj">
       <Project>{add17dc1-60bd-47f9-a51f-704c027767c5}</Project>
       <Name>BLL</Name>

@@ -5,7 +5,7 @@ using UnitTestProject.TestUT;
 namespace UnitTestProject
 {
     [TestClass]
-	public class t_GRF : _testBase
+	public class t_HM : _testBase
 	{
 		static class _log
 		{
@@ -50,16 +50,11 @@ namespace UnitTestProject
 		}, true);
 
 
-		//[TestMethod]
-		//public void _Sample1()
-		//=> _DBTest(Txn => {
-		//	var lot = Txn.GetLotInfo();
-		//	var Wafer = null;
-		//	Txn.DoTransaction
-		//	(new Wafer.Process_WAFER_REWORK(Wafer, lot, (int)100)
-		//	);
-		//}, true);
-
+		[TestMethod]
+		public void t_wafer_shipinig_package()
+		=> _DBTest(Txn => {
+			Txn.DoTransaction(new Wafer.Rec_NormalWafer_When_CheckOut("JK_WO_001-04.01.02"));
+		}, true);
 	}
 }
 

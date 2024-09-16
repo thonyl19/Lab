@@ -16,6 +16,7 @@ using System.Linq.Expressions;
 using System.Data.SqlClient;
 using static BLL.MES.WIPInjectServices;
 using MDL.MES;
+using System.Reflection;
 
 namespace Genesis
 {
@@ -30,7 +31,7 @@ namespace Genesis
     }
 
 
-    public class GTI_Test : IGTI_Test
+    public partial class GTI_Test : IGTI_Test
     {
         public class g_path {
             public static string t_Process = @"P:\t_Process.json";
@@ -109,34 +110,52 @@ namespace Genesis
         {
             switch (ActionName) {
                 case "Process":
-                    Action<ITxnBase, string> _fn = t_Process;
-                    /*
-                    if (Txn.ILotInfo is WP_LOT_OPER_PARALLEL)
-                    {
-                        _fn = t_Process_PARALLEL;
-                    }
-                    //*/
-                    _fn(Txn, Link_SID);
+                    var runDef = dyn_Process("t_Process_PARALLEL", new object[] { Txn, Link_SID });
+                    if (runDef) t_Process(Txn, Link_SID);
                     break;
             }
         }
-        /*
+
+        public static bool dyn_Process(string StaticMethod, object[] methodParameters)
+        {
+            
+            MethodInfo methodInfo = typeof(Genesis.GTI_Test).GetMethod
+                (StaticMethod, BindingFlags.Public | BindingFlags.Static);
+            if (methodInfo != null) { 
+                methodInfo.Invoke(null, methodParameters);
+                return false;
+            } 
+            return true;
+        }
+
+        /*/
         public static void t_Process_PARALLEL(ITxnBase txn, string key)
         {
             var WP_LOT_OPER_PARALLEL_HIST = txn.EFQuery_MES.WP_LOT_OPER_PARALLEL_HIST.IQueryable_ACTION_LINK_SID(key);
-            var WP_LOT_OPER_PARALLEL = (from a in txn.EFQuery_MES.WP_LOT_OPER_PARALLEL
-                .Where(c => WP_LOT_OPER_PARALLEL_HIST.Any(c1 => c1.LOT == c.LOT && c1.OLD_ROUTE_VER_OPER_SID == c.ROUTE_VER_OPER_SID))
-                          select a
+            var WP_LOT_OPER_PARALLEL = 
+                (from a in txn.EFQuery_MES.WP_LOT_OPER_PARALLEL
+                    .Where(c => WP_LOT_OPER_PARALLEL_HIST.Any(c1 => c1.LOT == c.LOT && c1.OLD_ROUTE_VER_OPER_SID == c.ROUTE_VER_OPER_SID))
+                select a
                 ).ToList();
             var LOT = new
             {
                 WP_LOT_OPER_PARALLEL,
+                WP_LOT_OPER_PARALLEL_SN= txn.EFQuery_MES.WP_LOT_OPER_PARALLEL_SN.GetData_ACTION_LINK_SID(key),
                 WP_LOT_OPER_PARALLEL_HIST = WP_LOT_OPER_PARALLEL_HIST.ToList(),
-                WP_LOT_SN_LIST = txn.EFQuery_MES.WP_LOT_SN_LIST.Where(c=>c.UPDATE_DATE == txn.ExeTime).ToList(),
             };
+
+            var WP_USER_TRACE_IN = txn.EFQuery_MES.WP_USER_TRACE_IN.GetData_ACTION_LINK_SID(key);
+            var WP_USER_TRACE_IN_MASTER = 
+                (from a in txn.EFQuery_MES.WP_USER_TRACE_IN_MASTER
+                    .Where(c => WP_USER_TRACE_IN.Any(c1 => c1.IN_MASTER_SID == c.IN_MASTER_SID))
+                select a
+                ).ToList();
+
             var USER = new
             {
                 WP_USER_TRACE = txn.EFQuery_MES.WP_USER_TRACE.GetData_ACTION_LINK_SID(key),
+                WP_USER_TRACE_IN_MASTER,
+                WP_USER_TRACE_IN = WP_USER_TRACE_IN.ToList()
             };
 
             var DEFECT = new
@@ -169,25 +188,23 @@ namespace Genesis
             var WP_LOT_OPER_PARALLEL_EDC = txn.EFQuery_MES.WP_LOT_OPER_PARALLEL_EDC.IQueryable_ACTION_LINK_SID(key);
             var WP_LOT_OPER_PARALLEL_EDC_ROW = (from a in txn.EFQuery_MES.WP_LOT_OPER_PARALLEL_EDC_ROW
                .Where(c => WP_LOT_OPER_PARALLEL_EDC.Any(c1 => c1.LOT_EDC_SID == c.LOT_EDC_SID))
-                    select a
+                                                select a
                 ).ToList();
             var EDC = new
             {
-                WP_LOT_OPER_PARALLEL_EDC= WP_LOT_OPER_PARALLEL_EDC.ToList(),
+                WP_LOT_OPER_PARALLEL_EDC = WP_LOT_OPER_PARALLEL_EDC.ToList(),
                 WP_LOT_OPER_PARALLEL_EDC_ROW,
                 WP_LOT_OPER_PARALLEL_EDC_SN = txn.EFQuery_MES.WP_LOT_OPER_PARALLEL_EDC_SN.GetData_ACTION_LINK_SID(key)
             };
 
-            var r = new { LOT, USER, TOOL, EQP, SCRAP, DEFECT , EDC };
+            var r = new { LOT, USER, TOOL, EQP, SCRAP, DEFECT, EDC };
 
             string json = JsonConvert.SerializeObject(r, Newtonsoft.Json.Formatting.Indented);
 
             // 将 JSON 写入文件
             File.WriteAllText(GTI_Test.g_path.t_Process, json);
         }
-
-        //*///
-
+        //*/
 
         public static void t_Process(ITxnBase txn, string key)
         {
