@@ -1,0 +1,306 @@
+﻿@using System.Dynamic
+@{
+    dynamic data = new ExpandoObject();
+    GTI_Test GTest = new GTI_Test(Html, ViewContext.HttpContext);
+    var BaseRoot = @"~/Areas/MES/Views";
+
+}
+@eBundle.QRender_CSS()
+@eBundle.QRender_JS()
+@Html.Partial("~/Areas/WIP/Views/Lot/_lotinfo.cshtml")
+<div style="margin:1rem;">
+    <h3>
+        CatchTool
+        <small>
+            <a href="https://genesisoffice365.sharepoint.com/sites/GTiMES50/_layouts/OneNote.aspx?id=%2Fsites%2FGTiMES50%2FSiteAssets%2FGTiMES%205.0%20%E9%96%8B%E7%99%BC%20%E7%AD%86%E8%A8%98%E6%9C%AC&wd=target%28%3D%200%E7%A8%8B%E5%BC%8F%E5%B0%88%E6%A1%88%E7%89%88%E6%8E%A7%E8%A6%8F%E7%AF%84%20%3D%2FUI.one%7C76641AED-275F-4047-BF8B-6F489B4B0F97%2Fgti-catch-tool%7CB82C2656-2DB4-4FDC-AD98-4FD12AD7A7AB%2F%29
+onenote:https://genesisoffice365.sharepoint.com/sites/GTiMES50/SiteAssets/GTiMES%205.0%20開發%20筆記本/=%200程式專案版控規範%20=/UI.one#gti-catch-tool&section-id={76641AED-275F-4047-BF8B-6F489B4B0F97}&page-id={B82C2656-2DB4-4FDC-AD98-4FD12AD7A7AB}&end" target="_blank">參考文件</a>
+        </small>
+    </h3>
+    <div id="app">
+        <h3>
+            *基本應用
+        </h3>
+        <gti-catch-tool :e_del="e_del"
+                        :e_clean="e_clean"
+                        :e_save="e_save"
+                        :e_read="e_read"
+                        :config="base_cfg"
+                        category="Test"
+                        v-model="input"></gti-catch-tool>
+        <el-input typeof="text-area" v-model="input"></el-input>
+        <h3>
+            *複合應用
+        </h3>
+        <gti-catch-tool :e_del="e_del"
+                        :e_clean="e_clean_1"
+                        :e_save="e_save"
+                        :e_read="e_read_1"
+                        :config="base_cfg"
+                        category="Test-Lot"
+                        v-model="lotinfo"></gti-catch-tool>
+        <x-lot-info ref="lotinfo" :lotinfo.sync="lotinfo"></x-lot-info>
+
+        <h3>
+            *故意錯誤的測試範例,請看 console 訊息
+        </h3>
+        @Genesis.Common.PageBaseInfo.GetCurrentPageSid("/MTR/MLot/Minus.aspx")
+        <gti-catch-tool :e_del="e_del"
+                        :e_clean="e_clean"
+                        :e_save="e_save"
+                        :e_read="e_read"
+                        :config="{user:'test'}"
+                        category="Test"
+                        v-model="input"></gti-catch-tool>
+
+    </div>
+
+
+</div>
+
+
+<script>
+    $(() => {
+        var _dyn = {
+            template: `
+            <el-button-group>
+              <el-button type="primary" size="small" v-if="bt.e_save.visable" :disabled="!bt.e_save.enable" @@click="fn_e_read"><i class="fa fa-cloud-download fa-2x" aria-hidden="true"></i></el-button>
+              <el-button type="primary" size="small" v-if="bt.e_read.visable" :disabled="!bt.e_read.enable" @@click="fn_e_save"><i class="fa fa-cloud-upload fa-2x" aria-hidden="true"></i></el-button>
+            </el-button-group>
+            `,
+
+            data() {
+                return {
+                    buttons: ['e_read', 'e_save'],
+                }
+            },
+            props: {
+
+                category: {
+                    type: String,
+                    defualt() { return ""; }
+                },
+                user: {
+                    type: String,
+                    defualt() { return ""; }
+                },
+                fun_sid: {
+                    type: String,
+                    defualt() { return ""; }
+                },
+                save_data: {
+                    type: String,
+                    defualt() { return ""; }
+                }
+            },
+            mounted() {
+
+            },
+            computed: {
+                bt() {
+                    var self = this;
+                    // add virtual switch enable
+                    if (this.enable != null) {
+                        this.$set(this.$attrs, 'e_switch', { enable: false })
+                    }
+                    let _attr = this.$attrs;
+                    var _arr = this.buttons;
+                    var _obj = {};
+                    _.each(_arr, (el) => {
+                        var _item = _attr[el];
+                        if (_.isFunction(_item)) {
+                            _item = { fn: _item };
+                        }
+                        else if (!_item) {
+                            _item = { visable: false };
+                        }
+
+                        let { enable = null, visable = true, fn = function () { }, display = null } = _item;
+                        _obj[el] = { enable, visable, fn, display };
+                    });
+
+                    return _obj;
+                },
+                c_url() {
+                    return `@Genesis.Common.PageBaseInfo.GetBaseUrl()/api/Catch/User/${this.user}/FunSID/${this.fun_sid}/Category/${this.category}`
+                },
+                c_save_data() {
+
+                }
+            },
+            methods: {
+                fn_e_save() {
+                    var _self = this;
+                    var url = _self.c_url;
+                    var param = {
+                        DATA: _self.save_data
+                    };
+                    var _ajax = {
+                        url,
+                        param,
+                        type: 'post',
+                        automessage: false,
+                        success: (res) => {
+                            let { Success, Message, Data } = res;
+                            if (Success) {
+                                _self.bt.e_save.fn(Data);
+                                _self.$Alert.Success("存檔成功");
+                            } else {
+                                _self.$Alert.Warning(Message);
+                            }
+                        }
+                    };
+                    $.submitForm(_ajax);
+                },
+                fn_e_read() {
+                    var _self = this;
+                    var url = _self.c_url;
+                    var _ajax = {
+                        url,
+                        type: 'get',
+                        automessage: false,
+                        success: (res) => {
+                            let { Success, Message, Data } = res;
+                            if (Success) {
+                                _self.bt.e_read.fn(Data);
+                            } else {
+                                _self.$Alert.Warning(Message);
+                            }
+                        }
+                    };
+                    $.submitForm(_ajax);
+                }
+            }
+        }
+
+
+        var set_model = {
+            CurrentLot: {
+                QUANTITY: 10,
+                STATUS: "Wait",
+                LOT: "5D2NW50000-231128-01",
+                WO: "5101-150612002",
+                SID: "Test",
+            },
+            scrapList: [],
+            systemConfig: {
+                setp: 1,
+                DecimalPoint: 3
+            },
+            CurrentOperation: {
+                ATTRIBUTE_03: '1',
+                ATTRIBUTE_04: null
+            },
+
+            EdcList: [{ "EdcVerSid": "GTI23112214162566247", "EdcParameterSid": "GTI23112214130966198", "QCItemSID": "GTI23112214130966198", "DataType": "S", "DataCount": 1, "DispayPointName": "", "DispayPointNameList": [""], "ItemSid": "GTI23112214130966198", "ItemNo": "O_ID", "ItemName": "O_ID", "mustInput": "F", "UCL": null, "USL": null, "LCL": null, "LSL": null, "TL": "0", "EDCSid": "GTI23112214161866244", "EDCThrowSpc": "F", "ThrowSpc": "F", "EDCVerParaSid": "GTI23112214180766251", "DBTable": "", "DBColumnName": "", "InputValueList": [{ "1": "" }] }, { "EdcVerSid": "GTI23112214162566247", "EdcParameterSid": "GTI23112214133866204", "QCItemSID": "GTI23112214133866204", "DataType": "N", "DataCount": 1, "DispayPointName": "", "DispayPointNameList": [""], "ItemSid": "GTI23112214133866204", "ItemNo": "O_W1", "ItemName": "O_W1", "mustInput": "F", "UCL": 20, "USL": 20, "LCL": 5, "LSL": 5, "TL": "1", "EDCSid": "GTI23112214161866244", "EDCThrowSpc": "F", "ThrowSpc": "F", "EDCVerParaSid": "GTI23112214180766252", "DBTable": "", "DBColumnName": "", "InputValueList": [{ "1": "" }] }, { "EdcVerSid": "GTI23112214162566247", "EdcParameterSid": "GTI23112214135766210", "QCItemSID": "GTI23112214135766210", "DataType": "N", "DataCount": 1, "DispayPointName": "", "DispayPointNameList": [""], "ItemSid": "GTI23112214135766210", "ItemNo": "O_W2", "ItemName": "O_W2", "mustInput": "F", "UCL": null, "USL": null, "LCL": null, "LSL": null, "TL": "1", "EDCSid": "GTI23112214161866244", "EDCThrowSpc": "F", "ThrowSpc": "F", "EDCVerParaSid": "GTI23112214180766253", "DBTable": "", "DBColumnName": "", "InputValueList": [{ "1": "" }] }, { "EdcVerSid": "GTI23112214162566247", "EdcParameterSid": "GTI23112214141366216", "QCItemSID": "GTI23112214141366216", "DataType": "N", "DataCount": 1, "DispayPointName": "", "DispayPointNameList": [""], "ItemSid": "GTI23112214141366216", "ItemNo": "O_W3", "ItemName": "O_W3", "mustInput": "F", "UCL": null, "USL": null, "LCL": null, "LSL": null, "TL": "1", "EDCSid": "GTI23112214161866244", "EDCThrowSpc": "F", "ThrowSpc": "F", "EDCVerParaSid": "GTI23112214180766254", "DBTable": "", "DBColumnName": "", "InputValueList": [{ "1": "" }] }, { "EdcVerSid": "GTI23112214162566247", "EdcParameterSid": "GTI23112214142866222", "QCItemSID": "GTI23112214142866222", "DataType": "N", "DataCount": 1, "DispayPointName": "", "DispayPointNameList": [""], "ItemSid": "GTI23112214142866222", "ItemNo": "O_W4", "ItemName": "O_W4", "mustInput": "F", "UCL": null, "USL": null, "LCL": null, "LSL": null, "TL": "1", "EDCSid": "GTI23112214161866244", "EDCThrowSpc": "F", "ThrowSpc": "F", "EDCVerParaSid": "GTI23112214180766255", "DBTable": "", "DBColumnName": "", "InputValueList": [{ "1": "" }] }, { "EdcVerSid": "GTI23112214162566247", "EdcParameterSid": "GTI23112214150366229", "QCItemSID": "GTI23112214150366229", "DataType": "N", "DataCount": 1, "DispayPointName": "", "DispayPointNameList": [""], "ItemSid": "GTI23112214150366229", "ItemNo": "O_WAve", "ItemName": "O_WAve", "mustInput": "F", "UCL": null, "USL": null, "LCL": null, "LSL": null, "TL": "1", "EDCSid": "GTI23112214161866244", "EDCThrowSpc": "F", "ThrowSpc": "F", "EDCVerParaSid": "GTI23112214180766256", "DBTable": "", "DBColumnName": "", "InputValueList": [{ "1": "" }] }, { "EdcVerSid": "GTI23112214162566247", "EdcParameterSid": "GTI23112214152366235", "QCItemSID": "GTI23112214152366235", "DataType": "N", "DataCount": 1, "DispayPointName": "", "DispayPointNameList": [""], "ItemSid": "GTI23112214152366235", "ItemNo": "O_Weight", "ItemName": "O_Weight", "mustInput": "F", "UCL": null, "USL": null, "LCL": null, "LSL": null, "TL": "1", "EDCSid": "GTI23112214161866244", "EDCThrowSpc": "F", "ThrowSpc": "F", "EDCVerParaSid": "GTI23112214180766257", "DBTable": "", "DBColumnName": "", "InputValueList": [{ "1": "" }] }],
+            OperScrapList: [
+                { "RefKey": null, "SID": "GTI11110115550180956", "No": "other", "Value": null, "Display": "其他", "StatusSid": null, "Status": null, "FromNum": 0, "INum": 0, "Attr01": null, "Attr02": null, "Attr03": null }
+                , { "RefKey": null, "SID": "GTI22092622011391630", "No": "R.C01-0002", "Value": null, "Display": "過期", "StatusSid": null, "Status": null, "FromNum": 0, "INum": 0, "Attr01": null, "Attr02": null, "Attr03": null }
+                , { "RefKey": null, "SID": "GTI22092622011391632", "No": "R.C01-0004", "Value": null, "Display": "雜質", "StatusSid": null, "Status": null, "FromNum": 0, "INum": 0, "Attr01": null, "Attr02": null, "Attr03": null }
+                , { "RefKey": null, "SID": "GTI22092622011391633", "No": "R.C01-0005", "Value": null, "Display": "品質異常", "StatusSid": null, "Status": null, "FromNum": 0, "INum": 0, "Attr01": null, "Attr02": null, "Attr03": null }]
+        };
+
+        new Vue({
+            el: '#app',
+            data() {
+                _
+                return {
+                    set_model,
+                    input: "",
+                    base_cfg: {
+                        user: "admin",
+                        fun_sid: "GTI22030910552936287",
+                    },
+
+                    lotinfo: {}
+                }
+            },
+            computed: {
+                e_save() {
+                    return {
+                        visable: true,
+                        enable: true,
+                        fn: this.toolbar_save
+                    }
+                },
+                e_read() {
+                    return {
+                        visable: true,
+                        enable: true,
+                        fn: this.toolbar_read
+                    }
+                },
+                e_del() {
+                    return {
+                        visable: true,
+                        enable: true,
+                        fn() {
+                            //call back
+                        }
+                    }
+                },
+                e_clean() {
+                    var _self = this;
+                    return {
+                        visable: true,
+                        enable: true,
+                        fn() {
+                            _self.input = "";
+                        }
+                    }
+                },
+                e_read_1() {
+                    return {
+                        visable: true,
+                        enable: true,
+                        fn: this.toolbar_read_1
+                    }
+                },
+                e_clean_1() {
+                    var _self = this;
+                    return {
+                        visable: true,
+                        enable: true,
+                        fn() {
+                            _.each(_self.lotinfo, (v, k) => {
+                                _self.lotinfo[k] = '';
+                            });
+                            _self.$refs.lotinfo.bindUI(_self.lotinfo);
+                        }
+                    }
+                },
+                c_test() {
+                    //pathname
+                    debugger;
+                    let storedData = localStorage.getItem("/GenesisNewMesuserMenu");
+                    var Url = '/GenesisNewMes/ADM/FunctionMap/WoFunctionMap';// new URL(location).pathname;
+                    try {
+                        arr = JSON.parse(storedData);
+
+                        var x = this.$URL.get_fun_sid(Url);
+
+                    } catch {
+
+                    }
+
+                    return {
+                        x
+                    };
+                },
+            },
+            methods: {
+                toolbar_save(res) {
+                },
+                toolbar_read(Data) {
+                    let { DATA } = Data;
+                    this.input = JSON.parse(DATA);
+                },
+                toolbar_read_1(Data) {
+                    debugger;
+                    let { DATA } = Data;
+                    var _obj = JSON.parse(DATA);
+                    this.$refs.lotinfo.bindUI(_obj);
+                }
+            }
+        })
+    });
+</script>

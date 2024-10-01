@@ -1,0 +1,145 @@
+﻿@using System.Dynamic
+@model BLL.MES.DataViews.LotData
+@{
+	dynamic data = new ExpandoObject();
+	data.LOT="Test";
+	Model.CurrentLot = data;
+    GTI_Test GTest = new GTI_Test(Html, ViewContext.HttpContext);
+}
+@eBundle.QRender_CSS()
+@eBundle.QRender_JS()
+@Html.Partial("~/Areas/ZZ_CUB/Views/OperTask/_mutiEdc.cshtml")
+<pre>
+</pre>
+<div id="app">
+    <form id="WipForm">
+        @Html.AntiForgeryToken()
+        <div class="panel b">
+            <el-button-group>
+                <el-button type="primary" size="small" v-for="(val,key) in TestGroup" :label="key" :key="key" @@click="val()">{{key}}{{TestGroup_v[key]}}</el-button>
+            </el-button-group>
+            <muti-edc-input ref="SObj" :set_model="set_model"></muti-edc-input>
+        </div>
+    </form>
+</div>
+<div id="footerCommand">
+    <button type="button" class="btn btn-lg btn-labeled btn-success  btn_submit" style="margin:10px 30px;">
+        <span class="btn-label">
+            <i class="fa fa-play"></i>
+        </span>@RES.BLL.Face.Exec
+    </button>
+</div>
+<script>
+    Vue.config.devtools = true;
+    var test = {
+        //利用這裡,把測試的 Bom 注入物件中
+        EDC: [{ "QCItemSID": "GTI24051515275398176", "ItemNo": "EDC_0001", "ItemName": "溫度", "DataCount": 2.0, "DispayPointName": null, "EDCVerSid": "GTI24051515275698190", "EdcParameterSid": "GTI24051515275398176", "Display": null, "DataType": "N", "mustInput": "T", "InputValueList": [{ "1": "" }, { "2": "" }], "EDCThrowSpc": "F", "ThrowSpc": "F", "DBTable": null, "UCL": 155.0, "USL": 160.0, "LCL": 140.0, "LSL": 135.0, "TL": "150", "pass": false, "DBColumnName": null }, { "QCItemSID": "GTI24051515275398178", "ItemNo": "EDC_0003", "ItemName": "濕度", "DataCount": 2.0, "DispayPointName": null, "EDCVerSid": "GTI24051515275698190", "EdcParameterSid": "GTI24051515275398178", "Display": null, "DataType": "N", "mustInput": "T", "InputValueList": [{ "1": "" }, { "2": "" }], "EDCThrowSpc": "F", "ThrowSpc": "F", "DBTable": null, "UCL": 75.0, "USL": 80.0, "LCL": 65.0, "LSL": 60.0, "TL": "70", "pass": false, "DBColumnName": null }, { "QCItemSID": "GTI24051515275398182", "ItemNo": "EDC_0007", "ItemName": "其他", "DataCount": 1.0, "DispayPointName": null, "EDCVerSid": "GTI24051515275698190", "EdcParameterSid": "GTI24051515275398182", "Display": null, "DataType": "S", "mustInput": "F", "InputValueList": [{ "1": "" }], "EDCThrowSpc": "F", "ThrowSpc": "F", "DBTable": null, "UCL": null, "USL": null, "LCL": null, "LSL": null, "TL": "N/A", "pass": true, "DBColumnName": null }, { "QCItemSID": "GTI24051515275398181", "ItemNo": "EDC_0006", "ItemName": "目測", "DataCount": 1.0, "DispayPointName": null, "EDCVerSid": "GTI24051515275698190", "EdcParameterSid": "GTI24051515275398181", "Display": null, "DataType": "B", "mustInput": "T", "InputValueList": [{ "1": "" }], "EDCThrowSpc": "F", "ThrowSpc": "F", "DBTable": null, "UCL": null, "USL": null, "LCL": null, "LSL": null, "TL": "T", "pass": false, "DBColumnName": null }], "SerialEdcList": [{ "Serial": "Serial3", "Form": [{ "QCItemSID": "GTI24051515275398176", "ItemNo": "EDC_0001", "ItemName": "溫度", "DataCount": 2.0, "DispayPointName": null, "EDCVerSid": "GTI24051515275698190", "EdcParameterSid": "GTI24051515275398176", "Display": null, "DataType": "N", "mustInput": "T", "InputValueList": [{ "1": "150" }, { "2": "150" }], "EDCThrowSpc": "F", "ThrowSpc": "F", "DBTable": null, "UCL": 155.0, "USL": 160.0, "LCL": 140.0, "LSL": 135.0, "TL": "150", "pass": false, "DBColumnName": null }, { "QCItemSID": "GTI24051515275398178", "ItemNo": "EDC_0003", "ItemName": "濕度", "DataCount": 2.0, "DispayPointName": null, "EDCVerSid": "GTI24051515275698190", "EdcParameterSid": "GTI24051515275398178", "Display": null, "DataType": "N", "mustInput": "T", "InputValueList": [{ "1": "70" }, { "2": "70" }], "EDCThrowSpc": "F", "ThrowSpc": "F", "DBTable": null, "UCL": 75.0, "USL": 80.0, "LCL": 65.0, "LSL": 60.0, "TL": "70", "pass": false, "DBColumnName": null }, { "QCItemSID": "GTI24051515275398182", "ItemNo": "EDC_0007", "ItemName": "其他", "DataCount": 1.0, "DispayPointName": null, "EDCVerSid": "GTI24051515275698190", "EdcParameterSid": "GTI24051515275398182", "Display": null, "DataType": "S", "mustInput": "F", "InputValueList": [{ "1": "" }], "EDCThrowSpc": "F", "ThrowSpc": "F", "DBTable": null, "UCL": null, "USL": null, "LCL": null, "LSL": null, "TL": "N/A", "pass": true, "DBColumnName": null }, { "QCItemSID": "GTI24051515275398181", "ItemNo": "EDC_0006", "ItemName": "目測", "DataCount": 1.0, "DispayPointName": null, "EDCVerSid": "GTI24051515275698190", "EdcParameterSid": "GTI24051515275398181", "Display": null, "DataType": "B", "mustInput": "T", "InputValueList": [{ "1": "F" }], "EDCThrowSpc": "F", "ThrowSpc": "F", "DBTable": null, "UCL": null, "USL": null, "LCL": null, "LSL": null, "TL": "T", "pass": false, "DBColumnName": null }] }, { "Serial": "Serial1", "Form": [{ "QCItemSID": "GTI24051515275398176", "ItemNo": "EDC_0001", "ItemName": "溫度", "DataCount": 2.0, "DispayPointName": null, "EDCVerSid": "GTI24051515275698190", "EdcParameterSid": "GTI24051515275398176", "Display": null, "DataType": "N", "mustInput": "T", "InputValueList": [{ "1": "150" }, { "2": "150" }], "EDCThrowSpc": "F", "ThrowSpc": "F", "DBTable": null, "UCL": 155.0, "USL": 160.0, "LCL": 140.0, "LSL": 135.0, "TL": "150", "pass": false, "DBColumnName": null }, { "QCItemSID": "GTI24051515275398178", "ItemNo": "EDC_0003", "ItemName": "濕度", "DataCount": 2.0, "DispayPointName": null, "EDCVerSid": "GTI24051515275698190", "EdcParameterSid": "GTI24051515275398178", "Display": null, "DataType": "N", "mustInput": "T", "InputValueList": [{ "1": "70" }, { "2": "70" }], "EDCThrowSpc": "F", "ThrowSpc": "F", "DBTable": null, "UCL": 75.0, "USL": 80.0, "LCL": 65.0, "LSL": 60.0, "TL": "70", "pass": false, "DBColumnName": null }, { "QCItemSID": "GTI24051515275398182", "ItemNo": "EDC_0007", "ItemName": "其他", "DataCount": 1.0, "DispayPointName": null, "EDCVerSid": "GTI24051515275698190", "EdcParameterSid": "GTI24051515275398182", "Display": null, "DataType": "S", "mustInput": "F", "InputValueList": [{ "1": "" }], "EDCThrowSpc": "F", "ThrowSpc": "F", "DBTable": null, "UCL": null, "USL": null, "LCL": null, "LSL": null, "TL": "N/A", "pass": true, "DBColumnName": null }, { "QCItemSID": "GTI24051515275398181", "ItemNo": "EDC_0006", "ItemName": "目測", "DataCount": 1.0, "DispayPointName": null, "EDCVerSid": "GTI24051515275698190", "EdcParameterSid": "GTI24051515275398181", "Display": null, "DataType": "B", "mustInput": "T", "InputValueList": [{ "1": "F" }], "EDCThrowSpc": "F", "ThrowSpc": "F", "DBTable": null, "UCL": null, "USL": null, "LCL": null, "LSL": null, "TL": "T", "pass": false, "DBColumnName": null }] }, { "Serial": "Serial2", "Form": [{ "QCItemSID": "GTI24051515275398176", "ItemNo": "EDC_0001", "ItemName": "溫度", "DataCount": 2.0, "DispayPointName": null, "EDCVerSid": "GTI24051515275698190", "EdcParameterSid": "GTI24051515275398176", "Display": null, "DataType": "N", "mustInput": "T", "InputValueList": [{ "1": "150" }, { "2": "150" }], "EDCThrowSpc": "F", "ThrowSpc": "F", "DBTable": null, "UCL": 155.0, "USL": 160.0, "LCL": 140.0, "LSL": 135.0, "TL": "150", "pass": false, "DBColumnName": null }, { "QCItemSID": "GTI24051515275398178", "ItemNo": "EDC_0003", "ItemName": "濕度", "DataCount": 2.0, "DispayPointName": null, "EDCVerSid": "GTI24051515275698190", "EdcParameterSid": "GTI24051515275398178", "Display": null, "DataType": "N", "mustInput": "T", "InputValueList": [{ "1": "70" }, { "2": "70" }], "EDCThrowSpc": "F", "ThrowSpc": "F", "DBTable": null, "UCL": 75.0, "USL": 80.0, "LCL": 65.0, "LSL": 60.0, "TL": "70", "pass": false, "DBColumnName": null }, { "QCItemSID": "GTI24051515275398182", "ItemNo": "EDC_0007", "ItemName": "其他", "DataCount": 1.0, "DispayPointName": null, "EDCVerSid": "GTI24051515275698190", "EdcParameterSid": "GTI24051515275398182", "Display": null, "DataType": "S", "mustInput": "F", "InputValueList": [{ "1": "" }], "EDCThrowSpc": "F", "ThrowSpc": "F", "DBTable": null, "UCL": null, "USL": null, "LCL": null, "LSL": null, "TL": "N/A", "pass": true, "DBColumnName": null }, { "QCItemSID": "GTI24051515275398181", "ItemNo": "EDC_0006", "ItemName": "目測", "DataCount": 1.0, "DispayPointName": null, "EDCVerSid": "GTI24051515275698190", "EdcParameterSid": "GTI24051515275398181", "Display": null, "DataType": "B", "mustInput": "T", "InputValueList": [{ "1": "F" }], "EDCThrowSpc": "F", "ThrowSpc": "F", "DBTable": null, "UCL": null, "USL": null, "LCL": null, "LSL": null, "TL": "T", "pass": false, "DBColumnName": null }] }, { "Serial": "Serial4", "Form": [{ "QCItemSID": "GTI24051515275398176", "ItemNo": "EDC_0001", "ItemName": "溫度", "DataCount": 2.0, "DispayPointName": null, "EDCVerSid": "GTI24051515275698190", "EdcParameterSid": "GTI24051515275398176", "Display": null, "DataType": "N", "mustInput": "T", "InputValueList": [{ "1": "150" }, { "2": "150" }], "EDCThrowSpc": "F", "ThrowSpc": "F", "DBTable": null, "UCL": 155.0, "USL": 160.0, "LCL": 140.0, "LSL": 135.0, "TL": "150", "pass": false, "DBColumnName": null }, { "QCItemSID": "GTI24051515275398178", "ItemNo": "EDC_0003", "ItemName": "濕度", "DataCount": 2.0, "DispayPointName": null, "EDCVerSid": "GTI24051515275698190", "EdcParameterSid": "GTI24051515275398178", "Display": null, "DataType": "N", "mustInput": "T", "InputValueList": [{ "1": "70" }, { "2": "70" }], "EDCThrowSpc": "F", "ThrowSpc": "F", "DBTable": null, "UCL": 75.0, "USL": 80.0, "LCL": 65.0, "LSL": 60.0, "TL": "70", "pass": false, "DBColumnName": null }, { "QCItemSID": "GTI24051515275398182", "ItemNo": "EDC_0007", "ItemName": "其他", "DataCount": 1.0, "DispayPointName": null, "EDCVerSid": "GTI24051515275698190", "EdcParameterSid": "GTI24051515275398182", "Display": null, "DataType": "S", "mustInput": "F", "InputValueList": [{ "1": "" }], "EDCThrowSpc": "F", "ThrowSpc": "F", "DBTable": null, "UCL": null, "USL": null, "LCL": null, "LSL": null, "TL": "N/A", "pass": true, "DBColumnName": null }, { "QCItemSID": "GTI24051515275398181", "ItemNo": "EDC_0006", "ItemName": "目測", "DataCount": 1.0, "DispayPointName": null, "EDCVerSid": "GTI24051515275698190", "EdcParameterSid": "GTI24051515275398181", "Display": null, "DataType": "B", "mustInput": "T", "InputValueList": [{ "1": "F" }], "EDCThrowSpc": "F", "ThrowSpc": "F", "DBTable": null, "UCL": null, "USL": null, "LCL": null, "LSL": null, "TL": "T", "pass": false, "DBColumnName": null }] }],
+        EDC1: [{ "EdcVerSid": "GTI24051515275698185", "EdcParameterSid": "GTI24051515275398177", "QCItemSID": "GTI24051515275398177", "DataType": "N", "DataCount": 2, "DispayPointName": "", "DispayPointNameList": [""], "ItemSid": "GTI24051515275398177", "ItemNo": "EDC_0002", "ItemName": "黏度", "mustInput": "T", "UCL": 9, "USL": 10, "LCL": 2, "LSL": 1, "TL": "5", "EDCSid": "GTI24051515275698184", "EDCThrowSpc": "F", "pass": false, "ThrowSpc": "F", "EDCVerParaSid": "GTI24051515275698186", "DBTable": "", "DBColumnName": "", "ITEM_SEQ": null, "InputValueList": [{ "1": "" }, { "2": "" }] }, { "EdcVerSid": "GTI24051515275698185", "EdcParameterSid": "GTI24051515275398178", "QCItemSID": "GTI24051515275398178", "DataType": "N", "DataCount": 2, "DispayPointName": "", "DispayPointNameList": [""], "ItemSid": "GTI24051515275398178", "ItemNo": "EDC_0003", "ItemName": "濕度", "mustInput": "T", "UCL": 75, "USL": 80, "LCL": 65, "LSL": 60, "TL": "70", "EDCSid": "GTI24051515275698184", "EDCThrowSpc": "F", "pass": false, "ThrowSpc": "F", "EDCVerParaSid": "GTI24051515275698187", "DBTable": "", "DBColumnName": "", "ITEM_SEQ": null, "InputValueList": [{ "1": "" }, { "2": "" }] }, { "EdcVerSid": "GTI24051515275698185", "EdcParameterSid": "GTI24051515275398182", "QCItemSID": "GTI24051515275398182", "DataType": "S", "DataCount": 1, "DispayPointName": "", "DispayPointNameList": [""], "ItemSid": "GTI24051515275398182", "ItemNo": "EDC_0007", "ItemName": "其他", "mustInput": "F", "UCL": null, "USL": null, "LCL": null, "LSL": null, "TL": "N/A", "EDCSid": "GTI24051515275698184", "EDCThrowSpc": "F", "pass": true, "ThrowSpc": "F", "EDCVerParaSid": "GTI24051515275698188", "DBTable": "", "DBColumnName": "", "ITEM_SEQ": null, "InputValueList": [{ "1": "" }] }] ,
+        Lot: {
+            Case1: {
+                QUANTITY: 10,
+                STATUS: "Wait",
+                LOT: "5D2NW50000-231128-01",
+                WO: "5101-150612002",
+            },
+            Case2: {
+                QUANTITY: 10,
+                STATUS: "Wait",
+                LOT: "3B0000-231213-01",
+                WO: "5101-231211001",
+            }
+        }
+    }
+
+    let { set_model } = test;
+    Vue.use(Vuex);
+    const store = new Vuex.Store({
+        state: {
+            set_model,
+            globalvar: {
+                scrapTotal: 0,
+            }
+        },
+        getters: {
+            getData(state) {
+                return set_model;
+            }
+        }
+    })
+    $(() => {
+        var form = $("#WipForm");
+        new Vue({
+            el: '#app',
+            mixins: [Vue.prototype.$UT.Mixins.v_ErrGroup()],
+            store,
+            provide() {
+                return {
+                    rootEl: this,
+                };
+            },
+            data() {
+                var _self = this;
+                return {
+                    TestGroup_v: {},
+                    TestGroup: {
+                        ATTRIBUTE_02() {
+                            let { ATTRIBUTE_02 } = _self.set_model.CurrentOperation;
+                            _self.set_model.CurrentOperation.ATTRIBUTE_02 = ATTRIBUTE_02 == 'T' ? 'F' : 'T';
+                            _self.TestGroup_v['ATTRIBUTE_02'] = `:${_self.set_model.CurrentOperation.ATTRIBUTE_02}`;
+                        },
+                        Test() {
+                            let { fastAI } = _self.set_model;
+                            var { cmd } = fastAI || {};
+                            cmd = 'USER_003'
+                            if (fastAI == null) {
+                                _self.$set(_self.set_model.Setting, 'fastAI', {
+                                    cmd
+                                    , callBack: function (val) {
+                                        this.cmd = "";
+                                        alert(`---${val}`);
+                                    }
+                                });
+                            }
+                            _self.set_model.Setting.fastAI.cmd = cmd;
+                        },
+                    },
+                    value: [{
+                        PARTNO: 'PARTNO',
+                        PART_NAME: 'PART_NAME',
+                        scraps: [
+                            { "RefKey": null, "SID": "GTI11110115550180956", "No": "other", "Value": null, "Display": "其他", "StatusSid": null, "Status": null, "FromNum": 0, "INum": 10, "Attr01": null, "Attr02": null, "Attr03": null }
+                            , { "RefKey": null, "SID": "GTI22092622011391630", "No": "R.C01-0002", "Value": null, "Display": "過期", "StatusSid": null, "Status": null, "FromNum": 0, "INum": 20, "Attr01": null, "Attr02": null, "Attr03": null }
+                        ],
+                        單位: 'kg',
+                        長度: 100,
+                    }],
+                    set_model: {
+                        CurrentLot: {
+                            LOT: 'D5101-230831001-02',
+                            //Test:true,
+                        },
+                        EdcList: test.EDC1,
+                        Setting: {},
+
+                    },
+                    i18n: {
+                        料號: 'AAAA'
+                    }
+                }
+            },
+            computed: {
+
+            },
+            methods: {
+                Exec(e) {
+                    this.$message('ok');
+                    if (this.cfg.single_checkout) {
+                        e.preventDefault();
+                    } else if (form.parsley().validate()) {
+
+                    }
+                }
+            }
+        })
+    });
+</script>

@@ -1,0 +1,231 @@
+﻿@{
+    GTI_Test GTest = new GTI_Test(Html, HttpContext.Current.IsDebuggingEnabled, ViewContext.HttpContext.Request);
+    ViewBag.Title = Genesis.Common.PageBaseInfo.getCurrentResource().RESOURCE_NAME;
+    bool isSingleModel = (bool)ViewData["SingleModel"];
+    if (isSingleModel)
+    {
+        Layout = "~/Views/Shared/_LayoutSingle.cshtml";
+        @eBundle.QRender_CSS();
+        @eBundle.QRender_JS();
+    }
+    else
+    {
+<h3> @ViewBag.Title</h3>
+    }
+
+    var i18n = new
+    {
+        Unauthorized = Face.UnauthorizedParameter,
+        Authorized = Face.AuthorizedParameter,
+        EnterSearchWord = Face.EnterKeywordsSearch,
+    };
+}
+
+@section Styles {
+    @Styles.Render(eBundle.selectize_CSS)
+    @Styles.Render(eBundle.elUI_CSS)
+
+<link rel="stylesheet" type="text/css" href="~/Content/app/css/app_el.css" />
+}
+
+@section Scripts {
+    @Scripts.Render(eBundle.selectize_JS)
+    @Scripts.Render(eBundle.Vue_MES)
+    @Scripts.Render(eBundle.elUI_JS)
+    @Scripts.Render("~/bundles/parsley")
+
+<script type="module">
+	import locale from '@Genesis.Common.PageBaseInfo.GetBaseUrl()/Vendor/element-ui/src/locale/lang/zh-TW.js'
+	ELEMENT.locale(locale);
+</script>
+
+<script>
+	$(() => {
+		var model = @Html.Raw(ViewData["Model"]);
+		let { Data, Message = "", Success } = model;
+		let { ParameterGroupTypes = [], AllParameters = [], form = null } = Data || {};
+		new Vue({
+			el: '#app',
+			data() {
+				return {
+					rendered: false,
+					form: form,
+					ddlParameterGroupType: ParameterGroupTypes,
+					allParameters: AllParameters,
+					grp_sty: '', //col-sm-12 col-lg-6
+					ruleAssigned: [],
+					filterMethod(query, item) {
+						return item.pinyin.indexOf(query) > -1;
+					},
+					data: '',
+				}
+			},
+			mounted() {
+				var self = this;
+				self.rendered = true;
+
+				if (!Success && Message != "") {
+					this.$Alert.Err(Message);
+					return;
+				}
+			},
+			computed: {
+				isAddMode() {
+					return this.form.PARAMETERGROUP_SID == null;
+				},
+				readonly() {
+					return false;
+				},
+				e_del() {
+					return {
+						visable: this.isAddMode == false,
+						enable: this.isAddMode == false,
+						fn: this.toolbar_delete
+					}
+				}
+			},
+			watch: {},
+			methods: {
+				Add_Item() {
+					var _self = this;
+					var param = {
+						PARAMETERGROUP_SID: this.form.PARAMETERGROUP_SID,
+						Data: this.data
+					};
+					@GTest.param_test
+					@GTest.Test("console.log({ param });")
+
+					var _ajax = {
+						url: "@Url.Action("Add_Item")",
+                        param,
+						type: 'get',
+							success(res) {
+                                let { Success, Message, Data, Exception } = res;
+                                if (Success) {
+                                    _self.$UT.page_reload();
+                                }
+						}
+					};
+					$.submitForm(_ajax);
+				},
+				toolbar_save() {
+					//日期處理
+					//this.form.ATTRIBUTE_14 = moment(this.form.ATTRIBUTE_14).format('YYYY/MM/DD');
+
+					if ($("#FormData").parsley().validate()) {
+						var _ajax = {
+							url: this.isAddMode ? "@Url.Action("Insert")": "@Url.Action("Update")",
+							param: this.form,
+							type: 'post',
+							success: this.save_success
+						};
+						$.submitForm(_ajax);
+					}
+				},
+				save_success(res) {
+					var self = this;
+					let { Success, Message, Data, Exception } = res;
+
+					if (Success) {
+						let { form } = Data;
+						self.form = form;
+						self.$UT.parent_reload();
+					} else {
+						this.$Alert.Warning(Message);
+						console.log(Exception);
+					}
+				},
+				toolbar_delete() {
+					var self = this;
+					Swal.fire({
+						title: '@Message.DeleteConfirm',
+						type: 'warning',
+						showCancelButton: true,
+						confirmButtonColor: '#3085d6',
+						cancelButtonColor: '#d33',
+						confirmButtonText: '@Face.Delete',
+						cancelButtonText: '@Face.Cancel'
+					}).then(function (result) {
+						if (result.value) {
+							$.submitForm({
+								url: '@Url.Action("Delete")',
+								param: { id: self.form.PARAMETERGROUP_SID },
+								automessage: false,
+								success: function (data) {
+									if (data.Success) {
+										self.$Alert.Success(data.Message).then(() => {
+											self.$UT.parent_reload();
+											var layer_idx = parent.layer.getFrameIndex(window.name);
+											parent.layer.close(layer_idx);
+										});
+									}
+									else {
+										self.$Alert.Err(data.Message);
+									}
+								}
+							});
+						}
+					});
+				},
+				//el-transfer事件
+				transferHandleChange() {
+					$('.el-transfer-panel__body > p.el-transfer-panel__empty').html('');
+				},
+			},
+			destored() {
+				//全域變數註消程序
+				this.$UT.parent_reload(true);
+			}
+
+		});
+	});
+</script>
+}
+
+@Html.AntiForgeryToken()
+<div id="app" v-cloak style="position:relative;">
+	<gt-toolbar :e_save="toolbar_save" :e_del="e_del">
+
+	</gt-toolbar>
+	<div class="container-fluid">
+		<form id="FormData">
+			<div class="panel b mt-lg">
+				<div class="panel-body form-horizontal gt-form">
+					<gt-form-col label="@Face.ParameterGroupNo" v-model="form.PARAMETERGROUP_NO" prompt_sty="has-req" :readonly="!isAddMode" required></gt-form-col>
+					<gt-form-col label="@Face.ParameterGroupName" v-model="form.PARAMETERGROUP_NAME" prompt_sty="has-req" :readonly="!isAddMode" required></gt-form-col>
+					<gt-form-col label="@Face.Type" prompt_sty="has-req">
+						<vue-selectize v-model="form.PARAMETERGROUP_TYPE" :options="ddlParameterGroupType" required></vue-selectize>
+					</gt-form-col>
+					<gt-form-col label="@Face.Description">
+						<el-input type="textarea" v-model="form.DESCRIPTION"></el-input>
+					</gt-form-col>
+
+					@*分隔線*@
+					<div class="col-xs-12"> <hr class="separator" /></div>
+					<div class="form-horizontal gt-form gt-transfer pb-lg">
+						<el-transfer filterable
+									 v-model="form.AuthorizedParaSIDs"
+									 filter-placeholder="@i18n.EnterSearchWord"
+									 :titles="['@i18n.Unauthorized', '@i18n.Authorized']"
+									 :format="{
+												noChecked: '${total}',
+												hasChecked: '${checked}/${total}'
+											  }"
+									 @@change="transferHandleChange"
+									 :data="allParameters">
+							<span slot-scope="{ option }">{{ option.label }}</span>
+						</el-transfer>
+					</div>
+					<div class="col-xs-12"> <hr class="separator" /></div>
+					<el-button type="info" size="mini"
+							   @@click="Add_Item" v-if="!isAddMode">
+						建立子項目
+					</el-button>
+					<el-input type="textarea" v-model="data" :rows="5"></el-input>
+				</div>
+			</div>
+		</form>
+	</div>
+</div>
+
+

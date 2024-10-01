@@ -1,0 +1,123 @@
+?@using System.Dynamic
+@{
+    GTI_Test GTest = new GTI_Test(Html, ViewContext.HttpContext);
+}
+@eBundle.QRender_CSS()
+@eBundle.QRender_JS()
+<pre>
+</pre>
+<div id="app">
+    <form id="WipForm">
+        @Html.AntiForgeryToken()
+        <div class="panel b">
+            <el-button-group>
+                <el-button type="primary" size="small" v-for="(val,key) in TestGroup" :label="key" :key="key" @@click="val()">{{key}}{{TestGroup_v[key]}}</el-button>
+            </el-button-group>
+            {{test.value}}
+        </div>
+    </form>
+</div>
+<div id="footerCommand">
+    <button type="button" class="btn btn-lg btn-labeled btn-success  btn_submit" style="margin:10px 30px;">
+        <span class="btn-label">
+            <i class="fa fa-play"></i>
+        </span>@RES.BLL.Face.Exec
+    </button>
+</div>
+<script>
+    Vue.config.devtools = true;
+	var test = {
+        Src: [{ "SID": null, "KEY": "Parallel_01.Admin", "LEVEL": 1, "OPERATION_NO": "Parallel_01", "OPERATION": "併行站 01", "USER_NO": "Admin", "USER_NAME": "系統管理員", "START_TIME": null, "END_TIME": null, "TOTAL_TIME": 600, "EXE_OUTPUT_QTY": 0, "TRACE_LIST": [{ "SID": "GTI24090211530842034", "KEY": "GTI24090211530842034", "LEVEL": 2, "OPERATION_NO": "Parallel_01", "OPERATION": "併行站 01", "USER_NO": "Admin", "USER_NAME": "系統管理員", "START_TIME": "2024-09-02 11:53:08", "END_TIME": "2024-09-02 13:55:15", "TOTAL_TIME": 180, "EXE_OUTPUT_QTY": null, "TRACE_LIST": [{ "SID": null, "KEY": "GTI24090211530842034.GTI24090213333142134", "LEVEL": 3, "OPERATION_NO": null, "OPERATION": null, "USER_NO": "Admin", "USER_NAME": "系統管理員", "START_TIME": "2024-09-02 13:33:31", "END_TIME": "2024-09-02 13:36:31", "TOTAL_TIME": 180, "EXE_OUTPUT_QTY": null, "TRACE_LIST": null }] }, { "SID": "GTI24090213585742179", "KEY": "GTI24090213585742179", "LEVEL": 2, "OPERATION_NO": "Parallel_01", "OPERATION": "併行站 01", "USER_NO": "Admin", "USER_NAME": "系統管理員", "START_TIME": "2024-09-02 13:58:57", "END_TIME": "2024-09-02 14:00:02", "TOTAL_TIME": 0, "EXE_OUTPUT_QTY": null, "TRACE_LIST": [] }, { "SID": "GTI24090214024742190", "KEY": "GTI24090214024742190", "LEVEL": 2, "OPERATION_NO": "Parallel_01", "OPERATION": "併行站 01", "USER_NO": "Admin", "USER_NAME": "系統管理員", "START_TIME": "2024-09-02 14:02:47", "END_TIME": "2024-09-02 14:02:51", "TOTAL_TIME": 0, "EXE_OUTPUT_QTY": null, "TRACE_LIST": [] }, { "SID": "GTI24090214025442195", "KEY": "GTI24090214025442195", "LEVEL": 2, "OPERATION_NO": "Parallel_01", "OPERATION": "併行站 01", "USER_NO": "Admin", "USER_NAME": "系統管理員", "START_TIME": "2024-09-02 14:02:54", "END_TIME": "2024-09-02 14:03:35", "TOTAL_TIME": 0, "EXE_OUTPUT_QTY": null, "TRACE_LIST": [] }, { "SID": "GTI24090214034242205", "KEY": "GTI24090214034242205", "LEVEL": 2, "OPERATION_NO": "Parallel_01", "OPERATION": "併行站 01", "USER_NO": "Admin", "USER_NAME": "系統管理員", "START_TIME": "2024-09-02 14:03:42", "END_TIME": "2024-09-02 14:09:30", "TOTAL_TIME": 180, "EXE_OUTPUT_QTY": null, "TRACE_LIST": [{ "SID": null, "KEY": "GTI24090214034242205.GTI24090214034442208", "LEVEL": 3, "OPERATION_NO": null, "OPERATION": null, "USER_NO": "Admin", "USER_NAME": "系統管理員", "START_TIME": "2024-09-02 14:03:44", "END_TIME": "2024-09-02 14:04:44", "TOTAL_TIME": 60, "EXE_OUTPUT_QTY": null, "TRACE_LIST": null }, { "SID": null, "KEY": "GTI24090214034242205.GTI24090214073442218", "LEVEL": 3, "OPERATION_NO": null, "OPERATION": null, "USER_NO": "Admin", "USER_NAME": "系統管理員", "START_TIME": "2024-09-02 14:07:34", "END_TIME": "2024-09-02 14:08:34", "TOTAL_TIME": 60, "EXE_OUTPUT_QTY": null, "TRACE_LIST": null }, { "SID": null, "KEY": "GTI24090214034242205.GTI24090214085142228", "LEVEL": 3, "OPERATION_NO": null, "OPERATION": null, "USER_NO": "Admin", "USER_NAME": "系統管理員", "START_TIME": "2024-09-02 14:08:51", "END_TIME": "2024-09-02 14:09:51", "TOTAL_TIME": 60, "EXE_OUTPUT_QTY": null, "TRACE_LIST": null }] }, { "SID": "GTI24090214134542238", "KEY": "GTI24090214134542238", "LEVEL": 2, "OPERATION_NO": "Parallel_01", "OPERATION": "併行站 01", "USER_NO": "Admin", "USER_NAME": "系統管理員", "START_TIME": "2024-09-02 14:13:44", "END_TIME": "2024-09-02 14:18:55", "TOTAL_TIME": 60, "EXE_OUTPUT_QTY": null, "TRACE_LIST": [{ "SID": null, "KEY": "GTI24090214134542238.GTI24090214135342241", "LEVEL": 3, "OPERATION_NO": null, "OPERATION": null, "USER_NO": "Admin", "USER_NAME": "系統管理員", "START_TIME": "2024-09-02 14:13:53", "END_TIME": "2024-09-02 14:14:53", "TOTAL_TIME": 60, "EXE_OUTPUT_QTY": null, "TRACE_LIST": null }] }, { "SID": "GTI24090214190042254", "KEY": "GTI24090214190042254", "LEVEL": 2, "OPERATION_NO": "Parallel_01", "OPERATION": "併行站 01", "USER_NO": "Admin", "USER_NAME": "系統管理員", "START_TIME": "2024-09-02 14:19:00", "END_TIME": null, "TOTAL_TIME": 180, "EXE_OUTPUT_QTY": null, "TRACE_LIST": [{ "SID": null, "KEY": "GTI24090214190042254.GTI24090214190542257", "LEVEL": 3, "OPERATION_NO": null, "OPERATION": null, "USER_NO": "Admin", "USER_NAME": "系統管理員", "START_TIME": "2024-09-02 14:19:04", "END_TIME": "2024-09-02 14:20:04", "TOTAL_TIME": 60, "EXE_OUTPUT_QTY": null, "TRACE_LIST": null }, { "SID": null, "KEY": "GTI24090214190042254.GTI24090214193242263", "LEVEL": 3, "OPERATION_NO": null, "OPERATION": null, "USER_NO": "Admin", "USER_NAME": "系統管理員", "START_TIME": "2024-09-02 14:19:32", "END_TIME": "2024-09-02 14:20:32", "TOTAL_TIME": 60, "EXE_OUTPUT_QTY": null, "TRACE_LIST": null }, { "SID": null, "KEY": "GTI24090214190042254.GTI24090216565442352", "LEVEL": 3, "OPERATION_NO": null, "OPERATION": null, "USER_NO": "Admin", "USER_NAME": "系統管理員", "START_TIME": "2024-09-02 16:56:54", "END_TIME": "2024-09-02 16:57:54", "TOTAL_TIME": 60, "EXE_OUTPUT_QTY": null, "TRACE_LIST": null }, { "SID": null, "KEY": "GTI24090214190042254.GTI24090217003842367", "LEVEL": 3, "OPERATION_NO": null, "OPERATION": null, "USER_NO": "Admin", "USER_NAME": "系統管理員", "START_TIME": "2024-09-02 17:00:38", "END_TIME": null, "TOTAL_TIME": null, "EXE_OUTPUT_QTY": null, "TRACE_LIST": null }] }] }] ,
+		單一料批: { "WH_MTR_LOT": "2001-15409-1-1B01", "PARTNO": "2001", "WAREHOUSE_NO": "1B01", "Items": [{ "LIST_MT_SID": "GTI23121413324877843", "MES_MTR_LOT": "2001-15409-1-1B01-00001", "QUANTITY": 150.00000, "ACTION_LINK_SID": null }] },
+		Lot: {
+			Case1: {
+				QUANTITY: 10,
+				STATUS: "Wait",
+				LOT: "5D2NW50000-231128-01",
+				WO: "5101-150612002",
+			},
+			Case2: {
+				QUANTITY: 10,
+				STATUS: "Wait",
+				LOT: "3B0000-231213-01",
+				WO: "5101-231211001",
+			}
+		}
+	}
+
+	let {set_model} = test;
+	Vue.use(Vuex);
+	const store = new Vuex.Store({
+		state: {
+			set_model,
+			globalvar: {
+				scrapTotal: 0,
+			}
+		},
+		getters: {
+			getData(state) {
+				return set_model;
+			}
+		}
+	})
+    $(() => {
+        var form = $("#WipForm");
+        new Vue({
+            el: '#app',
+            provide() {
+                return {
+                    rootEl: this,
+                };
+            },
+            data() {
+                var _self = this;
+                return {
+					TestGroup_v:{},
+                    TestGroup: {
+						Case() {
+                            _self.test.value = test.Src;
+                        },
+                    },
+                    test: {
+                        value:[]
+                    },
+                    value: [{
+                        PARTNO: 'PARTNO',
+                        PART_NAME: 'PART_NAME',
+                        scraps: [
+                            { "RefKey": null, "SID": "GTI11110115550180956", "No": "other", "Value": null, "Display": "其他", "StatusSid": null, "Status": null, "FromNum": 0, "INum": 10, "Attr01": null, "Attr02": null, "Attr03": null }
+                            , { "RefKey": null, "SID": "GTI22092622011391630", "No": "R.C01-0002", "Value": null, "Display": "過期", "StatusSid": null, "Status": null, "FromNum": 0, "INum": 20, "Attr01": null, "Attr02": null, "Attr03": null }
+                        ],
+                        單位: 'kg',
+                        長度: 100,
+                    }],
+                    set_model: {
+                        CurrentLot: {
+                            LOT: 'D5101-230831001-02',
+                            //Test:true,
+                        },
+                        UserSelectList: [{ "RefKey": null, "SID": "d1ee172f-a4ef-4160-bc3f-9c5c5779de3d", "No": "USER_003", "Value": "d1ee172f-a4ef-4160-bc3f-9c5c5779de3d", "Display": "USER_003", "StatusSid": null, "Status": null, "FromNum": 0, "INum": 0, "Attr01": "003", "Attr02": null, "Attr03": null }, { "RefKey": null, "SID": "043bf696-a631-4e5d-a485-0753440936df", "No": "USER_002", "Value": "043bf696-a631-4e5d-a485-0753440936df", "Display": "USER_002", "StatusSid": null, "Status": null, "FromNum": 0, "INum": 0, "Attr01": "002", "Attr02": null, "Attr03": null }, { "RefKey": null, "SID": "6e1354b3-55a4-4ca0-a373-3fab035dd482", "No": "USER_001", "Value": "6e1354b3-55a4-4ca0-a373-3fab035dd482", "Display": "USER_001", "StatusSid": null, "Status": null, "FromNum": 0, "INum": 0, "Attr01": "001", "Attr02": null, "Attr03": null }],
+                        Setting: {},
+
+                    },
+                    i18n: {
+                        料號: 'AAAA'
+                    }
+                }
+            },
+            computed: {
+
+            },
+            methods: {
+                Exec(e) {
+                    this.$message('ok');
+                    if (this.cfg.single_checkout) {
+                        e.preventDefault();
+                    } else if (form.parsley().validate()) {
+
+                    }
+                }
+            }
+        })
+    });
+</script>

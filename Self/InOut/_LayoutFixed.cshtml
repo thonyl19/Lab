@@ -1,0 +1,387 @@
+﻿@{
+    string jsVersion = Genesis.Common.PageBaseInfo.GetJsVersion();
+}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <style>
+        body {
+            padding-top: 60px;
+            padding-bottom: 40px;
+        }
+
+        .container2 {
+            width: 95%;
+            margin: 0 auto; /* Center the DIV horizontally */
+        }
+
+        .fixed-header, .fixed-footer {
+            width: 100%;
+            position: fixed;
+            background: #333;
+            opacity: 0.9;
+            padding: 0 0;
+            color: #fff;
+            z-index: 9999;
+        }
+
+            .fixed-header .navbar-header {
+                width: 100% !important;
+            }
+
+            .fixed-header .navbar-brand {
+                width: 50px !important;
+            }
+
+
+        .fixed-header {
+            top: 0;
+        }
+
+        .fixed-footer {
+            bottom: 0;
+        }
+        nav a {
+            color: #fff;
+            text-decoration: none;
+            padding: 7px 25px;
+            display: inline-block;
+        }
+
+        .container2 p {
+        }
+
+        .selectize-dropdown {
+            z-index: 9999 !important;
+        }
+
+        div.brand-logo1.adj {
+            padding:1rem;
+        }
+            div.brand-logo1.adj img {
+                padding-top: .5rem;
+                width: 35px !important;
+            }
+
+        .menu-bts {
+            padding-top: 1rem;
+            padding-right: 1rem;
+            padding-left: 26rem;
+            height: 55px;
+            min-width: 15rem;
+            width: 100%;
+            position: relative;
+            text-align: right;
+        }
+
+
+            .menu-bts > .is-circle {
+                float: right;
+                margin-left: .9rem !important;
+                width:37px;
+            }
+
+            .menu-bts > .is-round {
+                margin-right:2rem;
+            }
+
+            .area-fastAI {
+                position: absolute;
+            }
+
+        @@media (min-width: 1200px) {
+            .area-fastAI input {
+                width: 40rem !important;
+            }
+            .menu-bts .el-button {
+                font-size: 1.5rem;
+            }
+        }
+
+            </style>
+
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+    <meta name="description" content="Bootstrap MES + jQuery">
+    <meta name="keywords" content="app, responsive, jquery, bootstrap, dashboard, admin">
+    <title>@ViewBag.Title</title>
+    @Html.Partial("_i18n")
+    <!--VM模型-->
+    <script>
+        var VmList = new Object();
+    </script>
+    <!-- =============== VENDOR STYLES ===============-->
+    @Styles.Render("~/bundles/fontawesome")
+    @Styles.Render("~/bundles/simpleLineIcons")
+    @Styles.Render("~/bundles/animatecss")
+    @Styles.Render("~/bundles/whirl")
+
+    <!-- =============== Knockout ===============-->
+    @Scripts.Render("~/bundles/jquery")
+    @Scripts.Render("~/bundles/knockout")
+    @Scripts.Render("~/bundles/signalR")
+    <!--VM模型-->
+    <script>
+		var VmList = new Object();
+		//setBaseUrl
+        var baseUrl = localStorage.getItem("baseUrl");
+		var checkUrl = "@Genesis.Common.PageBaseInfo.GetBaseUrl()";
+		if (checkUrl != baseUrl) {
+			localStorage.setItem("baseUrl", checkUrl);
+			//清除cache項目
+			localStorage.removeItem("GTiRPTThemescss");
+
+		}
+
+    </script>
+
+
+
+    <!-- =============== PAGE VENDOR STYLES =============== -->
+    @if (IsSectionDefined("Styles"))
+    {@RenderSection("Styles", required: false)}
+    <!-- =============== BOOTSTRAP STYLES ===============-->
+    <link href='@Styles.Url("~/Content/app/css/bootstrap.css")' rel="stylesheet" type="text/css" id="bscss" />
+    <!-- =============== APP STYLES ===============-->
+    <link href='@Styles.Url("~/Content/app/css/app.css")' rel="stylesheet" type="text/css" id="maincss" />
+    <link href='@Styles.Url("~/Content/mvc-override.css")' rel="stylesheet" type="text/css" />
+    <link rel="icon" href='@Url.Content("~/Content/Images/GTI/SPMES_LOGO_M0.png")' />
+
+</head>
+
+<body>
+    <audio src='~/Content/Sound/error.wav' style='display:none' id='errorSound'></audio>
+    @*載入環境變數*@
+    @Html.Partial("_InjectSystemConfig")
+
+    @if (IsSectionDefined("BodyArea"))
+    {@RenderSection("BodyArea", required: false)}
+    <!-- =============== VENDOR SCRIPTS ===============-->
+    @Scripts.Render("~/bundles/modernizr")
+    @Scripts.Render("~/bundles/matchMedia")
+    @Scripts.Render("~/bundles/bootstrap")
+    @Scripts.Render("~/bundles/moment")
+    @Scripts.Render("~/bundles/storage")
+    @Scripts.Render("~/bundles/jqueryEasing")
+    @Scripts.Render("~/bundles/animo")
+    @Scripts.Render("~/bundles/slimscroll")
+    @Scripts.Render("~/bundles/screenfull")
+    @Scripts.Render("~/bundles/localize")
+    @Scripts.Render("~/bundles/demoRTL")
+
+
+    @Scripts.Render("~/bundles/SweetAlert_2")
+    @Scripts.Render("~/bundles/parsley")
+    <script src="~/Vendor/layer/layer.js"></script>
+
+
+
+
+
+    <!-- =============== APP SCRIPTS ===============-->
+    @Scripts.Render($"~/bundles/Genesis?v={jsVersion}")
+    <!-- =============== PAGE VENDOR SCRIPTS ===============-->
+    @RenderSection("fastAI", required: false)
+    @RenderSection("scripts", required: false)
+    @{
+
+        if (System.Web.Configuration.WebConfigurationManager.AppSettings["EnableMessageServices"] == "1")
+        {
+            if (BLL.MVC.CurrentProvider.Provider.checkIsLogger())
+            {
+            <text>
+                <script src="@System.Web.Configuration.WebConfigurationManager.AppSettings[" MessageServices"] /signalr/hubs"></script>
+
+                <script>
+
+                    $(function () {
+                        try {
+                            var checkUser = "@BLL.MVC.CurrentProvider.Provider.checkIsLogger()";
+
+                            if (checkUser == "True") {
+                                var user = @Html.Raw(Newtonsoft.Json.JsonConvert.SerializeObject(@BLL.MVC.CurrentProvider.Provider.GetCurrent()));
+                    //Set the hubs URL for the connection
+                    var serverUri = "@System.Web.Configuration.WebConfigurationManager.AppSettings["MessageServices"]";
+                    $.connection.hub.url = serverUri + "/signalr";
+
+                    // Declare a proxy to reference the hub.
+                    var gt = $.connection.myHub;
+
+                    //給 Server 回呼使用
+                    gt.client.addMessage = function (msg) {
+                        Swal.fire({
+                            //type: 'info',
+                            title: msg,
+                            timer: 10000,
+                            //text: 'Something went wrong!',
+                            //footer: '<a href>Why do I have this issue?</a>'
+                        })
+
+                        ////放入通知訊息裡
+                        //notifyList.add(msg);
+                    }
+
+                    gt.client.syncUserList = function () {
+
+                    }
+
+
+
+                    $.connection.hub.start().done(function () {
+                        gt.server.connect(user.UserSid, user.UserNo, user.UserName)
+                            .done(function () {
+                                console.info("已連線至Gcloud，等待命令更新中");
+
+                                //gt.server.send("Admin","testtesttes");
+                            })
+                            .fail(function () {
+                                console.log('Could not Connect!');
+                            });
+
+                        gt.server.getOnlineCount().done(function (num) {
+                            console.info("目前線上人數：" + num);
+                        });
+
+
+
+                        //取得線上人員Bind
+                        window.SyncUserList = function () {
+                            $.BindUseroffidebar("@Url.Action("GetUserList","Portal",new { Area = ""})")
+                        }
+
+                        //每分鐘同步一次名單
+
+                        SyncUserList();
+                        window.setInterval("window.SyncUserList()", 1000 * 60);
+
+                        //gt.server.getOnlineUserList().done(function (data) {
+                        //    var userList = JSON.parse(data);
+                        //    $.BindUseroffidebar(userList);
+                        //});
+
+
+                    });
+                                                                                                                                                    }
+                                                                                                                                                } catch (e) {
+                        console.info("Gcloud services not running");
+                    }
+                                                                                                                                            })
+
+
+
+                </script>
+
+            </text>
+            }
+        }
+
+
+    <script>
+
+        $(document).ready(function () {
+            // when there is an error, display the tooltip with the error message
+            Parsley.on('field:error', function (fieldInstance) {
+                var messages = ParsleyUI.getErrorsMessages(fieldInstance);
+
+                var checkSelectText = fieldInstance.$element.parent(".selectize-input");
+
+                if (checkSelectText.length != 0) {
+
+                    checkSelectText.addClass("parsley-error");
+
+                    var selectMessgeItem = checkSelectText.find("ul");
+                    if (selectMessgeItem.length > 0) {
+                        checkSelectText.parent().append(selectMessgeItem);
+                    }
+                    else {
+                        checkSelectText.parent().find("ul").show();
+                    }
+
+                    //強製加入監看事件
+                    checkSelectText.parent().parent().find("select").on("change", function (e) {
+                        var target = e.target;
+                        var selectTextItem = $(target).siblings(".selectize-control").find(".item");
+                        //表示有選值，觸發移除class
+                        if (selectTextItem.length > 0) {
+                            //取得同層的input，父層的inpur
+                            selectTextItem.parent(".selectize-input").removeClass("parsley-error");
+                            selectTextItem.parent().siblings(".parsley-errors-list").hide();
+                        }
+                        else {
+                            $(target).siblings(".selectize-control").find(".selectize-input").addClass("parsley-error");
+                            $(target).siblings(".selectize-control").find(".parsley-errors-list").show();
+                        }
+
+                    });
+                }
+                //layer.tips(messages, fieldInstance.$element, { tips: [1, "red"] });
+
+                //fieldInstance.$element.tooltip('destroy');
+                //fieldInstance.$element.tooltip({
+                //	animation: true,
+                //	container: 'body',
+                //	placement: 'bottom',
+                //	title: messages
+                //});
+
+
+                //fieldInstance.$element.popover({
+                //	trigger: 'manual',
+                //	container: 'body',
+                //	placement: 'bottom',
+                //	content: function () {
+                //		return fieldInstance.getErrorsMessages().join(';');
+                //	}
+                //}).popover('show');
+
+            });
+
+
+            // destroy tooltip when field is valid
+            Parsley.on('field:success', function (fieldInstance) {
+
+                var checkSelectItem = fieldInstance.$element.parent(".selectize-input");
+                if (checkSelectItem.length != 0) {
+                    checkSelectItem.removeClass("parsley-error");
+                }
+
+                //fieldInstance.$element.popover('hide');
+
+
+                //fieldInstance.$element.tooltip('destroy');
+            });
+
+
+            var elSelect = $(".el-select");
+            $.each(elSelect, function (i, n) {
+                if (typeof ($(n).attr("required")) != "undefined") {
+                    let txtItem = $(n).find("input[type='text']");
+                    txtItem.attr('required', 'required');
+                    $(n)[0].__vue__.$watch('value', function (newVal, oldVal) {
+                        txtItem.parsley().validate();
+                    });
+
+                }
+            });
+
+        });
+
+    </script>
+
+    }
+    <div id="vueApp">
+        <div class="fixed-header">
+            @Html.Partial("InOut/_TopNavTask")
+        </div>
+        <div class="container2">
+            @RenderBody()
+            <p>&nbsp;</p>
+            <p>&nbsp;</p>
+        </div>
+        <div class="fixed-footer">
+            @Html.Partial("_FooterTask")
+        </div>
+    </div>
+
+</body>
+</html>

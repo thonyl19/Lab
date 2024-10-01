@@ -1,0 +1,548 @@
+@model BLL.MES.DataViews.LotData
+@using Frame.Code;
+@{
+    var action = ViewContext.RouteData.Values["action"].ToString();
+    var controller = ViewContext.RouteData.Values["controller"].ToString().ToUpper();
+    Layout = "_LayoutFixed.cshtml";
+    ViewBag.Title = Model.ViewBag_Title(Face.CHECKOUT);
+    GTI_Test GTest = new GTI_Test(Html, HttpContext.Current.IsDebuggingEnabled, ViewContext.HttpContext.Request);
+    var ZZRoot = @"~/Areas/ZZ_CUB/Views/OperTask/";
+}
+
+<form id="WipForm">
+    <div>
+        @Html.AntiForgeryToken()
+        <div class="panel" id="WipPanel" v-cloak>
+            <div class="panel-body">
+                <div>
+                    <h4 class="pull-left">{{CurrentLot.LOT}} <span class="label label-danger">{{CurrentLot.STATUS}}</span> </h4>
+                    <div class="pull-right">
+                        <el-button class="hidden-sm hidden-xs" v-if="$data.OperRecipe != null && $data.OperRecipe.length > 0" round type="info" size="medium" @@click="Show_Recipe">@RES.BLL.Face.OperRecipeInfo</el-button>
+                        <el-button class="hidden-sm hidden-xs" round type="success" size="medium" @@click="Print_Lot_History">生產批歷程</el-button>
+                        <el-button class="visible-sm visible-xs" v-if="$data.OperRecipe != null && $data.OperRecipe.length > 0" circle type="info" size="medium" icon="el-icon-tickets" @@click="Show_Recipe"></el-button>
+                        <el-button class="visible-sm visible-xs" circle type="success" size="medium" icon="el-icon-tickets" @@click="Print_Lot_History"></el-button>
+                    </div>
+                </div>
+                <div class="clearfix"></div>
+
+                <hr />
+                <wip-info v-model="wip_info"></wip-info>
+                <hr />
+                <el-row :gutter="12">
+                    <div v-for="(item,key) in send_data">
+                        <div v-if="item.floatFix" class="clearfix hidden-xs"></div>
+                        <el-col :md="24" :lg="item.col" class="wipDynDiv">
+                            <component :is="item.is"
+                                       v-model="item.model"
+                                       :cfg="item.cfg"
+                                       :ref="item.ref"
+                                       :set_model="$data">
+
+                                <template v-slot:head-area v-if="c_ShowImportLog">
+                                    <el-button type="primary" size="mini" plain
+                                               @@click="e_FetchLogFile"
+                                               style="float:right;margin-right:1rem;"
+                                               v-show="c_ShowImportLog">載入Log</el-button>
+                                </template>
+                            </component>
+                        </el-col>
+                    </div>
+                </el-row>
+
+
+                <component is="recipe" :set_model="$data"></component>
+                <cp-lio-bb-testing :set_model="$data"></cp-lio-bb-testing>
+                <cp-lio-next-station-eqp :set_model="$data"></cp-lio-next-station-eqp>
+            </div>
+        </div>
+    </div>
+</form>
+
+
+
+@section Styles {
+
+    @Styles.Render("~/Vendor/selectizeCSS")
+    @Styles.Render(eBundle.elUI_CSS)
+
+}
+@section Scripts {
+    @Scripts.Render(eBundle.Vue_MES)
+    @Scripts.Render(eBundle.elUI_JS)
+    @Scripts.Render("~/bundles/selectizeJS")
+    @Scripts.Render("~/bundles/parsley")
+<script>
+
+    var page;
+    var form = $("#WipForm");
+    var pageVueVm = {};
+
+    $(function () {
+
+
+        let dataModel = @Html.Raw(Model.ToJson(true));
+        @GTest.param_UItest()
+
+        console.log(dataModel);
+        dataModel.systemConfig = SystemConfig;
+        //number設置小數點位數
+        dataModel.systemConfig.setp = "0." + "1".padStart(SystemConfig.DecimalPoint, "0");
+        if (SystemConfig.DecimalPoint === 0)
+            dataModel.systemConfig.setp = "1";
+
+        var _condition = {
+            user_list: true,
+            "LotModifyData.Note": true,
+            //LotSplitQty: dataModel.Setting.CheckOutSet.IsLotSplitQTY,
+            goodList: true,
+            defectList: dataModel.OperDefectList != null,
+            scrapList: dataModel.OperScrapList != null,
+            /*splitBIN: dataModel.Setting.CheckOutSet.IsSplitBIN,
+            splitList: dataModel.Setting.CheckOutSet.IsShowSplit || dataModel.Setting.CheckOutSet?.SplitCfg.enable,
+            useEqumentList: dataModel.Setting.AnySet.IsMultiLotSpitEqps,
+            EqpUseToolList: dataModel.EqpUseToolList != null, //使用工具
+            ToolUnloadList: dataModel.EqpUseToolList != null,*/
+            edcList: dataModel.EdcList != null,
+            machineTools: false,//dataModel.EqumentSelectList != null && dataModel.ToolSelectList != null,
+            operationPartUseList: false,
+            /*operationPartUseList: (dataModel.OperationPartUseList != null && dataModel.OperationPartUseList.length > 0),
+            ReWorkOperList: dataModel.Setting.CheckOutSet.IsReWork,
+            SelectGrade: dataModel.Setting.CheckOutSet.IsGradePack,
+            CollectLotAttr: dataModel.CollectLotAttr != null,
+            LotFinlishTransfromMLot: dataModel.Setting.CheckOutSet.LotFinlishTransfromMLot,*/
+
+        };
+        dataModel.send_data = (() => {
+            var _result = {};
+            var _base = (ref, is, col = 8, cfg) => {
+                return {
+                    col,
+                    ref: String(ref),
+                    is,
+                    cfg,
+                    //控制是否清除浮動
+                    floatFix: false,
+                    model: [],
+                }
+            }
+            var _viewMap = {
+                //user_list: _base('multiUserScope', 'multi-select-users', 8),
+                user_list: _base('peopleManagement', 'people-management', 8),
+                "LotModifyData.Note": _base('dvlotChangeNote', 'lot-change-note', 8),
+                LotFinlishTransfromMLot: _base('LotFinlishTransfromMLot', 'lot-finlish-transfrom-mlot', 8),
+                LotSplitQty: _base('lotSplitCheckoutScope', 'lot-split-checkout'),
+                //GoodComponent: _base('inputGoodQtyScope', 'input-goodqty'),
+                goodList: _base('goodScope', 'cp-good', 8),
+                defectList: _base('defectScope', 'cp-defect', 8),
+                scrapList: _base('scrapScope', 'cp-scrap', 8),
+                splitBIN: _base('splitBIN', 'bin-input'),
+                splitList: _base('splitScope', 'cp-split'),
+                useEqumentList: _base('multiLotEqpsScope', 'multi-lotsplit-eqps'),
+                ToolUnloadList: _base('toolUnload', 'cp-toolUnload'),
+                EqpUseToolList: _base('equipmentUseToolScope', 'equipment-use-tool', 16),
+                //edcList: _base('edcScope', 'edc-input', 16),
+                edcList: _base('edcScope', 'muti-edc-input', 16),
+                operationPartUseList: _base('operationPartUseScope', 'cp-usemtlot', 8),
+                ReWorkOperList: _base('reworkList', 'rework-input', 8, dataModel.Setting.CheckOutSet['IsReWork_cfg']),
+                SelectGrade: _base('GradeScope', 'select-grade'),
+                //printInputVal: _base('printLineScope', 'print-line')
+                CollectLotAttr: _base('CollectLotAttr', 'collect-attr'),
+                NextStationEQP: _base('NextStationEQP', 'cp-next-station-eqp'),
+                machineTools: _base('machineTools', 'machine-tool', 16),
+            }
+
+            var _total = 0;
+            _.each(_condition, (el, key) => {
+                let _map = _viewMap[key];
+                if (el && _map != null) {
+                    _total += _map.col;
+                    if (_total > 24) {
+                        _map.floatFix = true;
+                        _total = _map.col;
+                    }
+                    switch (key) {
+                        case "edcList":
+                            let { EdcList = [] } = dataModel;
+                            //漢民MES，工程參數隱藏資料類型=資料欄位(DataColumn)
+                            _map.model = _.filter(EdcList, function (o) { return o.DataType != "D"; });
+                            break;
+                        case "CollectLotAttr":
+                            //批號屬性收集
+                            let { CollectLotAttr = [] } = dataModel;
+                            _map.model = CollectLotAttr;
+                            break;
+                    }
+                    _result[key] = _map;
+                }
+            });
+            return _result;
+        })();
+
+        //
+        Vue.use(Vuex);
+        const store = new Vuex.Store({
+            state: {
+                isLoading: false,
+                MainData: dataModel,
+                scrapTotal: 0,
+                Rule: {
+                    is_validation: true,
+                    validation_msg: ''
+                },
+                //此變數會結合到SendData一起傳送至後端，如有在元件有除了Model外要共用的變數要傳遞可以放至此參數裡作處理
+                globalvar: {
+                    //班別
+                    UserShift: null,
+                    Lot: dataModel.CurrentLot.LOT,
+
+                    // CUB
+                    NeedSerial: dataModel.Setting.CheckOutSet['IsCheckSerial'] || false, //dataModel.CurrentOperation.ATTRIBUTE_01, 到時候載入進來要在這邊決定此站要不要有序號概念
+                    //NeedSerial: dataModel.CurrentOperation.ATTRIBUTE_05,
+                    GoodList: [],
+                    ScrapList: [],
+                    DefectList: [],
+                    SerialEdcList: [],
+                    EqpToolList: [],
+                }
+            },
+            mutations: {
+                Loaded(state) {
+                    state.isLoading = !state.isLoading
+                }
+            },
+            getters: {
+                getData(state) {
+                    var _r = {};
+                    let { MainData } = state;
+
+                    _.each(MainData.send_data, (el, key) => {
+                        _r[key] = el.model;
+                    })
+
+                    //結合state.globalvar 至SendData
+                    $.extend(_r, state.globalvar);
+
+                    //將Setting 強制加入傳送list中
+                    _r["Setting"] = MainData.Setting;
+                    //console.log({ _r });
+                    return _r;
+                }
+            }
+
+        })
+
+        pageVueVm = new Vue({
+            mixins: [Vue.prototype.$UT.Mixins.v_ErrGroup()],
+            provide() {
+                return {
+                    rootEl: this,
+                };
+            },
+            store,
+            el: '#vueApp',
+            data: dataModel,
+            mounted() {
+                var self = this;
+                (function () {
+                    var submitData = {
+                        IndexKey: self.CurrentLot.LOT
+                    };
+
+                    //由系統回應訊息
+                    $.submitForm({
+                        url: "@Url.Action("CheckQCRule", "WIP", new { area = "MES" })",
+                        param: submitData,
+                    });
+
+                })();
+            },
+            computed: {
+                formSerialize() {
+                    return form.formSerialize();
+                },
+                debug() {
+                    return store.getters.getData;
+                },
+                wip_info() {
+                    let { CurrentLot, PartInfo, UseEqumentInfo, WOInfo } = this;
+                    return this.$data;
+                },
+                c_ShowImportLog() {
+                    let { IsIngotLogEDC = false } = this.Setting.CheckOutSet;
+                    return IsIngotLogEDC;
+                },
+                c_ImportLogTargetUrl() {//AssemblyMaterials, Growth
+                    let { IsIngotLogEDCTarget = '' } = this.Setting.CheckOutSet;
+                    switch (IsIngotLogEDCTarget) {
+                        case 'AssemblyMaterials':
+                            return "@Genesis.Common.PageBaseInfo.GetBaseUrl()/api/info/AssemblyMaterialsCheckOut";
+                        case 'Growth':
+                            return "@Genesis.Common.PageBaseInfo.GetBaseUrl()/api/info/GrowthCheckout";
+                        default:
+                            return '';
+                    }
+                }
+            },
+            methods: {
+                Test() {alert('test') },
+                Print_Lot_History() {
+                    var arg = {
+                        //TODO-i18n
+                        title: '生產批歷程',
+                        content: `@Url.Action("RunCardHistory", "HTMLContext", new { area = "" })?lotNumber=${this.CurrentLot.LOT}`,
+                        shadeClose: false,
+                    }
+                    this.$UT.layer(arg);
+                },
+                Show_Recipe() {
+                    var arg = {
+                        //TODO-i18n
+                        title: "@Face.RECIPE",
+                        type: 1,
+                        content: $('.layer_notice'),
+                        /*                            shade: false,*/
+                        shadeClose: false,
+                        title: false,
+                        resize: false,
+                        maxmin: false,
+                        /*area: '800pt',*/
+                    }
+
+                    this.$UT.layer(arg);
+
+                },
+                e_FetchLogFile() {
+                    var _self = this;
+
+                    var postData = {
+                        lotSid: this.CurrentLot.SID,
+                    };
+
+                    var _ajax = {
+                        url: this.c_ImportLogTargetUrl,
+                        type: 'GET',
+                        param: postData,
+                        //contentType: 'application/json',
+                        automessage: false,
+                        success: (res) => {
+                            let { Success, Message, Data, Exception } = res;
+                            if (Success) {
+
+                                _.each(Data, item => {
+                                    var target = _.find(_self.EdcList, x => x.EdcParameterSid == item.EdcParameterSid);
+                                    if (target != null) {
+                                        var values = item.InputValueList.map((x, idx) => {
+                                            var item = {};
+                                            item[idx + 1] = Object.values(x)[0];
+                                            return item;
+                                        });
+                                        target.InputValueList = values;
+                                    }
+                                });
+
+                            } else {
+                                _self.$alert(Message, '提示', {
+                                    type: 'warning'
+                                });
+                            }
+                        }
+                    };
+
+                    $.submitForm(_ajax);
+                },
+
+            }
+        });
+
+        var page = {
+            pageVueVm,
+            init: function () {
+                page.bind();
+            },
+            bind: function () {
+                $(".btn_submit").on("click", function () {
+
+                    //畫面上的資料
+                    var submitData = form.formSerialize();
+                    //Vue綁定的資料處理
+                    let VmSendData = store.getters.getData;
+
+                    //檢查Rule是否可以進行過站
+                    let vialidation = store.state.Rule;
+                    if (!vialidation.is_validation) {
+                        $.showMessageFire({ type: 'error' }, vialidation.validation_msg);
+                        return false;
+                    }
+
+                    if (VmSendData.GoodComponent) {
+                        page.checkGoodComponent();
+                        return;
+                    }
+
+                    page.submitForm();
+
+                });
+
+                //封閉函式顯示日期
+                //配合 生產批歷程 做移除
+                @* (function () {
+                    $.showRunTime($("#lbRunTime"), '@Convert.ToDateTime(Model.CurrentLot.UPDATE_DATE).ToString("yyyy/MM/dd HH:mm:ss")');
+                })();*@
+                },
+            bind: function () {
+                $(".btn_submit").on("click", function () {
+
+                    //畫面上的資料
+                    var submitData = form.formSerialize();
+                    //Vue綁定的資料處理
+                    let VmSendData = store.getters.getData;
+
+                    //檢查Rule是否可以進行過站
+                    let vialidation = store.state.Rule;
+                    if (!vialidation.is_validation) {
+                        $.showMessageFire({ type: 'error' }, vialidation.validation_msg);
+                        return false;
+                    }
+
+                    if (VmSendData.GoodComponent) {
+                        page.checkGoodComponent();
+                        return;
+                    }
+
+                    page.submitForm();
+
+                });
+
+                //封閉函式顯示日期
+                //配合 生產批歷程 做移除
+                @* (function () {
+                    $.showRunTime($("#lbRunTime"), '@Convert.ToDateTime(Model.CurrentLot.UPDATE_DATE).ToString("yyyy/MM/dd HH:mm:ss")');
+                })();*@
+                },
+            submitForm: function () {
+                if (form.parsley().validate()) {
+                    debugger
+                    if (page.pageVueVm.chk_ErrGroup()) return;
+                    //畫面上的資料
+                    var submitData = form.formSerialize();
+                    submitData.RouterVerOperSid = dataModel.RouterVerOperSid;
+                    //submitData.Setting = @Html.Raw(Newtonsoft.Json.JsonConvert.SerializeObject(Model.Setting));;
+
+                    //Vue綁定的資料處理
+                    let VmSendData = store.getters.getData;
+                    VmSendData.CheckTime = dataModel.CheckTime;
+
+                    var param = $.extend(submitData, VmSendData);
+                    @GTest.param_test
+                    @GTest.Test("console.log({ param });")
+                    submitData.Select_User = store.state.globalvar.Select_User;
+                    $.submitForm({
+                        url: "@Url.Action($"Exec{ action }")",
+                        param,
+                        success: function (data) {
+                            let { Code, Data, Message } = data;
+                            Message = Message || '';
+                            if (Code == 999 || Message != '') {
+                                Vue.prototype.$Alert.Err(Message);
+                            } else if (Data) {
+                                var _url = '@Url.Action("CheckMessage", new { area = "MES" })?Key=' + data.Data;
+                                @GTest.Test("window.open(_url,'_blank');return;")
+                                location.replace(_url);
+                            }
+
+                        }
+                            })
+                        }
+                },
+    checkGoodComponent() {
+        if (form.parsley().validate()) {
+            //畫面上的資料
+            var submitData = form.formSerialize();
+            //Vue綁定的資料處理
+            let VmSendData = store.getters.getData;
+
+            //客製處理良品數不得為空
+            if (VmSendData.GoodComponent.LotGoodQty == "0") {
+
+                if (VmSendData.scrapList) {
+                    if (VmSendData.scrapList.length == 0) {
+                        pageVueVm.$Alert.Err("良品數為 0 必需輸入製程耗損，加總數量必須為批號數量");
+                        return;
+                    }
+
+                    let scrapTotalQty = 0;
+                    scrapTotalQty = _.sumBy(VmSendData.scrapList, (e) => {
+                        let { INum = 0 } = e;
+                        return parseFloat(INum);
+                    });
+
+                    if (scrapTotalQty != dataModel.CurrentLot.QUANTITY) {
+                        pageVueVm.$Alert.Err("製程耗損必需與批號數量相等");
+                        return;
+
+                    }
+                    page.submitForm();
+                }
+
+                //var title = `目前良品數為 0 請確定是否全數報廢此批號？`;
+                //var _ops = pageVueVm.$Alert.genConfirm({ title });
+                //Swal.fire(_ops).then(result => {
+                //    if (result.value) {
+                //        page.submitForm();
+
+                //    }
+
+                //});
+            }
+            else {
+                if (!VmSendData.GoodComponent.LotScrapRes) {
+                    pageVueVm.$Alert.Err("請選擇報廢原因碼");
+                    return;
+                }
+
+                page.submitForm();
+            }
+
+
+            return;
+        }
+    }
+
+
+            };
+
+    page.init();
+
+        })
+
+
+</script>
+
+
+
+@Html.Partial($"{ZZRoot}_multiSelectUsers.cshtml")
+@Html.Partial($"{ZZRoot}_good.cshtml")
+@Html.Partial($"{ZZRoot}_defect.cshtml")
+@Html.Partial($"{ZZRoot}_scrap.cshtml")
+@Html.Partial($"{ZZRoot}_mutiEdc.cshtml")
+@Html.Partial($"{ZZRoot}_machineTools.cshtml")
+@Html.Partial($"{ZZRoot}_useOperPart.cshtml")
+
+@*
+Html.Partial("../../../MES/Views/WIP/Partial2/_splitLot", @Model)
+Html.Partial("../../../MES/Views/WIP/ZZ_Partial/_multiLotSplitEqps", @Model)
+Html.Partial("../../../MES/Views/WIP/Partial2/_equipmentUseTool", @Model)
+*@
+
+@Html.Partial("../../../MES/Views/Shared/_edc")
+@Html.Partial("../../../MES/Views/WIP/Partial2/_lotChangeNote")
+@Html.Partial("../../../MES/Views/WIP/ZZ_Partial/_bin")
+@Html.Partial("../../../MES/Views/WIP/ZZ_Partial/_rework")
+@Html.Partial("../../../MES/Views/WIP/ZZ_Partial/_wipInfo")
+@Html.Partial("../../../MES/Views/WIP/ZZ_Partial/_LotSplitCheckOut")
+@Html.Partial("../../../MES/Views/WIP/ZZ_Partial/_inputGoodQty")
+@Html.Partial("../../../MES/Views/WIP/Partial2/_recipe")
+@Html.Partial("../../../MES/Views/WIP/Partial2/_selectGrade")
+@Html.Partial("../../../MES/Views/WIP/Partial2/_toolUnload")
+@Html.Partial("../../../MES/Views/WIP/Partial2/_collectAttr")
+}
