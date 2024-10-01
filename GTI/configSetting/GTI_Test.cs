@@ -144,7 +144,7 @@ namespace Genesis
                 WP_LOT_OPER_PARALLEL_HIST = WP_LOT_OPER_PARALLEL_HIST.ToList(),
             };
 
-            var WP_USER_TRACE_IN = txn.EFQuery_MES.WP_USER_TRACE_IN.GetData_ACTION_LINK_SID(key);
+            var WP_USER_TRACE_IN = txn.EFQuery_MES.WP_USER_TRACE_IN.IQueryable_ACTION_LINK_SID(key);
             var WP_USER_TRACE_IN_MASTER = 
                 (from a in txn.EFQuery_MES.WP_USER_TRACE_IN_MASTER
                     .Where(c => WP_USER_TRACE_IN.Any(c1 => c1.IN_MASTER_SID == c.IN_MASTER_SID))

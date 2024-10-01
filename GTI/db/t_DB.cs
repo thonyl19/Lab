@@ -33,7 +33,6 @@ using System.Web.UI.WebControls;
 using UnitTestProject.TestUT;
 using static BLL.MES.WIPInjectServices;
 using static BLL.MES.WIPServices;
-using static Genesis.Gtimes.Transaction.WIP.WIPTransaction;
 using mdl = MDL.MES;
 using vDbCtx = MDL.MESContext;
 using _mdl_mvc = MDL.GenesisMVC.Tables;

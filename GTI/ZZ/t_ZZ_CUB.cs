@@ -37,6 +37,7 @@ using System.Globalization;
 using Genesis.Gtimes.Common;
 using static Genesis.GT_Server.Service;
 using BLL.MVC;
+using Genesis.Library.BLL.ZZ.CUB;
 //using _bllSvc = Genesis.Library.BLL.ZZ.CUB;
 
 namespace UnitTestProject
@@ -215,10 +216,26 @@ namespace UnitTestProject
 			var z = txn.GetCarrierInfo();
 		}, true, true);
 
-		
+
+		[TestMethod]
+		public void t_UserTraceExited()
+		=> _DBTest((txn) =>
+		{
+			TxnBase.Test = Genesis.GTI_Test.TxnBase_T;
+			var ILot = txn.LzQuery.WIP.f批號平行工作站_是否存在("Jtest0717-01", "GTI24071610203627082");
+			ApiService.UserTraceExit(txn, "Admin", ILot, null);
+		}, true, true);
+
+
+		[TestMethod]
+		public void t_UserTraceExited_1(){
+			ApiService.UserTraceExit("Admin", "Jtest0717-01", "GTI24071610203627082",true);
+		}
+		 
+
 	}
 
 
-    
+
 }
 

@@ -1,4 +1,5 @@
-﻿using BLL.InterFace;
+﻿using BLL.Base;
+using BLL.InterFace;
 using BLL.MES;
 using BLL.MES.DataViews;
 using BLL.MVC;
@@ -6,6 +7,9 @@ using BundleTransformer.Core.Transformers;
 using Frame.Code;
 using Genesis.Common;
 using Genesis.Gtimes.Common;
+using Genesis.Library.BLL;
+using Genesis.Library.BLL.MES.DataViews;
+using MDL.MES;
 using Microsoft.AspNet.SignalR;
 using Newtonsoft.Json;
 using System;
@@ -1386,7 +1390,7 @@ namespace Genesis.Areas.DDD.Controllers
 							//var res = _fileName[0];
 							//var key = _fileName[1];
 
-							//$@"{directoryPath}{jsonFile}"
+							//$@"{directoryPath}{jsonzFile}"
 							string jsonContent = vFile.ReadAllText(jsonFile);
 							// 解析 JSON 內容到物件
 							var data = JsonConvert.DeserializeObject<d_i18n>(jsonContent);
@@ -1480,7 +1484,7 @@ namespace Genesis.Areas.SYSAdmin.Controllers
 			ViewData["result"] = ResourceServices.Query(keyVal).ToJson(true);
 			ViewData["SingleModel"] = true;
 			ViewData["mode"] = string.IsNullOrEmpty(keyVal) ? "Add" : "Edit";
-			var _view = "~/Areas/Example/Views/Self/ResourceData.cshtml";
+			var _view = "~/Areas/Example/Views/Self/ADM/ResourceData.cshtml";
 			return View(_view);
 		}
 
@@ -1499,24 +1503,14 @@ namespace Genesis.Areas.SYSAdmin.Controllers
 			}
 		}
 
-
 		[HttpPost]
 		[HandlerAjaxOnly]
 		[ValidateAntiForgeryToken]
 		public ActionResult Add_ROLE(string RESOURCE_SID)
 		=> _Content(c => f_Add_ROLE(RESOURCE_SID));
 
-
-
 		public ActionResult Insert(DataModel model)
 		=> _Content((c) => ResourceServices.Insert(model));
-		//=>_Content((c) => WIPInjectServices.TxnBase.LzDBTrans(null, Txn => {
-		//    var res = model.form;
-
-		//    Txn.result = ResourceServices.Insert(model);
-		//    return Txn.result;
-		//}));
-
 
 		/// <summary>
 		/// 
@@ -1549,6 +1543,102 @@ namespace Genesis.Areas.SYSAdmin.Controllers
 				*/
 			return Txn.result;
 		});
+	}
+}
 
+namespace Genesis.Areas.ADM.Controllers
+{
+	/// <summary>
+	/// 系統參數群組維護 
+	/// ADM/Parameter
+	/// </summary>
+	public partial class ParameterGroupController : BaseController
+	{
+		private ParameterServices _service;
+		public ActionResult ParameterGroupData_t(string keyVal)
+		{
+			dynamic data = new ExpandoObject();
+			ParameterGroupViewModel model = null;
+			if (keyVal != null) model = _groupService.GetParameterGroupData(keyVal);
+			data.form = model ?? new ParameterGroupViewModel() { PARAMETERGROUP_TYPE = "Custom" };
+			data.ParameterGroupTypes = _groupService.GetParameterGroupTypes();
+			data.AllParameters = _paramService.GetTransferUIParameters();
+			var result = new Result(true) { Data = data };
+
+			ViewData["Model"] = result.ToJson(true);
+			ViewData["SingleModel"] = true;
+			var _view = "~/Areas/Example/Views/Self/ADM/ParameterGroupData.cshtml";
+			return View(_view);
+		}
+
+		/// <summary>
+		/// 
+		/// </summary>
+		/// <param name="PARAMETERGROUP_SID"></param>
+		/// <param name="isTest"></param>
+		/// <returns></returns>
+		/// Ref 
+		/// N:\CUB_Dev\Library\BLL\ADM\ParameterGroupServices.cs
+		public ActionResult Add_Item(string PARAMETERGROUP_SID, string Data, string isTest = "F")
+		=> _Content((c)=>{
+			var arr = Data.Split('\n');
+			var _list = new List<AD_PARAMETER>();
+			foreach (string s in arr) {
+				var _obj = new AD_PARAMETER() { 
+					PARA_SID = Guid.NewGuid().ToString(), 
+					PARAMETER_NO = s,
+					PARAMETER_VALUE = s,
+					PARAMETER_NAME = s,
+					PARAMETER_TYPE = "SystemCode",
+				};
+				_list.Add(_obj);
+			}
+			if (_list.Count != 0) return Ext.Add_Item(PARAMETERGROUP_SID, _list, isTest == "T");
+			return null;
+		});
+
+		
+	}
+}
+
+namespace Genesis
+{
+	public class Ext {
+		public static IResult Add_Item(string PARAMETERGROUP_SID, List<AD_PARAMETER> list, bool isTest = false)
+		=> WIPInjectServices.TxnBase.LzDBTrans(null, Txn => {
+			var chk_list = list.Select(c => c.PARAMETER_NO).ToList();
+			var err_list = Txn.EFQuery_MES.AD_PARAMETER
+				.Where(c => chk_list.Contains(c.PARAMETER_NO))
+				.ToList();
+			Check.Invalid("PARAMETER_NO 已存在!", err_list.Count != 0, err_list);
+
+			var _max = Txn.EFQuery_MES.AD_PARAMETERGROUP_LIST
+				.Where(c => c.PARAMETERGROUP_SID == PARAMETERGROUP_SID)
+				.Max(c => c.LIST_SEQ);
+			if (_max != 0) _max++;
+
+			List<AD_PARAMETERGROUP_LIST> groupLists = new List<AD_PARAMETERGROUP_LIST>();
+			for (var idx = 0; idx < list.Count; idx++)
+			{
+				var _val = list[idx];
+				Txn.EntityCommonSetVal(_val);
+				var _obj = new AD_PARAMETERGROUP_LIST
+				{
+					PARAMETERGROUP_LIST_SID = Txn.GetSID(),
+					PARAMETERGROUP_SID = PARAMETERGROUP_SID,
+					PARAMETER_SID = _val.PARA_SID,
+					LIST_SEQ = _max + idx,
+					CREATE_USER = Txn.UserNo,
+					CREATE_DATE = Txn.ExeTime,
+					UPDATE_USER = Txn.UserNo,
+					UPDATE_DATE = Txn.ExeTime,
+				};
+				groupLists.Add(_obj);
+			}
+			Txn.EFQuery_MES.AD_PARAMETER.AddRange(list);
+			Txn.EFQuery_MES.AD_PARAMETERGROUP_LIST.AddRange(groupLists);
+			Txn.EFQuery_MES.SaveChanges();
+			return Txn.result;
+		}, isTest);
 	}
 }

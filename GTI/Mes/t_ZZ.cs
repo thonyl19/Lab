@@ -16,6 +16,7 @@ using System.Resources;
 using System.Globalization;
 using System.Collections;
 using System.Reflection;
+using Genesis.Areas.ADM.Controllers;
 
 namespace UnitTestProject
 {
@@ -409,6 +410,12 @@ namespace UnitTestProject
 		=> _DBTest(Txn => {
 			var r = Txn.GetParameterInfo("PACK_LINE");
 		},false,true);
+
+
+		[TestMethod]
+		public void t_1() {
+			Genesis.Ext.Add_Item("", null, true);
+		}
 	}
 
 

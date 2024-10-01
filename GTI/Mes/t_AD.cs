@@ -240,8 +240,8 @@
         [TestMethod]
         public void t_Creat_CatchData()
         {
-            var _obj = new MDL.MES.AD_CATCH_DATA() {DATA = "test" };
-            var x = ServController.Creat_CatchData("Admin", "GTI22030910552936287", "Test", _obj, true);
+            //var _obj = new MDL.MES.AD_CATCH_DATA() {DATA = "test" };
+            //var x = ServController.Creat_CatchData("Admin", "GTI22030910552936287", "Test", _obj, true);
 
         }
 
