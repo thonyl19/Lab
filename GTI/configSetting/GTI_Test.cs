@@ -116,6 +116,37 @@ namespace Genesis
             }
         }
 
+        public static void TxnBase_T_IPQC(ITxnBase Txn, string ActionName, string Link_SID)
+        {
+            WP_IPQC form = Txn.result.Data;
+            //var WP_IPQC = Txn.EFQuery_MES.WP_IPQC_CHECKITEM.IQueryable_ACTION_LINK_SID(Link_SID);
+            var WP_IPQC_LOT = Txn.EFQuery_MES.WP_IPQC_LOT
+                .Where(c => c.QC_NO == form.QC_NO)
+                .ToList();
+            var WP_IPQC_CHECKITEM = Txn.EFQuery_MES.WP_IPQC_CHECKITEM
+                .Where(c=>c.ACTION_LINK_SID == form.QC_NO)
+                ;
+
+            var WP_IPQC_CHECKITEM_RAW =
+                (from a in Txn.EFQuery_MES.WP_IPQC_CHECKITEM_RAW
+                    .Where(c => WP_IPQC_CHECKITEM.Any(c1 => c1.WP_IPQC_CHECKITEM_SID == c.ACTION_LINK_SID))
+                 select a
+                ).ToList();
+
+            var IPQC = new
+            {
+                WP_IPQC=form,
+                WP_IPQC_LOT,
+                WP_IPQC_CHECKITEM = WP_IPQC_CHECKITEM.ToList(),
+                WP_IPQC_CHECKITEM_RAW ,
+            };
+            string json = JsonConvert.SerializeObject(IPQC, Newtonsoft.Json.Formatting.Indented);
+
+            // 将 JSON 写入文件
+            File.WriteAllText(GTI_Test.g_path.t_Process, json);
+        }
+
+
         public static bool dyn_Process(string StaticMethod, object[] methodParameters)
         {
             
@@ -186,9 +217,10 @@ namespace Genesis
 
 
             var WP_LOT_OPER_PARALLEL_EDC = txn.EFQuery_MES.WP_LOT_OPER_PARALLEL_EDC.IQueryable_ACTION_LINK_SID(key);
-            var WP_LOT_OPER_PARALLEL_EDC_ROW = (from a in txn.EFQuery_MES.WP_LOT_OPER_PARALLEL_EDC_ROW
-               .Where(c => WP_LOT_OPER_PARALLEL_EDC.Any(c1 => c1.LOT_EDC_SID == c.LOT_EDC_SID))
-                                                select a
+            var WP_LOT_OPER_PARALLEL_EDC_ROW = 
+                (from a in txn.EFQuery_MES.WP_LOT_OPER_PARALLEL_EDC_ROW
+                    .Where(c => WP_LOT_OPER_PARALLEL_EDC.Any(c1 => c1.LOT_EDC_SID == c.LOT_EDC_SID))
+                select a
                 ).ToList();
             var EDC = new
             {

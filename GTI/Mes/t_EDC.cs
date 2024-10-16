@@ -13,7 +13,7 @@ namespace UnitTestProject
 	{
 		static class _log
 		{
- 
+			
 			internal static string t_GetOperEdc
 			{
 				get

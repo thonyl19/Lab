@@ -251,7 +251,18 @@ namespace UnitTestProject
 		=> _DBTest(Txn => {
 			var lot = Txn.GetLotInfo();
 			var oper = lot.GetLotNextDefaultRouteVersionNextOperationInfo();
+			
 			var r = oper.IS_END;
 		}, true);
+
+		[TestMethod]
+		public void _取上一站()
+		=> _DBTest(Txn => {
+			var lot = Txn.GetLotInfo();
+			var oper = lot.GetRouteVersionOperationInfo();
+			var oper_pre = oper.GetPrevDefaultRouteVersionOperationInfo();
+			var r = oper.IS_END;
+		}, true);
+		
 	}
 }

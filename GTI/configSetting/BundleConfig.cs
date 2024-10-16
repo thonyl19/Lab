@@ -5,10 +5,12 @@ using BLL.MES.DataViews;
 using BLL.MVC;
 using BundleTransformer.Core.Transformers;
 using Frame.Code;
+using Frame.Code.Web.Select;
 using Genesis.Common;
 using Genesis.Gtimes.Common;
 using Genesis.Library.BLL;
 using Genesis.Library.BLL.MES.DataViews;
+using Genesis.Web.SwaggeRegister.Common;
 using MDL.MES;
 using Microsoft.AspNet.SignalR;
 using Newtonsoft.Json;
@@ -22,6 +24,7 @@ using System.IO;
 using System.Linq;
 using System.Reflection;
 using System.Resources;
+using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
@@ -32,6 +35,8 @@ using System.Web.Routing;
 using System.Xml.Linq;
 using static BLL.MVC.ResourceServices;
 using vFile = System.IO.File;
+using NetHttp = System.Net.Http;
+using static BLL.MES.WIPInjectServices;
 
 namespace Genesis
 {
@@ -854,6 +859,8 @@ namespace Genesis
 	}
 }
 
+
+
 namespace Genesis.Areas.Example.Controllers
 {
 	public partial class SelfController : BaseController
@@ -1040,9 +1047,7 @@ namespace Genesis.Areas.Example.Controllers
 
 	}
 
-
-
-	public class ChatConnection : PersistentConnection
+    public class ChatConnection : PersistentConnection
 	{
 		private static int _connections = 0;
 
@@ -1093,6 +1098,81 @@ namespace Genesis.Areas.DDD.Controllers
 		}
 	}
 
+	//*
+	// RoutePrefix 在 DDDAreaRegistration 下,沒有作用
+	//[RoutePrefix("DDD/ApiTest")]
+	//[Route("DDD/ApiTest")]
+	[SwaggerAuthorizationFilterAttribute]
+	public class CaseController : System.Web.Http.ApiController
+	{
+
+
+        [Route("DDD/ApiTest/T001")]
+        [System.Web.Http.HttpGet]
+        public List<string> T001()
+        => new List<string>() { "T01" };
+
+        //      [Route("DDD/ApiTest/T003/{T003}/Test")]
+        //      [System.Web.Http.HttpGet]
+        //      public List<string> T003(string T003)
+        //      => new List<string>() { T003 };
+
+
+        //[HttpGet]
+        //public List<SelectModel> T002()
+        //{
+        //    throw new Exception();
+        //    return new List<SelectModel>();
+        //}
+
+    }
+
+	public class CaseAPIController : System.Web.Http.ApiController
+	{
+		[System.Web.Http.HttpGet]
+		[System.Web.Http.Route("T002")]
+		public dynamic T002()
+		{ 
+			throw new Exception("test");
+			return "";
+		}
+
+		/// <summary>
+		/// 測試自定義的 Route
+		/// </summary>
+		/// <returns></returns>
+		/// 一但設定 Route ,程序就會改套用 Route 做為 Url
+		[System.Web.Http.Route("T001")]
+		public List<string> T001()
+		=> new List<string>() { "T01" };
+
+		public List<string> Get()
+		=> new List<string>() { "T01" };
+
+		public string Get(string id)
+		=> id;
+
+		// POST: api/Products
+		public NetHttp.HttpResponseMessage Post(string id)
+		{
+			var obj = new { id = id };
+			var response = new NetHttp.HttpResponseMessage(System.Net.HttpStatusCode.Created);
+			/*
+			在 RESTful API 中，資源的狀態是由 URI 定義的。當成功創建一個資源後，
+			伺服器應該返回一個 201 Created 的狀態碼，以及一個 Location 標頭，
+			指向新創建的資源的 URI ,
+			如果要完成前述的需求 ,可搭配如下程序
+			 */
+			//response.Headers.Location = new Uri(Url.Link("DefaultApi"
+			//	, obj
+			//	));
+			response.Content = new NetHttp.StringContent(obj.ToJson(true), Encoding.UTF8, "application/json");
+			return response;
+		}
+	}
+	
+	
+	[SwaggerAuthorizationFilterAttribute]
 	[RoutePrefix("DDD/DBA")]
 	public class DBAController : BaseController
 	{
@@ -1217,15 +1297,6 @@ namespace Genesis.Areas.DDD.Controllers
 		[Route("Reason/{FUN_NAME}/{FUN_SID}")]
 		public ActionResult Reason(string FUN_NAME, string FUN_SID, string FUN_URL = null, string FUN_FILE_NAME = null)
 		=> _Content((o) => DDLServices.Reason(FUN_NAME, FUN_SID, FUN_URL, FUN_FILE_NAME));
-
-		[Route("Lot")]
-		[Route("Lot/{LOT_SID}")]
-		[Route("Lot/{LOT_SID}/info/{ActName}")]
-		[Route("Lot/info/{ActName}")]
-		public ActionResult LotInfo(string LOT_SID, string LOT = null, string ActName = null)
-		=> _Content((o) => LOT_Services.QueryLotInfo(LOT_SID, LOT, ActName));
-
-		//TODO-tmp 用某個流程 ,直接 查出現下有那些站,站內有那些批號
 	}
 
 	[RoutePrefix("DDD/APP")]
@@ -1642,3 +1713,67 @@ namespace Genesis
 		}, isTest);
 	}
 }
+
+//*
+//BundleConfig~.cs 中 , 預設是用 System.Web.Mvc , 
+//	所以一定要使用全名 -- System.Web.Http.Route , 
+//	不然設定不會產生作用
+namespace Genesis.WebApi
+{
+	//[System.Web.Http.RoutePrefix("api/v1")]
+	public class ApiTestController : System.Web.Http.ApiController
+	{
+
+		[System.Web.Http.Route("T003")]
+		[System.Web.Http.HttpGet]
+		public List<string> T003(string T003)
+		=> new List<string>() { T003 };
+
+		//[System.Web.Http.HttpGet]
+		//public List<string> T002(string T003)
+		//=> new List<string>() { T003 };
+	}
+
+	[System.Web.Http.RoutePrefix("api")]
+	public partial class SelfInfoController : System.Web.Http.ApiController
+	{
+		[System.Web.Http.Route("Lot")]
+		[System.Web.Http.Route("Lot/{LOT}")]
+		[System.Web.Http.Route("Lot/{LOT}/info/{ActName}")]
+		[System.Web.Http.Route("Lot/info/{ActName}")]
+		[System.Web.Http.HttpGet]
+		public dynamic LotInfo(string LOT,string LOT_SID = null, string ActName = null)
+		=> ServicesBase.ApiResult(()=>LOT_Services.QueryLotInfo(LOT_SID, LOT, ActName));
+
+		[System.Web.Http.Route("ROUTE_NO/{ROUTE_NO}")]
+		[System.Web.Http.Route("ROUTE_VER_SID/{ROUTE_VER_SID}")]
+		[System.Web.Http.Route("ROUTE_NO/{ROUTE_NO}/info/{info}")]
+		[System.Web.Http.Route("ROUTE_VER_SID/{ROUTE_VER_SID}/info/{info}")]
+		[System.Web.Http.HttpGet]
+
+		public dynamic ROUTE(string ROUTE_NO = null, string ROUTE_VER_SID = null, string info = null)
+        => TxnBase.LzDBQuery<dynamic>(Txn => {
+			dynamic data = new ExpandoObject();
+			data.ROUTE =  Txn.EFQuery_MES.PF_ROUTE_VER
+				.Where(c=>c.ROUTE_NO == ROUTE_NO || c.ROUTE_VER_SID == ROUTE_VER_SID)
+				.ToList();
+			switch (info?.ToUpper()) {
+				case "OPER":
+					data.OPERs = (from a in Txn.EFQuery_MES.PF_ROUTE_VER_OPER
+								  where a.ROUTE_VER_SID == ROUTE_VER_SID
+								  orderby a.OPER_SEQ
+								  select a).ToList();
+					break;
+			}
+			return data;
+        });
+
+
+
+	}
+
+	//TODO-tmp 用某個流程 ,直接 查出現下有那些站,站內有那些批號
+
+
+}
+//*/

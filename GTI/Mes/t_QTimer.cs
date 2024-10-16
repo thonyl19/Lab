@@ -83,7 +83,7 @@ namespace UnitTestProject
 		{
 			//var _d = txn.DapperQuery<FC_CARRIER>("SELECT * from FC_CARRIER WHERE STATE_NO = 'Idle'")
 			//	.FirstOrDefault();
-			var LotNo = "5A0AS27400-240515-01";
+			var LotNo = "WO_T059-008";
 			var _lotInfo = new LotUtility.LotInfo(txn.DBC, LotNo, LotUtility.IndexType.NO);
 			//WIPServices.LotCheckWithQTime(LotNo,"", txn.DBC, _lotInfo, true);
 			var FunctionRightName = "";
@@ -92,8 +92,11 @@ namespace UnitTestProject
 			var currentUser = txn.UserNo;
 			var userNO = txn.UserNo;
 			CheckTimeUtility.CheckTimeFunctions chkFun = new CheckTimeUtility.CheckTimeFunctions(txn.DBC);
-			var routeInfo = _lotInfo.GetRouteVersionInfo();
-			DataView dvCheckTime = chkFun.GetWpChecktimeData(_lotInfo.LOT, routeInfo.ROUTE_NO, "T");
+			//var routeInfo = _lotInfo.GetRouteVersionInfo();
+			var No
+				//= _lotInfo.GetRouteVersionOperationInfo().OPERATION_NO;
+				= "PSI-R002";
+			DataView dvCheckTime = chkFun.GetWpChecktimeData(_lotInfo.LOT, No, "T");
 
 			if (dvCheckTime != null)
 			{

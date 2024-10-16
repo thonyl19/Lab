@@ -17,6 +17,7 @@ using System.Globalization;
 using System.Collections;
 using System.Reflection;
 using Genesis.Areas.ADM.Controllers;
+using BLL.DataViews.Res;
 
 namespace UnitTestProject
 {
@@ -62,6 +63,16 @@ namespace UnitTestProject
 					return FileApp.ts_Log(@"ZZ\t_ZZ_OPER_WORKT_SUMMARY_UPDATE.json");
 				}
 			}
+
+			internal static string t_PagerQuery
+			{
+				get
+				{
+					return FileApp.ts_Log(@"ZZ\t_PagerQuery.json");
+				}
+			}
+
+			
 		}
 
 
@@ -413,9 +424,91 @@ namespace UnitTestProject
 
 
 		[TestMethod]
-		public void t_1() {
-			Genesis.Ext.Add_Item("", null, true);
+		public void t_PagerQuery()
+		{ 
+			var obj = FileApp.Read_SerializeJson<PagerQuery>(_log.t_PagerQuery);
+			var _r = QMSService.Search_QCResult_Query(obj);
 		}
+
+		struct d_Search_QCResult_Query_ILot
+		{
+			public string qcNo;
+			public string operation;
+			public string Lot;
+		}
+
+		[TestMethod]
+		public void t_1()
+		=> _DBTest(Txn => {
+			//string qcNo = null;// "0516";
+			//string operation = null;
+			//string Lot 
+			//	//= "TWO-240515B-01"
+			//	;
+			//var arg = new d_Search_QCResult_Query_ILot();
+			////arg.Lot = "JTest0717_7-01";
+			//var q1 = Txn.EFQuery_MES.WP_IPQC_LOT
+			//	.Join(Txn.EFQuery_MES.WP_LOT,
+			//			ipqcLot => ipqcLot.LOT_SID,
+			//			lot => lot.LOT_SID,
+			//			(ipqcLot, lot) => new { ipqcLot, lot })
+			//	.Where(joined=>joined.lot.LOT.StartsWith(arg.Lot));
+			//var q1_ = q1.ToList();
+			
+			//var q2 = Txn.EFQuery_MES.WP_IPQC_LOT
+			//	.Join(Txn.EFQuery_MES.WP_LOT_OPER_PARALLEL,
+			//			ipqcLot => ipqcLot.LOT_SID,
+			//			lot => lot.LOT_SID,
+			//			(ipqcLot, lot) => new { ipqcLot, lot })
+			//	.Where(joined => joined.lot.LOT.StartsWith(arg.Lot));
+			//var q2_ = q2.ToList();
+
+			//var query = Txn.EFQuery_MES.WP_IPQC
+			//	.Where(x => (arg.qcNo == null || x.QC_NO.Contains(arg.qcNo)) &&
+			//		(arg.operation == null || x.OPERATION == arg.operation ) &&
+			//		(arg.Lot == null 
+			//			|| q1.Any(joined => joined.ipqcLot.QC_NO == x.QC_NO)
+			//			|| q2.Any(joined => joined.ipqcLot.QC_NO == x.QC_NO)
+			//		))
+			//	.Select(x => x);
+			//var r = query.ToList();
+		}, false, true);
+
+
+
+        [TestMethod]
+        public void t_fn()
+		=> _DBTest((txn) =>
+		{
+			var q1 = (from p in txn.EFQuery_MES.PF_PARTNO_CATEGORY
+						 where p.CATEGORY_FLAG_1 == "T" || p.CATEGORY_FLAG_2 == "T"
+						 select p
+			).ToList();
+
+			var q2 = q1.GroupBy(p => getGroupKey(p))
+				.ToDictionary(p=>p.Key,p=> p.ToList());
+
+
+			
+			
+		},false, true);
+
+		Func<PF_PARTNO_CATEGORY, string> getGroupKey = p =>
+		{
+			// 根據您的邏輯返回分組鍵
+			if (p.CATEGORY_FLAG_1 == "T")
+			{
+				return "Group1";
+			}
+			else if (p.CATEGORY_FLAG_2 == "T")
+			{
+				return "Group2";
+			}
+			else
+			{
+				return "Other";
+			}
+		};
 	}
 
 

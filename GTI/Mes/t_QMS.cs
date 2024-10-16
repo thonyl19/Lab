@@ -51,8 +51,8 @@ namespace UnitTestProject
         public void t_by檢驗單號取得EDC資料_轉換為前端格式()
 		=> _DBTest((txn) =>
 		{
-			var z = txn.QueryableQMS().by檢驗單號取得EDC資料_轉換為前端格式("SIPQC_02",5);
-			FileApp.WriteSerializeJson(z, _log.t_by檢驗單號取得EDC資料_轉換為前端格式);
+			//var z = txn.QueryableQMS().by檢驗單號取得EDC資料_轉換為前端格式("SIPQC_02",5);
+			//FileApp.WriteSerializeJson(z, _log.t_by檢驗單號取得EDC資料_轉換為前端格式);
 		}, false);
 
 		[TestMethod]
@@ -69,6 +69,16 @@ namespace UnitTestProject
 			Assert.IsTrue(測試反向 == null, $"測試反向 - 應該要沒有值");
 
 		}, false);
+
+
+		[TestMethod]
+		public void t_QCResult_linq()
+		{
+			var r = QMSService.QCResult_linq("INSP24100603", "SIPQC");
+		}
+		
+		
+
 
 	}
 
