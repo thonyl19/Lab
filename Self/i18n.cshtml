@@ -11,9 +11,16 @@
 
 @Scripts.Render("https://cdn.jsdelivr.net/npm/opencc-js@1.0.5/dist/umd/t2cn.js")
 
-
+<style>
+    .el-input .el-select {
+        width: 110px;
+    }
+        .el-input .el-select .el-button {
+            width: 110px;
+        }
+</style>
 <div id="app">
-    <gt-toolbar :e_Add="Add">
+    <gt-toolbar :e_Add="Add" test_permission="true">
         <el-select v-model="form.res" size="mini">
             <el-option v-for="item in options"
                        :key="item.value"
@@ -23,11 +30,22 @@
         </el-select>
         <el-tag @@click="Copy">@@{{c_key}}</el-tag>
         <el-tag @@click="Copy">RES.BLL.{{c_key}}</el-tag>
+        <el-select v-model="project.val" placeholder="選擇其他專案" size="mini" :clearable="true">
+            <el-option v-for="item in project.src"
+                       :key="item.value"
+                       :label="item.label"
+                       :value="item.value">
+            </el-option>
+        </el-select>
     </gt-toolbar>
     <div class="panel b">
         <div class="panel-body">
             <form id="form_main" class="panel-body form-horizontal gt-form row">
                 <gt-form-col label='Key' v-model="form.key">
+                    <el-input v-model="form.key">
+                        <el-button slot="append" @@click="search_key">匯入指定專案的KEY</el-button>
+                    </el-input>
+
                 </gt-form-col>
                 <gt-form-col label='英文'>
                     <el-input  v-model="form.en">
@@ -82,6 +100,19 @@
                                 cn: '',
                             },
                             A: i18next.t('transferQtyTooMuch').format('A'),
+                            project: {
+                                val:'',
+                                src: [{
+                                    value: 'M_Prd',
+                                    label: '產品'
+                                }, {
+                                    value: 'F_DAE',
+                                    label: '大鐿'
+                                }, {
+                                    value: 'K_MWF',
+                                    label: '美吾華'
+                                }],
+                            } 
                         }
                     },
                     computed: {
@@ -103,6 +134,25 @@
                          
                     },
                     methods: {
+                        search_key() {
+                            alert('test');
+                            var url = _self.$URL.chg_Path(`DDD/APP/i18n/Search/${_self.c_tw}`);
+                            var _ajax = {
+                                url,
+                                type: 'get',
+                                automessage: false,
+                                success(res) {
+                                    const h = _self.$createElement;
+                                    let { Success, Message, Data } = res
+                                    _self.$notify({
+                                        title: Message,
+                                        message: h('pre', { style: 'color: teal' }, JSON.stringify(Data, null, 4)),
+                                        type: Success ? 'success' : 'warning'
+                                    });
+                                }
+                            };
+                            $.submitForm(_ajax);
+                        },
                         trans_key() {
                             this.form.key = this.capitalizeWordsAndJoin(this.form.en);
                         },
@@ -114,6 +164,27 @@
                             this.form.en = event.target.outerText;
                             this.form.key = this.capitalizeWordsAndJoin(this.form.en);
                             clickedElement.remove();
+                        },
+                        //todo-self: 依key 值, 直接將資料轉入當前專案中
+                        get_key() {
+                            var _self = this;
+                            if (_self.c_tw == "") return;
+                            var url = _self.$URL.chg_Path(`DDD/APP/i18n/Search/${_self.c_tw}`);
+                            var _ajax = {
+                                url,
+                                type: 'get',
+                                automessage: false,
+                                success(res) {
+                                    const h = _self.$createElement;
+                                    let { Success, Message, Data } = res
+                                    _self.$notify({
+                                        title: Message,
+                                        message: h('pre', { style: 'color: teal' }, JSON.stringify(Data, null, 4)),
+                                        type: Success ? 'success' : 'warning'
+                                    });
+                                }
+                            };
+                            $.submitForm(_ajax);
                         },
                         Search() {
                             var _self = this;

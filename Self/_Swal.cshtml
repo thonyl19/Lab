@@ -2,6 +2,7 @@
 	ViewBag.Title = @Genesis.Common.PageBaseInfo.getCurrentResource("UI 規範04").RESOURCE_NAME;
 	bool isSingleModel = (bool)ViewData["SingleModel"];
 	if (isSingleModel) Layout = "~/Views/Shared/_LayoutSingle.cshtml";
+
 }
 @eBundle.QRender_CSS()
 @eBundle.QRender_JS()

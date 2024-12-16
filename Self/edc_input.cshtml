@@ -1,14 +1,17 @@
 ﻿@{
 	Layout = "~/Views/Shared/_LayoutSingle.cshtml";
+
+
 }
 @eBundle.QRender_CSS()
 @eBundle.QRender_JS()
-@Html.Partial("~/Areas/MES/Views/Shared/_edc.cshtml")
+@BLL.Base.ServicesBase.CheckPartial(Server, Html, "~/Areas/MES/Views/Shared/_edc.V2.cshtml" , "~/Areas/MES/Views/Shared/_edc.cshtml")
 @Html.AntiForgeryToken()
 <div id="app" v-cloak>
-    <label>title</label><input v-model="cfg.title" /><br />
-    顯示自定義抬頭<input type="checkbox" v-model="isTest" />
-    <el-button @@click="isChange=false"> [isChange]{{isChange}}</el-button>
+    <div>
+        顯示自定義抬頭<input type="checkbox" v-model="isTest" />
+        <label>title</label><input v-model="cfg.title" />
+    </div>
     <div>
         <label>fixedTip</label>
         <el-radio-group v-model.number="fixedTip">
@@ -18,11 +21,14 @@
         <div>
             <el-checkbox v-model="lock" />鎖定 tooltip 顯示模式
             <el-checkbox v-model="readonly" />readonly
-            <el-checkbox v-model="dyn_add" />動態加欄位 dyn_add
-            <el-button @@click="check">檢核資料</el-button>
+            <el-checkbox v-model="dyn_add" />動態加欄位 (dyn_add)
+            <el-checkbox v-model="check_tl" />測試TL (check_tl)
+            <el-checkbox v-model="bool_abnull" />測試布林允許null (bool_abnull)
+            <el-checkbox v-model="set_mode" />gti-rwd-layout  (set_mode)
+
         </div>
-        <div><el-button @@click="QueryLog">載入Log</el-button></div>
-        <div>[EDC 載入後檢核模式]
+        <div>
+            [EDC 載入後檢核模式]
             <el-radio-group v-model.number="api_check_mode">
                 <el-radio :label=1>嚴謹</el-radio>
                 <el-radio :label=2>告警</el-radio>
@@ -30,17 +36,28 @@
             </el-radio-group>
         </div>
     </div>
+    <el-button-group>
+        <el-button type="primary" size="small" v-for="(val,key) in TestGroup" :label="key" :key="key" @@click="val()">{{key}}</el-button>
+    </el-button-group>
 
-    <edc-input ref="edc" v-model="data_input" :cfg.sync="cfg" :readonly="readonly" 
-               :dyn_add="dyn_add" :api_check_mode="api_check_mode">
+    <gti-switch v-model="radio3" 
+        :bool_abnull="bool_abnull"></gti-switch>
+
+
+    <edc-input ref="edc" v-model="data_input" :readonly="readonly" :cfg="cfg"
+               :dyn_add="dyn_add" :api_check_mode="api_check_mode"
+               :fixed_tip="fixedTip"
+               :check_tl="check_tl"
+               :bool_abnull="bool_abnull"
+               :set_mode="set_mode">
         <template v-slot:head-area>
-            <el-button type="primary" size="small" plain style="float: right;margin-right:1rem;" 
+            <el-button type="primary" size="small" plain style="float: right;margin-right:1rem;"
                        @@click="e_copy">塞入自定義功能</el-button>
             <el-button size="small" @@click="e_TestEDC">載入PLC</el-button>
         </template>
         <h3 v-if="isTest">自定義抬頭</h3>
     </edc-input>
-    {{data_input[0]}}
+    {{data_input}}
 </div>
 <script>
     Vue.config.devtools = true;
@@ -79,6 +96,9 @@
                     },
                     {
                         "Ccccc": "N"
+                    },
+                    {
+                        "T才有作用": "T"
                     }
                 ]
             },
@@ -103,6 +123,33 @@
                 "LSL": -10,
                 "require": false,
                 "DataTypeDisplay": "字串",
+                "InputValueList": [
+                    {
+                        "Aaaaa": ""
+                    }
+                ]
+            },
+            {
+                "EdcVerSid": "GTI19040815103300013",
+                "EdcParameterSid": "GTI19040815015300007",
+                "Display": "string",
+                "DataType": "S",
+                "mustInput": "T",
+                "InputCount": 1,
+                "ItemName": "字串-目標值",
+                "ItemNo": "test003",
+                "DispayPointName": "A",
+                "DispayPointNameList": [
+                    "Aaaaa"
+                ],
+                "QCItemSID": "GTI19040815015300007",
+                "UCL": 0,
+                "USL": 0,
+                "TL": "T",
+                "LCL": 0,
+                "LSL": -10,
+                "require": false,
+                "DataTypeDisplay": "字串-目標值",
                 "InputValueList": [
                     {
                         "Aaaaa": ""
@@ -216,60 +263,9 @@
                         "Aaaaa": ""
                     }
                 ]
-            } 
-        ]
-        var _data_input = [
-            {
-                "EdcVerSid": "GTI20052916532526942",
-                "EdcParameterSid": null,
-                "QCItemSID": "GTI20092116354270602",
-                "DataType": "N",
-                "DataCount": 0.0,
-                "DispayPointName": "A,B,C,D,E",
-                "DispayPointNameList": null,
-                "ItemSid": "GTI20092116354270600",
-                "ItemNo": "PLC01",
-                "ItemName": "PLC01",
-                "mustInput": "T",
-                "UCL": 20.0,
-                "USL": 30.0,
-                "LCL": 5.0,
-                "LSL": 0.0,
-                "TL": "10",
-                "EDCSid": null,
-                "EDCThrowSpc": null,
-                "EDCVerParaSid": null,
-                "InputValueList": [
-                    { "A": "1" },
-                    { "B": "1" },
-                    { "C": "1" },
-                    { "D": "1" },
-                    { "E": "1" }
-                ]
-            },
-            {
-                "EdcVerSid": "GTI20052916532526942",
-                "EdcParameterSid": null,
-                "QCItemSID": "GTI20092116354270603",
-                "DataType": "N",
-                "DataCount": 0.0,
-                "DispayPointName": null,
-                "DispayPointNameList": null,
-                "ItemSid": "GTI20092116354270600",
-                "ItemNo": "EDC013",
-                "ItemName": "尺寸_功能區溢膠",
-                "mustInput": "T",
-                "UCL": 23.3,
-                "USL": 0.0,
-                "LCL": 23.000,
-                "LSL": 0,
-                "TL": "0",
-                "EDCSid": null,
-                "EDCThrowSpc": null,
-                "EDCVerParaSid": null,
-                "InputValueList": [{ "1": "1" }]
             }
         ]
+
         new Vue({
             mixins: [Vue.prototype.$UT.Mixins.v_ErrGroup()],
             provide() {
@@ -279,22 +275,283 @@
             },
             el: '#app',
             data() {
+                var _self = this;
                 return {
-                    dyn_add:true,
+                    TestGroup: {
+                        isChange() {
+                            _self.isChange = !_self.isChange;
+                        },
+                        檢核資料() {
+                            _self.check();
+                        },
+                        載入Log() {
+                            _self.QueryLog();
+                        },
+                        全部檢視() {
+                            _self.data_input = data_input;
+                        },
+                        字串值測試() {
+                            var r = [{
+                                "EdcVerSid": "GTI19040815103300013",
+                                "EdcParameterSid": "GTI19040815015300007",
+                                "Display": "string",
+                                "DataType": "S",
+                                "mustInput": "T",
+                                "InputCount": 1,
+                                "ItemName": "TL 為 null",
+                                "ItemNo": "test003",
+                                "DispayPointName": "A",
+                                "DispayPointNameList": [
+                                    "Aaaaa"
+                                ],
+                                "QCItemSID": "GTI19040815015300007",
+                                "UCL": 0,
+                                "USL": 0,
+                                "TL": null,
+                                "LCL": 0,
+                                "LSL": -10,
+                                "require": false,
+                                "DataTypeDisplay": "字串",
+                                "InputValueList": [
+                                    {
+                                        "Aaaaa": ""
+                                    }
+                                ]
+                            },
+                            {
+                                "EdcVerSid": "GTI19040815103300013",
+                                "EdcParameterSid": "GTI19040815015300007",
+                                "Display": "string",
+                                "DataType": "S",
+                                "mustInput": "T",
+                                "InputCount": 1,
+                                "ItemName": "字串-目標值",
+                                "ItemNo": "test003",
+                                "DispayPointName": "A",
+                                "DispayPointNameList": [
+                                    "Aaaaa"
+                                ],
+                                "QCItemSID": "GTI19040815015300007",
+                                "UCL": 0,
+                                "USL": 0,
+                                "TL": "OK",
+                                "LCL": 0,
+                                "LSL": -10,
+                                "require": false,
+                                "DataTypeDisplay": "字串-目標值",
+                                "InputValueList": [
+                                    {
+                                        "Aaaaa": ""
+                                    }
+                                ]
+                            }];
+                            _self.data_input = r;
+                        },
+                        數字值測試() {
+                            var r = [{
+                                "EdcVerSid": "GTI19040815103300013",
+                                "EdcParameterSid": "GTI19040815013900006",
+                                "Display": "Display",
+                                "DataType": "N",
+                                "MustInput": "T",
+                                "InputCount": 1,
+                                "ItemName": "數值,負數值測試",
+                                "ItemNo": "Test002",
+                                "DispayPointName": "A",
+                                "DispayPointNameList": [
+                                    "Aaaaaa", "Bbbbb"
+                                ],
+                                "QCItemSID": "GTI19040815013900006",
+                                "UCL": 100,
+                                "USL": 150,
+                                "TL": "50",
+                                "LCL": -10,
+                                "LSL": -10,
+                                "require": true,
+                                "DataTypeDisplay": "數值,負數值測試",
+                                "InputValueList": [
+                                    {
+                                        "Aaaaa": ""
+                                    }
+                                ]
+                            },
+                            {
+                                "EdcVerSid": "GTI19040815103300013",
+                                "EdcParameterSid": "GTI19040815013900006",
+                                "Display": "Display",
+                                "DataType": "N",
+                                "MustInput": "T",
+                                "InputCount": 1,
+                                "ItemName": "單邊null -- 此案例 U值為[150,100],取最小值 100,若輸入大於 100 則標錯",
+                                "ItemNo": "Test002",
+                                "DispayPointName": "A",
+                                "DispayPointNameList": [
+                                    "Aaaaaa", "Bbbbb"
+                                ],
+                                "QCItemSID": "GTI19040815013900006",
+                                "UCL": 100,
+                                "USL": 150,
+                                "TL": "50",
+                                "LCL": null,
+                                "LSL": null,
+                                "require": true,
+                                "DataTypeDisplay": "下限null",
+                                "InputValueList": [
+                                    {
+                                        "Aaaaa": ""
+                                    }
+                                ]
+                            },
+                            {
+                                "EdcVerSid": "GTI19040815103300013",
+                                "EdcParameterSid": "GTI19040815013900006",
+                                "Display": "Display",
+                                "DataType": "N",
+                                "MustInput": "T",
+                                "InputCount": 1,
+                                "ItemName": "單邊null -- 此案例 L值為[150,100],取最大值 150,若輸入小於 150 則標錯",
+                                "ItemNo": "Test002",
+                                "DispayPointName": "A",
+                                "DispayPointNameList": [
+                                    "Aaaaaa", "Bbbbb"
+                                ],
+                                "QCItemSID": "GTI19040815013900006",
+                                "UCL": null,
+                                "USL": null,
+                                "TL": "50",
+                                "LCL": 100,
+                                "LSL": 150,
+                                "require": true,
+                                "DataTypeDisplay": "上限null",
+                                "InputValueList": [
+                                    {
+                                        "Aaaaa": ""
+                                    }
+                                ]
+                            },
+                            {
+                                "EdcVerSid": "GTI19040815103300013",
+                                "EdcParameterSid": "GTI19040815013900006",
+                                "Display": "Display",
+                                "DataType": "N",
+                                "MustInput": "T",
+                                "InputCount": 1,
+                                "ItemName": "TL 測試",
+                                "ItemNo": "Test002",
+                                "DispayPointName": "A",
+                                "DispayPointNameList": [
+                                    "Aaaaaa", "Bbbbb"
+                                ],
+                                "QCItemSID": "GTI19040815013900006",
+                                "UCL": null,
+                                "USL": null,
+                                "TL": "50",
+                                "LCL": null,
+                                "LSL": null,
+                                "require": true,
+                                "DataTypeDisplay": "上限null",
+                                "InputValueList": [
+                                    {
+                                        "Aaaaa": ""
+                                    }
+                                ]
+                            },
+                            {
+                                "EdcVerSid": "GTI19040815103300013",
+                                "EdcParameterSid": "GTI19040815013900006",
+                                "Display": "Display",
+                                "DataType": "N",
+                                "MustInput": "T",
+                                "InputCount": 1,
+                                "ItemName": "TL 單邊測試",
+                                "ItemNo": "Test002",
+                                "DispayPointName": "A",
+                                "DispayPointNameList": [
+                                    "Aaaaaa", "Bbbbb"
+                                ],
+                                "QCItemSID": "GTI19040815013900006",
+                                "UCL": 60,
+                                "USL": null,
+                                "TL": "80",
+                                "LCL": null,
+                                "LSL": null,
+                                "require": true,
+                                "DataTypeDisplay": "上限null",
+                                "InputValueList": [
+                                    {
+                                        "Aaaaa": ""
+                                    }
+                                ]
+                            }
+                            ];
+                            _self.data_input = r;
+                        },
+                        布林測試() {
+                            var r = [{
+                                "EdcVerSid": "GTI19040815103300013",
+                                "EdcParameterSid": "GTI19040815002800001",
+                                "Display": "TestBool",
+                                "DataType": "B",
+                                "mustInput": "T",
+                                "InputCount": 3,
+                                "ItemName": "TestBool",
+                                "ItemNo": "Test001",
+                                "DispayPointName": "A,B,C",
+                                "DispayPointNameList": [
+                                    "Aaaaa",
+                                    "Bbbbbb",
+                                    "Ccccc"
+                                ],
+                                "QCItemSID": "GTI19040815002800001",
+                                "UCL": 0,
+                                "USL": 0,
+                                "TL": "F",
+                                "LCL": 0,
+                                "LSL": 0,
+                                "require": false,
+                                "DataTypeDisplay": "布林",
+                                "InputValueList": [
+                                    {
+                                        "Aaaaa": ""
+                                    },
+                                    {
+                                        "Bbbbbb": "Y"
+                                    },
+                                    {
+                                        "Ccccc": "N"
+                                    },
+                                    {
+                                        "T才有作用": "T"
+                                    }
+                                ]
+                            },
+                            ];
+                            _self.data_input = r;
+                        },
+                    },
+                    radio3: '',
+                    bool_abnull: _.get(SystemConfig, 'EDC.Bool_abNull', false),
+                    dyn_add: true,
                     isTest: true,
                     fixedTip: 2,
                     lock: false,
+                    set_mode: false,
+                    check_tl: _.get(SystemConfig, 'EDC.Check_TL', false),
                     data_input
                     ,
                     cfg: {
                         title: '',
-                        fixedTip: 2
+                        fixedTip: 2,
+                        height: '600px',
                     },
                     readonly: false,
                     isChange: false,
                     api_check_mode: 3,
                     API: { "EDC": [{ "MOUDLE": "EDC", "RESOURCE_URL": "/Example/Act/EDC_API", "CHECK_MODE": "2", "PARAM": { "LOT": "CurrentLot.LOT" }, "EXTEN_RULE": { "ExecOnce": false, "CallFailed": false, "DynamicItem": false } }] },
                 }
+            },
+            mounted() {
+                this.TestGroup.數字值測試();
             },
             watch: {
                 fixedTip() {
@@ -311,10 +568,27 @@
                 }
             },
             methods: {
+                handleChange(val) {
+                    var isSame = this.radio3 == val;
+                    if (isSame) {
+                        if (this.bool_abnull) {
+                            this.radio3 = null;
+                        } else {
+                            this.$nextTick(() => {
+                                this.radio3 = val == 'T' ? 'F' : 'T';
+                            })
+                        }
+                    } else {
+                        this.radio3 = val;
+                    }
+                    console.log(event);
+                    event.preventDefault();
+                    event.stopPropagation();
+                },
                 e_TestEDC() {
                     //alert('e_TestEDC');
                     var _self = this;
-                    var url = _self.$URL.chg_Path('Example/Act/TestEDC', { file:'EDC_API1'});
+                    var url = _self.$URL.chg_Path('Example/Act/TestEDC', { file: 'EDC_API1' });
                     var _ajax = {
                         url,
                         type: 'get',
@@ -325,9 +599,9 @@
                     $.submitForm(_ajax);
                 },
                 TestEDC_Success(res) {
-                    let { Data, Message="API 調用錯誤", Success =false} = res;
+                    let { Data, Message = "API 調用錯誤", Success = false } = res;
                     if (Success) {
-                          
+
                     }
                     else {
                         this.$Alert.Err(Message);
@@ -346,7 +620,7 @@
                     var _ajax = {
                         url,
                         type: 'get',
-                        param: {LOT},
+                        param: { LOT },
                         automessage: false,
                         processData: false,
                         success: _self.QueryLog_Success

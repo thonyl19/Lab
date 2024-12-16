@@ -101,7 +101,8 @@
 						type: 'get',
 							success(res) {
                                 let { Success, Message, Data, Exception } = res;
-                                if (Success) {
+								if (Success) {
+                                    @GTest.Test("console.log({ Data });return ;")
                                     _self.$UT.page_reload();
                                 }
 						}

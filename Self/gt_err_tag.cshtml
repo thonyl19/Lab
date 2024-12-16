@@ -14,13 +14,31 @@
 <div id="app">
     <form id="WipForm">
         <div class="panel b">
-            <gt-form-col label="測試輸入錯誤訊息" v-model="c_ErrMsg" ></gt-form-col>
-            <gt-err-tag v-model="c_LotGoodQty" sid="cp_usemtlot.GoodQty">
+            <el-button @@click="Exec">Exec</el-button>
+
+            <gt-form-col label="測試輸入錯誤訊息" v-model="c_ErrMsg"></gt-form-col>
+
+            <gt-err-tag v-model="c_LotGoodQty" sid="cp_usemtlot.GoodQty"> </gt-err-tag>
+
+            <br />
+            <gt-err-tag v-model="this.table_list.length==0" msg="必須有選取資料." sid="cp_usemtlot.count">
             </gt-err-tag>
 
-            <gt-err-tag sid="cp_usemtlot.GoodQty">
-            </gt-err-tag>
-            <el-button @@click="Exec">Check</el-button>
+
+            <el-button @@click="Add">Add</el-button>
+
+            <el-table :data="table_list" data-parsley-table-required
+                      data-parsley-error-messag="data-parsley-error-message"
+                      data-parsley-required-message="data-parsley-required-message"
+                      data-parsley-required="true"
+                      style="width: 100%">
+                <el-table-column fixed="left" prop="SID" label="remove" width="100px;">
+                    <template slot-scope="scope">
+                        <el-button size="small" v-on:click="Remove(scope.$index)" type="danger" icon="el-icon-delete" circle></el-button>
+                    </template>
+                </el-table-column>
+                <el-table-column prop="No" label="AccountNo"></el-table-column>
+            </el-table>
         </div>
     </form>
 </div>
@@ -45,6 +63,7 @@
                     value: null,
                     set_model: {},
                     ErrGroup: {},
+                    table_list:[],
                 }
             },
             mounted() {
@@ -69,15 +88,19 @@
                 },
             },
             methods: {
+                Add() {
+                    this.table_list.push({ No: Date.now() })
+                },
+                Remove(index) {
+                    this.table_list.splice(index, 1);
+                },
                 Test() {
+                    
                 },
                 Exec(e) {
-                    this.$message('ok');
-                    this.chk_ErrGroup();
-                    if (this.cfg.single_checkout) {
-                        e.preventDefault();
-                    } else if (form.parsley().validate()) {
-
+                    if (form.parsley().validate()) {
+                        //有錯誤 回傳值為 true
+                        if (this.chk_ErrGroup()==false)  this.$message('ok');
                     }
                 }
             }
