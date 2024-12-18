@@ -1,6 +1,9 @@
 ﻿using Microsoft.VisualStudio.TestTools.UnitTesting;
 using UnitTestProject.TestUT;
 using Genesis.Library.BLL.DTC;
+using Genesis.Gtimes.Transaction.EQP;
+using Genesis.Gtimes.Transaction.WIP;
+
 namespace UnitTestProject
 {
 	[TestClass]
@@ -69,7 +72,18 @@ namespace UnitTestProject
 			//Txn.DoTransaction(new AL.SendMail("anthony_lin@genesis.com.tw", "Test"));
 		},true,true);
 
+		[TestMethod]
+		public void _DTC_修改ReasonNo()
+		=> _DBTest(Txn => {
+			var _lotInfo = GTI_helper.getLotInfo();
+			var EqpInfo = GTI_helper.getEquipmentInfo(Txn);// Txn.GetEquipmentInfo("GTI23121315360556348");
+			Txn.GtimesTxn.GetCurrentTxnBase().ReasonNo = "AAAAAA";
+			var oHold = new WIPTransaction.HoldLotTxn(_lotInfo);
+			//oHold.TransactionName
 
+			//Txn.DoTransaction(new EQPTransaction.EquipmentLoadLotTxn(EqpInfo, _lotInfo));
+			//Txn.DoTransaction(new AL.SendMail("anthony_lin@genesis.com.tw", "Test"));
+		}, true, true);
 	}
 
 

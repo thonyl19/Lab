@@ -94,15 +94,16 @@ namespace UnitTestProject
 			using (var DBC = mes.dbc())
 			{
 				var EnInfo = new EncodeFormatUtility.EncodeFormatInfo
-					(DBC, "G-MD-W003-010"
+					(DBC, FunctionName.LotSplit
 					, EncodeFormatUtility.IndexType.No);
+				var lot = GTI_helper.getLotInfo();
 				var Code = EncodeFormatUtility.Coder.GetCodes
 					(DBC
 					, "AdminTest"
 					, EnInfo
-					, 10
+					, 1
 					, new Dictionary<EncodeFormatUtility.ParameterType, object>() {
-						//{ EncodeFormatUtility.ParameterType.LOT, lotNo },
+						{ EncodeFormatUtility.ParameterType.LOT, "5D0AS27400-231004-01" }
 					}
 					//是否自動 commit , T)則會直接把 code 寫入 AD_ENCODE_FORMAT_CONTROL
 					, true);
@@ -123,14 +124,18 @@ namespace UnitTestProject
 				{ EncodeFormatUtility.ParameterType.LOT, "5D0AS27400-231004-01" }
 			};
 			var Code = EncodeFormatUtility.Coder.GetCodes(MESDBC, "EIS", EnInfo, 1, args, false);
+			Txn.DoTransaction(Code.Commands);
+
 		}, false, true);
 
 
 		[TestMethod]
 		public void t_x()
 		=> _DBTest(Txn => {
-			var lot = Txn.GetLotInfo("45105-2404300004-05", isQueryByLotNO: true);
-			var x = Txn.GetEnCodes(FunctionName.LotSplit, 100, lot);
+			var lot
+				= GTI_helper.getLotInfo();
+				//= Txn.GetLotInfo("45105-2404300004-05", isQueryByLotNO: true);
+			var x = Txn.GetEnCodes(FunctionName.LotSplit, 1, lot,true);
 		}, false, true);
  
 
@@ -193,6 +198,8 @@ namespace UnitTestProject
 								//{ EncodeFormatUtility.ParameterType.WO, RootLot.WO },
 								//{ EncodeFormatUtility.ParameterType.PARTNO, RootLot.PARTNO }
 							}, false);
+
+						
 						tx.Commit();
 					}
 					catch (Exception Ex)

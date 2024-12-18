@@ -58,8 +58,16 @@ namespace UnitTestProject
                     return FileApp.ts_Log(@"WIP\t_WIPFormSendParameter_平行工站.json");
                 }
             }
-            
 
+            internal static string t_GetOperEquipment
+            {
+                get
+                {
+                    return FileApp.ts_Log(@"WIP\t_GetOperEquipment.json");
+                }
+            }
+
+            
         }
 
 
@@ -237,11 +245,12 @@ namespace UnitTestProject
 		public void t_GetOperEquipment()
 		=> _DBTest((txn) =>
 		{
-			TxnBase.Test = Genesis.GTI_Test.TxnBase_T;
+			//TxnBase.Test = Genesis.GTI_Test.TxnBase_T;
 			var _lot = txn.EFQuery_MES.WP_LOT.FirstOrDefault(c => c.STATUS == "Wait");
 			var lotInfo = txn.GetLotInfo(_lot.LOT_SID);
 			var RouteVerOperInfo = txn.GetRouteVerOper(lotInfo.ROUTE_VER_OPER_SID);
-			WIPOperConfigServices.GetOperEquipment(txn.DBC, lotInfo, RouteVerOperInfo);
+			var x = WIPOperConfigServices.GetOperEquipment(txn.DBC, lotInfo, RouteVerOperInfo);
+            FileApp.WriteSerializeJson(x, _log.t_GetOperEquipment);
 		}, false, true);
 
 

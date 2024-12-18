@@ -1,7 +1,6 @@
 ﻿using BLL.MES;
 using BLL.MES.DataViews;
 using Dapper;
-using Frame.Code;
 using Genesis.Gtimes.ADM;
 using MDL.MES;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
@@ -18,6 +17,7 @@ using System.Collections;
 using System.Reflection;
 using Genesis.Areas.ADM.Controllers;
 using BLL.DataViews.Res;
+using Frame.Code;
 
 namespace UnitTestProject
 {
@@ -282,7 +282,7 @@ namespace UnitTestProject
 
 
 				//string docPath = Environment.GetFolderPath(Environment.CurrentDirectory.MyDocuments);
-				File.WriteAllText(FileApp.ts_Log(@"ZZ\test_sum.json"), main.ToJson(true));
+				File.WriteAllText(FileApp.ts_Log(@"ZZ\test_sum.json"), main.ToJson());
 
 				var _r = new
 				{

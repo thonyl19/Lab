@@ -14,9 +14,7 @@
     using UnitTestProject.TestUT;
     using static Genesis.Library.BLL.MES.DataViews.System;
     using _v8n = BLL.MES.FluentValidation;
-    using _mdl_mvc = MDL.GenesisMVC.Tables;
-    using BLL.MES;
-    using Genesis.WebApi;
+    using System.Linq;
 
 
     //[assembly:NeutralResourcesLanguage("en")]
@@ -245,6 +243,26 @@
 
         }
 
-        
+
+        [TestMethod]
+        public void t_用角色代碼取得人員清單()
+        => _DBTest((txn) =>
+        {
+        var sid = "GTI24110717322677549";
+            var z = (from a in txn.EFQuery_MVC.AD_ROLE.Where(x => x.ROLE_NO == "InspUser")
+                     join b in txn.EFQuery_MVC.AD_USER_ROLE on a.SID equals b.ROLE_SID
+                     select b.USER_SID).ToList();
+            var z1 = (from c in txn.EFQuery_MES.AD_USER
+                      where z.Any(bb=>c.USER_SID == bb)
+                        select c
+                        )
+                     .ToList();
+
+            var authNodes = (from A in txn.EFQuery_MVC.AD_ROLE_RESOURCE.Where(x => x.ROLE_SID == sid)
+                         join B in txn.EFQuery_MVC.AD_RESOURCE on A.RESOURCE_SID equals B.SID
+                         select A.RESOURCE_SID).ToList();
+        },false, true);
+
+   
     }
 }

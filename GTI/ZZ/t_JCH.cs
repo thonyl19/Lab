@@ -79,12 +79,12 @@ namespace UnitTestProject
 		}, false, true);
 		
 
-		[TestMethod]
-		public void t_取得工單機台停線時間()
-		=> _DBTest((txn) =>
-		{
-			var _d = new EquipWorkingHoursServices().取得工單機台停線時間("","",txn.DBC);
-		}, false, true);
+		//[TestMethod]
+		//public void t_取得工單機台停線時間()
+		//=> _DBTest((txn) =>
+		//{
+		//	var _d = new EquipWorkingHoursServices().取得工單機台停線時間("","",txn.DBC);
+		//}, false, true);
 
 		[TestMethod]
 		public void t_StopServices_Query() {

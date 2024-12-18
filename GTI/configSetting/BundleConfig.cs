@@ -37,6 +37,10 @@ using static BLL.MVC.ResourceServices;
 using vFile = System.IO.File;
 using NetHttp = System.Net.Http;
 using static BLL.MES.WIPInjectServices;
+using Newtonsoft.Json.Linq;
+using System.Web.Http.Description;
+using MDL.GenesisMVC.Tables;
+using Genesis.Gtimes.WIP;
 
 namespace Genesis
 {
@@ -1309,7 +1313,8 @@ namespace Genesis.Areas.DDD.Controllers
 		};
 
 		[Route("i18n/Search/{keyword}")]
-		public ActionResult i18nSearch(string keyword)
+		[Route("i18n/Search/{keyword}/{project}")]
+		public ActionResult i18nSearch(string keyword,string project = null)
 		=> _Content(o =>
 		{
 			var result = new Dictionary<string, Dictionary<string, string>>();
@@ -1318,6 +1323,12 @@ namespace Genesis.Areas.DDD.Controllers
 					//var results = new Dictionary<string, string>();
 					var _path = System.Web.HttpContext.Current.Server.MapPath("~/");
 				var fileName = $"{_path}/../../Library/RES/BLL/{file}";
+
+				if (project != null) {
+					var new_dir = project.Replace("_", @":\");
+					var pattern = @"^(.*?):\\(\w*)_";
+					fileName = Regex.Replace(fileName, pattern, $"{new_dir}_");
+				}
 				XDocument doc = XDocument.Load(fileName);
 				var query = from elem in doc.Descendants("data")
 							where elem.Value.Contains(keyword)
@@ -1342,7 +1353,7 @@ namespace Genesis.Areas.DDD.Controllers
 				var mainkey = file.Replace(".zh-TW.resx", "");
 				result.Add(mainkey, results);
 			}
-			return new Result(true) { Data = result };
+			return new Result(true) { Data = new { result, project } };
 		});
 
 		[AllowAnonymous]
@@ -1384,7 +1395,7 @@ namespace Genesis.Areas.DDD.Controllers
 			if (is產品語系檔 == false)
 			{
 				var tmp = new { en, tw, cn };
-				vFile.WriteAllText($@"{root}Areas\Example\Views\Self\~i18n\{res}_{key}.json", tmp.ToJson(true));
+				vFile.WriteAllText($@"P:\MyLab\GTI_Sample\~i18n\{res}_{key}.json", tmp.ToJson(true));
 			}
 
 			ResXResourceSet resxSet = new ResXResourceSet(tarFile);
@@ -1590,7 +1601,7 @@ namespace Genesis.Areas.SYSAdmin.Controllers
 		/// <param name="RESOURCE_SID"></param>
 		/// <returns></returns>
 		public static IResult f_Add_ROLE(string RESOURCE_SID)
-		=> WIPInjectServices.TxnBase.LzDBTrans(null, Txn => {
+		=> WIPInjectServices.TxnBase.LzDBTrans(null, Txn=>{
 				/* 因為專案編譯的需求 先 mark 掉
 				var role = Txn.EFQuery_MVC.AD_ROLE.Where(c => c.ROLE_NO == "Admin").FirstOrDefault();
 				Check.Invalid("AD_ROLE 查無 Admin 帳號", role == null);
@@ -1611,7 +1622,7 @@ namespace Genesis.Areas.SYSAdmin.Controllers
 					Txn.EFQuery_MVC.AD_ROLE_RESOURCE.Add(ROLE_res);
 					Txn.EFQuery_MVC.SaveChanges();
 				}
-				*/
+				//*/
 			return Txn.result;
 		});
 	}
@@ -1674,9 +1685,11 @@ namespace Genesis.Areas.ADM.Controllers
 
 namespace Genesis
 {
-	public class Ext {
+	public class Ext
+	{
 		public static IResult Add_Item(string PARAMETERGROUP_SID, List<AD_PARAMETER> list, bool isTest = false)
-		=> WIPInjectServices.TxnBase.LzDBTrans(null, Txn => {
+		=> WIPInjectServices.TxnBase.LzDBTrans(null, Txn =>
+		{
 			var chk_list = list.Select(c => c.PARAMETER_NO).ToList();
 			var err_list = Txn.EFQuery_MES.AD_PARAMETER
 				.Where(c => chk_list.Contains(c.PARAMETER_NO))
@@ -1711,6 +1724,14 @@ namespace Genesis
 			Txn.EFQuery_MES.SaveChanges();
 			return Txn.result;
 		}, isTest);
+ 
+		public static bool isEnable(int? val){
+			if (val == null) return false;
+			return val != 0;
+		}
+		public static bool isEnable(object val)
+		=> val != null;
+
 	}
 }
 
@@ -1720,31 +1741,213 @@ namespace Genesis
 //	不然設定不會產生作用
 namespace Genesis.WebApi
 {
-	//[System.Web.Http.RoutePrefix("api/v1")]
-	public class ApiTestController : System.Web.Http.ApiController
-	{
-
-		[System.Web.Http.Route("T003")]
-		[System.Web.Http.HttpGet]
-		public List<string> T003(string T003)
-		=> new List<string>() { T003 };
-
-		//[System.Web.Http.HttpGet]
-		//public List<string> T002(string T003)
-		//=> new List<string>() { T003 };
-	}
-
 	[System.Web.Http.RoutePrefix("api")]
 	public partial class SelfInfoController : System.Web.Http.ApiController
 	{
-		[System.Web.Http.Route("Lot")]
-		[System.Web.Http.Route("Lot/{LOT}")]
-		[System.Web.Http.Route("Lot/{LOT}/info/{ActName}")]
-		[System.Web.Http.Route("Lot/info/{ActName}")]
-		[System.Web.Http.HttpGet]
-		public dynamic LotInfo(string LOT,string LOT_SID = null, string ActName = null)
-		=> ServicesBase.ApiResult(()=>LOT_Services.QueryLotInfo(LOT_SID, LOT, ActName));
+		public class d_批號 {
+			public int isTest;
+			public int? CheckIn;
+			public string LOT;
+			public string SID;
+			public d_批號_Act Action;
+		}
+		public class d_批號_Act {
+			public int _全部流程的工作站擴展;
+			public int _依據料號流程工站設定取得原因碼;
+			public int _測試再製品查詢;
+		}
 
+		/*
+		[System.Web.Http.AllowAnonymousAttribute]
+		[System.Web.Http.Route("批號")]
+		public dynamic 批號(d_批號 data)
+		=>TxnBase.LzDBQuery<dynamic>(Txn => {
+			var lot = (from a in Txn.EFQuery_MES.WP_LOT
+					   where a.LOT == data.LOT || a.LOT_SID == data.SID
+					   select a).FirstOrDefault_CheckExists();
+			if (Ext.isEnable(data.Action?._全部流程的工作站擴展)){
+				dynamic r1 = new ExpandoObject();
+				var RouteVerInfo = lot.to_LotInfo(Txn).GetRouteVersionInfo();
+				var Opers = RouteVerInfo.GetRouteVersionOperationList();
+				r1.Opers = Opers;
+				r1.Settings = (from a in Opers
+							   select new
+							   {
+								   a.OPER_SID,
+								   a.OPERATION,
+								   a.OPER_SEQ,
+								   Setting = ts_OperExpandSetting(Txn, a.OPER_SID, data.Action._全部流程的工作站擴展),
+							   })
+							   .Where(c=>c.Setting !=null)
+							   .ToList();
+				r1.lot = lot;
+				return r1;
+			}else if (Ext.isEnable(data.Action?._依據料號流程工站設定取得原因碼)){
+				return DDLServices.GetPartNoOperReasonCodeData_OperSid(lot.LOT, lot.to_LotInfo(Txn));
+			}else if (Ext.isEnable(data.Action?._測試再製品查詢)){
+				return (from w0 in Txn.EFQuery_MES.PF_PARTNO
+						where w0.PARTNO == data.SID
+						select w0
+					).ToList();
+				//return (from w0 in Txn.EFQuery_MES.WP_LOT
+				//	join p1 in Txn.EFQuery_MES.PF_PARTNO 
+				//		on w0.PARTNO equals p1.PARTNO
+				//		into bGroup
+				//		from p1 in bGroup.DefaultIfEmpty()
+				//		select new { w0, bGroup }
+				//	).ToList();
+			}
+			return lot;
+			//return Txn.result;
+   //         var isQueryByLotNo = LOT != null;
+			//var queryKey = isQueryByLotNo ? LOT : LOT_SID;
+			//var LotInfo = Txn.GetLotInfo(queryKey, false, isQueryByLotNo);
+			//dynamic ROUTE = new ExpandoObject();
+			//dynamic OPER = new ExpandoObject();
+			//var key = ActName?.ToUpper();
+			//switch (key) {
+			//	case "ROUTE":
+			//		var RouteVerInfo = LotInfo.GetRouteVersionInfo();
+			//		var Opers = RouteVerInfo.GetRouteVersionOperationList();
+			//		var Settings = (from a in Opers
+			//						select new
+			//						{
+			//							a.OPER_SID,
+			//							a.Name,
+			//							Setting = WIPOperConfigServices.GetOperSetting(a.OPER_SID, false)
+			//						}
+			//		).ToList();
+			//		ROUTE = new { RouteVerInfo, Opers, Settings};
+			//		break;
+			//	default:
+			//		var Setting = WIPOperConfigServices.GetOperSetting(LotInfo.OPER_SID, false);
+			//		var Reason = DDLServices.GetPartNoOperReasonCodeData_OperSid(LotInfo.SID, LotInfo);
+			//		OPER = new { Setting, Reason};
+			//		break;
+			//}
+			//Txn.result.Data = new
+			//{
+			//	LotInfo,
+			//	ROUTE,
+			//	OPER,
+			//};
+			//return Txn.result;
+        });
+		//*/
+
+		dynamic ts_OperExpandSetting(ITxnBase Txn, string OPER_SID,int mode) {
+			var r = Txn.EFQuery_MES.PF_OPERATION_EXPAND.Where(t => t.OPER_SID == OPER_SID).FirstOrDefault();
+			if (r != null) {
+				var root  = r.SETTING_JSON.ToObject<OperExpandSetting>();
+				switch (mode) {
+					case 9://按原始全部顯示
+						return root;
+						break;
+					case 1://過濾出只有設定的部份
+						var r2 = new Dictionary<string, Dictionary<string, dynamic>>();
+						foreach (var Sub1 in root.GetType().GetProperties()){
+							var key = Sub1.Name;
+							var value = Sub1.GetValue(root);
+							if (value != null){
+								var r3 = new Dictionary<string, dynamic>();
+								foreach (var Sub2 in value.GetType().GetProperties()) {
+									var key1 = Sub2.Name;
+									var val1 = Sub2.GetValue(value);
+									if (checkIsEable(val1)) { 
+										r3.Add(key1,val1);
+									}
+								}
+								r2.Add(key, r3);
+							}
+						}
+						return r2;
+						break;
+				}
+			} 
+			return null;
+		}
+
+        private bool checkIsEable(object val1){
+			if (val1 is bool ) return (bool)val1;
+
+			Type type = val1.GetType();
+			// 嘗試取得名為 "enable" 的屬性
+			PropertyInfo enableProperty = type.GetProperty("enable");
+			if (enableProperty != null){
+				var v = (bool)enableProperty.GetValue(val1);
+				return v;
+			}
+			return false;
+		}
+
+        /// <summary>
+        /// 測試
+        /// </summary>
+        /// <param name="Test"></param>
+        /// <returns></returns>
+        [System.Web.Http.HttpGet]
+		[System.Web.Http.Route("Lot1")]
+		public string LotInfox(string Test)
+		=>TxnBase.LzDBQuery<string>(Txn=>{
+			Check.Invalid("test-Invalid", Test == "Invalid");
+			return Test;
+		});
+
+		[System.Web.Http.AllowAnonymousAttribute]
+		[System.Web.Http.HttpGet]
+		[System.Web.Http.Route("Oper/{OperNo}")]
+		public dynamic 依工作站代碼找找出關聯流程(string OperNo, string Action = null)
+		=> TxnBase.LzDBQuery<dynamic>(Txn =>{
+			switch (Action) {
+				case "Lots":
+					return Txn.EFQuery_MES.f_Oper_找出一般批號(OperNo).ToList();
+					break;
+				//case "ParallelLots":
+				//	return Txn.EFQuery_MES.f_Oper_找出併行工站批號(OperNo).ToList();
+					break;
+				case "關聯流程":
+					return Txn.EFQuery_MES.f_Oper_找出關聯流程(OperNo).ToList();
+					break;
+			}
+			return null;
+		});
+ 
+		[System.Web.Http.HttpGet]
+		[System.Web.Http.Route("OperExtend")]
+		[System.Web.Http.Route("OperExtend/{ExtendName}")]
+		public dynamic 工作站擴展_相對有開啟的站(string ExtendName = null)
+		=> TxnBase.LzDBQuery<dynamic>(Txn => {
+			var x = Txn.EFQuery_MES.PF_OPERATION_EXPAND.ToList();
+			if (string.IsNullOrWhiteSpace(ExtendName)) return x;
+			return x.Where(c => {
+				dynamic data = JsonConvert.DeserializeObject(c.SETTING_JSON);
+				if (FindProperty(data.CheckInSet, ExtendName) ||
+					FindProperty(data.CheckOutSet, ExtendName) ||
+					FindProperty(data.AnySet, ExtendName)){
+					return true;
+				}
+				return false;
+			}).ToList();
+		});
+
+		public bool FindProperty(dynamic obj, string propertyName){
+			JObject jobj = obj as JObject;
+			if (jobj !=null){
+				foreach (var property in jobj){
+					var isSameName = property.Key.ToString() == propertyName;
+					if (isSameName && (bool)property.Value) return true;
+					if (property.Value is JObject){
+						if (FindProperty(property.Value, "enable"))
+							return true;
+					}
+				}
+			}
+			return false;
+		}
+
+ 
+
+		/*
 		[System.Web.Http.Route("ROUTE_NO/{ROUTE_NO}")]
 		[System.Web.Http.Route("ROUTE_VER_SID/{ROUTE_VER_SID}")]
 		[System.Web.Http.Route("ROUTE_NO/{ROUTE_NO}/info/{info}")]
@@ -1767,13 +1970,29 @@ namespace Genesis.WebApi
 			}
 			return data;
         });
-
+		*/
 
 
 	}
 
 	//TODO-tmp 用某個流程 ,直接 查出現下有那些站,站內有那些批號
 
+	//[System.Web.Http.RoutePrefix("api/v1")]
+	public class ApiTestController : System.Web.Http.ApiController
+	{
 
+		[System.Web.Http.Route("T003")]
+		[System.Web.Http.HttpGet]
+		public List<string> T003(string T003)
+		=> new List<string>() { T003 };
+
+		//[System.Web.Http.HttpGet]
+		//public List<string> T002(string T003)
+		//=> new List<string>() { T003 };
+	}
 }
+
+ 
+
+
 //*/

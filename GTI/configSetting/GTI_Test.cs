@@ -17,6 +17,8 @@ using System.Data.SqlClient;
 using static BLL.MES.WIPInjectServices;
 using MDL.MES;
 using System.Reflection;
+using MDL;
+using static Genesis.Gtimes.WIP.LotUtility;
 
 namespace Genesis
 {
@@ -110,40 +112,11 @@ namespace Genesis
         {
             switch (ActionName) {
                 case "Process":
-                    var runDef = dyn_Process("t_Process_PARALLEL", new object[] { Txn, Link_SID });
+                    var key = $"t_Process_{ServicesBase.ProjectCustomer}";
+                    var runDef = dyn_Process(key, new object[] { Txn, Link_SID });
                     if (runDef) t_Process(Txn, Link_SID);
                     break;
             }
-        }
-
-        public static void TxnBase_T_IPQC(ITxnBase Txn, string ActionName, string Link_SID)
-        {
-            WP_IPQC form = Txn.result.Data;
-            //var WP_IPQC = Txn.EFQuery_MES.WP_IPQC_CHECKITEM.IQueryable_ACTION_LINK_SID(Link_SID);
-            var WP_IPQC_LOT = Txn.EFQuery_MES.WP_IPQC_LOT
-                .Where(c => c.QC_NO == form.QC_NO)
-                .ToList();
-            var WP_IPQC_CHECKITEM = Txn.EFQuery_MES.WP_IPQC_CHECKITEM
-                .Where(c=>c.ACTION_LINK_SID == form.QC_NO)
-                ;
-
-            var WP_IPQC_CHECKITEM_RAW =
-                (from a in Txn.EFQuery_MES.WP_IPQC_CHECKITEM_RAW
-                    .Where(c => WP_IPQC_CHECKITEM.Any(c1 => c1.WP_IPQC_CHECKITEM_SID == c.ACTION_LINK_SID))
-                 select a
-                ).ToList();
-
-            var IPQC = new
-            {
-                WP_IPQC=form,
-                WP_IPQC_LOT,
-                WP_IPQC_CHECKITEM = WP_IPQC_CHECKITEM.ToList(),
-                WP_IPQC_CHECKITEM_RAW ,
-            };
-            string json = JsonConvert.SerializeObject(IPQC, Newtonsoft.Json.Formatting.Indented);
-
-            // 将 JSON 写入文件
-            File.WriteAllText(GTI_Test.g_path.t_Process, json);
         }
 
 
@@ -158,85 +131,18 @@ namespace Genesis
             } 
             return true;
         }
-
-        /*/
-        public static void t_Process_PARALLEL(ITxnBase txn, string key)
+        public static dynamic dyn_Process_echo(string StaticMethod, object[] methodParameters)
         {
-            var WP_LOT_OPER_PARALLEL_HIST = txn.EFQuery_MES.WP_LOT_OPER_PARALLEL_HIST.IQueryable_ACTION_LINK_SID(key);
-            var WP_LOT_OPER_PARALLEL = 
-                (from a in txn.EFQuery_MES.WP_LOT_OPER_PARALLEL
-                    .Where(c => WP_LOT_OPER_PARALLEL_HIST.Any(c1 => c1.LOT == c.LOT && c1.OLD_ROUTE_VER_OPER_SID == c.ROUTE_VER_OPER_SID))
-                select a
-                ).ToList();
-            var LOT = new
+
+            MethodInfo methodInfo = typeof(Genesis.GTI_Test).GetMethod
+                (StaticMethod, BindingFlags.Public | BindingFlags.Static);
+            if (methodInfo != null)
             {
-                WP_LOT_OPER_PARALLEL,
-                WP_LOT_OPER_PARALLEL_SN= txn.EFQuery_MES.WP_LOT_OPER_PARALLEL_SN.GetData_ACTION_LINK_SID(key),
-                WP_LOT_OPER_PARALLEL_HIST = WP_LOT_OPER_PARALLEL_HIST.ToList(),
-            };
-
-            var WP_USER_TRACE_IN = txn.EFQuery_MES.WP_USER_TRACE_IN.IQueryable_ACTION_LINK_SID(key);
-            var WP_USER_TRACE_IN_MASTER = 
-                (from a in txn.EFQuery_MES.WP_USER_TRACE_IN_MASTER
-                    .Where(c => WP_USER_TRACE_IN.Any(c1 => c1.IN_MASTER_SID == c.IN_MASTER_SID))
-                select a
-                ).ToList();
-
-            var USER = new
-            {
-                WP_USER_TRACE = txn.EFQuery_MES.WP_USER_TRACE.GetData_ACTION_LINK_SID(key),
-                WP_USER_TRACE_IN_MASTER,
-                WP_USER_TRACE_IN = WP_USER_TRACE_IN.ToList()
-            };
-
-            var DEFECT = new
-            {
-                WP_LOT_OPER_PARALLEL_DEFECT = txn.EFQuery_MES.WP_LOT_OPER_PARALLEL_DEFECT.GetData_ACTION_LINK_SID(key),
-                WP_LOT_OPER_PARALLEL_DEFECT_SN = txn.EFQuery_MES.WP_LOT_OPER_PARALLEL_DEFECT_SN.GetData_ACTION_LINK_SID(key),
-            };
-
-            var SCRAP = new
-            {
-                WP_LOT_OPER_PARALLEL_SCRAP = txn.EFQuery_MES.WP_LOT_OPER_PARALLEL_SCRAP.GetData_ACTION_LINK_SID(key),
-                WP_LOT_OPER_PARALLEL_SCRAPT_SN = txn.EFQuery_MES.WP_LOT_OPER_PARALLEL_SCRAP_SN.GetData_ACTION_LINK_SID(key),
-            };
-
-            var TOOL = new
-            {
-                WP_TOOL_TRACE = txn.EFQuery_MES.WP_TOOL_TRACE.GetData_ACTION_LINK_SID(key),
-                WP_EQP_TOOL_LIST = txn.EFQuery_MES.WP_EQP_TOOL_LIST
-                     .Where(c => c.LOAD_LINK_SID == key || c.UNLOAD_LINK_SID == key)
-                     .AsNoTracking()
-                     .ToList()
-            };
-
-            var EQP = new
-            {
-                WP_EQP_TRACE = txn.EFQuery_MES.WP_EQP_TRACE.GetData_ACTION_LINK_SID(key)
-            };
-
-
-            var WP_LOT_OPER_PARALLEL_EDC = txn.EFQuery_MES.WP_LOT_OPER_PARALLEL_EDC.IQueryable_ACTION_LINK_SID(key);
-            var WP_LOT_OPER_PARALLEL_EDC_ROW = 
-                (from a in txn.EFQuery_MES.WP_LOT_OPER_PARALLEL_EDC_ROW
-                    .Where(c => WP_LOT_OPER_PARALLEL_EDC.Any(c1 => c1.LOT_EDC_SID == c.LOT_EDC_SID))
-                select a
-                ).ToList();
-            var EDC = new
-            {
-                WP_LOT_OPER_PARALLEL_EDC = WP_LOT_OPER_PARALLEL_EDC.ToList(),
-                WP_LOT_OPER_PARALLEL_EDC_ROW,
-                WP_LOT_OPER_PARALLEL_EDC_SN = txn.EFQuery_MES.WP_LOT_OPER_PARALLEL_EDC_SN.GetData_ACTION_LINK_SID(key)
-            };
-
-            var r = new { LOT, USER, TOOL, EQP, SCRAP, DEFECT, EDC };
-
-            string json = JsonConvert.SerializeObject(r, Newtonsoft.Json.Formatting.Indented);
-
-            // 将 JSON 写入文件
-            File.WriteAllText(GTI_Test.g_path.t_Process, json);
+                return methodInfo.Invoke(null, methodParameters);
+            }
+            return null;
         }
-        //*/
+
 
         public static void t_Process(ITxnBase txn, string key)
         {
@@ -250,10 +156,16 @@ namespace Genesis
                 WP_LOT,
                 WP_LOT_HIST= WP_LOT_HIST.ToList(),
                 WP_LOT_SPLIT = txn.EFQuery_MES.WP_LOT_SPLIT.GetData_ACTION_LINK_SID(key),
+                ZZ_LOT_MOVE = txn.EFQuery_MES.ZZ_LOT_MOVE.GetData_ACTION_LINK_SID(key),
             };
             var USER = new
             {
                 WP_USER_TRACE = txn.EFQuery_MES.WP_USER_TRACE.GetData_ACTION_LINK_SID(key),
+                WP_USER_TRACE_IN = (from a in txn.EFQuery_MES.WP_USER_TRACE_IN
+                    .Where(c => WP_LOT_HIST.Any(c1 => c1.LOT == c.LOT))
+                                    select a
+                    ).ToList(),
+                ZZ_OPER_WORKT_SUMMARY = txn.EFQuery_MES.ZZ_OPER_WORKT_SUMMARY.GetData_ACTION_LINK_SID(key),
             };
 
             var DEFECT = new {
@@ -278,8 +190,21 @@ namespace Genesis
             {
                 WP_EQP_TRACE = txn.EFQuery_MES.WP_EQP_TRACE.GetData_ACTION_LINK_SID(key)
             };
+            /*
+            var WP_LOT_CHECKLIST_ITEM = txn.EFQuery_MES.WP_LOT_CHECKLIST_ITEM.IQueryable_ACTION_LINK_SID(key);
+            var WP_LOT_CHECKLIST_TAG_ITEM = (from a in txn.EFQuery_MES.WP_LOT_CHECKLIST_TAG_ITEM
+                .Where(c => WP_LOT_CHECKLIST_ITEM.Any(c1 => c1.WP_CHECKLIST_ITEM_SID == c.WP_CHECKLIST_ITEM_SID))
+                                             select a
+                ).ToList();
 
-            var r = new { LOT, USER, TOOL, EQP , SCRAP, DEFECT };
+            */
+            var CHECKLIST = new
+            {
+                //WP_LOT_CHECKLIST_ITEM = WP_LOT_CHECKLIST_ITEM.ToList(),
+                //WP_LOT_CHECKLIST_TAG_ITEM,
+                //FC_CHECKLIST_EDC_ROW = txn.EFQuery_MES.FC_CHECKLIST_EDC_ROW.GetData_ACTION_LINK_SID(key),
+            };
+            var r = new { LOT, USER, TOOL, EQP , SCRAP, DEFECT , CHECKLIST };
 
             string json = JsonConvert.SerializeObject(r, Newtonsoft.Json.Formatting.Indented);
 
@@ -359,13 +284,60 @@ namespace Genesis
 
 
         public string Debug { get; set; } = "";
-        public IHtmlString param_test { get { return Test("param.isTest='T'; console.log({ param });"); } }
-
-
+        public IHtmlString param_test { get { return Test(param_test_code); } }
+        string param_test_code = @"
+            param.isTest = 'T';
+            var _obj = $('.red_mark');
+            if (_obj.length >= 1 && _obj.css('color') != 'rgb(255, 0, 0)'){
+                param.isTest = 'F'
+            }
+            console.log(param);
+        ";
         public IHtmlString Test(string code, int mode = 0)
         {
-            if (mode != 0 && GTI_Test.IsDebuggingEnabled) return htm.Raw(code);
+            switch (mode) {
+                case 1:
+                    code = $@"
+                    var _obj = $('.red_mark.pass');
+                    if (_obj.length == 0 ){{
+                    {code}
+                    }}
+                    ";
+                    break;
+                case 9:
+                    code = red_mark(code);
+                    break;
+            }
+            
+            //if (mode != 0 && GTI_Test.IsDebuggingEnabled) return htm.Raw(code);
             return htm.Raw(isTest ? code : "");
+        }
+
+        public string red_mark(string tar)
+        {
+            if (tar == "") tar = "i.fa.fa-play";
+            return  $@"
+            $('<style>')
+              .prop('type', 'text/css')
+              .html(`
+                {tar}.red_mark {{
+                    color: rgb(255, 0, 0);
+                }}
+                {tar}.red_mark.pass {{
+                    color: inherit;
+                }}
+                `).appendTo('head');
+
+            $('{tar}').addClass('red_mark')
+                .on('click', function (e) {{
+                    var t = $('{tar}'), k = 'pass';
+                    var z = t.hasClass(k)
+                        ? t.removeClass(k)
+                        : t.addClass(k)
+                        ;
+                    e.stopPropagation();
+                }});
+            ";
         }
 
         public static void Exec(string ActName, string Key) { }
@@ -426,6 +398,16 @@ namespace Genesis
 
 
     public static class ext {
+        public static bool? ts_BoolNull(this int? _self)
+        {
+            if (_self == null) return null;
+            return _self != 0;
+        }
+
+        public static bool isEnable(this int _self)
+        => _self != 0;
+        
+
         public static IQueryable<T> IQueryable_ACTION_LINK_SID<T>(this IQueryable<T> queryable, string key) where T : class
         {
             // 獲取要查詢的類型
@@ -451,6 +433,40 @@ namespace Genesis
         }
         public static List<T> GetData_ACTION_LINK_SID<T>(this IQueryable<T> queryable, string key) where T : class
         => queryable.IQueryable_ACTION_LINK_SID(key).ToList();
+
+
+        public static IQueryable<PF_ROUTE_VER_OPER> f_Oper_找出關聯流程
+           (this MESContext _self
+           , string OperNo)
+        => from a in _self.PF_ROUTE_VER_OPER
+           where a.OPERATION_NO == OperNo
+           select a;
+
+        public static IQueryable<WP_LOT> f_Oper_找出一般批號
+           (this MESContext _self
+           , string OperNo)
+        => from a in _self.WP_LOT
+           where _self.PF_ROUTE_VER_OPER
+               .Any(c => c.OPERATION_NO == OperNo
+               && a.OPER_SID == c.OPER_SID)
+           select a;
+
+        public static LotInfo to_LotInfo
+           (this WP_LOT _self
+           , ITxnBase _Txn)
+        => _Txn.GetLotInfo(_self.LOT_SID);
+
+        //WP_LOT_OPER_PARALLEL
+        //public static IQueryable<WP_LOT_OPER_PARALLEL> f_Oper_找出併行工站批號
+        //   (this MESContext _self
+        //   , string OperNo)
+        //=> from a in _self.WP_LOT_OPER_PARALLEL
+        //   where _self.PF_ROUTE_VER_OPER
+        //       .Any(c => c.OPERATION_NO == OperNo
+        //       && a.ROUTE_VER_OPER_SID == c.ROUTE_VER_OPER_SID)
+        //   select a;
+
+
     }
 
 

@@ -39,6 +39,7 @@ using _mdl_mvc = MDL.GenesisMVC.Tables;
 using MDL;
 using static BLL.MES.TableQueryService;
 using Genesis.Gtimes.Transaction.WIP;
+using System.Threading.Tasks;
 
 namespace UnitTestProject
 {
@@ -2257,65 +2258,26 @@ delete AD_SHIFT where SHIFT_SID = @SHIFT_SID
 		 
 		},true,true);
 
-		/// <summary>
-		/// 測試 GTI_Txn 4.5 語法  與 EF 併行 , 基本上己經成功完成 ,但需要注意一點的地方就是 ,
-		/// EF 要讀取 GTI_Txn 4.5 執行後的資料 , 必須一定要使用 AsNoTracking() ,
-		///		否則取到的 會是 GTI_Txn 4.5 執行前的資料
-		///	但測試時發現  GTI_Txn 4.5 在讀取 EF 的異動資料 ,並沒有 前述的情形
-		///	
-		/// 20240709) 後來再優化 EFQuery_MES 後 , AsNoTracking 已經非必要 , 確定可以取得最新資料
-		/// </summary>
+
 		[TestMethod]
-		public void _EFQuery_MES_Transaction測試()
-		=> _DBTest((txn) => {
-			/*
-			 select  db_name(dbid) as dbname , count(*) 'connections count'
-				from master..sysprocesses
-				where spid > 50 and db_name(dbid) = 'JOCHUXM15_GTIMES5'
-				group by  db_name(dbid)
-				order by count(*) desc
-			 
-			 */
-			var x = txn.EFQuery_MES.WP_LOT.FirstOrDefault(c=>c.STATUS == "Run");
-			var _lot = txn.GetLotInfo(x.LOT_SID);
-
-			txn.DoTransaction( new WIPTransaction.HoldLotTxn(_lot)
-				,new WIPTransaction.EndOfLotTxn(_lot));
-
-			x.ATTRIBUTE_01 = "TEST2";
-			txn.EFQuery_MES.SaveChanges();
-
-			var x1 = txn.EFQuery<WP_LOT>().Read(c => c.LOT_SID == x.LOT_SID);
-			/*
-			此說明前的程序, 都只會共用一條連線 
-			*/
-
-
-				
-			//Check.Invalid("", true);
-			_lot = _lot.ReLoad(txn.DBC);
-			var r = TxnBase.LzDBQuery(ttx => {
-				var zz = ttx.EFQuery_MES.WP_LOT.FirstOrDefault();
-				return ttx.result;
+		public void _Parallel()
+		{
+			var LIST = new List<string> { "45105-2412090006-01.015", "1ABZ080004420-24C11AN024", ""};
+			var r = new List<WP_LOT>();
+			Parallel.ForEach(LIST, lot =>{
+				var _r = RunAsync(lot);
+				r.Add(_r);
 			});
-
-			var r1 = TxnBase.LzDBQuery(ttx => {
-				var zz = ttx.EFQuery_MES.WP_LOT.FirstOrDefault();
-				return ttx.result;
-			});
+			Console.Write(r);
+		}
 
 
-			/// 這段 語法一定會掛掉 , 因為 在 Transaction 機制下, 沒辦法再做 read()
-			var r2 = TxnBase.LzDBQuery(ttx => {
-				var zz = ttx.EFQuery_MES.WP_LOT.FirstOrDefault();
-				return ttx.result;
-			},txn.DBC);
-
-
-		}, true,true);
-
-
-
+		public static WP_LOT RunAsync(string LOT)
+        => TxnBase.LzDBQuery<WP_LOT>(Txn =>
+		{
+			return Txn.EFQuery_MES.WP_LOT.FirstOrDefault(c=>c.LOT == LOT);
+		});
+	
 
 		/// <summary>
 		/// 經實測 , 這個方法無法 ,並無法真正的遞迴取出所有資料

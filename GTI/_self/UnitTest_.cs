@@ -262,8 +262,8 @@ namespace UnitTestProject.TestUT
 		[TestMethod]
 		public void t_GTiMES_saltkey1()
 		{
-			var A = "RrYm72OF0OGCOKQFFAlvJg==";
-			var B = "B5K1MrMZWQwmZUXd";
+			var A = "oyx/67HMQms51wSVODquTg==";
+			var B = "K1XyUcfDObcmqVob";
 			var T = Encrypter.DecryptAES(A,B);
 			//
 			//var T = pwd.EncryptAES(A, B);

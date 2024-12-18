@@ -47,7 +47,7 @@ namespace UnitTestProject
 	var CurrentLot = Txn.GetLotInfo("3B0000-231213-01", isQueryByLotNO: true);
 	var mLot = Txn.GetMLotInfo("2001-15409-1-1B01");
 	var consumpMLot = new LotUtility.LotConsumptionMlotQuantity(mLot, (decimal)50, 0, 0);
-	Txn.DoTransaction(new WIPTransaction.LotConsumptionTxn(CurrentLot, consumpMLot));
+	//Txn.DoTransaction(new WIPTransaction.LotConsumptionTxn(CurrentLot, consumpMLot));
 }, true);
 
 
