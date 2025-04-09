@@ -248,7 +248,7 @@
 						automessage: false,
 						success: function (data) {
 							if (data.Success) {
-								_self.$Alert.Info(data.Message);
+                                _self.$Alert.msg_ExecSuccessful(null,false);
 							}
 						}
 					});

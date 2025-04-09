@@ -1,0 +1,50 @@
+﻿[
+    {
+        "SID": "GTI25020518250533281",
+        "CARRIER_NO": "Rack-03",
+        "TOOL_NO": "Feeder-01",
+        "MTLOT": [
+            "28-000102-00"
+        ],
+        "PARTNO": "28-000102-00",
+        "CARRIER_SLOT_NO": "111",
+        "WO": "100031207-0010",
+        "CHECKED": false
+    },
+    {
+        "SID": "GTI25020518250533282",
+        "CARRIER_NO": "Rack-03",
+        "TOOL_NO": "Feeder-02",
+        "MTLOT": [
+            "28-400018-01"
+        ],
+        "PARTNO": "28-400018-01",
+        "CARRIER_SLOT_NO": "113",
+        "WO": "100031207-0010",
+        "CHECKED": false
+    },
+    {
+        "SID": "GTI25020518270333285",
+        "CARRIER_NO": "Rack-04",
+        "TOOL_NO": "Feeder-03",
+        "MTLOT": [
+            "46-300010-01"
+        ],
+        "PARTNO": "46-300010-01",
+        "CARRIER_SLOT_NO": "213",
+        "WO": "100031207-0010",
+        "CHECKED": false
+    },
+    {
+        "SID": "GTI25020518270333286",
+        "CARRIER_NO": "Rack-04",
+        "TOOL_NO": "Feeder-04",
+        "MTLOT": [
+            "50-000085-00"
+        ],
+        "PARTNO": "50-000085-00",
+        "CARRIER_SLOT_NO": "214",
+        "WO": "100031207-0010",
+        "CHECKED": false
+    }
+]

@@ -7,6 +7,7 @@
     ViewBag.Title = Model.ViewBag_Title(Face.CHECKOUT);
     GTI_Test GTest = new GTI_Test(Html, HttpContext.Current.IsDebuggingEnabled, ViewContext.HttpContext.Request);
     var ZZRoot = @"~/Areas/ZZ_CUB/Views/OperTask/";
+    var BaseRoot = @"~/Areas/MES/Views";
 }
 
 <form id="WipForm">
@@ -48,11 +49,7 @@
                         </el-col>
                     </div>
                 </el-row>
-
-
                 <component is="recipe" :set_model="$data"></component>
-                <cp-lio-bb-testing :set_model="$data"></cp-lio-bb-testing>
-                <cp-lio-next-station-eqp :set_model="$data"></cp-lio-next-station-eqp>
             </div>
         </div>
     </div>
@@ -61,16 +58,16 @@
 
 
 @section Styles {
-
     @Styles.Render("~/Vendor/selectizeCSS")
     @Styles.Render(eBundle.elUI_CSS)
-
 }
 @section Scripts {
     @Scripts.Render(eBundle.Vue_MES)
     @Scripts.Render(eBundle.elUI_JS)
     @Scripts.Render("~/bundles/selectizeJS")
     @Scripts.Render("~/bundles/parsley")
+}
+@section vueApp {
 <script>
 
     var page;
@@ -78,7 +75,6 @@
     var pageVueVm = {};
 
     $(function () {
-
 
         let dataModel = @Html.Raw(Model.ToJson(true));
         @GTest.param_UItest()
@@ -140,10 +136,10 @@
                 useEqumentList: _base('multiLotEqpsScope', 'multi-lotsplit-eqps'),
                 ToolUnloadList: _base('toolUnload', 'cp-toolUnload'),
                 EqpUseToolList: _base('equipmentUseToolScope', 'equipment-use-tool', 16),
-                //edcList: _base('edcScope', 'edc-input', 16),
-                edcList: _base('edcScope', 'muti-edc-input', 16),
+                edcList: _base('edcScope', 'edc-input', 16),
+                //edcList: _base('edcScope', 'muti-edc-input', 16),
                 operationPartUseList: _base('operationPartUseScope', 'cp-usemtlot', 8),
-                ReWorkOperList: _base('reworkList', 'rework-input', 8, dataModel.Setting.CheckOutSet['IsReWork_cfg']),
+                //ReWorkOperList: _base('reworkList', 'rework-input', 8, dataModel.Setting.CheckOutSet['IsReWork_cfg']),
                 SelectGrade: _base('GradeScope', 'select-grade'),
                 //printInputVal: _base('printLineScope', 'print-line')
                 CollectLotAttr: _base('CollectLotAttr', 'collect-attr'),
@@ -230,7 +226,6 @@
             }
 
         })
-
         pageVueVm = new Vue({
             mixins: [Vue.prototype.$UT.Mixins.v_ErrGroup()],
             provide() {
@@ -284,7 +279,7 @@
                 }
             },
             methods: {
-                Test() {alert('test') },
+                Test() { alert('test') },
                 Print_Lot_History() {
                     var arg = {
                         //TODO-i18n
@@ -353,7 +348,6 @@
 
             }
         });
-
         var page = {
             pageVueVm,
             init: function () {
@@ -517,9 +511,10 @@
 
 
 </script>
+}
 
-
-
+@section webpart {
+@*
 @Html.Partial($"{ZZRoot}_multiSelectUsers.cshtml")
 @Html.Partial($"{ZZRoot}_good.cshtml")
 @Html.Partial($"{ZZRoot}_defect.cshtml")
@@ -528,21 +523,22 @@
 @Html.Partial($"{ZZRoot}_machineTools.cshtml")
 @Html.Partial($"{ZZRoot}_useOperPart.cshtml")
 
-@*
+
 Html.Partial("../../../MES/Views/WIP/Partial2/_splitLot", @Model)
 Html.Partial("../../../MES/Views/WIP/ZZ_Partial/_multiLotSplitEqps", @Model)
 Html.Partial("../../../MES/Views/WIP/Partial2/_equipmentUseTool", @Model)
 *@
 
-@Html.Partial("../../../MES/Views/Shared/_edc")
-@Html.Partial("../../../MES/Views/WIP/Partial2/_lotChangeNote")
-@Html.Partial("../../../MES/Views/WIP/ZZ_Partial/_bin")
-@Html.Partial("../../../MES/Views/WIP/ZZ_Partial/_rework")
-@Html.Partial("../../../MES/Views/WIP/ZZ_Partial/_wipInfo")
-@Html.Partial("../../../MES/Views/WIP/ZZ_Partial/_LotSplitCheckOut")
-@Html.Partial("../../../MES/Views/WIP/ZZ_Partial/_inputGoodQty")
-@Html.Partial("../../../MES/Views/WIP/Partial2/_recipe")
-@Html.Partial("../../../MES/Views/WIP/Partial2/_selectGrade")
-@Html.Partial("../../../MES/Views/WIP/Partial2/_toolUnload")
-@Html.Partial("../../../MES/Views/WIP/Partial2/_collectAttr")
+@Html.Partial($"{BaseRoot}/WIP/ZZ_Partial/_wipInfo.cshtml")
+@Html.Partial($"{BaseRoot}/WIP/Partial/_edcView.cshtml")
+@Html.Partial($"{BaseRoot}/Shared/_edc.cshtml", @Model)
+@Html.Partial($"{BaseRoot}/WIP/Partial2/_selectUsers.cshtml", @Model)
+@Html.Partial($"{BaseRoot}/WIP/Partial2/_lotChangeNote.cshtml")
+@Html.Partial($"{BaseRoot}/WIP/Partial2/_multiSelectUsers.cshtml", @Model)
+@Html.Partial($"{BaseRoot}/WIP/Partial2/_scrap.cshtml")
+@Html.Partial($"{BaseRoot}/WIP/Partial2/_defect.cshtml")
+@Html.Partial($"{BaseRoot}/WIP/Partial2/_recipe.cshtml")
+@Html.Partial($"{BaseRoot}/WIP/ZZ_Partial/_multiLotSplitEqps.cshtml", @Model)
+@Html.Partial($"{BaseRoot}/WIP/ZZ_Partial/_bin.cshtml")
+@Html.Partial($"{BaseRoot}/WIP/ZZ_Partial/_inputMixWOLots.cshtml")
 }

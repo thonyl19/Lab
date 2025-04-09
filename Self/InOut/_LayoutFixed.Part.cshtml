@@ -41,7 +41,6 @@
         .fixed-footer {
             bottom: 0;
         }
-
         nav a {
             color: #fff;
             text-decoration: none;
@@ -57,9 +56,8 @@
         }
 
         div.brand-logo1.adj {
-            padding: 1rem;
+            padding:1rem;
         }
-
             div.brand-logo1.adj img {
                 padding-top: .5rem;
                 width: 35px !important;
@@ -68,6 +66,7 @@
         .menu-bts {
             padding-top: 1rem;
             padding-right: 1rem;
+            padding-left: 26rem;
             height: 55px;
             min-width: 15rem;
             width: 100%;
@@ -79,32 +78,27 @@
             .menu-bts > .is-circle {
                 float: right;
                 margin-left: .9rem !important;
-                width: 37px;
+                width:37px;
             }
 
             .menu-bts > .is-round {
-                margin-right: 2rem;
+                margin-right:2rem;
             }
 
-        .area-fastAI {
-            position: absolute;
-        }
+            .area-fastAI {
+                position: absolute;
+            }
 
         @@media (min-width: 1200px) {
             .area-fastAI input {
                 width: 40rem !important;
             }
-
             .menu-bts .el-button {
                 font-size: 1.5rem;
             }
         }
-        @@media only screen and (max-width: 767px) {
-            .area-fastAI input {
-                width: 20rem !important;
-            }
-        }
-    </style>
+
+            </style>
 
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
@@ -121,35 +115,17 @@
     @Scripts.Render("~/bundles/jquery")
     @Scripts.Render("~/bundles/knockout")
     @Scripts.Render("~/bundles/signalR")
-    @Scripts.Render("~/bundles/modernizr")
-    @Scripts.Render("~/bundles/matchMedia")
-    @Scripts.Render("~/bundles/bootstrap")
-    @Scripts.Render("~/bundles/moment")
-    @Scripts.Render("~/bundles/storage")
-    @Scripts.Render("~/bundles/jqueryEasing")
-    @Scripts.Render("~/bundles/animo")
-    @Scripts.Render("~/bundles/slimscroll")
-    @Scripts.Render("~/bundles/screenfull")
-    @Scripts.Render("~/bundles/localize")
-    @Scripts.Render("~/bundles/demoRTL")
-
-
-    @Scripts.Render("~/bundles/SweetAlert_2")
-    @Scripts.Render("~/bundles/parsley")
-    <script src="~/Vendor/layer/layer.js"></script>
-    <!-- =============== APP SCRIPTS ===============-->
-    @Scripts.Render($"~/bundles/Genesis?v={jsVersion}")
     <!--VM模型-->
     <script>
-        var VmList = new Object();
-        //setBaseUrl
+		var VmList = new Object();
+		//setBaseUrl
         var baseUrl = localStorage.getItem("baseUrl");
-        var checkUrl = "@Genesis.Common.PageBaseInfo.GetBaseUrl()";
-        if (checkUrl != baseUrl) {
-            localStorage.setItem("baseUrl", checkUrl);
-            //清除cache項目
-            localStorage.removeItem("GTiRPTThemescss");
-        }
+		var checkUrl = "@Genesis.Common.PageBaseInfo.GetBaseUrl()";
+		if (checkUrl != baseUrl) {
+			localStorage.setItem("baseUrl", checkUrl);
+			//清除cache項目
+			localStorage.removeItem("GTiRPTThemescss");
+		}
     </script>
 
 
@@ -174,99 +150,117 @@
     @if (IsSectionDefined("BodyArea"))
     {@RenderSection("BodyArea", required: false)}
     <!-- =============== VENDOR SCRIPTS ===============-->
+    @Scripts.Render("~/bundles/modernizr")
+    @Scripts.Render("~/bundles/matchMedia")
+    @Scripts.Render("~/bundles/bootstrap")
+    @Scripts.Render("~/bundles/moment")
+    @Scripts.Render("~/bundles/storage")
+    @Scripts.Render("~/bundles/jqueryEasing")
+    @Scripts.Render("~/bundles/animo")
+    @Scripts.Render("~/bundles/slimscroll")
+    @Scripts.Render("~/bundles/screenfull")
+    @Scripts.Render("~/bundles/localize")
+    @Scripts.Render("~/bundles/demoRTL")
+
+
+    @Scripts.Render("~/bundles/SweetAlert_2")
+    @Scripts.Render("~/bundles/parsley")
+    <script src="~/Vendor/layer/layer.js"></script>
+    <!-- =============== APP SCRIPTS ===============-->
+    @Scripts.Render($"~/bundles/Genesis?v={jsVersion}")
     <!-- =============== PAGE VENDOR SCRIPTS ===============-->
     @RenderSection("fastAI", required: false)
     @RenderSection("scripts", required: false)
     @{
 
-    if (System.Web.Configuration.WebConfigurationManager.AppSettings["EnableMessageServices"] == "1")
-    {
-    if (BLL.MVC.CurrentProvider.Provider.checkIsLogger())
-    {
-    <text>
-        <script src="@System.Web.Configuration.WebConfigurationManager.AppSettings[" MessageServices"] /signalr/hubs"></script>
+        if (System.Web.Configuration.WebConfigurationManager.AppSettings["EnableMessageServices"] == "1")
+        {
+        if (BLL.MVC.CurrentProvider.Provider.checkIsLogger())
+        {
+        <text>
+            <script src="@System.Web.Configuration.WebConfigurationManager.AppSettings[" MessageServices"] /signalr/hubs"></script>
 
-        <script>
+            <script>
 
-            $(function () {
-                try {
-                    var checkUser = "@BLL.MVC.CurrentProvider.Provider.checkIsLogger()";
+                $(function () {
+                    try {
+                        var checkUser = "@BLL.MVC.CurrentProvider.Provider.checkIsLogger()";
 
-                    if (checkUser == "True") {
-                        var user = @Html.Raw(Newtonsoft.Json.JsonConvert.SerializeObject(@BLL.MVC.CurrentProvider.Provider.GetCurrent()));
-            //Set the hubs URL for the connection
-            var serverUri = "@System.Web.Configuration.WebConfigurationManager.AppSettings["MessageServices"]";
-            $.connection.hub.url = serverUri + "/signalr";
+                        if (checkUser == "True") {
+                            var user = @Html.Raw(Newtonsoft.Json.JsonConvert.SerializeObject(@BLL.MVC.CurrentProvider.Provider.GetCurrent()));
+                //Set the hubs URL for the connection
+                var serverUri = "@System.Web.Configuration.WebConfigurationManager.AppSettings["MessageServices"]";
+                $.connection.hub.url = serverUri + "/signalr";
 
-            // Declare a proxy to reference the hub.
-            var gt = $.connection.myHub;
+                // Declare a proxy to reference the hub.
+                var gt = $.connection.myHub;
 
-            //給 Server 回呼使用
-            gt.client.addMessage = function (msg) {
-                Swal.fire({
-                    //type: 'info',
-                    title: msg,
-                    timer: 10000,
-                    //text: 'Something went wrong!',
-                    //footer: '<a href>Why do I have this issue?</a>'
-                })
-
-                ////放入通知訊息裡
-                //notifyList.add(msg);
-            }
-
-            gt.client.syncUserList = function () {
-
-            }
-
-
-
-            $.connection.hub.start().done(function () {
-                gt.server.connect(user.UserSid, user.UserNo, user.UserName)
-                    .done(function () {
-                        console.info("已連線至Gcloud，等待命令更新中");
-
-                        //gt.server.send("Admin","testtesttes");
+                //給 Server 回呼使用
+                gt.client.addMessage = function (msg) {
+                    Swal.fire({
+                        //type: 'info',
+                        title: msg,
+                        timer: 10000,
+                        //text: 'Something went wrong!',
+                        //footer: '<a href>Why do I have this issue?</a>'
                     })
-                    .fail(function () {
-                        console.log('Could not Connect!');
-                    });
 
-                gt.server.getOnlineCount().done(function (num) {
-                    console.info("目前線上人數：" + num);
-                });
-
-
-
-                //取得線上人員Bind
-                window.SyncUserList = function () {
-                    $.BindUseroffidebar("@Url.Action("GetUserList","Portal",new { Area = ""})")
+                    ////放入通知訊息裡
+                    //notifyList.add(msg);
                 }
 
-                //每分鐘同步一次名單
+                gt.client.syncUserList = function () {
 
-                SyncUserList();
-                window.setInterval("window.SyncUserList()", 1000 * 60);
-
-                //gt.server.getOnlineUserList().done(function (data) {
-                //    var userList = JSON.parse(data);
-                //    $.BindUseroffidebar(userList);
-                //});
-
-
-            });
-                                                                                                                                                                                                        }
-                                                                                                                                                                                                    } catch (e) {
-                console.info("Gcloud services not running");
-            }
-                                                                                                                                                                                                })
+                }
 
 
 
-        </script>
+                $.connection.hub.start().done(function () {
+                    gt.server.connect(user.UserSid, user.UserNo, user.UserName)
+                        .done(function () {
+                            console.info("已連線至Gcloud，等待命令更新中");
 
-    </text>
-    }
+                            //gt.server.send("Admin","testtesttes");
+                        })
+                        .fail(function () {
+                            console.log('Could not Connect!');
+                        });
+
+                    gt.server.getOnlineCount().done(function (num) {
+                        console.info("目前線上人數：" + num);
+                    });
+
+
+
+                    //取得線上人員Bind
+                    window.SyncUserList = function () {
+                        $.BindUseroffidebar("@Url.Action("GetUserList","Portal",new { Area = ""})")
+                    }
+
+                    //每分鐘同步一次名單
+
+                    SyncUserList();
+                    window.setInterval("window.SyncUserList()", 1000 * 60);
+
+                    //gt.server.getOnlineUserList().done(function (data) {
+                    //    var userList = JSON.parse(data);
+                    //    $.BindUseroffidebar(userList);
+                    //});
+
+
+                });
+                                                                                                                                                                }
+                                                                                                                                                            } catch (e) {
+                    console.info("Gcloud services not running");
+                }
+                                                                                                                                                        })
+
+
+
+            </script>
+
+        </text>
+        }
     }
 
 
@@ -363,7 +357,6 @@
     </script>
 
     }
-
     <div id="vueApp">
         <div class="fixed-header">
             @Html.Partial("InOut/_TopNavTask")
@@ -378,7 +371,6 @@
         </div>
     </div>
     @RenderSection("webpart", required: false)
-    @RenderSection("vueApp", required: false)
 
 </body>
 </html>
