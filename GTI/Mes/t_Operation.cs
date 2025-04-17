@@ -1,5 +1,6 @@
 ﻿using BLL.MES;
 using BLL.MES.DataViews;
+using Frame.Code.Web.Select;
 using Genesis.Areas.MES.Controllers;
 using Genesis.Gtimes.ADM;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
@@ -7,7 +8,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Web.Mvc;
 using UnitTestProject.TestUT;
-
+using static Genesis.Gtimes.ADM.RouteUtility;
 
 namespace UnitTestProject
 {
@@ -210,6 +211,51 @@ namespace UnitTestProject
 
 		}
 
+		/// <summary>
+		/// 取得 流程中 , Judge 的參數設定
+		/// </summary>
+		[TestMethod]
+		public void t_取得所有由本站出發經由Judge路線可到達的下一站工作站物件集合()
+		=> _DBTest((txn) =>
+        {
+			var lot = txn.GetLotInfo("TestFurance2025021801-01", isQueryByLotNO: true);
+			
+			var routeVerOper = new RouteVersionOperationInfo
+				(txn.DBC
+				, lot.ROUTE_VER_OPER_SID);
+
+			var zz = DDLServices.ReWork(routeVerOper.ROUTE_VER_SID, routeVerOper.ROUTE_VER_OPER_SID);
+
+			var t = routeVerOper
+				.GetAllNextJudgePathRouteVersionOperationList();
+			var _list_Judge = zz
+				.Select(c=> new SelectModel{
+						SID = c.OPER_SID,
+						No = c.OPERATION_NO,
+						Display = c.OPERATION,
+						Value = c.OPER_SID,
+						Attr01 = c.ROUTE_VER_OPER_SID,
+						INum = 0,
+						Status = c.Status
+				}).ToList();
+
+			var is有Judge = _list_Judge.Count != 0;
+			if (is有Judge) {
+				var _r1 = routeVerOper.GetNextDefaultRouteVersionOperationInfo();
+				_list_Judge.Add(new SelectModel { 
+					SID = _r1.OPER_SID,
+					No = _r1.OPERATION_NO,
+					Display = _r1.OPERATION,
+					Value = _r1.OPER_SID,
+					Attr01 = _r1.ROUTE_VER_OPER_SID,
+					INum = 1,
+				});
+			}
+
+			new FileApp(false).Write_SerializeJson(_list_Judge, FileApp.ts_Log(@"Operation\t_NextJudgePath_1.json"));
+
+		}, true);
+
 
 		[TestMethod]
 		public void t_ZZ_ReWorkOperList()
@@ -263,6 +309,24 @@ namespace UnitTestProject
 			var oper_pre = oper.GetPrevDefaultRouteVersionOperationInfo();
 			var r = oper.IS_END;
 		}, true);
-		
+
+
+		[TestMethod]
+		public void _取得工站設定的機台治具()
+		=> _DBTest(Txn => {
+
+			//var oper = Txn.GetOperationInfo("C01-0020", OperationUtility.IndexType.No);
+			var _lotInfo = Txn.GetLotInfo("TWO-240725A-04", isQueryByLotNO: true);
+			var Fn_Eqp = new EquipmentUtility.EquipmentFunction(Txn.DBC);
+			var dt = Fn_Eqp.GetPartNoOperEquipmentData_OperSid(_lotInfo.WO, _lotInfo.ROUTE_VER_SID, _lotInfo.ROUTE_VER_OPER_SID
+				, _lotInfo.PARTNO, _lotInfo.OPER_SID);
+
+			var Fn_Tool = new ToolUtility.ToolFunction(Txn.DBC);
+			var dt1 = Fn_Tool.GetPartNoOperToolData_OperSid(_lotInfo.WO, _lotInfo.ROUTE_VER_SID, _lotInfo.ROUTE_VER_OPER_SID
+				, _lotInfo.PARTNO, _lotInfo.OPER_SID);
+
+		}, true);
+
+
 	}
 }

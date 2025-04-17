@@ -15,6 +15,7 @@
     using static Genesis.Library.BLL.MES.DataViews.System;
     using _v8n = BLL.MES.FluentValidation;
     using System.Linq;
+    using BLL.InterFace;
 
 
     //[assembly:NeutralResourcesLanguage("en")]
@@ -263,6 +264,17 @@
                          select A.RESOURCE_SID).ToList();
         },false, true);
 
-   
+
+        [TestMethod]
+        public void t_ddl_Parameter()
+        => _DBTest((txn) =>
+        {
+            var t = BLL.MES.DDLServices.ddl_Parameter("PARA_HighFrequencyMaterial").ToJson(true);
+
+            
+
+        }, false, true);
+
+
     }
 }

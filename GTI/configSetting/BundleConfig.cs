@@ -41,10 +41,11 @@ using Newtonsoft.Json.Linq;
 using System.Web.Http.Description;
 using MDL.GenesisMVC.Tables;
 using Genesis.Gtimes.WIP;
+using System.Web.Http.Cors;
 
 namespace Genesis
 {
-    public static class eBundle
+	public static class eBundle
 	{
 		public static string bootstrap_Css = "~/Content/bootstrapCss";
 		public static string jqGrid_CSS = "~/bundles/jqGridCss";
@@ -53,19 +54,16 @@ namespace Genesis
 		public static string JQuery = "~/bundles/jquery";
 		public static string JQueryDrag_JS = "~/Vendor/JQueryDragJS";
 		public static string JQueryDrag_CSS = "~/Vendor/JQueryDragCSS";
-		public static string Storage = "~/bundles/storage";
-		
 		public static string Genesis = "~/bundles/Genesis";
 		public static string elUI_JS = "~/Vendor/elUI_JS";
 		public static string elUI_CSS = "~/Vendor/elUI_CSS";
 		public static string app_el_CSS = "~/Content/app/css/app_el.css";
-        public static string app_component = "~/Content/app/css/app_component.css";
+		public static string app_component = "~/Content/app/css/app_component.css";
 		public static string jqDataTables_JS = "~/Vendor/jqDataTablesJs";
 		public static string jqDataTables_CSS = "~/Vendor/jqDataTablesCss";
 
 		public static string artTemplate = "~/bundles/artTemplate";
 		public static string parsley = "~/bundles/parsley";
-		public static string localize = "~/bundles/localize";
 		/// <summary>
 		/// 備註：這裡不包括載入 elUI 相關套件
 		/// </summary>
@@ -77,7 +75,7 @@ namespace Genesis
 		public static string c3_JS = "~/Vendor/c3Js";
 		public static string char_JS = "~/Vendor/charJs";
 		public static string ECharts_JS = "~/Vendor/EChartsJs";
-
+		public static string MQTT_JS = "~/Vendor/MQTTJs";
 
 		//public static IHtmlString QRender_JS()
 		//{
@@ -89,7 +87,7 @@ namespace Genesis
 		//}
 		public static IHtmlString QRender_JS(params string[] list)
 		{
-			var _list = new string[] { 
+			var _list = new string[] {
 				eBundle.selectize_JS
 				, eBundle.Vue_MES
 				, eBundle.elUI_JS
@@ -99,15 +97,15 @@ namespace Genesis
 
 		public static IHtmlString QRender_CSS(params string[] list)
 		{
-            var _list = new string[] { eBundle.selectize_CSS
-                , eBundle.elUI_CSS 
-                , eBundle.app_el_CSS
+			var _list = new string[] { eBundle.selectize_CSS
+				, eBundle.elUI_CSS
+				, eBundle.app_el_CSS
 				, eBundle.app_component
 			}.Concat(list).ToArray();
-            return Styles.Render (_list);
+			return Styles.Render(_list);
 		}
 
-		
+
 	}
 
 	public class BundleConfig
@@ -129,7 +127,8 @@ namespace Genesis
 			styleBundle = new StyleBundle("~/bundle/appCss")
 						 .Include("~/Content/app/css/app.css")
 						 .Include("~/Content/app/css/print.css")
-						 .Include("~/Content/mvc-override.css");
+						 .Include("~/Content/mvc-override.css")
+						 .Include("~/Content/pad_adjust/overscroll_nav_off.css");
 
 			styleBundle.Transforms.Add(new StyleTransformer());//修正CSS檔裡的URL錯誤問題
 			/***再呼叫這行執行檔案最小化***/
@@ -159,7 +158,11 @@ namespace Genesis
 				"~/Scripts/app/modules/trigger-resize.js",
 				"~/Scripts/app/modules/fullscreen.js",
 				"~/Scripts/app/modules/gmap.js",
-				
+
+				//"~/Scripts/app/modules/localize.js",
+				"~/Vendor/i18next/i18next.js",
+				"~/Vendor/i18next/i18nextBrowserLanguageDetector.js",
+				"~/Vendor/i18next/i18nextHttpBackend.js",
 				"~/Scripts/app/modules/i18next.js",
 				"~/Scripts/app/modules/maps-vector.js",
 				"~/Scripts/app/modules/navbar-search.js",
@@ -256,7 +259,8 @@ namespace Genesis
 			// Main Vendor
 
 			bundles.Add(new ScriptBundle(eBundle.JQuery).Include(
-				"~/Vendor/jquery/dist/jquery.js"
+						"~/Vendor/jquery/dist/jquery.js"
+			//"~/Vendor/jquery/dist/jquery-migrate-3.1.0.js"
 			));
 
 			bundles.Add(new ScriptBundle(eBundle.c3_JS).Include(
@@ -271,10 +275,11 @@ namespace Genesis
 			));
 
 			bundles.Add(new ScriptBundle(eBundle.ECharts_JS).Include(
-				"~/Vendor/echarts/5.3.0/dist/echarts.js"
+				"~/Vendor/echarts/5.3.0/dist/echarts.js",
 				//"~/Vendor/echarts/4.1.0/vue-echarts.min.js"
+				"~/Vendor/echarts/5.3.0/theme/shine.js"
 			));
-			
+
 
 			bundles.Add(new StyleBundle(eBundle.c3_CSS)
 			  .Include("~/c3/c3.css", new CssRewriteUrlTransform())
@@ -324,7 +329,7 @@ namespace Genesis
 			#endregion
 
 
-			bundles.Add(new ScriptBundle(eBundle.Storage).Include(
+			bundles.Add(new ScriptBundle("~/bundles/storage").Include(
 			  "~/Vendor/jQuery-Storage-API/jquery.storageapi.js"
 			));
 
@@ -713,15 +718,22 @@ namespace Genesis
 			"~/Vendor/doublebox-bootstrap/doublebox-bootstrap.js"
 			));
 
+			////selectize
+			//bundles.Add(new ScriptBundle(eBundle.selectize_JS).Include(
+			//	"~/Vendor/selectize.js-0.12.4/js/microplugin.js",
+			//	"~/Vendor/selectize.js-0.12.4/js/sifter.js",
+			//	"~/Vendor/selectize.js-0.12.4/js/selectize.js"
+			//	));
 			//selectize
 			bundles.Add(new ScriptBundle(eBundle.selectize_JS).Include(
-				"~/Vendor/selectize.js-0.12.4/js/microplugin.js",
-				"~/Vendor/selectize.js-0.12.4/js/sifter.js",
-				"~/Vendor/selectize.js-0.12.4/js/selectize.js"
+				"~/Vendor/selectize/selectize.js-0.15.2/js/selectize.js"
 				));
 
+			//bundles.Add(new StyleBundle(eBundle.selectize_CSS).Include(
+			//	"~/Vendor/selectize.js-0.12.4/css/selectize.bootstrap3.css"));
+
 			bundles.Add(new StyleBundle(eBundle.selectize_CSS).Include(
-				"~/Vendor/selectize.js-0.12.4/css/selectize.bootstrap3.css"));
+				"~/Vendor/selectize/selectize.js-0.15.2/css/selectize.bootstrap3.css"));
 
 			bundles.Add(new StyleBundle(eBundle.elUI_CSS).Include(
 				"~/Vendor/element-ui/lib/theme-chalk/index.css"));
@@ -748,8 +760,7 @@ namespace Genesis
 			//signalR
 			bundles.Add(new ScriptBundle("~/bundles/signalR").Include(
 				"~/Scripts/json2.js",
-				//"~/signalr/hubs",
-				"~/Scripts/jquery-3.5.1.min.js",
+				"~/signalr/hubs",
 				"~/Scripts/jquery.signalR-2.4.1.min.js"
 			));
 
@@ -796,7 +807,7 @@ namespace Genesis
 
 			//Vue
 			bundles.Add(new ScriptBundle(eBundle.Vue).Include(
-			  "~/Scripts/vue.js",
+			  "~/Scripts/vue.min.js",
 			  "~/Scripts/lodash.min.js"
 			));
 			bundles.Add(new ScriptBundle(eBundle.Vue_MES).Include(
@@ -854,6 +865,11 @@ namespace Genesis
 			"~/Scripts/art-template-web.js"
 			));
 
+			//MQTT
+			bundles.Add(new ScriptBundle(eBundle.MQTT_JS).Include(
+			"~/Vendor/mqtt/mqtt.js"
+			));
+
 			//當設定為true時,輸出則會顯示壓縮後的檔案
 			//當為false,輸出則顯示個別檔案
 			BundleTable.EnableOptimizations = false;
@@ -861,6 +877,7 @@ namespace Genesis
 
 		}
 	}
+
 }
 
 
@@ -1099,6 +1116,7 @@ namespace Genesis.Areas.DDD.Controllers
 				"DDD/{controller}/{action}/{id}",
 				new { action = "Index", id = UrlParameter.Optional }
 			);
+			//context.EnableCors();
 		}
 	}
 
@@ -1174,11 +1192,11 @@ namespace Genesis.Areas.DDD.Controllers
 			return response;
 		}
 	}
-	
-	
+
+	[EnableCors(origins: "http://example.com, http://localhost:3000", headers: "*", methods: "GET, POST")]
 	[SwaggerAuthorizationFilterAttribute]
 	[RoutePrefix("DDD/DBA")]
-	public class DBAController : BaseController
+	public class DBAController : System.Web.Http.ApiController
 	{
 		DBController _dbc;
 		internal DBController DBC
@@ -1195,15 +1213,22 @@ namespace Genesis.Areas.DDD.Controllers
 			}
 		}
 
-		[Route("IP/{IP}")]
-		public ActionResult LotInfo(string IP = "226")
-		=> _Content((o) => {
-			using (_dbc ?? DBC)
-			{
+		//[Route("IP/{IP}")]
+		//public ActionResult LotInfo(string IP = "51")
+		//=> _Content((o) => {
+		//	//var connectionString = $"Server=10.96.1.{IP};Database=myDatabase;User Id=myUser;Password=myPassword;";
 
-			}
-			return null;
-		});
+		//	//using (var connection = new SqlConnection(connectionString)){
+		//	//	// 查詢所有資料庫
+		//	//	var sql = "SELECT name FROM sys.databases;";
+		//	//	var databases = connection.Query<string>(sql).ToList();
+
+		//	//	// 查詢特定資料庫中的表
+		//	//	sql = "SELECT name FROM sys.tables WHERE SCHEMA_NAME(schema_id) = 'dbo'";
+		//	//	var tables = connection.Query<string>(sql, new { database = "myDatabase" }, commandType: CommandType.Text).ToList();
+		//	//}
+		//	return null;
+		//});
 
 		/*
 		~\Genesis_MVC\Common\LogActionFilterAttribute.cs 
@@ -1212,10 +1237,12 @@ namespace Genesis.Areas.DDD.Controllers
 			skipAction.Add("Dashboard_vue");
 		 */
 		//[EnableCors(origins: "http://allowed-origin.com", headers: "*", methods: "GET")]
+		[EnableCors(origins: "http://example.com, http://localhost:3000, http://127.0.0.1:3000", headers: "*", methods: "GET, POST")]
+		[System.Web.Http.AllowAnonymousAttribute]
 		[AllowAnonymous]
-		[Route("Table")]
-		[Route("Table/{Table}")]
-		public ActionResult GetResource(string Table = null)
+		[System.Web.Http.Route("DDD/DBA/Table")]
+		[System.Web.Http.Route("DDD/DBA/Table/{Table}")]
+		public dynamic GetResource(string Table = null)
 		{
 			using (_dbc ?? DBC)
 			{
@@ -1240,10 +1267,9 @@ namespace Genesis.Areas.DDD.Controllers
 		                    OBJECT_NAME(c.object_id) = '{Table}'
                 ";
 				var _sql = Table == null ? sql_table_list : sql_table_schema;
-				return Content(_dbc.Select(_sql).ToJson(true));
+				return _dbc.Select(_sql);//.ToJson(true));
 
 			}
-			return Content("");
 		}
 	}
 	[RoutePrefix("DDD/Wafer")]
@@ -1566,18 +1592,19 @@ namespace Genesis.Areas.SYSAdmin.Controllers
 			ViewData["result"] = ResourceServices.Query(keyVal).ToJson(true);
 			ViewData["SingleModel"] = true;
 			ViewData["mode"] = string.IsNullOrEmpty(keyVal) ? "Add" : "Edit";
-			var _view = "~/Areas/Example/Views/Self/ADM/ResourceData.cshtml";
+			var _view = "~/Areas/Example/Views/Self/ADM/ResourceData_T.cshtml";
 			return View(_view);
 		}
 
 		[HttpPost]
 		[HandlerAjaxOnly]
-		[ValidateAntiForgeryToken]
+		[AllowAnonymous]
+		////[ValidateAntiForgeryToken]
 		public ActionResult UpdateExt(DataModel model)
 		{
 			if (string.IsNullOrEmpty(model.form.SID))
 			{
-				return Content(Insert(model).ToJson());
+				return Content(ResourceServices.Insert(model).ToJson());
 			}
 			else
 			{
@@ -1587,12 +1614,12 @@ namespace Genesis.Areas.SYSAdmin.Controllers
 
 		[HttpPost]
 		[HandlerAjaxOnly]
-		[ValidateAntiForgeryToken]
+		[AllowAnonymous]
+
 		public ActionResult Add_ROLE(string RESOURCE_SID)
 		=> _Content(c => f_Add_ROLE(RESOURCE_SID));
 
-		public ActionResult Insert(DataModel model)
-		=> _Content((c) => ResourceServices.Insert(model));
+ 
 
 		/// <summary>
 		/// 
@@ -1602,7 +1629,7 @@ namespace Genesis.Areas.SYSAdmin.Controllers
 		/// <returns></returns>
 		public static IResult f_Add_ROLE(string RESOURCE_SID)
 		=> WIPInjectServices.TxnBase.LzDBTrans(null, Txn=>{
-				/* 因為專案編譯的需求 先 mark 掉
+				//* 因為專案編譯的需求 先 mark 掉
 				var role = Txn.EFQuery_MVC.AD_ROLE.Where(c => c.ROLE_NO == "Admin").FirstOrDefault();
 				Check.Invalid("AD_ROLE 查無 Admin 帳號", role == null);
 
@@ -1685,6 +1712,34 @@ namespace Genesis.Areas.ADM.Controllers
 
 namespace Genesis
 {
+	[AttributeUsage(AttributeTargets.Method | AttributeTargets.Class, AllowMultiple = false)]
+	public class GTI_TestAPIAttribute : System.Web.Http.Filters.ActionFilterAttribute
+	{
+		public string DynamicProcessName { get; set; } // 新增屬性
+
+		public GTI_TestAPIAttribute(string dynamicProcessName = null) //新增建構子
+		{
+			DynamicProcessName = dynamicProcessName;
+		}
+		public override void OnActionExecuting(System.Web.Http.Controllers.HttpActionContext filterContext)
+		=> GTI_Test.dyn_TxnBase_T(DynamicProcessName);
+	}
+
+	[AttributeUsage(AttributeTargets.Method | AttributeTargets.Class, AllowMultiple = false)]
+	public class GTI_TestAttribute : ActionFilterAttribute{
+		public string DynamicProcessName { get; set; } // 新增屬性
+
+		public GTI_TestAttribute(string dynamicProcessName = null) //新增建構子
+		{
+			DynamicProcessName = dynamicProcessName;
+		}
+
+		public override void OnActionExecuting(ActionExecutingContext filterContext)
+		=> GTI_Test.dyn_TxnBase_T(DynamicProcessName);
+
+	}
+
+ 
 	public class Ext
 	{
 		public static IResult Add_Item(string PARAMETERGROUP_SID, List<AD_PARAMETER> list, bool isTest = false)
@@ -1729,10 +1784,11 @@ namespace Genesis
 			if (val == null) return false;
 			return val != 0;
 		}
-		public static bool isEnable(object val)
-		=> val != null;
+		public static bool isAction(object val,bool isPass0 = true)
+		=> val != null && (isPass0 && (int)val != 0 );
 
 	}
+ 
 }
 
 //*
@@ -1744,19 +1800,124 @@ namespace Genesis.WebApi
 	[System.Web.Http.RoutePrefix("api")]
 	public partial class SelfInfoController : System.Web.Http.ApiController
 	{
-		public class d_批號 {
-			public int isTest;
-			public int? CheckIn;
-			public string LOT;
-			public string SID;
-			public d_批號_Act Action;
-		}
-		public class d_批號_Act {
-			public int _全部流程的工作站擴展;
-			public int _依據料號流程工站設定取得原因碼;
-			public int _測試再製品查詢;
+		/*
+			因為 swagger 資料格式中 null 只會自動識別為 0 
+			所以 為了滿足使用 null 的情形 , 目前設置為 ,參數的前置為 _ 者,
+				預設就是 0 為 null , 而 1 為 T , 2 為 F ,
+				然後 ,都應使用 ts_NullBool 做為標準轉換,
+
+			 */
+
+		public class d_Base
+		{
+			public int isTest { get; set; } = 1;
+			public int? CheckIn { get; set; }
+			public string UserNo { get; set; }
+
+			[JsonIgnore]
+			public bool _Test
+			{
+				get { return isTest == 1; }
+			}
+
 		}
 
+		public class d_Base_工作站
+		{
+			public string OPER_NO { get; set; }
+			public string OPER_SID { get; set; }
+
+
+			public PF_OPERATION get_PF_OPERATION(ITxnBase Txn){
+				PF_OPERATION oper = null;
+				if (string.IsNullOrWhiteSpace(OPER_NO.ts_NullString()) == false){
+					oper = Txn.EFQuery_MES.PF_OPERATION
+						.Where(c => c.OPERATION_NO == OPER_NO)
+						.FirstOrDefault()
+						//.FirstOrDefault_CheckExists(RES.BLL.Face.OPERATION_NO)
+						;
+					OPER_SID = oper.OPER_SID;
+				}
+				Check.Invalid("OPER_SID 或 OPER_NO 必須有值", OPER_SID.ts_NullString() == null);
+				return oper;
+			}
+
+
+			/// <summary>
+			/// 
+			/// </summary>
+			/// <param name="Txn"></param>
+			/// <param name="OPER_SID"></param>
+			/// <param name="mode">1)過濾出只有設定的部份 2)全部顯示</param>
+			/// <returns></returns>
+			public dynamic ts_OperExpandSetting(ITxnBase Txn,string OPER_SID, int mode)
+			{
+				var r = Txn.EFQuery_MES.PF_OPERATION_EXPAND.Where(t => t.OPER_SID == OPER_SID).FirstOrDefault();
+				if (r != null)
+				{
+					var root = r.SETTING_JSON.ToObject<OperExpandSetting>();
+					switch (mode)
+					{
+						case 2://按原始全部顯示
+							return root;
+							break;
+						case 1://過濾出只有設定的部份
+							var r2 = new Dictionary<string, Dictionary<string, dynamic>>();
+							foreach (var Sub1 in root.GetType().GetProperties())
+							{
+								var key = Sub1.Name;
+								var value = Sub1.GetValue(root);
+								if (value != null)
+								{
+									var r3 = new Dictionary<string, dynamic>();
+									foreach (var Sub2 in value.GetType().GetProperties())
+									{
+										var key1 = Sub2.Name;
+										var val1 = Sub2.GetValue(value);
+										if (checkIsEable(val1))
+										{
+											r3.Add(key1, val1);
+										}
+									}
+									r2.Add(key, r3);
+								}
+							}
+							return r2;
+							break;
+					}
+				}
+				return null;
+			}
+
+			private bool checkIsEable(object val1)
+			{
+				if (val1 is bool) return (bool)val1;
+
+				Type type = val1.GetType();
+				// 嘗試取得名為 "enable" 的屬性
+				PropertyInfo enableProperty = type.GetProperty("enable");
+				if (enableProperty != null)
+				{
+					var v = (bool)enableProperty.GetValue(val1);
+					return v;
+				}
+				return false;
+			}
+
+		}
+		public class d_批號 {
+			public d_Base _Base { get; set; }
+			public string LOT;
+			public string SID;
+			public Act Action;
+
+			public class Act
+			{
+				public int 列舉流程版本工站中有開啟的擴展_全部;
+				public int 依據料號流程工站設定取得原因碼;
+				public int 測試再製品查詢;
+			}
+		}
 		/*
 		[System.Web.Http.AllowAnonymousAttribute]
 		[System.Web.Http.Route("批號")]
@@ -1765,26 +1926,29 @@ namespace Genesis.WebApi
 			var lot = (from a in Txn.EFQuery_MES.WP_LOT
 					   where a.LOT == data.LOT || a.LOT_SID == data.SID
 					   select a).FirstOrDefault_CheckExists();
-			if (Ext.isEnable(data.Action?._全部流程的工作站擴展)){
+
+			if (data.Action.列舉流程版本工站中有開啟的擴展_全部.isAction()){
 				dynamic r1 = new ExpandoObject();
 				var RouteVerInfo = lot.to_LotInfo(Txn).GetRouteVersionInfo();
 				var Opers = RouteVerInfo.GetRouteVersionOperationList();
+				var _base_Oper = new d_Base_工作站();
 				r1.Opers = Opers;
 				r1.Settings = (from a in Opers
-							   select new
-							   {
+							   select new {
 								   a.OPER_SID,
 								   a.OPERATION,
 								   a.OPER_SEQ,
-								   Setting = ts_OperExpandSetting(Txn, a.OPER_SID, data.Action._全部流程的工作站擴展),
+								   Setting = _base_Oper.ts_OperExpandSetting(Txn, a.OPER_SID, data.Action.列舉流程版本工站中有開啟的擴展_全部),
 							   })
 							   .Where(c=>c.Setting !=null)
 							   .ToList();
 				r1.lot = lot;
 				return r1;
-			}else if (Ext.isEnable(data.Action?._依據料號流程工站設定取得原因碼)){
+			}
+			else if (data.Action.依據料號流程工站設定取得原因碼.isAction()){
 				return DDLServices.GetPartNoOperReasonCodeData_OperSid(lot.LOT, lot.to_LotInfo(Txn));
-			}else if (Ext.isEnable(data.Action?._測試再製品查詢)){
+			}
+			else if (data.Action.測試再製品查詢.isAction()){
 				return (from w0 in Txn.EFQuery_MES.PF_PARTNO
 						where w0.PARTNO == data.SID
 						select w0
@@ -1833,65 +1997,109 @@ namespace Genesis.WebApi
 			//};
 			//return Txn.result;
         });
-		//*/
 
-		dynamic ts_OperExpandSetting(ITxnBase Txn, string OPER_SID,int mode) {
-			var r = Txn.EFQuery_MES.PF_OPERATION_EXPAND.Where(t => t.OPER_SID == OPER_SID).FirstOrDefault();
-			if (r != null) {
-				var root  = r.SETTING_JSON.ToObject<OperExpandSetting>();
-				switch (mode) {
-					case 9://按原始全部顯示
-						return root;
-						break;
-					case 1://過濾出只有設定的部份
-						var r2 = new Dictionary<string, Dictionary<string, dynamic>>();
-						foreach (var Sub1 in root.GetType().GetProperties()){
-							var key = Sub1.Name;
-							var value = Sub1.GetValue(root);
-							if (value != null){
-								var r3 = new Dictionary<string, dynamic>();
-								foreach (var Sub2 in value.GetType().GetProperties()) {
-									var key1 = Sub2.Name;
-									var val1 = Sub2.GetValue(value);
-									if (checkIsEable(val1)) { 
-										r3.Add(key1,val1);
-									}
-								}
-								r2.Add(key, r3);
-							}
-						}
-						return r2;
-						break;
-				}
-			} 
-			return null;
-		}
+		*/
 
-        private bool checkIsEable(object val1){
-			if (val1 is bool ) return (bool)val1;
+		public class d_工作站
+		{
+			public d_Base _Base { get; set; }
+			public d_Base_工作站 _Base_工作站 { get; set; }
+			public Act Action;
 
-			Type type = val1.GetType();
-			// 嘗試取得名為 "enable" 的屬性
-			PropertyInfo enableProperty = type.GetProperty("enable");
-			if (enableProperty != null){
-				var v = (bool)enableProperty.GetValue(val1);
-				return v;
+			public class Act
+			{
+				public int 列舉有開啟的擴展_全部;
 			}
-			return false;
 		}
 
-        /// <summary>
-        /// 測試
-        /// </summary>
-        /// <param name="Test"></param>
-        /// <returns></returns>
-        [System.Web.Http.HttpGet]
-		[System.Web.Http.Route("Lot1")]
-		public string LotInfox(string Test)
-		=>TxnBase.LzDBQuery<string>(Txn=>{
-			Check.Invalid("test-Invalid", Test == "Invalid");
-			return Test;
+		[System.Web.Http.AllowAnonymousAttribute]
+		[System.Web.Http.Route("工作站")]
+		public dynamic 工作站(d_工作站 data)
+		=> TxnBase.LzDBQuery<dynamic>(Txn => {
+			if (data.Action.列舉有開啟的擴展_全部.isAction()){
+				dynamic r1 = new ExpandoObject();
+				r1.oper = data._Base_工作站.get_PF_OPERATION(Txn);
+				r1.Settings = data._Base_工作站.ts_OperExpandSetting(Txn, r1.oper.OPER_SID, data.Action.列舉有開啟的擴展_全部);
+				return r1;
+			}
+			return data;	 
 		});
+		/*
+		[System.Web.Http.AllowAnonymousAttribute]
+		[System.Web.Http.Route("RouteOperStage")]
+		public dynamic RouteOperStage(Library.BLL.ADM.RouteOperStageServices.d_Query_RouteOperStage data)
+		=>TxnBase.LzDBQuery<dynamic>(Txn =>{
+			dynamic _r = new ExpandoObject();
+			var list = new List<dynamic>();
+			if (data.isQueryStage){
+				var PF_STAGEs= (from a in Txn.EFQuery_MES.PF_STAGE.f_STAG_Query(data)
+							select a).ToList();
+
+				foreach (var PF_STAGE in PF_STAGEs) {
+				var Info = (from a in Txn.EFQuery_MES.PF_ROUTE_VER_OPER_STAGE
+							join b in Txn.EFQuery_MES.PF_ROUTE_VER_OPER
+								on a.ROUTE_VER_OPER_SID equals b.ROUTE_VER_OPER_SID
+								into b_grp
+							from b in b_grp.DefaultIfEmpty()
+							where a.STAGE_SID == PF_STAGE.STAGE_SID
+							select new {
+								a.ROUTE_VER_OPER_STAGE_SID,
+								a.STAGE_SID,
+								a.ROUTE_VER_SID,
+								b.OPER_SEQ,
+								b.OPERATION,
+								b.OPERATION_NO,
+								b.ROUTE,
+								b.ROUTE_NO,
+								b.VERSION,
+							})
+							.ToList();
+					list.Add(new { PF_STAGE, Info });
+				}
+				_r.r = list;
+				return _r;
+			}
+			if (data.isQueryOper) { 
+				var Opers = (from a in Txn.EFQuery_MES.PF_ROUTE_VER_OPER.f_STAG_QueryRouteOper(data)
+							 select a);
+				var STAGE_Info = (from a in Txn.EFQuery_MES.PF_ROUTE_VER_OPER_STAGE
+										.Where(c1 => Opers.Any(c2 => c2.ROUTE_VER_OPER_SID == c1.ROUTE_VER_OPER_SID))
+						join b in Txn.EFQuery_MES.PF_STAGE
+							on a.STAGE_SID equals b.STAGE_SID
+							into b_grp
+						from b in b_grp.DefaultIfEmpty()
+						select new
+						{
+							a.ROUTE_VER_OPER_STAGE_SID,
+							a.ROUTE_VER_OPER_SID,
+							a.STAGE_SID,
+							b.STAGE_NO,
+							b.STAGE_NAME,
+						})
+						.ToList();
+				_r.r = new { Opers, STAGE_Info };
+				return _r;
+			}
+
+			return data;	 
+		});
+
+		*/
+
+
+
+  //      /// <summary>
+  //      /// 測試
+  //      /// </summary>
+  //      /// <param name="Test"></param>
+  //      /// <returns></returns>
+  //      [System.Web.Http.HttpGet]
+		//[System.Web.Http.Route("Lot1")]
+		//public string LotInfox(string Test)
+		//=>TxnBase.LzDBQuery<string>(Txn=>{
+		//	Check.Invalid("test-Invalid", Test == "Invalid");
+		//	return Test;
+		//});
 
 		[System.Web.Http.AllowAnonymousAttribute]
 		[System.Web.Http.HttpGet]

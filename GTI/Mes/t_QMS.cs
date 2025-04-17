@@ -74,7 +74,7 @@ namespace UnitTestProject
 		[TestMethod]
 		public void t_QCResult_linq()
 		{
-			var r = QMSService.QCResult_linq("INSP24100603", "SIPQC");
+			//var r = QMSService.QCResult_linq("INSP24100603", "SIPQC");
 		}
 		
 		

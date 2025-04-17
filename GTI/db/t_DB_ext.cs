@@ -123,7 +123,7 @@ namespace UnitTestProject
 		}, true, true);
 
 		[TestMethod]
-		public void _測試組合表1()
+		public void _MockDB_單一張表()
 		=> _DBTest((txn) =>
 		{
 			var mockSet = new Mock<DbSet<WP_LOT_OPER_PARALLEL_SN>>();
@@ -162,7 +162,90 @@ namespace UnitTestProject
 			Assert.AreEqual(1, rows_過站記錄.Count);
 			//FileApp._tmpJson(_d.ToList());
 		}, false, true);
-	} 
+
+
+		[TestMethod]
+		public void t_測試d_MasterDetail的應用()
+		=> _DBTest((txn) => {
+			var query = txn.EFQuery_MES
+				.view_UserTrace()
+				.FirstOrDefault(c => c.Main.IN_MASTER_SID == "GTI25031809251667011");
+
+		}, false);
+
+		/*
+		這個功能當無法實現,因為 在 c#7 版本中 , 兩表 join 時的  equals 表示式 ,
+			無法使用 Expression 來完成 ,
+		 */
+		[TestMethod]
+		public void x_QueryMainExt()
+		=> _DBTest((txn) =>
+		{
+			//var t = txn.EFQuery_MES.view_EqpExt().FirstOrDefault();
+			//var t1 = t.Ext?.MAX_USE_COUNT;
+
+			var query = txn.EFQuery_MES.QueryMainExt(
+					txn.EFQuery_MES.FC_EQUIPMENT,         // 主表
+					txn.EFQuery_MES.FC_EQUIPMENT_EXT,     // 擴展表
+					eq => eq.EQP_SID,           // 連接條件 (主表)
+					ext => ext.EQP_SID          // 連接條件 (擴展表)
+				).FirstOrDefault();
+
+		}, false);
+
+
+
+
+		
+
+
+
+	}
+
+	public class d_MasterDetail<TMain, TExt>
+	{
+		public TMain Main { get; set; }
+		public List<TExt> Exts { get; set; } = new List<TExt>();
+	}
+
+
+	public static class t_DB_Ext {
+
+		public static IQueryable<d_MainExt<TMain, TExt>> QueryMainExt<TMain, TExt, TKey>(
+			this MDL.MESContext _self,
+			IQueryable<TMain> mainTable,
+			IQueryable<TExt> extTable,
+			Expression<Func<TMain, TKey>> mainKeySelector,
+			Expression<Func<TExt, TKey>> extKeySelector
+		) where TMain : class where TExt : class
+		{
+			return from a in mainTable
+				   join b in extTable
+						//on mainKeyFunc(a) equals extKeyFunc(b) into aJoin
+						on mainKeySelector.Compile()(a) equals extKeySelector.Compile()(b) into aJoin
+						//on mainKeySelector.Body equals extKeySelector.Body into aJoin
+				   from b in aJoin.DefaultIfEmpty()
+				   select new d_MainExt<TMain, TExt>
+				   {
+					   Main = a,
+					   Ext = b
+				   };
+		}
+
+
+		public static IQueryable<d_MasterDetail<WP_USER_TRACE_IN_MASTER, WP_USER_TRACE_IN>> view_UserTrace(this MDL.MESContext _self)
+		{
+			return from a in _self.WP_USER_TRACE_IN_MASTER
+				   join b in _self.WP_USER_TRACE_IN
+					   on a.IN_MASTER_SID equals b.IN_MASTER_SID into aGroup
+				   select new d_MasterDetail<WP_USER_TRACE_IN_MASTER, WP_USER_TRACE_IN>
+				   {
+					   Main = a,
+					   Exts = aGroup.ToList() // 將分組的 Ext 記錄轉換為 List
+				   };
+		}
+	}
+
 }
 
  

@@ -2277,7 +2277,22 @@ delete AD_SHIFT where SHIFT_SID = @SHIFT_SID
 		{
 			return Txn.EFQuery_MES.WP_LOT.FirstOrDefault(c=>c.LOT == LOT);
 		});
-	
+
+
+		[TestMethod]
+		public void _Fun_Oper()
+		=> _DBTest(Txn => {
+			//var oper = Txn.GetOperationInfo("C01-0020", OperationUtility.IndexType.No);
+			var _lotInfo = Txn.GetLotInfo("TWO-240725A-04", isQueryByLotNO: true);
+			//var t = Txn.Fun_Oper().f取得工站設定的治具(_lotInfo);
+			//foreach (DataRow row in t.DTable_EQP) {
+			//	var EQP = Txn.GetEquipmentInfo(row["EQP_SID"].ToString());
+
+			//}
+
+
+		}, true);
+
 
 		/// <summary>
 		/// 經實測 , 這個方法無法 ,並無法真正的遞迴取出所有資料

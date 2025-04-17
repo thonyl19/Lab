@@ -43,13 +43,6 @@ namespace UnitTestProject
 				}
 			}
 
-            internal static string t_WIPFormSendParameter
-            {
-                get
-                {
-                    return FileApp.ts_Log(@"WIP\t_WIPFormSendParameter.json");
-                }
-            }
 
             internal static string t_WIPFormSendParameter_平行工站
             {
@@ -67,68 +60,18 @@ namespace UnitTestProject
                 }
             }
 
-            
+            internal static string t_WIPFormSendParameter
+            {
+                get
+                {
+                    return FileApp.ts_Log(@"WIP\t_WIPFormSendParameter.json");
+                }
+            }
+
         }
 
-
-        [TestMethod]
-        public void t_EquipmentLoadLotTxn()
-		=> _DBTest((txn) =>
-		{
  
-
-            TxnBase.Test = Genesis.GTI_Test.TxnBase_T;
-			var _eqp = txn.EFQuery_MES.FC_EQUIPMENT.FirstOrDefault(c => c.ENABLE_FLAG == "T");
-			var EqpInfo = txn.GetEquipmentInfo(_eqp.EQP_SID);
-			var _lot = txn.EFQuery_MES.WP_LOT.FirstOrDefault(c => c.STATUS == "Wait");
-			var _lot1 = txn.EFQuery_MES.WP_LOT_OPER_PARALLEL.FirstOrDefault(c => c.STATUS == "Wait");
-			var lotInfo = txn.GetLotInfo(_lot.LOT_SID);
-			txn.DoTransaction(new EQPTransaction.EquipmentLoadLotTxn(EqpInfo, lotInfo));
-		}, true,true);
-
-
-        [TestMethod]
-        public void _EquipmentLoadLotTxn1()
-        => _DBTest((txn) =>
-        {
-            TxnBase.Test = Genesis.GTI_Test.TxnBase_T;
-            var _eqp = txn.EFQuery_MES.FC_EQUIPMENT.FirstOrDefault(c => c.ENABLE_FLAG == "T");
-            var EqpInfo = txn.GetEquipmentInfo(_eqp.EQP_SID);
-            ILotInfo lot = txn.EFQuery_MES.WP_LOT_OPER_PARALLEL.FirstOrDefault(c => c.STATUS == "Wait");
-            var _txn = new EQPTransaction.EquipmentLoadLotTxn(EqpInfo, lot);
-            txn.DoTransaction(_txn);
-        }, true, true);
-
-		        [TestMethod]
-        public void t_EquipmentUnloadLotTxn()
-        => _DBTest((txn) =>
-        {
-            var _lot = "JTest0716-01";
-            var EQP_SID = "GTI24051309005595218";
-            TxnBase.Test = Genesis.GTI_Test.TxnBase_T;
-            
-            var EqpInfo = txn.GetEquipmentInfo(EQP_SID);
-            var lot = txn.EFQuery_MES.WP_LOT_OPER_PARALLEL.FirstOrDefault(c => c.LOT == _lot);
-            var _txn = new EQPTransaction.EquipmentUnloadLotTxn(EqpInfo, lot);
-            txn.DoTransaction(_txn);
-        }, true, true);
-
-
-
-        [TestMethod]
-        public void _RollBack()
-		=> _DBTest((txn) =>
-		{
-			var _lot1 = txn.EFQuery_MES.WP_LOT_OPER_PARALLEL.FirstOrDefault(c => c.STATUS == "Wait");
-            _lot1.BeginTransaction();
-            _lot1.CARRIER_LINK_SID = "Test";
-            txn.EFQuery_MES.SaveChanges();
-
-            _lot1.RollBack();
-            Assert.AreNotEqual(_lot1.CARRIER_LINK_SID, "Test");
-		}, true,true);
-
-
+ 
 
 
         [TestMethod]
@@ -141,35 +84,7 @@ namespace UnitTestProject
             _Func.Defect缺點處理(txn, lot,data.DefectList);
         }, true, true);
 
-        [TestMethod]
-        public void t_Defect1()
-        => _DBTest((txn) =>
-        {
-            txn.ActionReason = TxnACTION.n("Test", "other");
-            TxnBase.Test = Genesis.GTI_Test.TxnBase_T;
-            var svcWIP = txn.LzQuery.WIP;
-            var data = FileApp.Read_SerializeJson<WIPFormSendParameter>(_log.t_WIPFormSendParameter_平行工站);
-            var lot = svcWIP.f批號平行工作站_是否存在(data.Lot,data.RouterVerOperSid);
-            var eqp = txn.GetEquipmentInfo("GTI24051515281998218");
-            var _tx = new Genesis.Library.BLL.DTC.Lot.Insert_PARALLEL_DEFECT(lot, data.DefectList, eqp,true);
-            txn.DoTransaction(_tx);
-        }, true, true);
-
-
-        [TestMethod]
-        public void t_GoToNextParallelTask()
-        => _DBTest((txn) =>
-        {
-            txn.ActionReason = TxnACTION.n("Test", "other");
-            TxnBase.Test = Genesis.GTI_Test.TxnBase_T;
-            var svcWIP = txn.LzQuery.WIP;
-            var data = FileApp.Read_SerializeJson<WIPFormSendParameter>(_log.t_WIPFormSendParameter_平行工站);
-            var lot = svcWIP.f批號平行工作站_是否存在(data.Lot, data.RouterVerOperSid);
-            txn.ILotInfo = lot;
-            var _tx = new Genesis.Library.BLL.DTC.Lot.GoToNextParallelTask(lot);
-            txn.DoTransaction(_tx);
-        }, true, true);
-
+ 
         
 
 
@@ -204,42 +119,6 @@ namespace UnitTestProject
             }
         }, true, true);
 
-        [TestMethod]
-        public void t_Scrap()
-        => _DBTest((txn) =>
-        {
-            TxnBase.Test = Genesis.GTI_Test.TxnBase_T;
-            var svcWIP = txn.LzQuery.WIP;
-            var data = FileApp.Read_SerializeJson<WIPFormSendParameter>(_log.t_WIPFormSendParameter_平行工站);
-            var _CurrentLot_實體 = svcWIP.f批號平行工作站_是否存在(data.Lot,data.RouterVerOperSid);
-            var eqp = txn.GetEquipmentInfo("GTI24051515281998218");
-            var _tx = new Genesis.Library.BLL.DTC.Lot.Insert_PARALLEL_SCRAP(_CurrentLot_實體, _CurrentLot_實體, data.ScrapList, eqp);
-            txn.DoTransaction(_tx);
-        }, true, true);
-
-        [TestMethod]
-        public void t_EDC()
-        => _DBTest((txn) =>
-        {
-            //txn.ActionReason = TxnACTION.n(nameof(GTI_Test.t_Process_PARALLEL), "other");
-            TxnBase.Test = Genesis.GTI_Test.TxnBase_T;
-            var svcWIP = txn.LzQuery.WIP;
-            var data = FileApp.Read_SerializeJson<WIPFormSendParameter>(_log.t_WIPFormSendParameter_平行工站);
-            var _CurrentLot_實體 = svcWIP.f批號平行工作站_是否存在(data.Lot,data.RouterVerOperSid);
-            var eqp = txn.GetEquipmentInfo("GTI24051515281998218");
-            var _tx = new Genesis.Library.BLL.DTC.Lot.Insert_PARALLEL_EDC(_CurrentLot_實體, data.SerialEdcList, eqp) {
-                //指定使用者 
-                userInfo = txn.GetUserInfo()
-            };
-            txn.DoTransaction(_tx);
-        }, true, true);
-
-
-
- 
-
-
-
 
         [TestMethod]
 		public void t_GetOperEquipment()
@@ -252,10 +131,6 @@ namespace UnitTestProject
 			var x = WIPOperConfigServices.GetOperEquipment(txn.DBC, lotInfo, RouteVerOperInfo);
             FileApp.WriteSerializeJson(x, _log.t_GetOperEquipment);
 		}, false, true);
-
-
-
-
 
 	}
 

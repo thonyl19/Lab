@@ -14,11 +14,13 @@ using System.Diagnostics;
 using System.Data.Entity;
 using System.Linq.Expressions;
 using System.Data.SqlClient;
+using System.Data.Entity.Core.Objects;
 using static BLL.MES.WIPInjectServices;
 using MDL.MES;
 using System.Reflection;
 using MDL;
 using static Genesis.Gtimes.WIP.LotUtility;
+using System.Dynamic;
 
 namespace Genesis
 {
@@ -111,13 +113,30 @@ namespace Genesis
         public static void TxnBase_T(ITxnBase Txn, string ActionName, string Link_SID)
         {
             switch (ActionName) {
-                case "Process":
+                case "":
+                    break;
+                //case "Process":
+                default:
                     var key = $"t_Process_{ServicesBase.ProjectCustomer}";
                     var runDef = dyn_Process(key, new object[] { Txn, Link_SID });
                     if (runDef) t_Process(Txn, Link_SID);
                     break;
             }
         }
+
+
+        public static void dyn_TxnBase_T(string ActionName) {
+            TxnBase.Test = GTI_Test.TxnBase_T;
+            if (string.IsNullOrEmpty(ActionName) == false)
+            {
+                var method = typeof(GTI_Test).GetMethod(ActionName, BindingFlags.Static | BindingFlags.Public);
+                if (method != null)
+                {
+                    TxnBase.Test = (Action<ITxnBase, string, string>)Delegate.CreateDelegate(typeof(Action<ITxnBase, string, string>), method);
+                }
+            }
+        }
+ 
 
 
         public static bool dyn_Process(string StaticMethod, object[] methodParameters)
@@ -162,8 +181,8 @@ namespace Genesis
             {
                 WP_USER_TRACE = txn.EFQuery_MES.WP_USER_TRACE.GetData_ACTION_LINK_SID(key),
                 WP_USER_TRACE_IN = (from a in txn.EFQuery_MES.WP_USER_TRACE_IN
-                    .Where(c => WP_LOT_HIST.Any(c1 => c1.LOT == c.LOT))
-                                    select a
+                        .Where(c => WP_LOT_HIST.Any(c1 => c1.LOT == c.LOT) && c.CREATE_DATE == txn.ExeTime)
+                    select a
                     ).ToList(),
                 ZZ_OPER_WORKT_SUMMARY = txn.EFQuery_MES.ZZ_OPER_WORKT_SUMMARY.GetData_ACTION_LINK_SID(key),
             };
@@ -182,7 +201,6 @@ namespace Genesis
                 WP_TOOL_TRACE = txn.EFQuery_MES.WP_TOOL_TRACE.GetData_ACTION_LINK_SID(key),
                 WP_EQP_TOOL_LIST = txn.EFQuery_MES.WP_EQP_TOOL_LIST
                      .Where(c => c.LOAD_LINK_SID == key || c.UNLOAD_LINK_SID == key)
-                     .AsNoTracking()
                      .ToList()
             };
 
@@ -190,21 +208,12 @@ namespace Genesis
             {
                 WP_EQP_TRACE = txn.EFQuery_MES.WP_EQP_TRACE.GetData_ACTION_LINK_SID(key)
             };
-            /*
-            var WP_LOT_CHECKLIST_ITEM = txn.EFQuery_MES.WP_LOT_CHECKLIST_ITEM.IQueryable_ACTION_LINK_SID(key);
-            var WP_LOT_CHECKLIST_TAG_ITEM = (from a in txn.EFQuery_MES.WP_LOT_CHECKLIST_TAG_ITEM
-                .Where(c => WP_LOT_CHECKLIST_ITEM.Any(c1 => c1.WP_CHECKLIST_ITEM_SID == c.WP_CHECKLIST_ITEM_SID))
-                                             select a
-                ).ToList();
-
-            */
-            var CHECKLIST = new
-            {
-                //WP_LOT_CHECKLIST_ITEM = WP_LOT_CHECKLIST_ITEM.ToList(),
-                //WP_LOT_CHECKLIST_TAG_ITEM,
-                //FC_CHECKLIST_EDC_ROW = txn.EFQuery_MES.FC_CHECKLIST_EDC_ROW.GetData_ACTION_LINK_SID(key),
+            
+            var r = new { LOT, USER, TOOL, EQP , SCRAP, DEFECT ,
+                EDC = trc_EDC(txn,key),
+                //CHECKLIST = trc_CHECKLIST(txn,key)
+                //UserTraceIn = trc_UserTraceIn(txn,key)
             };
-            var r = new { LOT, USER, TOOL, EQP , SCRAP, DEFECT , CHECKLIST };
 
             string json = JsonConvert.SerializeObject(r, Newtonsoft.Json.Formatting.Indented);
 
@@ -212,6 +221,120 @@ namespace Genesis
             File.WriteAllText(GTI_Test.g_path.t_Process, json);
         }
 
+        public static void TxnBase_T_IPQC(ITxnBase Txn, string ActionName, string Link_SID)
+        {
+            WP_IPQC form = Txn.result.Data;
+            var WP_IPQC_LOT = Txn.EFQuery_MES.WP_IPQC_LOT
+                .Where(c => c.QC_NO == form.QC_NO)
+                .ToList();
+            var WP_IPQC_CHECKITEM = Txn.EFQuery_MES.WP_IPQC_CHECKITEM
+                .Where(c => c.ACTION_LINK_SID == form.QC_NO)
+                ;
+
+            var WP_IPQC_CHECKITEM_RAW =
+                (from a in Txn.EFQuery_MES.WP_IPQC_CHECKITEM_RAW
+                    .Where(c => WP_IPQC_CHECKITEM.Any(c1 => c1.WP_IPQC_CHECKITEM_SID == c.ACTION_LINK_SID))
+                 select a
+                ).ToList();
+
+            var IPQC = new
+            {
+                WP_IPQC = form,
+                WP_IPQC_LOT,
+                WP_IPQC_CHECKITEM = WP_IPQC_CHECKITEM.ToList(),
+                WP_IPQC_CHECKITEM_RAW,
+            };
+            string json = JsonConvert.SerializeObject(IPQC, Newtonsoft.Json.Formatting.Indented);
+
+            // 将 JSON 写入文件
+            File.WriteAllText(GTI_Test.g_path.t_Process, json);
+        }
+
+        public static dynamic trc_USER(ITxnBase txn, string key)
+        {
+            var WP_USER_TRACE_IN = txn.EFQuery_MES.WP_USER_TRACE_IN.IQueryable_ACTION_LINK_SID(key);
+            //var WP_USER_TRACE_IN_MASTER =
+            //    (from a in txn.EFQuery_MES.WP_USER_TRACE_IN_MASTER
+            //        .Where(c => WP_USER_TRACE_IN.Any(c1 => c1.IN_MASTER_SID == c.IN_MASTER_SID))
+            //     select a
+            //    ).ToList();
+
+            return new
+            {
+                WP_USER_TRACE = txn.EFQuery_MES.WP_USER_TRACE.GetData_ACTION_LINK_SID(key),
+                //WP_USER_TRACE_IN_MASTER,
+                WP_USER_TRACE_IN = WP_USER_TRACE_IN.ToList(),
+                ZZ_OPER_WORKT_SUMMARY = txn.EFQuery_MES.ZZ_OPER_WORKT_SUMMARY.GetData_ACTION_LINK_SID(key),
+            };
+        }
+        /*
+        public static dynamic trc_CHECKLIST(ITxnBase txn, string key) {
+            var WP_LOT_CHECKLIST_ITEM = txn.EFQuery_MES.WP_LOT_CHECKLIST_ITEM.IQueryable_ACTION_LINK_SID(key);
+            var WP_LOT_CHECKLIST_TAG_ITEM = (from a in txn.EFQuery_MES.WP_LOT_CHECKLIST_TAG_ITEM
+                .Where(c => WP_LOT_CHECKLIST_ITEM.Any(c1 => c1.WP_CHECKLIST_ITEM_SID == c.WP_CHECKLIST_ITEM_SID))
+                                             select a
+                ).ToList();
+
+            var CHECKLIST = new
+            {
+                WP_LOT_CHECKLIST_ITEM = WP_LOT_CHECKLIST_ITEM.ToList(),
+                WP_LOT_CHECKLIST_TAG_ITEM,
+                //FC_CHECKLIST_EDC_ROW = txn.EFQuery_MES.FC_CHECKLIST_EDC_ROW.GetData_ACTION_LINK_SID(key),
+            };
+            return CHECKLIST;
+        }
+
+
+   
+        public static dynamic trc_UserTraceIn(ITxnBase txn, string key)
+        {
+            var WP_USER_TRACE_IN = txn.EFQuery_MES.WP_USER_TRACE_IN.IQueryable_ACTION_LINK_SID(key);
+            var WP_USER_TRACE_IN_EQP = (from a in txn.EFQuery_MES.WP_USER_TRACE_IN_EQP
+                .Where(c => WP_USER_TRACE_IN.Any(c1 => c1.IN_SUPPORT_SID == c.WP_USER_TRACE_IN_SID))
+                        select a
+                ).ToList();
+
+            var CHECKLIST = new
+            {
+                WP_USER_TRACE_IN = WP_USER_TRACE_IN.ToList(),
+                WP_USER_TRACE_IN_EQP,
+                //FC_CHECKLIST_EDC_ROW = txn.EFQuery_MES.FC_CHECKLIST_EDC_ROW.GetData_ACTION_LINK_SID(key),
+            };
+            return CHECKLIST;
+        }
+             */
+        public static dynamic trc_TOOL(ITxnBase txn, string key)
+        =>new{
+            FC_TOOL = txn.EFQuery_MES.FC_TOOL.Where(c => c.UPDATE_DATE == txn.ExeTime).ToList(),
+            WP_TOOL_TRACE = txn.EFQuery_MES.WP_TOOL_TRACE.GetData_ACTION_LINK_SID(key),
+            WP_EQP_TOOL_LIST = txn.EFQuery_MES.WP_EQP_TOOL_LIST
+                     .Where(c => c.UPDATE_DATE == txn.ExeTime)
+                     .ToList()
+        };
+
+        public static dynamic trc_EQP(ITxnBase txn, string key)
+        {
+            return new{
+                //WP_EQP = txn.EFQuery_MES.view_EqpExt().Where(c=>c.Main.UPDATE_DATE == txn.ExeTime).ToList(),
+                WP_LOT_EQP_TRACE = txn.EFQuery_MES.WP_LOT_EQP_TRACE.Where(c => c.UPDATE_DATE == txn.ExeTime).ToList()
+            };
+        }
+
+        public static dynamic trc_EDC(ITxnBase txn, string key)
+        {
+            return new{
+                WP_LOT_EDC = txn.EFQuery_MES.WP_LOT_EDC.GetData_ACTION_LINK_SID(key),
+            };
+        }
+
+        public static dynamic trc_ADLog(ITxnBase txn, string key)
+        {
+            return new
+            {
+                ADlo = txn.EFQuery_MES.AD_LOG.Where(c => c.CREATE_DATE == txn.ExeTime).ToList(),
+                WP_LOT_EQP_TRACE = txn.EFQuery_MES.AD_LOG_VALUE.Where(c => c.CREATE_DATE == txn.ExeTime).ToList()
+            };
+        }
 
 
         public string UItest = null;
@@ -238,7 +361,7 @@ namespace Genesis
                     }
                 }
             }
-            return Test(_code, 1);
+            return Test(_code);
         }
 
         //改用
@@ -285,7 +408,7 @@ namespace Genesis
 
         public string Debug { get; set; } = "";
         public IHtmlString param_test { get { return Test(param_test_code); } }
-        string param_test_code = @"
+        public static string param_test_code = @"
             param.isTest = 'T';
             var _obj = $('.red_mark');
             if (_obj.length >= 1 && _obj.css('color') != 'rgb(255, 0, 0)'){
@@ -294,6 +417,9 @@ namespace Genesis
             console.log(param);
         ";
         public IHtmlString Test(string code, int mode = 0)
+        =>GTI_Test.Test(htm, code, mode);
+
+        public static IHtmlString Test(HtmlHelper htm ,string code, int mode = 0)
         {
             switch (mode) {
                 case 1:
@@ -313,7 +439,7 @@ namespace Genesis
             return htm.Raw(isTest ? code : "");
         }
 
-        public string red_mark(string tar)
+        public static string red_mark(string tar)
         {
             if (tar == "") tar = "i.fa.fa-play";
             return  $@"
@@ -397,24 +523,27 @@ namespace Genesis
     }
 
 
-    public static class ext {
-        public static bool? ts_BoolNull(this int? _self)
-        {
-            if (_self == null) return null;
-            return _self != 0;
-        }
+    public static partial class ext {
+        //public static bool? ts_BoolNull(this int? _self)
+        //{
+        //    if (_self == null) return null;
+        //    return _self != 0;
+        //}
 
         public static bool isEnable(this int _self)
         => _self != 0;
-        
+
 
         public static IQueryable<T> IQueryable_ACTION_LINK_SID<T>(this IQueryable<T> queryable, string key) where T : class
+        => IQueryable_Col(queryable, "ACTION_LINK_SID", key);
+
+        public static IQueryable<T> IQueryable_Col<T>(this IQueryable<T> queryable, string ColName , string key) where T : class
         {
             // 獲取要查詢的類型
             var entityType = typeof(T);
 
             // 獲取 ACTION_LINK_SID 屬性
-            var property = entityType.GetProperty("ACTION_LINK_SID");
+            var property = entityType.GetProperty(ColName);
             if (property == null)
             {
                 throw new InvalidOperationException($"Type {entityType.Name} does not contain a property named ACTION_LINK_SID");
@@ -431,8 +560,162 @@ namespace Genesis
             // 執行查詢
             return queryable.Where(lambda).AsNoTracking();
         }
+
         public static List<T> GetData_ACTION_LINK_SID<T>(this IQueryable<T> queryable, string key) where T : class
-        => queryable.IQueryable_ACTION_LINK_SID(key).ToList();
+        => queryable.IQueryable_Col<T>("ACTION_LINK_SID",key).ToList();
+        //=> queryable.IQueryable_ACTION_LINK_SID(key).ToList();
+
+        //public static IQueryable<object> SelectLotInfo<T>(this IQueryable<T> query, params string[] properties)
+        //    where T : class
+        //{
+        //    var selectClause = string.Join(", ", properties);
+        //    return (IQueryable<object>)query.Select($"new ({selectClause})");
+        //}
+
+
+        public static IEnumerable<Dictionary<string, object>> SelectLotInfo_1<T>
+            (this IQueryable<T> query, Dictionary<string, string> propertyMappings)
+        where T : class
+        {
+            return query.AsEnumerable().Select(entity =>
+            {
+                var result = new Dictionary<string, object>();
+                var entityType = typeof(T);
+
+                foreach (var mapping in propertyMappings)
+                {
+                    var sourcePropertyName = mapping.Value;
+                    var targetPropertyName = mapping.Key;
+
+                    var propertyInfo = entityType.GetProperty(sourcePropertyName);
+                    if (propertyInfo != null)
+                    {
+                        var value = propertyInfo.GetValue(entity);
+                        result[targetPropertyName] = value;
+                    }
+                    // 如果找不到對應的欄位，則直接略過
+                }
+
+                return result;
+            });
+        }
+
+        public static IEnumerable<Dictionary<string, object>> SelectLotInfo_2<T>(this IQueryable<T> query, string[] propertyNames, params string[] fixedProperties)
+                where T : class
+        {
+            
+            return query.AsEnumerable().Select(entity =>
+            {
+                var result = new Dictionary<string, object>();
+                var entityType = typeof(T);
+
+                // 添加动态选择的字段
+                foreach (var propertyName in propertyNames)
+                {
+                    var propertyInfo = entityType.GetProperty(propertyName);
+                    if (propertyInfo != null)
+                    {
+                        var value = propertyInfo.GetValue(entity);
+                        result[propertyName] = value;
+                    }
+                    // 如果找不到对应的字段，则直接跳过
+                }
+
+                // 添加固定字段
+                foreach (var propertyName in fixedProperties)
+                {
+                    var propertyInfo = entityType.GetProperty(propertyName);
+                    if (propertyInfo != null)
+                    {
+                        var value = propertyInfo.GetValue(entity);
+                        result[propertyName] = value;
+                    }
+                    // 如果找不到对应的字段，则直接跳过
+                }
+
+                return result;
+            });
+        }
+
+        public static List<Dictionary<string, object>> SelectLotInfo_3<T>(
+       this IQueryable<T> query,
+       string[] propertyNames,
+       params string[] fixedProperties) where T : class
+        {
+            // 先將資料取回記憶體 (避免 EF 無法解析 Dictionary)
+            var list = query.ToList();
+
+            // 取得所有需要的欄位 (去除重複)
+            var selectedProperties = propertyNames.Concat(fixedProperties).Distinct();
+            var entityType = typeof(T);
+
+            return list.Select(entity =>
+            {
+                var result = new Dictionary<string, object>();
+
+                foreach (var propertyName in selectedProperties)
+                {
+                    var propertyInfo = entityType.GetProperty(propertyName);
+                    if (propertyInfo != null)
+                    {
+                        var value = propertyInfo.GetValue(entity);
+                        result[propertyName] = value;
+                    }
+                }
+
+                return result;
+            }).ToList();
+        }
+
+ 
+
+    public static List<dynamic> SelectLotInfo_4<T>(this IQueryable<T> query,
+    string[] propertyNames,
+    params string[] fixedProperties) where T : class
+        {
+            // 獲取要查詢的類型
+            var entityType = typeof(T);
+
+            // 構建選擇表達式
+            var parameter = Expression.Parameter(entityType, "c");
+            var bindings = new List<MemberBinding>();
+
+            // 動態構建匿名類型的屬性
+            var anonymousTypeProperties = new List<MemberBinding>();
+
+            foreach (var propertyName in propertyNames)
+            {
+                var property = entityType.GetProperty(propertyName);
+                if (property == null)
+                {
+                    throw new InvalidOperationException($"Type {entityType.Name} does not contain a property named {propertyName}");
+                }
+
+                var propertyAccess = Expression.Property(parameter, property);
+                var binding = Expression.Bind(property, propertyAccess);
+                anonymousTypeProperties.Add(binding);
+            }
+
+            // 創建匿名類型的選擇器
+            var selector = Expression.Lambda<Func<T, object>>(
+                Expression.MemberInit(Expression.New(typeof(object)), anonymousTypeProperties),
+                parameter
+            );
+
+            // 執行 select 操作
+            return query.Select(selector).AsNoTracking().ToList();
+        }
+
+
+
+
+
+
+
+
+
+
+
 
 
         public static IQueryable<PF_ROUTE_VER_OPER> f_Oper_找出關聯流程
@@ -456,17 +739,7 @@ namespace Genesis
            , ITxnBase _Txn)
         => _Txn.GetLotInfo(_self.LOT_SID);
 
-        //WP_LOT_OPER_PARALLEL
-        //public static IQueryable<WP_LOT_OPER_PARALLEL> f_Oper_找出併行工站批號
-        //   (this MESContext _self
-        //   , string OperNo)
-        //=> from a in _self.WP_LOT_OPER_PARALLEL
-        //   where _self.PF_ROUTE_VER_OPER
-        //       .Any(c => c.OPERATION_NO == OperNo
-        //       && a.ROUTE_VER_OPER_SID == c.ROUTE_VER_OPER_SID)
-        //   select a;
-
-
+       
     }
 
 
@@ -1802,7 +2075,7 @@ namespace Genesis
 
             H:\GTiMES5.1_Dev\Genesis_MVC\Areas\MES\Controllers\WIPController.cs
             [Common.HandlerAjaxOnly]
-		    [ValidateAntiForgeryToken]
+		    //[ValidateAntiForgeryToken]
 
             H:\GTiMES5.1_Dev\Genesis_MVC\Areas\WIP\Controllers\CarrierLoadLot_1Controller.cs
             [LotFilterAction]
@@ -2504,6 +2777,55 @@ namespace Genesis
         {
             return "";
         }
+
+        /// <summary>
+        /// 0)null  1)true 2)false
+        /// </summary>
+        /// <param name="src"></param>
+        /// <returns></returns>
+        public static bool? ts_NullBool(this int? src)
+        {
+            if (src != null && src != 0) return (int)src == 1;
+            return (bool?)null;
+        }
+
+        /// <summary>
+        /// 只有 1 才會為 true , 其餘全為 false
+        /// </summary>
+        /// <param name="src"></param>
+        /// <returns></returns>
+        public static bool ts_Bool(this int? src)
+        =>src == 1;
+
+        /// <summary>
+        /// 只要不為 0
+        /// </summary>
+        /// <param name="src"></param>
+        /// <returns></returns>
+        public static bool isAction(this int src)
+        =>src != 0;
+
+        public static string ts_NullString(this string src)
+        {
+            if (src == null || src == "string") return null;
+            return src;
+        }
+
+        public static bool ts_Bool(this int src)
+        =>src == 1;
+
+        public static int? ts_NullInt(this int src)
+        => src == 0?null:(int?)src;
+
+        public static Nullable<T> ts_NullEnum<T>(this int src) where T : struct 
+        {
+            if (src == 0) return null;
+            var z = (T)Enum.Parse(typeof(T), src.ToString());
+            return (Nullable<T>)z;
+        }
+
+        public static T ts_Enum<T>(this int src) where T : struct
+        => (T)Enum.Parse(typeof(T), src.ToString());
     }
 
 }

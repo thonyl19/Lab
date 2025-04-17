@@ -2,6 +2,7 @@
 using BLL.DataViews.Res;
 using BLL.MES;
 using Frame.Code;
+using Genesis;
 using Genesis.Gtimes.ADM;
 using Genesis.Gtimes.Common;
 using Genesis.Gtimes.WIP;
@@ -302,6 +303,39 @@ namespace UnitTestProject.TestUT
 			}
 		}
 
+
+        [TestMethod]
+        public void t_fn111()
+        {
+			var chk_NewVer = typeof(WP_IPQC_LOT).GetProperty("LOT") != null;
+		}
+
+        [TestMethod]
+        public void t_fn()
+        {
+			int t = 1;
+			//Genesis.Library.BLL.ZZ.CUB.CodeRule.站別檢驗單檢核時機? z = t.ts_NullEnum<Genesis.Library.BLL.ZZ.CUB.CodeRule.站別檢驗單檢核時機>();
+
+			//Genesis.Library.BLL.ZZ.CUB.CodeRule.站別檢驗單檢核時機 z1 = t.ts_Enum<Genesis.Library.BLL.ZZ.CUB.CodeRule.站別檢驗單檢核時機>();
+			var a = new PF_PARTNO() {
+				//ATTRIBUTE_36 = 10
+			};
+			var b = new PF_PARTNO()
+			{
+				//ATTRIBUTE_36 = (decimal)10.000
+			};
+			var _AD_LOG = new AD_LOG()
+			{
+				FUN_NAME = "PartNoServices",
+				ACTION = "UpdateEnableFlag",
+				TARGET_TABLE = "PF_PARTNO_VER",
+				//TARGET_PK = version.PARTNO_VER_SID,
+				//VALUE_LINK_SID = GetSID(),
+				CREATE_USER = "TEST",
+				CREATE_DATE = DateTime.Now,
+			};
+			var z = a.parseLogValues(b, _AD_LOG);
+		}
 
 		[TestMethod]
 		public void t_x1()

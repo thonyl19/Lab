@@ -18,6 +18,7 @@ using System.Reflection;
 using Genesis.Areas.ADM.Controllers;
 using BLL.DataViews.Res;
 using Frame.Code;
+using System.Linq.Dynamic.Core;
 
 namespace UnitTestProject
 {
@@ -71,8 +72,14 @@ namespace UnitTestProject
 					return FileApp.ts_Log(@"ZZ\t_PagerQuery.json");
 				}
 			}
+			internal static string t_PagerQuery_RouteOperStage
+			{
+				get
+				{
+					return FileApp.ts_Log(@"ZZ\t_PagerQuery_RouteOperStage.json");
+				}
+			}
 
-			
 		}
 
 
@@ -509,6 +516,233 @@ namespace UnitTestProject
 				return "Other";
 			}
 		};
+
+
+		public class d_Query_RouteOperStage
+		{
+			public string ROUTE_NO { get; set; }
+			public string ROUTE { get; set; }
+			public string VERSION { get; set; }
+			public string OPER_NO { get; set; }
+			public string OPERATION { get; set; }
+			public string STAGE_NO { get; set; }
+			public string STAGE_NAME { get; set; }
+
+			public decimal? d_VERSION {
+				get {
+					decimal decimalNumber;
+					if (decimal.TryParse(this.VERSION, out decimalNumber)) {
+						return decimalNumber;
+					}
+					return null;
+				}
+			}
+
+			public bool isQueryStage {
+				get{
+					return !string.IsNullOrWhiteSpace(this.STAGE_NO) 
+						|| !string.IsNullOrWhiteSpace(this.STAGE_NAME);
+				}
+			}
+
+			public bool isQueryRoute{
+				get
+				{
+					return !string.IsNullOrWhiteSpace(this.ROUTE)
+						|| !string.IsNullOrWhiteSpace(this.ROUTE_NO)
+						|| this.d_VERSION != null;
+				}
+			}
+			public bool isQueryOper
+			{
+				get
+				{
+					return !string.IsNullOrWhiteSpace(this.OPERATION)
+						|| !string.IsNullOrWhiteSpace(this.OPER_NO);
+				}
+			}
+			public void SetQueryAll()
+			{
+				this.STAGE_NO = null;
+				this.STAGE_NAME = null;
+				this.OPERATION = null;
+				this.OPER_NO = null;
+			}
+
+
+
+			public d_Query_RouteOperStage(PagerQuery PQuery)
+			{
+				if (PQuery.Conditions.Rules != null)
+				{
+					foreach (var x in PQuery.Conditions.Rules)
+					{
+						if (x.Value.Length != 0)
+						{
+							if (x.Value.Length != 0)
+							{
+								// 使用反射來動態設定屬性值
+								var property = this.GetType().GetProperty(x.Field);
+								if (property != null)
+								{
+									property.SetValue(this, x.Value[0]);
+								}
+							}
+						}
+					}
+				}
+			}
+		}
+
+		public class d_PF_ROUTE_VER : PF_ROUTE_VER{ 
+			public List<d_PF_ROUTE_VER_OPER> child { get; set; }
+		}
+
+		public class d_PF_ROUTE_VER_OPER : PF_ROUTE_VER_OPER
+		{
+			public string STAGE_SID { get; set; }
+		}
+
+		[TestMethod]
+		public void t_RouteOperStage()
+		=> _DBTest((txn) =>
+		{
+		var PQuery = FileApp.Read_SerializeJson<PagerQuery>(_log.t_PagerQuery_RouteOperStage);
+		var arg = new d_Query_RouteOperStage(PQuery);
+		var stage = txn.EFQuery_MES.PF_STAGE;
+		var routeOperStages = txn.EFQuery_MES.PF_ROUTE_VER_OPER_STAGE;
+		var routeVerOper = txn.EFQuery_MES.PF_ROUTE_VER_OPER;
+		var route = txn.EFQuery_MES.PF_ROUTE;
+
+			arg.STAGE_NO = "**M0711";
+			//arg.ROUTE_NO = "102B4014_02_CM_23";
+			arg.OPERATION = null;
+			//var t = _queryBase.ToList();
+			var zz = 1;
+
+
+			var q_stage = (from a in stage
+					   where (arg.isQueryStage == false
+						   || (arg.isQueryStage
+								&& (arg.STAGE_NO == null || a.STAGE_NO.Contains(arg.STAGE_NO))
+								&& (arg.STAGE_NAME == null || a.STAGE_NAME.Contains(arg.STAGE_NAME))
+						   ))
+					   select a);
+
+		var q_stage1 = (from a in routeOperStages
+						join b in q_stage
+							on a.STAGE_SID equals b.STAGE_SID
+						//into grp_b
+						//from b in grp_b.DefaultIfEmpty()
+						select new { a, b });
+		//var t1 =q_stage1.ToList();
+
+
+								
+
+
+		var q_VerOper = (from a in routeVerOper
+						 where arg.isQueryOper == false
+								|| (arg.isQueryOper
+									&& (arg.OPER_NO == null || a.OPERATION_NO.Contains(arg.OPER_NO))
+									&& (arg.OPERATION == null || a.OPERATION.Contains(arg.OPERATION))
+									)
+						 select a);
+		var _q1 = (from a in q_VerOper
+				   join b in q_stage1
+					   on a.ROUTE_VER_OPER_SID equals b.a.ROUTE_VER_OPER_SID
+					//into grp_b
+				 //  from b in grp_b.DefaultIfEmpty()
+				 //  where b !=null
+				   select new d_PF_ROUTE_VER_OPER
+				   {
+					   ROUTE_VER_OPER_SID = a.ROUTE_VER_OPER_SID,
+					   ROUTE_VER_SID = a.ROUTE_VER_SID,
+					   ROUTE_SID = a.ROUTE_SID,
+					   ROUTE_NO = a.ROUTE_NO,
+					   ROUTE = a.ROUTE,
+					   VERSION = a.VERSION,
+					   //OPER_CATEGORY = a.OPER_CATEGORY,
+					   OPER_SEQ = a.OPER_SEQ,
+					   OPER_SID = a.OPER_SID,
+					   OPERATION_NO = a.OPERATION_NO,
+					   OPERATION = a.OPERATION,
+					   //IS_START = a.IS_START,
+					   //IS_END = a.IS_END,
+					   //CREATE_USER = a.CREATE_USER,
+					   //CREATE_DATE = a.CREATE_DATE,
+					   //UPDATE_USER = a.UPDATE_USER,
+					   //UPDATE_DATE = a.UPDATE_DATE,
+					   STAGE_SID = b.a.STAGE_SID
+				   });
+			var t2 = _q1.ToList();
+
+		var q_route = (from a in txn.EFQuery_MES.PF_ROUTE_VER
+					   where arg.isQueryRoute == false
+							|| (arg.isQueryRoute
+								&& (arg.ROUTE == null || a.ROUTE.Contains(arg.ROUTE))
+								&& (arg.ROUTE_NO == null || a.ROUTE.Contains(arg.ROUTE_NO))
+								&& (arg.d_VERSION == null || a.VERSION == arg.d_VERSION)
+								)
+					   select a);
+
+
+
+
+		var _queryBase = (from a in q_route
+						  where (arg.isQueryOper == false && arg.isQueryStage == false)
+							  || _q1.Any(b => b.ROUTE_VER_SID == a.ROUTE_VER_SID)
+						  select new d_PF_ROUTE_VER
+						  {
+							  ROUTE_VER_SID = a.ROUTE_VER_SID,
+							  ROUTE_SID = a.ROUTE_SID,
+							  ROUTE_NO = a.ROUTE_NO,
+							  ROUTE = a.ROUTE,
+							  //ROUTE_CATEGORY = a.ROUTE_CATEGORY,
+							  VERSION = a.VERSION,
+							  VERSION_STATE = a.VERSION_STATE,
+							  DEFAULT_FLAG = a.DEFAULT_FLAG,
+							  //DESCRIPTION = a.DESCRIPTION,
+							  //CREATE_USER = a.CREATE_USER,
+							  //CREATE_DATE = a.CREATE_DATE,
+							  //UPDATE_USER = a.UPDATE_USER,
+							  //UPDATE_DATE = a.UPDATE_DATE,
+							  //QUOTE_ONCE = a.QUOTE_ONCE,
+							  START_OPER_SID = a.START_OPER_SID,
+							  START_OPERATION_NO = a.START_OPERATION_NO,
+							  START_OPERATION = a.START_OPERATION,
+							  END_OPER_SID = a.END_OPER_SID,
+							  END_OPERATION_NO = a.END_OPERATION_NO,
+							  END_OPERATION = a.END_OPERATION,
+						  }
+						);
+		
+
+		/*
+		 select );
+
+		 */
+		if (PQuery?.Sort?.Code != "")
+		{
+			_queryBase = _queryBase.OrderBy(c => PQuery.Sort.Code);
+		}
+		if (PQuery.Page == null)
+		{
+			txn.result.Data = new { Queryable = _queryBase.ToList() };
+		}
+		else {
+			var PageInfo = _queryBase.PageResult(PQuery.Page.Index, PQuery.Page.Size);
+			var Queryable = PageInfo.Queryable.ToList();
+			//arg.SetQueryAll();
+			foreach (var item in Queryable) {
+				var x = q_stage1.Where(c => c.a.ROUTE_VER_SID == item.ROUTE_VER_SID).ToList();
+				var x1 = q_stage.ToList();
+				item.child = _q1.Where(c => c.ROUTE_VER_SID == item.ROUTE_VER_SID).ToList();
+			}
+
+			txn.result.Data = new { Queryable, PageInfo = PQuery.parsePagedResult(PageInfo) };
+		}
+		}, false, true);
 	}
 
 

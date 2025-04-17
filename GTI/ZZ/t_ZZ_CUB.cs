@@ -42,8 +42,16 @@ using Genesis;
 using Genesis.Library.BLL.QMS;
 //using _bllSvc = Genesis.Library.BLL.ZZ.CUB;
 using _zz_OperInfo = Genesis.Library.BLL.ZZ.CUB.OperInfo;
+using _zzAPI = Genesis.Library.BLL.ZZ.CUB.ApiService;
 using static Genesis.Library.BLL.ZZ.CUB.OperInfo.Basic;
 using Newtonsoft.Json.Linq;
+using Genesis.Gtimes.Transaction.EQP;
+using Genesis.Gtimes.Transaction.CAR;
+using Dal.Repository;
+using Microsoft.EntityFrameworkCore;
+using Genesis.Library.BLL;
+using Genesis.Library.BLL.MES.AutoGenerate;
+using Frame.Code.Web.Select;
 
 namespace UnitTestProject
 {
@@ -112,6 +120,22 @@ namespace UnitTestProject
 			internal static string t_進出站檢驗單案例(string CaseName="")
 			{
 				return FileApp.ts_Log($@"ZZ/CUB\t_進出站檢驗單案例{CaseName}.json");
+			}
+
+			internal static string t_allFeeders
+			{
+				get
+				{
+					return FileApp.ts_Log($@"ZZ/CUB\t_allFeeders.json");
+				}
+			}
+
+			internal static string t_EQP_Tool_計算
+			{
+				get
+				{
+					return FileApp.ts_Log($@"ZZ/CUB\t_EQP_Tool_計算.json");
+				}
 			}
 		}
 
@@ -411,8 +435,8 @@ namespace UnitTestProject
 				string json = JsonConvert.SerializeObject(LOT, Newtonsoft.Json.Formatting.Indented);
 				File.WriteAllText(GTI_Test.g_path.t_Process, json);
 			});
-			var r_可新增 = ApiService.ParallelSN_Creat(ROUTE_VER_OPER_SID, lot, $"{SN}5", "Admin", null, true);
-			var r_不可新增 = ApiService.ParallelSN_Creat(ROUTE_VER_OPER_SID, lot, SN, "Admin", null, true);
+			var r_可新增 = ApiService.ParallelSN_Creat(ROUTE_VER_OPER_SID, lot, $"{SN}5", "Admin", null ,null, true);
+			var r_不可新增 = ApiService.ParallelSN_Creat(ROUTE_VER_OPER_SID, lot, SN, "Admin", null,null, true);
 		}
 
 
@@ -422,7 +446,7 @@ namespace UnitTestProject
 			//隨便取得一筆 SN 當測試鍵值
 			var sn = txn.EFQuery_MES.WP_LOT_OPER_PARALLEL_SN.FirstOrDefault();
 			if (sn != null) {
-				var r_不可新增 = ApiService.ParallelSN_Creat(sn.ROUTE_VER_OPER_SID, sn.LOT, sn.SN, sn.OP, null, true);
+				var r_不可新增 = ApiService.ParallelSN_Creat(sn.ROUTE_VER_OPER_SID, sn.LOT, sn.SN, sn.OP, null, null,true);
 				Assert.IsFalse(r_不可新增.Success, "在相同條件下,不應該可以新增");
 
 				var r_可新增 = ApiService.ParallelSN_Creat(txn, sn.ROUTE_VER_OPER_SID, sn.LOT, $"{sn.SN}5", sn.OP, null);
@@ -433,6 +457,20 @@ namespace UnitTestProject
 				Assert.IsTrue(r_不可新增.Success, "應該可以刪除");
 			}
 		}, true, true);
+
+		[TestMethod]
+		public void _f站別檢驗單設定()
+		=> _DBTest((txn) => {
+			int z = 1;
+			var z1 = z.ts_NullEnum<Genesis.Library.BLL.ZZ.CUB.CodeRule.站別檢驗單檢核時機>();
+
+			//隨便取得一筆 SN 當測試鍵值
+			var sn = txn.EFQuery_MES.f站別檢驗單設定
+			("GTI24122418180688120"
+			, z1);
+		}, false, true);
+
+		
 
 		[TestMethod]
 		public void _有序工站序號刪除_項目已刷過下站_不允許刪除()
@@ -597,7 +635,7 @@ namespace UnitTestProject
 			//*/
 
 			var iLot = _Txn.GetLotInfo("EMS20240614-001-01", isQueryByLotNO: true);
-			_zz_OperInfo.Basic.基本檢核_站別檢驗單卡控(_Txn, iLot);
+			//_zz_OperInfo.Basic.基本檢核_站別檢驗單卡控(_Txn, iLot);
 
 			//var _lot1 = _Txn.GetLotInfo("CE201214020-01", isQueryByLotNO: true);
 			//_zz_OperInfo.Basic.基本檢核_檢驗單卡控(_Txn, _lot1.SID);
@@ -726,12 +764,264 @@ namespace UnitTestProject
 		[TestMethod]
 		public void t_SequenceWO_Check_Qty()
 		=> _DBTest((txn) =>{
-			var lot = txn.EFQuery_MES.WP_LOT_OPER_PARALLEL.FirstOrDefault(c=>c.LOT_SID == "GTI24121113585207089");
-			ApiService.SequenceWO_Check_Qty(txn, lot, 10);
+			var lot = txn.EFQuery_MES.WP_LOT_OPER_PARALLEL.FirstOrDefault(c=>c.LOT_SID == "GTI25010713253810209");
+			var _qty = new CustomerList() { Qty = 1 , subItem = new List<SelectModel>() { 
+				new SelectModel(){No = "20250203001"},
+				new SelectModel(){No = "20250203004"},
+				
+			} };
+			//ApiService.SequenceWO_Check_Qty(txn, lot, _qty);
+			ApiService.SequenceWO_Check_Qty(txn, lot, _qty);
 		}, false);
+
+		[TestMethod]
+		public void t_TTTT()
+		=> _DBTest((Txn) => {
+
+			var chk_Query = Txn.EFQuery_MES.ZZ_WP_PACKAGE_ITEM.Where(c => c.WP_LOT_SID == "GTI24071715395327809" && c.BARCODE == null && c.ACTION_LINK_SID == null);
+			var is有空包裝資料 = chk_Query.Any();
+			if (is有空包裝資料)
+			{
+				Txn.EFQuery_MES.ZZ_WP_PACKAGE_ITEM.RemoveRange(chk_Query);
+				Txn.EFQuery_MES.SaveChanges();
+			}
+		}, true,true);
+
+
+		[TestMethod]
+		public void t_註消非U型站_上崗前檢驗單()
+		=> _DBTest((Txn) => {
+			var lot = Txn.EFQuery_MES.WP_LOT_OPER_PARALLEL.FirstOrDefault(x => x.LOT_SID == "GTI24122513471294962");
+			_zzAPI._註消進站後上崗前檢驗單(Txn, lot, "Admin", "Test");
+		}, true,true);
+
+		public static void TxnBase_T_批號治具(ITxnBase Txn, string ActionName, string Link_SID)
+		{
+			var WP_LOT_OPER_PARALLEL = Txn.EFQuery_MES.WP_LOT_OPER_PARALLEL
+					.Where(c => c.LOT_SID == "GTI24122615505096899");
+
+			var WP_TOOL_TRACE = Txn.EFQuery_MES.WP_TOOL_TRACE.GetData_ACTION_LINK_SID(Link_SID);
+			var WP_EQP_TRACE = Txn.EFQuery_MES.WP_EQP_TRACE.GetData_ACTION_LINK_SID(Link_SID);
+			var WP_CARRIER_TRACE = Txn.EFQuery_MES.WP_CARRIER_TRACE.GetData_ACTION_LINK_SID(Link_SID);
+
+			var WP_LOT_TOOL_TRACE = Txn.EFQuery_MES.WP_LOT_TOOL_TRACE
+				.Where(c => WP_LOT_OPER_PARALLEL.Any(c1 => c1.LOT_SID == c.LOT_SID));
+
+			var WP_LOT_CARRIER_TRACE = Txn.EFQuery_MES.WP_LOT_CARRIER_TRACE
+				.Where(c => WP_LOT_OPER_PARALLEL.Any(c1 => c1.LOT_SID == c.LOT_SID));
+
+			var FC_TOOL = Txn.EFQuery_MES.FC_TOOL
+					.Where(c => WP_LOT_TOOL_TRACE.Any(c1=>c1.TOOL_SID == c.TOOL_SID))
+					.ToList();
+			var FC_EQUIPMENT = Txn.EFQuery_MES.FC_EQUIPMENT
+				.Where(c => WP_LOT_TOOL_TRACE.Any(c1 => c1.EQP_SID == c.EQP_SID))
+				.ToList();
+
+			var FC_CARRIER = Txn.EFQuery_MES.FC_CARRIER
+				.Where(c => WP_LOT_CARRIER_TRACE.Any(c1 => c1.CARRIER_SID == c.CARRIER_SID))
+				.ToList();
+
+			var WP_EQP_TOOL_LIST = Txn.EFQuery_MES.WP_EQP_TOOL_LIST
+				.Where(c => WP_LOT_TOOL_TRACE.Any(c1 => c1.EQP_SID == c.EQP_SID && c1.TOOL_SID == c.TOOL_SID))
+				.ToList();
+			//SMT_CARRIER_TOOL
+
+			var LOT = new
+			{
+				Link_SID,
+				WP_LOT_OPER_PARALLEL = WP_LOT_OPER_PARALLEL.ToList(),
+				WP_TOOL_TRACE = WP_TOOL_TRACE.ToList(),
+				WP_EQP_TRACE = WP_EQP_TRACE.ToList(),
+				WP_CARRIER_TRACE = WP_CARRIER_TRACE.ToList(),
+				FC_TOOL,
+				FC_EQUIPMENT,
+				FC_CARRIER,
+				WP_LOT_TOOL_TRACE =WP_LOT_TOOL_TRACE.ToList(),
+				WP_EQP_TOOL_LIST,
+				Txn.result.Data
+			};
+			string json = JsonConvert.SerializeObject(LOT, Newtonsoft.Json.Formatting.Indented);
+			File.WriteAllText(GTI_Test.g_path.t_Process, json);
+		}
+
+		[TestMethod]
+		public void t_針對批號下設備和載具()
+		=> _DBTest((Txn) => {
+			TxnBase.Test = TxnBase_T_批號治具;
+			var lot = Txn.EFQuery_MES.WP_LOT_OPER_PARALLEL.FirstOrDefault(x => x.LOT_SID == "GTI24122615505096899");
+			var _取得批號身上的機台 = Txn.f取得批號身上的治具(lot)
+				.GroupBy(c=>c.EQP_SID)
+				.ToDictionary(c=>c.Key,c=>c.ToList());
+			foreach (var EQP_Tool in _取得批號身上的機台) {
+				var EqpInfo = Txn.GetEquipmentInfo(EQP_Tool.Key);
+				foreach (var Tool in EQP_Tool.Value) { 
+					var toolInfo = new ToolUtility.ToolInfo(Txn.DBC, Tool.TOOL_NO, ToolUtility.ToolInfo.IndexType.No);
+					Txn.DoTransaction(
+						new EQPTransaction.EquipmentUnloadToolTxn(EqpInfo, toolInfo),
+						new TOLTransaction.EndOfToolTxn(toolInfo)
+						,new EQPTransaction.EndOfEquipmentTxn(EqpInfo)
+					);
+				}
+				EqpInfo = EqpInfo.ReLoad(Txn.DBC);
+				Txn.DoTransaction(
+					new EQPTransaction.EquipmentUnloadLotTxn(EqpInfo, lot),
+					new EQPTransaction.EndOfEquipmentTxn(EqpInfo)
+				);
+			}
+		}, true, true);
+
+
+
+        [TestMethod]
+        public void t_進站上料槍()
+		=> _DBTest((txn) =>
+		{
+			var wo = "100031194";
+			var _lot = txn.EFQuery_MES.WP_LOT_OPER_PARALLEL.FirstOrDefault();
+			var _Used = nameof(Genesis.Library.BLL.ICM.Definition.Status.Used);
+			var _Idle = nameof(Genesis.Library.BLL.ICM.Definition.Status.Idle);
+			//WP_WO woInfo = BaseWpWoServices.GetEntityByExpression(x => x.WO == wo);
+			var list_carrier = (from a in txn.EFQuery_MES.SMT_CARRIER_TOOL
+						   join b in txn.EFQuery_MES.FC_CARRIER on a.CARRIER_NO equals b.CARRIER_NO
+						   where b.STATE_NO == "Idle" && a.WO == wo
+						   select b.CARRIER_NO).Distinct().ToList();
+			var stateinfo = new CarrierUtility.CarrierStateInfo(txn.DBC, _Used, CarrierUtility.CarrierStateInfo.IndexType.No);
+			Decimal useCount = 1;
+
+			foreach (var carrier in list_carrier) {
+				var carrierInfo = txn.GetCarrierInfo(carrier);
+				Check.Invalid(string.Format(RES.BLL.Message.FeederShiftIsNotIdle, carrier), carrierInfo.STATE_NO != _Idle, carrierInfo);
+
+				txn.DoTransaction
+					( new CARTransaction.CarrierLoadLotTxn(carrierInfo, _lot)
+					, new CARTransaction.CarrierChangeStateTxn(carrierInfo, stateinfo)
+					, new CARTransaction.EndOfCarrierTxn(carrierInfo)
+					);
+
+				carrierInfo = txn.GetCarrierInfo(carrier);
+				txn.DoTransaction(new CARTransaction.CarrierAddUseCountTxn(carrierInfo, useCount));
+
+				//txn.DoTransaction(new SMT.InsertHistory(_lot, "T", _lot.SID));
+			}
+			txn.EFQuery_MES.SaveChanges();
+		}, true);
+
+
+        [TestMethod]
+        public void t_批號下載具()
+		=> _DBTest((txn) =>
+		{
+			var list = (from a in txn.EFQuery_MES.WP_LOT_CARRIER_TRACE
+						where a.ACTION_LINK_SID == "GTI25020614353133998"
+						select a
+				).ToList();
+
+			var _Idle = nameof(Genesis.Library.BLL.ICM.Definition.Status.Idle);
+			var stateinfo = new CarrierUtility.CarrierStateInfo(txn.DBC, _Idle, CarrierUtility.CarrierStateInfo.IndexType.No);
+
+			foreach (var a in list) {
+				var _lot = txn.EFQuery_MES.WP_LOT_OPER_PARALLEL.FirstOrDefault(c => c.LOT_SID == a.LOT_SID);
+				var carrierInfo = txn.GetCarrierInfo(a.CARRIER_NO);
+				txn.DoTransaction
+					(
+					//new CARTransaction.CarrierUnloadLotTxn(carrierInfo, _lot)
+					new CARTransaction.CarrierChangeStateTxn(carrierInfo, stateinfo)
+					//, new CARTransaction.EndOfCarrierTxn(carrierInfo)
+					);
+			}
+
+
+		}, true);
+
+		[TestMethod]
+		public void t_進站下料槍()
+		=> _DBTest((txn) =>
+		{
+
+//		100031207-0010
+//Rack-03
+//Rack-04
+			var wo = "100031194";
+			var _Used = nameof(Genesis.Library.BLL.ICM.Definition.Status.Used);
+			var _Idle = nameof(Genesis.Library.BLL.ICM.Definition.Status.Idle);
+			var _lot = txn.EFQuery_MES.WP_LOT_OPER_PARALLEL.FirstOrDefault();
+			//WP_WO woInfo = BaseWpWoServices.GetEntityByExpression(x => x.WO == wo);
+			var list_carrier = (from a in txn.EFQuery_MES.SMT_CARRIER_TOOL
+								join b in txn.EFQuery_MES.FC_CARRIER on a.CARRIER_NO equals b.CARRIER_NO
+								where b.STATE_NO == _Used && a.WO == wo
+								select b.CARRIER_NO).Distinct().ToList();
+			var stateinfo = new CarrierUtility.CarrierStateInfo(txn.DBC, _Idle, CarrierUtility.CarrierStateInfo.IndexType.No);
+			 
+ 
+			foreach (var carrier in list_carrier)
+			{
+				var carrierInfo = txn.GetCarrierInfo(carrier);
+				Check.Invalid("載具必須是使用中", carrierInfo.STATE_NO != _Used, carrierInfo);
+
+				txn.DoTransaction
+					(new CARTransaction.CarrierUnloadLotTxn(carrierInfo, _lot)
+					, new CARTransaction.CarrierChangeStateTxn(carrierInfo, stateinfo)
+					, new CARTransaction.EndOfCarrierTxn(carrierInfo)
+					);
+
+				//serv.InsertDataToHistory(_lot.WO, _lot.LOT, "T", actionLinkSid: _lot.SID, true);
+			}
+ 
+			//serv.UOW.Save();
+
+		}, true);
+
+
+		[TestMethod]
+		public void t_InsertHistory()
+		=> _DBTest((txn) =>
+		{
+			TxnBase.Test = (_txn, key, b)=>{ 
+				var r = new {
+					//SMT = GTI_Test.trc_SMT(_txn, key)
+				};
+				string json = JsonConvert.SerializeObject(r, Newtonsoft.Json.Formatting.Indented);
+				File.WriteAllText(GTI_Test.g_path.t_Process, json);
+			};
+			var x = FileApp.Read_SerializeJson<List<Feeder>>(_log.t_allFeeders);
+			var _lot = txn.EFQuery_MES.WP_LOT_OPER_PARALLEL.FirstOrDefault(c => c.LOT_SID == "GTI25010709475209508");
+			txn.DoTransaction(new SMT.InsertHistory(_lot, x));
+		}, true);
+
+
+        [TestMethod]
+        public void t_EQP_Tool_計算()
+		=> _DBTest((txn) =>
+		{
+			var t = FileApp.Read_SerializeJson< DataStructure>(_log.t_EQP_Tool_計算);
+		}, false);
+
+		[TestMethod]
+        public void t_EQP_EXT()
+		=> _DBTest((txn) =>
+		{
+            var t = txn.EFQuery_MES.view_EqpExt().Where(c=>c.Main.EQP_SID == "GTI24122419462090669");
+            //var t1 = t.Ext?.MAX_USE_COUNT;
+
+		}, false);
+
+		
+		public class DataStructure
+		{
+			public int 良品數 { get; set; }
+			public Dictionary<string, Equipment> EQP { get; set; } // 使用 Dictionary 來表示動態的 EQP
+		}
+
+		public class Equipment: Item{
+			public Dictionary<string, Item> TOOL { get; set; }
+		}
+
+		public class Item{
+			public double 轉換率 { get; set; }
+		}
 	}
 
 
 
 }
-
+//todo-CUB

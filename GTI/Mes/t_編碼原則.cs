@@ -154,7 +154,49 @@ namespace UnitTestProject
 			//return Code.Codes[0].ToString();
 		}, false, true);
 
+		[TestMethod]
+		public void t_Coder_GetCodes_PalletNo()
+		=> _DBTest(Txn => {
+			var encode_format_no = "PalletNo";
+			var encodeFromatInfo = new EncodeFormatUtility.EncodeFormatInfo(Txn.DBC, encode_format_no, EncodeFormatUtility.IndexType.No);
 
+			if (!encodeFromatInfo.IsExist)
+				throw new Exception(string.Format(RES.BLL.Message.SystemParamaterIsNull, encode_format_no));
+
+			Dictionary<EncodeFormatUtility.ParameterType, object> args = new Dictionary<EncodeFormatUtility.ParameterType, object>
+			{
+				{ EncodeFormatUtility.ParameterType.BASE_DATE, Txn.DBC.GetDBTime() }
+			};
+
+			var codeInfo = EncodeFormatUtility.Coder.GetCodes(Txn.DBC, "Admin", encodeFromatInfo, 1, args, true);
+		}, false, true);
+
+
+		/* [Ref]
+		https://genesisoffice365.sharepoint.com/sites/GTiMES50/_layouts/OneNote.aspx?id=%2Fsites%2FGTiMES50%2FSiteAssets%2FGTiMES%205.0%20%E9%96%8B%E7%99%BC%20%E7%AD%86%E8%A8%98%E6%9C%AC&wd=target%28%E7%A8%8B%E5%BC%8F%E6%95%99%E5%AD%B8%2F4.5.one%7CC241A27B-93C3-456C-A955-1C0D4E8EA00F%2F%E7%B3%BB%E7%B5%B1%E7%B7%A8%E7%A2%BC%E8%87%AA%E8%A8%82%E5%AD%97%E4%B8%B2%7CD8C6CEE4-4C25-4A9F-99A0-17F46E9A9BFF%2F%29
+onenote:https://genesisoffice365.sharepoint.com/sites/GTiMES50/SiteAssets/GTiMES%205.0%20開發%20筆記本/程式教學/4.5.one#系統編碼自訂字串&section-id={C241A27B-93C3-456C-A955-1C0D4E8EA00F}&page-id={D8C6CEE4-4C25-4A9F-99A0-17F46E9A9BFF}&end 
+		 
+		 */
+		[TestMethod]
+		public void t_自定義特殊Key值()
+		=> _DBTest(Txn => {
+			//需要參考文件, 建立 相應的 InputTest
+			var EnInfo = new EncodeFormatUtility.EncodeFormatInfo(Txn.DBC, "InputTest", EncodeFormatUtility.IndexType.No);
+			List<LotUtility.LotSplitInfo> SplitInfos = new List<LotUtility.LotSplitInfo>();
+			TransactionUtility.AddSQLCommandTxn CommandTxn = new TransactionUtility.AddSQLCommandTxn();
+			if (EnInfo.IsExist == true)
+			{
+
+				var args = new Dictionary<Genesis.Gtimes.ADM.EncodeFormatUtility.ParameterType,object>();
+				var value = new Dictionary<string,string>();
+				value.Add("Key", "abd");
+				args.Add(Genesis.Gtimes.ADM.EncodeFormatUtility.ParameterType.INPUT_DICT_STR_STR, value);
+				var codes = EncodeFormatUtility.Coder.GetCodes(Txn.DBC, "Admin", EnInfo, 1, args, true);
+			}
+
+		}, false, true);
+
+ 
 
 		/// <summary>
 		/// 編碼處理原型 

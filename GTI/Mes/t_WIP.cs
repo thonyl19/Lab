@@ -2,8 +2,10 @@
 using BLL.MES;
 using BLL.MES.DataViews;
 using Frame.Code;
+using Genesis;
 using Genesis.Gtimes.ADM;
 using Genesis.Gtimes.Transaction;
+using Genesis.Gtimes.Transaction.WIP;
 using Genesis.Gtimes.WIP;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using System;
@@ -540,5 +542,29 @@ namespace UnitTestProject
 				.LoadCheckToolByEquipment("E-C02-001-01", "LWO23010901-07");
 
 		}
+
+
+        [TestMethod]
+        public void t_Scrap()
+		=> _DBTest((txn) =>
+		{
+			TxnBase.Test = GTI_Test.TxnBase_T;
+
+			var CurrentLot = txn.GetLotInfo("C012O", isQueryByLotNO: true);
+			var lotScrapCreateInfoList = new List<LotUtility.LotScrapCreateInfo>();
+			var reasonInfo = txn.GetReasonCodeInfo("GTI24121810160452184");
+			var lotScrapCreateInfo = new LotUtility.LotScrapCreateInfo(reasonInfo, 1);
+			lotScrapCreateInfoList.Add(lotScrapCreateInfo);
+			var eqp = txn.GetEquipmentInfo("GTI24121810010351939");
+			
+			var oScrap = new WIPTransaction.LotScrapTxn(CurrentLot)
+			{
+				//報廢到零自動結批                            
+				TerminateLot = true,
+				ScrapRecordEquipment = eqp,
+			};
+			txn.DoTransaction(oScrap);
+		}, true,true);
+
 	}
 }
