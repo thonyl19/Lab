@@ -1,21 +1,36 @@
-set tar_BasePath=N:\CUB_Dev
+set tar_PJ=CUB
+set tar_BasePath=N:\%tar_PJ%_Dev
 
-set src_path=P:\MyLab\UnitTest\GTI\configSetting\GTI_Test.cs
+set src_BasePath=P:\MyLab\UnitTest\GTI\configSetting
+
+set src_path=%src_BasePath%\GTI_Test.cs
 set tar_path=%tar_BasePath%\Genesis_MVC\App_Start\GTI_Test~.cs
 del %tar_path% \Q
 mklink %tar_path% %src_path%  
 
-set src_path=P:\MyLab\UnitTest\GTI\configSetting\BundleConfig.cs
+set src_path=%src_BasePath%\GTI_Test~%tar_PJ%.cs
+IF NOT EXIST %src_path% (
+    echo %src_path% ¤£¦s¦b¡A§ï³]¬° Prd
+    set src_path=%src_BasePath%\GTI_Test~Prd.cs
+) ELSE (
+    echo %src_path%¡AµL»İ½Æ»s¡C
+)
+
+set tar_path=%tar_BasePath%\Genesis_MVC\App_Start\GTI_Test~PJ.cs
+del %tar_path% \Q
+mklink %tar_path% %src_path%  
+
+set src_path=%src_BasePath%\BundleConfig.cs
 set tar_path=%tar_BasePath%\Genesis_MVC\App_Start\BundleConfig~.cs
 del %tar_path% \Q
-mklink %tar_path% %src_path% 
+rem mklink %tar_path% %src_path% 
 
-set src_path=P:\MyLab\UnitTest\GTI\configSetting\Connection~.config
+set src_path=%src_BasePath%\Connection~.config
 set tar_path=%tar_BasePath%\Genesis_MVC\configSetting\Connection~.config
 del %tar_path% \Q
 mklink %tar_path%  %src_path%
 
-set src_path=P:\MyLab\UnitTest\GTI\configSetting\GTiMESReg.reg
+set src_path=%src_BasePath%\GTiMESReg.reg
 set tar_path=%tar_BasePath%\Genesis_MVC\GTiMESReg.reg
 del %tar_path% \Q
 mklink %tar_path%  %src_path%
@@ -32,7 +47,7 @@ mklink %tar_path%  %src_path%
  
 set src_path=P:\MyLab\GTI_Sample\Self
 set tar_path=%tar_BasePath%\Genesis_MVC\Areas\Example\Views\Self
-rem å¦‚æœç›®éŒ„å·±å­˜åœ¨  éœ€è¦æ‰‹å‹•åˆªé™¤
+rem ¦pªG¥Ø¿ı¤v¦s¦b  »İ­n¤â°Ê§R°£
 rem del %tar_path% \Q
 mklink /j %tar_path%  %src_path%
  
