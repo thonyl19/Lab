@@ -1,4 +1,4 @@
-@using System.Dynamic
+    @using System.Dynamic
 @model BLL.MES.DataViews.LotData
 @{
 	dynamic data = new ExpandoObject();
@@ -11,10 +11,13 @@
 @eBundle.QRender_CSS()
 @eBundle.QRender_JS()
 @Html.Partial("~/Views/Shared/part/_calculator.cshtml")
-@Html.Partial($"{BaseRoot}/Shared/_edc.V1.cshtml")
+@Html.Partial("InOut/_edc.V3_")
 <pre>
 <a href="http://localhost:59394/GenesisNewMes/Example/Self/test?name=_CatchTool&Test=T">測試catch_tool</a>
 </pre>
+<link href="https://cdn.jsdelivr.net/npm/tabulator-tables@5.5.4/dist/css/tabulator.min.css" rel="stylesheet">
+<script type="text/javascript" src="https://cdn.jsdelivr.net/npm/tabulator-tables@5.5.4/dist/js/tabulator.min.js"></script>
+
 <div id="app">
     <form id="WipForm" @@keydown.enter.prevent="preventSubmit">
         <el-row class="panel b">
@@ -23,18 +26,14 @@
             </el-button-group>
 
             <br />
-            <el-radio-group v-model="test" size="mini"  disabled="readonly" data-field="item_key" >
-                <el-radio-button label="F"   class="adj"></el-radio-button>
-                <el-radio-button label="T"  class="adj"></el-radio-button>
-            </el-radio-group>
             {{c_pass}}
             <el-row :gutter="12">
                 <el-col :lg="16">
-                    <component is="edc-input" v-model="set_model.EdcList" :set_model="set_model" ref="cp"></component>
+                    <component is="edc-input" v-model="set_model.EdcList" :set_model="set_model" ref="cp"  :cfg="cfg"></component>
                 </el-col>
             </el-row>
             {{set_model.EdcList}}
-</form>
+    </form>
 </div>
 <div id="footerCommand">
     <button type="button" class="btn btn-lg btn-labeled btn-success  btn_submit" style="margin:10px 30px;">
@@ -50,15 +49,12 @@
         var form = $("#WipForm");
         Vue.use(Vuex);
         var test = {
-            API_執行一次: { "EDC": [{ "MOUDLE": "EDC", "RESOURCE_URL": "/api/EDC/ImportExl", "CHECK_MODE": "0", "PARAM": { "lotSid": "CurrentLot.SID" }, "EXTEN_RULE": { "ExecOnce": true, "CallFailed": true, "DynamicItem": true } }] },
-            API_不動態展開: { "EDC": [{ "MOUDLE": "EDC", "RESOURCE_URL": "/api/EDC/ImportExl", "CHECK_MODE": "0", "PARAM": { "lotSid": "CurrentLot.SID" }, "EXTEN_RULE": { "ExecOnce": true, "CallFailed": true, "DynamicItem": false } }] },
-            EDC: [{ "EdcVerSid": "GTI23112214162566247", "EdcParameterSid": "GTI23112214130966198", "QCItemSID": "GTI23112214130966198", "DataType": "S", "DataCount": 1, "DispayPointName": "", "DispayPointNameList": [""], "ItemSid": "GTI23112214130966198", "ItemNo": "O_ID", "ItemName": "O_ID", "mustInput": "F", "UCL": null, "USL": null, "LCL": null, "LSL": null, "TL": "0", "EDCSid": "GTI23112214161866244", "EDCThrowSpc": "F", "ThrowSpc": "F", "EDCVerParaSid": "GTI23112214180766251", "DBTable": "", "DBColumnName": "", "InputValueList": [{ "1": "" }] }, { "EdcVerSid": "GTI23112214162566247", "EdcParameterSid": "GTI23112214133866204", "QCItemSID": "GTI23112214133866204", "DataType": "N", "DataCount": 1, "DispayPointName": "", "DispayPointNameList": [""], "ItemSid": "GTI23112214133866204", "ItemNo": "O_W1", "ItemName": "O_W1", "mustInput": "F", "UCL": 20, "USL": 20, "LCL": 5, "LSL": 5, "TL": "1", "EDCSid": "GTI23112214161866244", "EDCThrowSpc": "F", "ThrowSpc": "F", "EDCVerParaSid": "GTI23112214180766252", "DBTable": "", "DBColumnName": "", "InputValueList": [{ "1": "" }] }, { "EdcVerSid": "GTI23112214162566247", "EdcParameterSid": "GTI23112214135766210", "QCItemSID": "GTI23112214135766210", "DataType": "N", "DataCount": 1, "DispayPointName": "", "DispayPointNameList": [""], "ItemSid": "GTI23112214135766210", "ItemNo": "O_W2", "ItemName": "O_W2", "mustInput": "F", "UCL": null, "USL": null, "LCL": null, "LSL": null, "TL": "1", "EDCSid": "GTI23112214161866244", "EDCThrowSpc": "F", "ThrowSpc": "F", "EDCVerParaSid": "GTI23112214180766253", "DBTable": "", "DBColumnName": "", "InputValueList": [{ "1": "" }] }, { "EdcVerSid": "GTI23112214162566247", "EdcParameterSid": "GTI23112214141366216", "QCItemSID": "GTI23112214141366216", "DataType": "N", "DataCount": 1, "DispayPointName": "", "DispayPointNameList": [""], "ItemSid": "GTI23112214141366216", "ItemNo": "O_W3", "ItemName": "O_W3", "mustInput": "F", "UCL": null, "USL": null, "LCL": null, "LSL": null, "TL": "1", "EDCSid": "GTI23112214161866244", "EDCThrowSpc": "F", "ThrowSpc": "F", "EDCVerParaSid": "GTI23112214180766254", "DBTable": "", "DBColumnName": "", "InputValueList": [{ "1": "" }] }, { "EdcVerSid": "GTI23112214162566247", "EdcParameterSid": "GTI23112214142866222", "QCItemSID": "GTI23112214142866222", "DataType": "N", "DataCount": 1, "DispayPointName": "", "DispayPointNameList": [""], "ItemSid": "GTI23112214142866222", "ItemNo": "O_W4", "ItemName": "O_W4", "mustInput": "F", "UCL": null, "USL": null, "LCL": null, "LSL": null, "TL": "1", "EDCSid": "GTI23112214161866244", "EDCThrowSpc": "F", "ThrowSpc": "F", "EDCVerParaSid": "GTI23112214180766255", "DBTable": "", "DBColumnName": "", "InputValueList": [{ "1": "" }] }, { "EdcVerSid": "GTI23112214162566247", "EdcParameterSid": "GTI23112214150366229", "QCItemSID": "GTI23112214150366229", "DataType": "N", "DataCount": 1, "DispayPointName": "", "DispayPointNameList": [""], "ItemSid": "GTI23112214150366229", "ItemNo": "O_WAve", "ItemName": "O_WAve", "mustInput": "F", "UCL": null, "USL": null, "LCL": null, "LSL": null, "TL": "1", "EDCSid": "GTI23112214161866244", "EDCThrowSpc": "F", "ThrowSpc": "F", "EDCVerParaSid": "GTI23112214180766256", "DBTable": "", "DBColumnName": "", "InputValueList": [{ "1": "" }] }, { "EdcVerSid": "GTI23112214162566247", "EdcParameterSid": "GTI23112214152366235", "QCItemSID": "GTI23112214152366235", "DataType": "N", "DataCount": 1, "DispayPointName": "", "DispayPointNameList": [""], "ItemSid": "GTI23112214152366235", "ItemNo": "O_Weight", "ItemName": "O_Weight", "mustInput": "F", "UCL": null, "USL": null, "LCL": null, "LSL": null, "TL": "1", "EDCSid": "GTI23112214161866244", "EDCThrowSpc": "F", "ThrowSpc": "F", "EDCVerParaSid": "GTI23112214180766257", "DBTable": "", "DBColumnName": "", "InputValueList": [{ "1": "" }] }],
-            EDC_pass測試: [{ "EdcVerSid": "GTI24010314091065161", "EdcParameterSid": "GTI24010314074964997", "QCItemSID": "GTI24032715004769121", "DataType": "N", "DataCount": 0, "DispayPointName": null, "DispayPointNameList": [], "ItemSid": "GTI24032715004769121", "ItemNo": "IPQC_001", "ItemName": "數值必填", "mustInput": "T", "UCL": null, "USL": 6.15, "LCL": null, "LSL": 5.89, "TL": "0", "EDCSid": "GTI24010314091065160", "EDCThrowSpc": "T", "pass": false, "ThrowSpc": null, "EDCVerParaSid": "GTI24010314074964997", "DBTable": null, "DBColumnName": null, "InputValueList": [{ "1": "6" }] }, { "EdcVerSid": "GTI24010314091065161", "EdcParameterSid": "GTI24010314074964998", "QCItemSID": "GTI24032715004769122", "DataType": "N", "DataCount": 0, "DispayPointName": null, "DispayPointNameList": [], "ItemSid": "GTI24032715004769122", "ItemNo": "IPQC_002", "ItemName": "數值非必填", "mustInput": "F", "UCL": null, "USL": 2.69, "LCL": null, "LSL": 2.54, "TL": "0", "EDCSid": "GTI24010314091065160", "EDCThrowSpc": "T", "pass": false, "ThrowSpc": null, "EDCVerParaSid": "GTI24010314074964998", "DBTable": null, "DBColumnName": null, "InputValueList": [{ "1": "2.6" }] }, { "EdcVerSid": "GTI24010314091065161", "EdcParameterSid": "GTI24010314074964998", "QCItemSID": "GTI24032715004769122", "DataType": "N", "DataCount": 0, "DispayPointName": null, "DispayPointNameList": [], "ItemSid": "GTI24032715004769122", "ItemNo": "IPQC_002", "ItemName": "只有管制上下限", "mustInput": "F", "UCL": 2.69, "USL": null, "LCL": 2.54, "LSL": null, "TL": "0", "EDCSid": "GTI24010314091065160", "EDCThrowSpc": "T", "pass": false, "ThrowSpc": null, "EDCVerParaSid": "GTI24010314074964998", "DBTable": null, "DBColumnName": null, "InputValueList": [{ "1": "2.6" }] }, { "EdcVerSid": "GTI24010314091065161", "EdcParameterSid": "GTI24010314074964997", "QCItemSID": "GTI24032715004769121", "DataType": "N", "DataCount": 0, "DispayPointName": null, "DispayPointNameList": [], "ItemSid": "GTI24032715004769121", "ItemNo": "IPQC_001", "ItemName": "數值必填,無上下限", "mustInput": "T", "UCL": null, "USL": null, "LCL": null, "LSL": null, "TL": "0", "EDCSid": "GTI24010314091065160", "EDCThrowSpc": "T", "pass": false, "ThrowSpc": null, "EDCVerParaSid": "GTI24010314074964997", "DBTable": null, "DBColumnName": null, "InputValueList": [{ "1": "6" }] }, { "EdcVerSid": "GTI24010314091065161", "EdcParameterSid": "GTI24010314074964998", "QCItemSID": "GTI24032715004769122", "DataType": "S", "DataCount": 0, "DispayPointName": null, "DispayPointNameList": [], "ItemSid": "GTI24032715004769122", "ItemNo": "IPQC_002", "ItemName": "文字必填", "mustInput": "T", "UCL": null, "USL": 2.69, "LCL": null, "LSL": 2.54, "TL": "0", "EDCSid": "GTI24010314091065160", "EDCThrowSpc": "T", "pass": false, "ThrowSpc": null, "EDCVerParaSid": "GTI24010314074964998", "DBTable": null, "DBColumnName": null, "InputValueList": [{ "1": "" }, { "2": "" }] }, { "EdcVerSid": "GTI24010314091065161", "EdcParameterSid": "GTI24010314074964998", "QCItemSID": "GTI24032715004769122", "DataType": "S", "DataCount": 0, "DispayPointName": null, "DispayPointNameList": [], "ItemSid": "GTI24032715004769122", "ItemNo": "IPQC_002", "ItemName": "文字非必填", "mustInput": "F", "UCL": null, "USL": 2.69, "LCL": null, "LSL": 2.54, "TL": "0", "EDCSid": "GTI24010314091065160", "EDCThrowSpc": "T", "pass": true, "ThrowSpc": null, "EDCVerParaSid": "GTI24010314074964998", "DBTable": null, "DBColumnName": null, "InputValueList": [{ "1": "" }] }, { "EdcVerSid": "GTI24010314091065161", "EdcParameterSid": "GTI24010314074964998", "QCItemSID": "GTI24032715004769122", "DataType": "B", "DataCount": 0, "DispayPointName": null, "DispayPointNameList": [], "ItemSid": "GTI24032715004769122", "ItemNo": "IPQC_002", "ItemName": "文字非必填", "mustInput": "F", "UCL": null, "USL": 2.69, "LCL": null, "LSL": 2.54, "TL": "0", "EDCSid": "GTI24010314091065160", "EDCThrowSpc": "T", "pass": true, "ThrowSpc": null, "EDCVerParaSid": "GTI24010314074964998", "DBTable": null, "DBColumnName": null, "InputValueList": [{ "1": "" }, { "2": "" }] }],
-            EDC_pass測試1: [{
+             
+            EDC_pass測試2: [{
                 "EdcVerSid": "GTI24010314091065161",
                 "EdcParameterSid": "GTI24010314074964997",
                 "QCItemSID": "GTI24032715004769121",
-                "DataType": "N",
+                "DataType": "Z",
                 "DataCount": 0,
                 "DispayPointName": null,
                 "DispayPointNameList": [
@@ -66,7 +62,7 @@
                 ],
                 "ItemSid": "GTI24032715004769121",
                 "ItemNo": "IPQC_001",
-                "ItemName": "數值必填",
+                "ItemName": "產品尺寸",
                 "mustInput": "T",
                 "UCL": 354.27,
                 "USL": 375,
@@ -81,12 +77,60 @@
                 "DBTable": null,
                 "DBColumnName": null,
                 "InputValueList": [
-                    {
-                        //"1": "344.02",
-                        //"2": "400",
-                        "3": "0"
+                    { id: 'TestLot001', R1: null, R2: null,R3:null},
+                ]
+                , "Z_ColCfg": [
+                    { title: "ID", field: "id", editor: "string", width: 120 },
+                    { title: "長度", field: "R1", editor: "number", width: 120, frozen: true },
+                    { title: "寬度", field: "R2", editor: "number", width: 70 },
+                    { title: "CNC", field: "R3", editor: true, width: 70 },
+                ]
+            },{
+                "EdcVerSid": "GTI24010314091065161",
+                "EdcParameterSid": "GTI24010314074964997",
+                "QCItemSID": "GTI24032715004769121",
+                "DataType": "Z",
+                "DataCount": 0,
+                "DispayPointName": null,
+                "DispayPointNameList": [
 
-                    }
+                ],
+                "ItemSid": "GTI24032715004769121",
+                "ItemNo": "IPQC_001",
+                "ItemName": "鑽孔孔徑",
+                "mustInput": "T",
+                "UCL": 354.27,
+                "USL": 375,
+                "LCL": 344.02,
+                "LSL": 325,
+                "TL": 349,
+                "EDCSid": "GTI24010314091065160",
+                "EDCThrowSpc": "T",
+                "pass": false,
+                "ThrowSpc": null,
+                "EDCVerParaSid": "GTI24010314074964997",
+                "DBTable": null,
+                "DBColumnName": null,
+                "InputValueList": [
+                    { id: 1, R1: null, R2: null, C1: null, L1: null, L2: null, Sel: null },
+                    { id: 2, R1: null, R2: null, C1: null, L1: null, L2: null, Sel: "刮痕" },
+                    { id: 3, R1: null, R2: null, C1: null, L1: null, L2: null, Sel: null },
+                    { id: 4, R1: null, R2: null, C1: null, L1: null, L2: null, Sel: "斑點" },
+                    { id: 5, R1: null, R2: null, C1: null, L1: null, L2: null, Sel: "其他" },
+                    { id: 6, R1: null, R2: null, C1: null, L1: null, L2: null, Sel: null },
+                    { id: 7, R1: null, R2: null, C1: null, L1: null, L2: null, Sel: "刮痕" },
+                    { id: 8, R1: null, R2: null, C1: null, L1: null, L2: null, Sel: "斑點" },
+                    { id: 9, R1: null, R2: null, C1: null, L1: null, L2: null, Sel: null },
+                    { id: 10, R1: null, R2: null, C1: null, L1: null, L2: null, Sel: "其他" }
+                ]
+                , "Z_ColCfg": [
+                    { title: "ID", field: "id", width: 120, editable: false, frozen: true },
+                    { title: "左上", field: "R1", editor: "number", width: 70 },
+                    { title: "左下", field: "R2", editor: "number", width: 70 },
+                    { title: "中", field: "C1", editor: "number", width: 70 },
+                    { title: "右上", field: "L1", editor: "number", width: 70 },
+                    { title: "右下", field: "L2", editor: "number", width: 70 },
+                    /*{ title: "選項", field: "Sel", width: 150 , editor: "select", editorParams: { values: ["斑點", "刮痕", "其他"] }},*/
                 ]
             }],
             備料出站_退庫: [{ "MTR_LOT": "15422-1-1C02-00001", "PARTNO": "3D5000", "PART_NAME": "4518預成形", "UseQty": 5086.55, "QUANTITY": 5256, "WAREHOUSE_NO": "1C02" }, { "MTR_LOT": "3K0010-1-2C01-00001", "PARTNO": "3K0010", "PART_NAME": "Center ring內", "UseQty": 400, "QUANTITY": 500, "WAREHOUSE_NO": "2C00" }],
@@ -144,7 +188,7 @@
             data() {
                 var _self = this;
                 return {
-                    test:[],
+                    cfg: { height: '600px' },
                     API: {
                         "EDC": [{ "MOUDLE": "EDC", "RESOURCE_URL": "/api/EDC/ImportExl", "CHECK_MODE": "2", "PARAM": { "lotSid": "CurrentLot.SID" } }],
                     },
@@ -184,6 +228,10 @@
                             _self.set_model.EdcList = test.EDC_pass測試1;
                             console.log(_self._控件.c_pass);
                         },
+                        'Tabulator_Table'() {
+                            _self.set_model.EdcList = test.EDC_pass測試2;
+                            console.log(_self._控件.c_pass);
+                        },
                         '載入測試資料(動態展開)'() {
                             _self.API = test.API_執行一次;
                             _self.API.Test = test.載入EDC;
@@ -209,6 +257,9 @@
 
                     set_model
                 }
+            },
+            mounted() {
+                this.TestGroup.Tabulator_Table();
             },
             computed: {
                 _控件() {

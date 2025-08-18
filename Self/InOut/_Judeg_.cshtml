@@ -1,0 +1,164 @@
+Html.Partial("~/Views/OperTaskPart/_Judge.cshtml")
+<script>
+	$(() => {
+		var _vue = {
+			template: `
+	        <div class="panel" v-cloak v-if="isShow">
+				<div v-if="title!=''" class="panel-heading b panel-header-radius gti-wip-title">
+			        <h3 class="panel-title">{{title}}</h3>
+		        </div>
+				 <el-radio-group v-model="sel" style="display: flex; flex-direction: column;padding:3rem;">
+					<el-radio style="margin-bottom:2rem;"
+					  v-for="item in c_DataSrc"
+					  :key="item.SID"
+					  :label="item" >
+						<gt-no-name v-model="item.Display" :no="item.No" tag="span"><i v-if="item.INum==1" class="fa fa-flag" style="color:#5d9cec;"> </gt-no-name>
+					</el-radio>
+				  </el-radio-group>
+            </div>
+            `,
+			data() {
+				return {
+					sel: '',
+				}
+			},
+			props: {
+                "set_model": {
+                    type: Object,
+                    default: []
+                },
+				value: {
+					type: [Object,Array],
+					default() {
+						return {};
+					}
+				},
+ 				i18n: {
+					type: Object,
+					default() {
+						return {};
+					}
+				},
+				cfg: {
+					type: Array,
+					default() {
+						return {};
+					}
+				}
+			},
+			watch: {
+                sel: {
+					handler(val, oldName) {
+                        let { $store } = this;
+                        var dynJson = JSON.stringify(val);
+						if ($store) {
+                            $store.state.MainData.Setting.CheckOutSet.JudgeCfg['dynJson'] = dynJson;
+						}
+					},
+					deep: true,
+					immediate: true,
+				}
+			},
+			mounted() {
+				if (this.c_DataSrc != null) {
+                    this.sel = _.find(this.c_DataSrc, { INum:1});
+				}
+			},
+			computed: {
+				c_DataSrc() {
+                    return _.get(this.set_model, "OperationJudgePath", null)??[];
+				},
+				c_SettingCfg() {
+					return _.get(this.set_model, "Setting.CheckOutSet.JudgeCfg", {enable:false});
+				},
+				isShow() {
+					return this.c_DataSrc.length != 0 && this.c_SettingCfg.enable;
+				},
+				isStoreMode() {
+					return this.$store != null;
+				},
+				new_operation() {
+					let { OPERATION = null } = this.value || {};
+					if (OPERATION == null) return this.I18n.SelectNO;
+					return OPERATION;
+				},
+				title() {
+					let { title } = this.cfg || {};
+					if (title == null) title = 'Judge 作業';
+					return title;
+				},
+				input_label_width() {
+					let { input_label_width = "min-width:6rem;" } = this.grid_set;
+					return input_label_width;
+				},
+				I18n() {
+					var _base = {
+						重工站點:'重工站點',
+						'OPERATION': '@RES.BLL.Face.OPERATION',
+						'ROUTE': '@RES.BLL.Face.ROUTE',
+						//TODO-i18n:
+						'SUB_ROUTE': '子流程名稱',
+						'OLD_OPERATION': '@RES.BLL.Face.OLD_OPERATION',
+						'NEW_OPERATION': '@RES.BLL.Face.NEW_OPERATION',
+						'SelectNO': '@RES.BLL.Face.SelectNO',
+						'SelectNO': '@RES.BLL.Face.SelectNO',
+						'NextOperation':'@RES.BLL.Face.NextOperation',
+					}
+					return _.merge(_base, this.i18n);
+				}
+			},
+			methods: {
+				rowStyle({ row, rowIndex }) {
+
+					if (row.Status === "") {
+						return 'disabled';
+					} else {
+						return ''
+					}
+				},
+				test() {
+					//return this.$store.state.MainData.send_data();
+					return this.value;
+				},
+				change_oper() {
+					this.dialogTableVisible = true;
+					this.currentRow = this.value;
+				},
+				Action() {
+
+					var selItem = this.currentRow == null
+						? null
+						: this.currentRow;
+					this.value = selItem;
+					//if (this.isCanSelect(selItem)) {
+					//}
+					this.dialogTableVisible = false;
+				},
+				change(scope,event){
+					event.stopPropagation();
+					event.currentTarget.rowIndex = scope.$index;
+					this.row_click(scope.row,null,event);
+				},
+				isCanSelect(row) {
+					return row != null && row.Status != "";
+				},
+				row_click(row, column, event) {
+
+					if (!this.isCanSelect(row)) return;
+					this.SelIdx = event.currentTarget.rowIndex;
+					//if (this.SelIdx != idx) ;
+					var isSameObj  = this.currentRow === row;
+					if (isSameObj){
+						this.currentRow
+							= this.SelIdx
+							= null;
+					}else{
+						this.currentRow = row;
+					}
+					this.$refs.ETable.setCurrentRow(this.currentRow);
+				}
+			}
+        }
+        Vue.component('gti-judge', _vue);
+	});
+</script>

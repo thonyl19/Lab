@@ -156,12 +156,7 @@ Html.Partial("~/Views/OperTaskPart/_SetUpEQP.cshtml")
                             sts = sts == 'Wait' ? 'Run' : 'Wait';
                             _self.set_model.CurrentLot.STATUS = sts;
                         },
-                        切換isUserTraceEnter() {
-                            debugger;
-                            let { $store } = _self;
-                            var r = _.get($store, 'state.globalvar.isUserTraceEnter', false);
-                            _self.$set($store.state.globalvar, 'isUserTraceEnter', !r);
-                        }
+
 
                     },
                     set_model,

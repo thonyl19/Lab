@@ -1,0 +1,52 @@
+﻿@{
+
+    <script>
+$(() => {
+    Vue.component('pw-test', {
+        template: `
+        <el-tooltip placement="top">
+            <div slot="content">{{value}}</div>
+            <el-tag v-bind="$attrs" size="mini" @@click="copy"><slot>
+            <b style="background-color:lawngreen;margin-right:5px;">{{label}}</b>{{dyn_val}}</slot></el-tag>
+        </el-tooltip>
+		`,
+        props: {
+            value: Vue.prototype.$PropDef.FullType(""),
+            label: {
+                type: String,
+                default:'',
+            }
+        },
+        computed: {
+            dyn_val() {
+                if (_.isObject(this.value)) return '';
+                return `${this.value}`;
+            }
+        },
+        methods: {
+            copy() {
+                var v = this.value;
+                if (_.isObject(v)) {
+                    v = JSON.stringify(v, null, 4);
+                }
+
+                navigator.clipboard.writeText(v)
+                    .then(() => {
+                        Vue.prototype.$message({
+                            showClose: true,
+                            message: '文字已複製到剪貼簿！',
+                        });
+                    })
+                    .catch((error) => {
+                        Vue.prototype.$message({
+                            showClose: true,
+                            message: `複製到剪貼簿時發生錯誤：${error}`,
+                            type: 'error'
+                        });
+                    });
+            }
+        }
+    });
+
+});
+    </script>

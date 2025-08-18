@@ -1,0 +1,176 @@
+﻿@{
+    var _url = "https://cdn.jsdelivr.net/npm/@handsontable/vue@15.2.0/dist/vue-handsontable.min.js";
+}
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>Vue2 Handsontable Example</title>
+    @eBundle.QRender_CSS()
+    @eBundle.QRender_JS()
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/handsontable@12.4.0/dist/handsontable.full.min.css" />
+    <script src="https://cdn.jsdelivr.net/npm/handsontable@12.4.0/dist/handsontable.full.min.js"></script>
+
+    <!-- 引入 vue-handsontable 封裝 -->
+    <script src="@_url"></script>
+
+    <style>
+        #app {
+            margin: 50px;
+        }
+
+        .hot-container {
+            width: 800px;
+            height: 400px;
+        }
+        .text-blue {
+        color: blue !important;
+        }
+        .text-red {
+        color: red !important;
+        }
+    </style>
+</head>
+<body>
+    <div id="app">
+        <el-button>更新</el-button>
+        <hot-table class="hot-container"
+                   :settings="hotSettings">
+        </hot-table>
+        {{hotSettings.data}}
+    </div>
+
+    <script>
+        $(document).ready(() => {
+            // 註冊 hot-table 元件
+            Vue.component('hot-table', Handsontable.vue.HotTable);
+
+            new Vue({
+                el: '#app',
+                data() {
+                    return {
+                        hotSettings: {
+                        data: [
+                        { id: 1, name: "小明", age: 18, city: "台北", grade: 90, detail: "A班", extra: "備註1" },
+                        { id: 2, name: "小華", age: 22, city: "台中", grade: 85, detail: "B班", extra: "備註2" },
+                        { id: 3, name: "小美", age: 21, city: "高雄", grade: 88, detail: "A班", extra: "備註3" },
+                        { id: 20, name: "小邱", age: 39, city: "其他", grade: 85, detail: "B班", extra: "備註20" },
+                        { id: 21, name: "小何", age: 40, city: "台北", grade: 92, detail: "A班", extra: "備註21" },
+                        { id: 22, name: "小藍", age: 41, city: "台中", grade: 87, detail: "C班", extra: "備註22" },
+                        { id: 23, name: "小宋", age: 42, city: "高雄", grade: 95, detail: "B班", extra: "備註23" },
+                        { id: 24, name: "小朱", age: 43, city: "台南", grade: 81, detail: "A班", extra: "備註24" },
+                    ],
+                            colHeaders: ['ID'
+                                , '姓名',  // 只對姓名欄位加上 Tooltip
+                            //, '<el-tooltip content="姓名欄位" placement="top"><span>姓名</span></el-tooltip>',  // 只對姓名欄位加上 Tooltip
+
+                            , '年齡', '城市', '分數', '班級', '備註'],
+                            fillHandle: false,
+                            rowHeaders: false,
+                            manualColumnResize: true,
+                            licenseKey: 'non-commercial-and-evaluation', // Handsontable 免費版需要加這行
+                            columns: [{
+                                        data: 'id'
+                                        , readOnly: true
+                                    }, 
+                                //{
+                                //    data: 'name',
+                                //    renderer: (hotInstance, TD, row, col, prop, value, cellProperties) => {
+                                //        debugger;
+                                //      // 只在 name 欄位的標題部分加上 Tooltip
+                                //      const tooltip = document.createElement('div');
+                                //      tooltip.innerHTML = `
+                                //        <el-tooltip content="姓名欄位" placement="top">
+                                //          <span>${value}</span>
+                                //        </el-tooltip>`;
+      
+                                //      TD.innerHTML = tooltip.outerHTML;  // 把 Tooltip 插入到儲存格標題區域
+
+                                //      // 讓 Vue 更新 Tooltip
+                                //      Vue.nextTick(() => {
+                                //        const tooltipElement = TD.querySelector('el-tooltip');
+                                //        if (tooltipElement) {
+                                //          // 不需要手動初始化，Vue 和 Element UI 自動處理
+                                //        }
+                                //      });
+
+                                //      return TD;
+                                //    }
+                                //  },
+                                { data: 'name' },
+                                { data: 'age' },
+                                { data: 'city',
+                                    type: 'dropdown',
+                                    source: ['台北', '台中', '高雄']
+                                },
+                                { data: 'grade' },
+                                { data: 'detail' },
+                                { data: 'extra' },
+                                ],
+                            fixedColumnsLeft: 1,        // 左側凍結 1 欄
+                            dropdownMenu: true,
+                            contextMenu: true,
+                            //預設 tab 移動模式
+                            //tabMoves: {
+                            //    row: 0,
+                            //    col: 1
+                            //},
+                            cells(row, col) {
+                                    const cellProperties = {};
+                                    const colProp = this.instance.getSettings().columns[col]?.data;
+                                    const rowData = this.instance.getSourceDataAtRow(row);
+
+                                    if (colProp === 'age') {
+                                        const age = rowData.age;
+                                        if (age < 20) {
+                                        cellProperties.className = 'text-blue';
+                                        } else if (age >= 40) {
+                                        cellProperties.className = 'text-red';
+                                        }
+                                    }
+
+                                    return cellProperties;
+                                    },
+
+                            beforeKeyDown: function (event) {
+                                if (event.key === 'Tab') {
+                                    const selected = this.getSelected();
+                                    if (!selected) return;
+
+                                    event.preventDefault(); // 阻止 Handsontable 內建處理，自己控制
+
+                                    const [row, col] = selected[0];
+                                    const lastColIndex = this.countCols() - 1;
+
+                                    if (col < lastColIndex) {
+                                        // 還沒到最後一欄，正常往右一格
+                                        this.selectCell(row, col );
+                                    } else {
+                                        // 如果已經在最後一欄
+                                        const nextRow = row + 1;
+                                        if (nextRow < this.countRows()) {
+                                            this.selectCell(nextRow, 0); 
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    };
+                },
+
+                    mounted() {
+        // 確保在表格渲染後 Vue 會自動處理 el-tooltip 的顯示
+        this.$nextTick(() => {
+          const tooltipElement = document.querySelector('el-tooltip');
+          if (tooltipElement) {
+            this.$nextTick(() => {
+              // 確保 tooltip 正常工作
+            });
+          }
+        });
+                }
+            });
+        });
+    </script>
+</body>
+</html>

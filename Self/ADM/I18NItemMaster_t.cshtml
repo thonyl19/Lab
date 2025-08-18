@@ -1,0 +1,335 @@
+﻿
+@{
+    ViewBag.Title = Genesis.Common.PageBaseInfo.getCurrentResource().RESOURCE_NAME;
+}
+
+@section Styles {
+    @Styles.Render(eBundle.jqDataTables_CSS)
+    @eBundle.QRender_CSS()
+    <link rel="stylesheet" type="text/css" href="~/Content/app/css/app_el.css" />
+    <style>
+        .el-form-item {
+            margin-bottom: 0px;
+        }
+    </style>
+}
+
+
+@Html.AntiForgeryToken()
+<h3>@ViewBag.Title</h3>
+<div id="app" v-cloak>
+    @*<div Area-Main class="panel b">*@
+    <el-row>
+        <el-col :span="12">
+            <el-pagination background
+                           :disabled="editRow"
+                           :pager-count="3"
+                           :page-size="pageSize"
+                           layout="prev, pager, next, slot"
+                           :total="c_dataSet.length"
+                           :current-page.sync="currentPage">
+            </el-pagination>
+        </el-col>
+        <el-col :span="12">
+            <el-input size="mini" v-model="search"
+                      :disabled="editRow"
+                      placeholder="@("EnterKeywordsSearch".GTi18n())"
+                      @@input="m_quickFilter">
+                <i slot="prefix" class="el-input__icon el-icon-search"></i>
+            </el-input>
+        </el-col>
+    </el-row> 
+    <el-table ref="gtTable" :data="c_tableData" style="width: 100%" v-loading="loading">
+        <el-table-column width="100" fixed>
+            <template slot="header" slot-scope="scope">
+                <el-button size="mini" type="primary" icon="el-icon-plus" @@click="m_addLang" v-if="isAdmin">@Face.FunctionBarAddButton</el-button>
+                <span v-else>@Face.Operate</span>
+            </template>
+            <template slot-scope="scope">
+                <el-button v-if="!editRow" size="mini" type="primary" icon="el-icon-edit" circle @@click="m_edit(scope.$index, scope.row)"></el-button>
+                <el-button v-if="!editRow && isAdmin" size="mini" type="danger" icon="el-icon-delete" circle @@click="m_delete(scope.row)"></el-button>
+                <el-button v-if="m_onEdit(scope.$index)" size="mini" type="success" icon="el-icon-check" circle @@click="m_confirm(scope.row)"></el-button>
+                <el-button v-if="m_onEdit(scope.$index)" size="mini" type="danger" icon="el-icon-refresh-left" circle @@click="m_cancel(scope.row)"></el-button>
+            </template>
+        </el-table-column>
+        <el-table-column width="100" label="@("OpenCustomize".GTi18n())" v-if="isAdmin" fixed>
+            <template slot-scope="scope">
+                <el-switch v-if="!editRow"
+                           v-model="scope.row.IS_CUSTOMIZE"
+                           active-value="T"
+                           inactive-value="F"
+                           active-color="#13ce66"
+                           inactive-color="#ff4949"
+                           @@change="m_updateCustomize(scope.row)">
+                </el-switch>
+            </template>
+        </el-table-column>
+        <el-table-column width="300" label="@("I18N_NO".GTi18n())" fixed>
+            <template slot-scope="scope">
+                <el-input v-if="m_onEdit(scope.$index)" v-model="editRow.LANG_KEY" data-parsley-type="alphanum" size="mini" :disabled="!_.isEmpty(scope.row.LANG_KEY)" required></el-input>
+                <span v-else>{{scope.row.LANG_KEY}}</span>
+            </template>
+        </el-table-column>
+        <el-table-column label="@("I18N_DEFAULT_DISPLAY".GTi18n())" min-width="400" v-if="isAdmin">
+            <template slot-scope="scope">
+                <div v-if="m_onEdit(scope.$index)">
+                    <el-input v-model="l.DEFAULT_DISPLAY" size="mini" v-for="l in editRow.LANG_LIST">
+                        <template slot="prepend">
+                            <div style="width:50px; text-align:right">{{ l.I18N_NAME }}</div>
+                        </template>
+                    </el-input>
+                </div>
+                <ul v-else>
+                    <li v-for="l in scope.row.LANG_LIST">
+                        <span style="font-weight:800">{{l.I18N_NAME}}</span>
+                        <br>{{l.DEFAULT_DISPLAY}}
+                    </li>
+                </ul>
+            </template>
+        </el-table-column>
+        <el-table-column label="@("I18N_DISPLAY".GTi18n())" min-width="400">
+            <template slot-scope="scope">
+                <div v-if="m_onEdit(scope.$index)">{{editRow}}
+                    <el-input v-model="l.DISPLAY" size="mini" v-for="l in editRow.LANG_LIST" >
+                        <template slot="prepend">
+                            <div style="width:50px; text-align:right" @@click="sync(l)">{{ l.I18N_NAME }}</div>
+                        </template>
+                    </el-input>
+                </div>
+                <ul v-else>
+                    <li v-for="l in scope.row.LANG_LIST">
+                        <span style="font-weight:800">{{l.I18N_NAME}}</span>
+                        <br>{{l.DISPLAY}}
+                    </li>
+                </ul>
+            </template>
+        </el-table-column>
+    </el-table>
+
+    @*</div>*@
+</div>
+
+@section Scripts {
+    @Scripts.Render(eBundle.jqDataTables_JS)
+    @eBundle.QRender_JS()
+    @Scripts.Render("https://cdn.jsdelivr.net/npm/opencc-js@1.0.5/dist/umd/t2cn.js")
+<script>
+
+        $(() => {
+
+            const nullRow = { IS_CUSTOMIZE: null, LANG_KEY: '', CLASS: 0, LANG_LIST: [] };
+            const converter = OpenCC.Converter({ from: 'hk', to: 'cn' });
+            new Vue({
+                el: '#app',
+                data() {
+                    return {
+                        search: '{0} 找不到 {1} 资讯',
+                        dataSet: [ { "IS_CUSTOMIZE": "F", "LANG_KEY": "__CannotFind__Information", "CLASS": 2, "LANG_LIST": [ { "I18N_SID": "16117354668250000", "I18N_NO": "en-us", "I18N_NAME": "English", "DEFAULT_DISPLAY": "{0} cannot find {1} information.", "DISPLAY": "{0} cannot find {1} information." }, { "I18N_SID": "16117354668250001", "I18N_NO": "ja-jp", "I18N_NAME": "日本語", "DEFAULT_DISPLAY": null, "DISPLAY": null }, { "I18N_SID": "16117354668250002", "I18N_NO": "zh-cn", "I18N_NAME": "简体中文", "DEFAULT_DISPLAY": "{0} cannot find {1} information.", "DISPLAY": "{0} 找不到 {1} 资讯" }, { "I18N_SID": "16117354668250003", "I18N_NO": "zh-tw", "I18N_NAME": "繁體中文", "DEFAULT_DISPLAY": "{0} cannot find {1} information.", "DISPLAY": "{0} 找不到 {1} 資訊" } ] } ],
+                        i18nList: [{"I18N_SID":"16117354668250000","I18N_NO":"en-us","I18N_NAME":"English"},{"I18N_SID":"16117354668250001","I18N_NO":"ja-jp","I18N_NAME":"日本語"},{"I18N_SID":"16117354668250002","I18N_NO":"zh-cn","I18N_NAME":"简体中文"},{"I18N_SID":"16117354668250003","I18N_NO":"zh-tw","I18N_NAME":"繁體中文"}],
+                        tableColumns: [],
+                        isAdmin: false,
+                        getUrl: $.getBaseUrl() + `/I18NItem/GetInitData`,
+                        switchUrl: $.getBaseUrl() + `/I18NItem/UpdateCustomize`,
+                        updateUrl: $.getBaseUrl() + `/I18NItem/UpdateRow`,
+                        deleteUrl: $.getBaseUrl() + `/I18NItem/DeleteRow`,
+                        pageSize: 10,
+                        currentPage: 1,
+                        editRow: null,
+                        editIdx: -1,
+                        loading: true
+                    };
+                },
+                mounted() {
+                    //this.m_loadData();
+                    this.loading = false;
+                },
+                computed: {
+                    c_edit() {
+                        return this.editRow == null && this.editIdx > 0;
+                    },
+                    c_dataSet: {
+                        get() {
+                            return this.dataSet
+                                .filter(x => (x.LANG_KEY?.includes(this.search) ?? false)
+                                    || x.LANG_LIST.some(y => (y.DEFAULT_DISPLAY?.includes(this.search) ?? false) || (y.DISPLAY?.includes(this.search) ?? false)));
+                        },
+                        set(val) {
+                            this.search = val;
+                        }
+                    },
+                    c_tableData() {
+                        return this.c_dataSet.slice(this.currentPage * this.pageSize - this.pageSize, this.currentPage * this.pageSize);
+                    },
+                },
+                methods: {
+                    sync(row_LANG_LIST){ 
+                        let {I18N_NO} = row_LANG_LIST;
+                        switch(I18N_NO){
+                            case "zh-cn":
+                                var z = _.find(this.editRow.LANG_LIST,{I18N_NO:'zh-tw'});
+                                row_LANG_LIST.DISPLAY = converter(z.DISPLAY);
+                                break;
+
+                        }
+                        /*
+                        var __ = type == 1
+                            ? {old:this.lang.enUS,new:this.form.RESOURCE_NO}
+                            : {old:this.form.RESOURCE_NO,new:this.lang.enUS}
+                            ;
+                        switch(type){
+                            case 1:
+                                this.lang.enUS = __.new;
+                                break;
+                            case 2:
+                                this.form.RESOURCE_NO = __.new;
+                                break;
+                        }
+                        navigator.clipboard.writeText(__.new);
+                        if (this.form.URL == ''){
+                            this.form.URL = __.new;
+                        }else{
+                            this.form.URL = this.form.URL.replace(__.old,__.new);
+                        }*/
+                    },
+                    m_onEdit(idx) {
+                        return this.editRow != null && this.editIdx == idx;
+                    },
+
+                    m_quickFilter(val) {
+                        this.c_dataSet = val;
+                        this.currentPage = 1;
+                    },
+
+                    m_addLang() {
+                        this.search = '';
+                        this.currentPage = 1;
+                        let obj = {
+                            IS_CUSTOMIZE: 'F',
+                            LANG_KEY: '',
+                            CLASS: 0,
+                            LANG_LIST: this.i18nList.map(x => ({
+                                I18N_SID: x.I18N_SID,
+                                I18N_NO: x.I18N_NO,
+                                I18N_NAME: x.I18N_NAME,
+                                DEFAULT_DISPLAY: null,
+                                DISPLAY: null,
+                            }))
+                        };
+
+                        this.dataSet.unshift(obj);
+                        this.m_edit(0, obj);
+                    },
+
+                    async m_delete(row) {
+                        let _self = this;
+                        const confirm = await Swal.fire(_self.$Alert.genConfirm({ title: '@Message.ConfirmDeleteData'.replace('{0}', row.LANG_KEY) }));
+                        if (confirm.value) {
+                            $.submitForm({
+                                url: _self.deleteUrl,
+                                type: "post",
+                                contentType: "application/json; charset=utf-8",
+                                dataType: "json",
+                                param: JSON.stringify(row),
+                                showloading: false,
+                                success: function (data) {
+                                    if (data.Success) {
+                                        _self.dataSet = _self.dataSet.filter(x => x.LANG_KEY != row.LANG_KEY);
+                                    }
+                                    else
+                                        _self.$Alert.Err(data.Message);
+                                }
+                            });
+                        }
+                    },
+
+                    m_edit(idx, row) {
+                        this.editIdx = idx;
+                        this.editRow = JSON.parse(JSON.stringify(row));
+                    },
+                    m_updateCustomize(row) {
+                        let _self = this;
+                        _self.loading = true;
+                        $.submitForm({
+                            url: _self.switchUrl,
+                            type: "post",
+                            contentType: "application/json; charset=utf-8",
+                            dataType: "json",
+                            param: JSON.stringify(row),
+                            showloading: false,
+                            success: function (data) {
+                                if (!data.Success) {
+                                    _self.dataSet.find(x => x.LANG_KEY == row.LANG_KEY).IS_CUSTOMIZE = row.IS_CUSTOMIZE == 'T' ? 'F' : 'T';
+                                    _self.$Alert.Err(data.Message);
+                                }
+                                _self.loading = false;
+                            }
+                        });
+
+                    },
+                    m_confirm(row) {
+                        let _self = this;
+
+                        if (_.isEmpty(_self.editRow.LANG_KEY)) {
+                            _self.$Alert.Err('@string.Format(RES.BLL.Message.FieldRequired, "i18n編碼")');
+                            return;
+                        }
+                        _self.loading = true;
+                        $.submitForm({
+                            url: _self.updateUrl,
+                            type: "post",
+                            contentType: "application/json; charset=utf-8",
+                            dataType: "json",
+                            param: JSON.stringify(_self.editRow),
+                            showloading: false,
+                            success: function (data) {
+                                if (data.Success) {
+                                    let { LANG_KEY, CLASS, IS_CUSTOMIZE, LANG_LIST = [] } = data.Data;     
+                                    let obj = _self.dataSet.find(x => x.LANG_KEY == row.LANG_KEY);
+                                    obj.LANG_KEY = LANG_KEY;
+                                    obj.CLASS = CLASS;
+                                    obj.IS_CUSTOMIZE = IS_CUSTOMIZE;
+                                    obj.LANG_LIST = JSON.parse(JSON.stringify(LANG_LIST));
+                                }
+                                else
+                                    _self.$Alert.Err(data.Message);
+                                _self.loading = false;
+                            }
+                        });
+                        this.editRow = null;
+                    },
+                    m_cancel(row) {
+                        this.editRow = null;
+                        if (_.isEmpty(row.LANG_KEY))
+                            this.dataSet = this.dataSet.filter(x => x.LANG_KEY != row.LANG_KEY);
+                    },
+                    m_loadData() {
+                        let _self = this;
+
+                        $.submitForm({
+                            url: _self.getUrl,
+                            type: "post",
+                            contentType: "application/json; charset=utf-8",
+                            dataType: "json",
+                            showloading: false,
+                            success: function (data) {
+                                if (data.Success) {
+                                    _self.i18nList = data.Data.LANG_LIST;
+                                    _self.isAdmin = data.Data.IS_ADMIN;
+                                    _self.dataSet = data.Data.KEY_LIST;
+                                    _self.$nextTick(() => {
+                                        _self.$refs.gtTable && typeof _self.$refs.gtTable.doLayout == 'Function' && _self.$refs.gtTable.doLayout();
+                                        _self.loading = false;
+                                    });
+                                }
+                                else
+                                    _self.$Alert.Err(data.Message);
+                            }
+                        });
+                    }
+                },
+                watch: {
+                },
+            });
+        })
+</script>
+}

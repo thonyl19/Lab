@@ -1,0 +1,211 @@
+﻿<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>Vue.js 2 + Tabulator.js 凍結欄位與抬頭修正範例 (CDN)</title>
+    <link href="https://cdn.jsdelivr.net/npm/tabulator-tables@5.5.4/dist/css/tabulator.min.css" rel="stylesheet">
+    <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/tabulator-tables@5.5.4/dist/js/tabulator.min.js"></script>
+    <style>
+        #editable-table {
+            width: 800px;
+            overflow-x: auto;
+        }
+        /* 確保沒有父元素有 overflow: hidden */
+        body, html {
+            overflow: visible;
+        }
+        #app {
+            overflow: visible;
+        }
+    </style>
+</head>
+<body>
+    <div id="app">
+        <h1>Vue.js 2 + Tabulator.js 凍結欄位與抬頭修正範例</h1>
+        <tabulator-table v-model="tableData" :columns="columns" @@update="handleUpdate"></tabulator-table>
+        {{tableData}}
+    </div>
+
+    <script type="text/javascript">
+    $(document).ready(() => {
+        Vue.component('tabulator-table', {
+            props: {
+                value: {
+                    type: Array,
+                    default: () => []
+                },
+                columns: {
+                    type: Array,
+                    default: null
+                }
+            },
+            template: '<div><div ref="table"></div></div>',
+            data() {
+                return {
+                    table: null,
+                    nextEditCell: null,
+                }
+            },
+            computed: {
+                resolvedColumns() {
+                    if (this.columns && this.columns.length > 0) {
+                        return this.columns;
+                    }
+                    // 根據 value 自動產生欄位
+                    if (this.value && this.value.length > 0) {
+                        return Object.keys(this.value[0]).map(key => ({
+                            title: key,
+                            field: key
+                        }));
+                    }
+                    return [];
+                }
+            },
+            mounted() {
+                var _self = this;
+                this.table = new Tabulator(_self.$refs.table, {
+                    data: _self.value,
+                    layout: "fitColumns",
+                    height: "400px",
+                    columns: _self.resolvedColumns,
+                    cellEdited:_self.cellEdited,
+                    cellEditing:_self.cellEditing,
+                    tableBuilt: function(){
+                        _self.redraw(true);
+                    },
+                });
+                if (this.value && this.value.length > 0) {
+                    this.table.replaceData(this.value);
+                }
+            },
+            methods: {
+                cellEdited (cell){
+                    const newData = this.table.getData();
+                    this.$emit('input', newData);
+                    this.$emit('update', newData);
+                    if (this.nextEditCell) {
+                        // 等待 Tabulator 渲染完成再 focus
+                        setTimeout(() => {
+                            this.nextEditCell.edit();
+                            this.nextEditCell = null;
+                        }, 10);
+                    }
+                },
+                getNextEditableCell(cell, table) {
+                    const row = cell.getRow();
+                    const col = cell.getColumn();
+                    const columns = table.getColumns();
+                    const editableCols = columns.filter(c => c.getDefinition().editor);
+                    let colIndex = editableCols.findIndex(c => c === col);
+                    let rowIndex = table.getRows().findIndex(r => r === row);
+                    // 下一個可編輯欄位
+                    if (colIndex < editableCols.length - 1) {
+                        return row.getCell(editableCols[colIndex + 1]);
+                    } else {
+                        // 跳到下一列的第一個可編輯欄位
+                        const rows = table.getRows();
+                        if (rowIndex < rows.length - 1) {
+                            return rows[rowIndex + 1].getCell(editableCols[0]);
+                        }
+                    }
+                    return null;
+                },
+                cellEditing(cell) {
+                    let input = cell.getElement().querySelector('input, select, textarea');
+                    if (input) {
+                        input.onkeydown = null; // 先移除舊事件
+                        input.addEventListener('keydown', (e) => {
+                            if (e.key === 'Tab') {
+                                e.preventDefault();
+                                const nextCell = this.getNextEditableCell(cell, this.table);
+                                if (nextCell) {
+                                    this.nextEditCell = nextCell;
+                                }
+                            }
+                        });
+                    }
+                }
+            },
+            watch: {
+                columns: {
+                    handler() {
+                        if (this.table) {
+                            this.table.setColumns(this.resolvedColumns);
+                        }
+                    },
+                    deep: true
+                },
+                value: {
+                    handler(newVal) {
+                        if (this.table) {
+                            this.table.updateData(newVal); // 用 updateData
+                            // 若 columns 是自動產生，且資料結構變了，也要重設欄位
+                            if (!this.columns || this.columns.length === 0) {
+                                this.table.setColumns(this.resolvedColumns);
+                            }
+                        }
+                    },
+                    deep: true
+                }
+            },
+            beforeDestroy() {
+                if (this.table) {
+                    this.table.destroy();
+                    this.table = null;
+                }
+            }
+        });
+
+        // Main Vue instance
+        new Vue({
+            el: '#app',
+            data(){
+                return {
+                    columns: [
+                        { title: "Id", field: "id", width: 100, editable: false, frozen: true },
+                        { title: "姓名", field: "name", editor: "input", width: 150 },
+                        { title: "年齡", field: "age", editor: "number", width: 100 },
+                        { title: "城市", field: "city", editor: "select", editorParams: { values: ["台北", "台中", "高雄", "台南", "其他"] }, width: 120 },
+                        { title: "分數", field: "grade", editor: "number", width: 100 },
+                        { title: "詳細資訊", field: "detail", width: 200 },
+                        { title: "額外資訊", field: "extra", width: 150 },
+                    ],
+
+                    tableData: [
+                        { id: 1, name: "小明", age: 20, city: "台北", grade: 90, detail: "A班", extra: "備註1" },
+                        { id: 2, name: "小華", age: 22, city: "台中", grade: 85, detail: "B班", extra: "備註2" },
+                        { id: 3, name: "小美", age: 21, city: "高雄", grade: 88, detail: "A班", extra: "備註3" },
+                        { id: 4, name: "小強", age: 23, city: "台南", grade: 92, detail: "C班", extra: "備註4" },
+                        { id: 5, name: "小王", age: 24, city: "其他", grade: 80, detail: "B班", extra: "備註5" },
+                        { id: 6, name: "小李", age: 25, city: "台北", grade: 95, detail: "A班", extra: "備註6" },
+                        { id: 7, name: "小陳", age: 26, city: "台中", grade: 78, detail: "C班", extra: "備註7" },
+                        { id: 8, name: "小林", age: 27, city: "高雄", grade: 82, detail: "B班", extra: "備註8" },
+                        { id: 9, name: "小周", age: 28, city: "台南", grade: 87, detail: "A班", extra: "備註9" },
+                        { id: 10, name: "小吳", age: 29, city: "其他", grade: 91, detail: "C班", extra: "備註10" },
+                        { id: 11, name: "小張", age: 30, city: "台北", grade: 89, detail: "B班", extra: "備註11" },
+                        { id: 12, name: "小楊", age: 31, city: "台中", grade: 93, detail: "A班", extra: "備註12" },
+                        { id: 13, name: "小黃", age: 32, city: "高雄", grade: 86, detail: "C班", extra: "備註13" },
+                        { id: 14, name: "小劉", age: 33, city: "台南", grade: 84, detail: "B班", extra: "備註14" },
+                        { id: 15, name: "小蔡", age: 34, city: "其他", grade: 96, detail: "A班", extra: "備註15" },
+                        { id: 16, name: "小謝", age: 35, city: "台北", grade: 83, detail: "C班", extra: "備註16" },
+                        { id: 17, name: "小鄭", age: 36, city: "台中", grade: 94, detail: "B班", extra: "備註17" },
+                        { id: 18, name: "小許", age: 37, city: "高雄", grade: 88, detail: "A班", extra: "備註18" },
+                        { id: 19, name: "小曾", age: 38, city: "台南", grade: 90, detail: "C班", extra: "備註19" },
+                        { id: 20, name: "小邱", age: 39, city: "其他", grade: 85, detail: "B班", extra: "備註20" },
+                        { id: 21, name: "小何", age: 40, city: "台北", grade: 92, detail: "A班", extra: "備註21" },
+                        { id: 22, name: "小藍", age: 41, city: "台中", grade: 87, detail: "C班", extra: "備註22" },
+                        { id: 23, name: "小宋", age: 42, city: "高雄", grade: 95, detail: "B班", extra: "備註23" },
+                        { id: 24, name: "小朱", age: 43, city: "台南", grade: 81, detail: "A班", extra: "備註24" },
+                    ]
+                }
+            },
+            methods: {
+                handleUpdate(newData) {
+                    this.tableData = newData;
+                }
+            }
+        });
+    });
+    </script>
+</body>
+</html>

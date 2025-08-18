@@ -1,0 +1,929 @@
+﻿<script>
+    //todo-PRD
+    $(() => {
+        var _tpl = {
+            Tool_Selected: `
+            <div v-if="eqp.subItem && eqp.subItem.length > 0" class="sty-area1" >
+                <div v-for="(tool,tool_idx) in eqp.subItem" class="tool_info">
+                    <el-tag  type="success" :key="tool.SID" >
+                        <i class="fa fa-trash" @@click="remove_tool(eqp , tool_idx)" v-if="isCheckIn"  :class="tool['isNonRemove']"></i>
+                        <gt-no-name v-model="tool.Display" :no="tool.No"  tag="span" > </gt-no-name>
+                    </el-tag>
+                    <gti-limits-info v-model="eqp.subItem[tool_idx].Ext" v-if="c_limits_show"></gti-limits-info>
+                    <i class="fa fa-exclamation-circle" v-if="HasToolRule&&tool['link']==null"></i>
+                </div>
+            </div>
+            `,
+            Tool_Opction: `
+            <div class="sty-tool-input" :class="sty_ToolInput" v-if="Selected.EQP.No==eqp.No">
+                <el-input v-model="search_tool" ref="search_tool" size="small" v-if="!HasToolRule">
+                    <el-button slot="append" icon="fa fa-search"
+                        @@click="f_search_tool"
+                    ></el-button>
+                </el-input>
+                <div class="sty-area1 adj-tool-input" >
+                    <div v-for="(tool,tool_idx) in Idx.Tool" class="tool_info"
+                        :key="tool.SID"
+                        v-show="Selected.Tools[tool.No]==null" >
+                        <el-tag type="success" @@click="AddTool(tool)">
+                            <gt-no-name v-model="tool.Display" :no="tool.No"  tag="span" >
+                            </gt-no-name>
+                        </el-tag>
+                        <gti-limits-info v-model="Idx.Tool[tool_idx].Ext" v-if="c_limits_show"></gti-limits-info>
+                    </div>
+                </div>
+            </div>
+            `,
+            Dialog: `<el-dialog title="機台&治具零配件" :visible.sync="isExpandData" width="90%">
+                    <el-table :data="expandedTableData" style="width: 100%">
+                        <el-table-column prop="parentNo" label="設備">
+                            <template slot-scope="scope">
+                                <gt-no-name v-model="scope.row.parentDisplay" :no="scope.row.parentNo"  :inline="false"></gt-no-name>
+                            </template>
+                        </el-table-column>
+                        <el-table-column prop="parentAttr02" label="已使用次數"></el-table-column>
+                        <el-table-column prop="parentAttr03" label="最大使用次數"></el-table-column>
+                        <el-table-column prop="subNo" label="治具">
+                            <template slot-scope="scope">
+                                <gt-no-name v-model="scope.row.subDisplay" :no="scope.row.subNo"  :inline="false"></gt-no-name>
+                            </template>
+                        </el-table-column>
+                        <el-table-column prop="subAttr01" label="治具類別">
+                            <template slot-scope="scope">
+                                <gt-no-name v-model="scope.row.type_Name" :no="scope.row.type_No"  :inline="false"></gt-no-name>
+                            </template>
+                        </el-table-column>
+                        <el-table-column prop="subAttr02" label="已使用次數"></el-table-column>
+                        <el-table-column prop="subAttr03" label="最大使用次數"></el-table-column>
+                    </el-table>
+                </el-dialog>
+            </div>
+            `
+        }
+        Vue.component('gti-limits', {
+            props: {
+                sid: {
+                    type: String,
+                    default: ''
+                },
+                limit: {
+                    type: Number,
+                    default: 1
+                },
+                value: {
+                    type: Number,
+                    default: 1
+                }
+            },
+            template: `
+            <span class="gti-limits">
+                (<span :class="sty_over_limit">{{value}}</span>/<span>{{limit}}</span>)
+            </span>
+            `,
+            computed: {
+                sty_over_limit(){
+                    return this.value < this.limit ? 'is-over-limit' : '';
+                }
+            }
+        })
+        Vue.component('gti-limits-info', {
+            props: {
+                sid: {
+                    type: String,
+                    default: ''
+                },
+                limit: {
+                    type: Number,
+                    default: 1
+                },
+                value: {
+                    type: [Object,Array],
+                    default(){
+                        return {};
+                    }
+                }
+            },
+            template: `
+            <el-tooltip class="gti-limits-info" effect="light"  placement="top">
+                <div slot="content">
+                    <table class="gti-limits-info-table">
+                        <tr>
+                            <td>最大使用次數</td>
+                            <td>{{value.MAX_USE_COUNT}}</td>
+                        </tr>
+                        <tr>
+                            <td>累計使用次數</td>
+                            <td>{{value.USE_COUNT}}</td>
+                        </tr>
+                        <tr>
+                            <td>轉換率</td>
+                            <td>{{value.USE_COUNT_RATIO}}</td>
+                        </tr>
+                        <tr v-if="value.EQP_NO!=null">
+                            <td>機台轉換率</td>
+                            <td>{{value.EQP_RATIO}}</td>
+                        </tr>
+                        <tr>
+                            <td>預計使用次數</td>
+                            <td>{{value.預計使用次數}}</td>
+                        </tr>
+                        <tr>
+                            <td>合計使用次數</td>
+                            <td>{{value.USE_COUNT + value.預計使用次數}}</td>
+                        </tr>
+                    </table>
+                </div>
+                <span class="label label-default" :class="[value.isOver?'isOver':'']">{{value.USE_COUNT + value.預計使用次數}}</span>
+            </el-tooltip>
+            `,
+            props: {
+                value: {
+                    type: Object,
+                    default: {}
+                }
+            },
+
+        })
+
+        Vue.component('cp-eqp-setup', {
+            mixins: [Vue.prototype.$UT.Mixins.v_rootEl()],
+            template: `
+            <div class="cp-eqp-setup">
+                <div class="panel-heading b panel-header-radius gti-wip-title" :class="[isRequired?'req-sty':'']" >
+                    <i class="fa fa-list-alt" style="float: right;margin:0 3px;color:#409eff;" v-if="!isCheckIn" @@click="f_CheckOut(true)"></i>
+                    <h3 class="panel-title">{{title}}</h3>
+                </div>
+                <pw-test v-model="enable_run_in" label="enable_run_in"></pw-test>
+                <pw-test v-model="Idx.Tool" label="Idx.Tool"></pw-test>
+                <pw-test v-model="oper_rule.Tool" label="oper_rule.Tool"></pw-test>
+
+                <gt-err-tag v-model="c_err_req" sid="cp-eqp-setup.req"></gt-err-tag>
+                <gt-err-tag v-model="c_err_tool" sid="cp-eqp-setup.non_oper_tool"></gt-err-tag>
+                <gt-err-tag v-model="c_err_isOver" sid="cp-eqp-setup.isOver"></gt-err-tag>
+                <div class="sty-ops">
+                    <vue-selectize-dynquery
+                        ref="ddl_EQP"
+                        action="Equipment"
+                                    v-model="ddl_EQP.val"
+                                    :options="ddl_EQP.src"
+                                    :rows.sync="ddl_EQP.rows"
+                                    :icon_search="!HasEqpRule"
+                                    :fn_query="e_dyn_query"
+                                    :icon_search_click="()=>{e_dyn_query(null)}"
+                                    render_sty="GTIMES"
+                                    @@change-rows="ddl_EQP_onChange"
+                                    >
+                                    </vue-selectize-dynquery>
+                        <div class="clearfix"></div>
+                        <el-radio-group v-model="Selected.EQP" class="sty-area" >
+                            <el-radio v-for="(eqp,eqp_key) in Idx.EQP"
+                                :key="eqp_key"
+                                :label="eqp" @@click.native.prevent="handleEqpChange(eqp,$event)"
+                                :class="[sty_EnableSetTool]"
+                                >
+                                <span class="eqp_info">
+                                    <el-tag>
+                                        <i class="fa fa-trash" @@click="remove_eqp(eqp)" ></i>
+                                        <gt-no-name v-model="eqp.Display" :no="eqp.No" tag="span" ></gt-no-name>
+                                    </el-tag>
+                                    <gti-limits-info v-model="Idx.EQP[eqp_key].Ext" v-if="c_limits_show"></gti-limits-info>
+                                </span>
+                                ${_tpl.Tool_Selected}
+                                ${_tpl.Tool_Opction}
+                            </el-radio>
+                        </el-radio-group>
+                </div>
+                ${_tpl.Dialog}
+        </div>
+			`,
+            props: {
+                "set_model": {
+                    type: Object,
+                    default: []
+                },
+                cfg: Vue.prototype.$PropDef.Array(),
+                single_tool_add: {
+                    type: [String, Boolean],
+                    default: true
+                },
+                readonly: {
+                    type: [String, Boolean],
+                    default: false
+                },
+                err_tag: {
+                    type: [String, Boolean],
+                    default: true
+                },
+                cfg: Vue.prototype.$PropDef.Array(),
+                checkout_limits: {
+                    type: [String, Boolean],
+                    default: false
+                },
+            },
+            data() {
+                var _self = this;
+                return {
+                    search_tool: '',
+                    ddl_EQP: {
+                        val: '',
+                        src: [],
+                        rows: [],
+                    },
+                    ddl_reason: {
+                        val: '',
+                        src: [{}],
+                        rows: [],
+                    },
+                    Selected: {
+                        EQP: '',
+                        Tools: {},
+                        //不合規需要被移除的治具
+                        UnLoad: {},
+                    },
+                    oper_rule: {
+                        EQP: [],
+                        Tool: [],
+                    },
+                    //以Key值為單的資料集合
+                    Idx: {
+                        EQP: {},
+                        Tool: {},
+                    },
+                    list_EQP: {},
+                    expandedTableData: [],
+                    isExpandData: false,
+                };
+            },
+            mounted() {
+                let {EqumentSelectList,ToolSelectList} = this.set_model;
+                this.set_oper_rule(EqumentSelectList,ToolSelectList);
+                if (!this.isCheckIn) {
+                    this.f_OperToolInfo();
+                    this.f_CheckOut();
+                }
+                var r = this.c_err_req;
+            },
+            computed: {
+                checkin_unload_tool(){
+                    return _.get(this.cfg,'checkin_unload_tool',true);
+                },
+                c_err_req(){
+                    if (this.isRequired == false) return '';
+                    var msg =  _.isEmpty(this.Idx.EQP)
+                        ?'必須選取機台'
+                        :null;
+                    this.SetErrGroup('cp-eqp-setup.req', msg);
+                    return msg;
+                },
+                c_err_tool(){
+                    if (this.HasToolRule == false || this.checkin_unload_tool == false) return;
+                    var r = _.some(this.Idx.EQP, (collection) =>{
+                        if (Array.isArray(collection.subItem) && collection.subItem.length > 0){
+                            return _.some(collection.subItem,  (item) =>  item['link']==null);
+                        }
+                        return false;
+                    });
+                    if (this.err_tag && this.oper_rule){
+                        var msg = r ?'選定的機台上有不符合工作站設定的治具.':null;
+                        this.SetErrGroup('cp-eqp-setup.non_oper_tool', msg);
+                    }
+                    return r;
+                },
+                c_err_isOver(){
+                    if (this.c_limits_show == false) return;
+                    if (_.isEmpty(this.Idx.EQP)){
+                        this.SetErrGroup('cp-eqp-setup.isOver', null);
+                        return ;
+                    }
+                    var r = _.some(this.Idx.EQP, (eqp)=>{
+                        var isOver_Tool = _.some(eqp.subItem,{Ext:{isOver:true}});
+                        var msg = isOver_Tool ?'選定的治具超過最大使用次數.':null;
+                        this.SetErrGroup('cp-eqp-setup.isOver', msg);
+                        if (isOver_Tool) return isOver_Tool;
+
+                        var isOver_EQP = eqp.Ext.isOver;
+                        msg = isOver_EQP ?'選定的機台超過最大使用次數.':null;
+                        this.SetErrGroup('cp-eqp-setup.isOver', msg);
+                        return isOver_EQP;
+                    });
+                    return r;
+                },
+                oper_info() {
+                    return _.get(this.set_model, 'oper_info', {});
+                },
+                c_limits_show(){
+                    return this.isCheckIn || this.checkout_limits ;
+                },
+                c_Return: {
+                    get() {
+                        var r = [];
+                        let { $store } = this;
+                        if ($store) {
+                            return _.get($store, 'state.globalvar.EqpToolList', []);
+                        }
+                        return r;
+                    },
+                    set(val) {
+                        let { $store } = this;
+                        if ($store) {
+                            this.$set($store.state.globalvar, 'EqpToolList', this.c_EqpToolList);
+                            var x = [];
+                            _.each(this.Selected.UnLoad,(v,k)=>{
+                                x = _.concat(x,v);
+                            });
+                            this.$set($store.state.globalvar, 'UnLoadToolList', x);
+                        }
+                    }
+                },
+                enable_run_in() {
+                    return _.get(this.cfg, 'enable_run_in', false);
+                },
+                sty_EnableSetTool() {
+                    var enable_tool = _.get(this.cfg, 'enable_tool', false);
+                    return enable_tool ? '' : 'adj-hide';
+                },
+
+                sty_ToolInput(){
+                    var _self = this;
+                    let {HasToolRule,sty_EnableSetTool,isCheckIn} = _self;
+                    var chk = {
+                        HasToolRule,
+                        EnableSetTool:sty_EnableSetTool == '',
+                        isCheckIn,
+                        Rule0(){
+                            //all true ,才允許設定治具
+                            return this.HasToolRule && this.EnableSetTool && this.isCheckIn;
+                        },
+                        Rule1(){
+                            //尚有未設定治具
+                            return _.some(_self.oper_rule.Tool,{Checked:false})
+                        }
+                    }
+                    return (chk.Rule0() && chk.Rule1()) ? '':'hide';
+                },
+                isRequired(){
+                    return _.get(this.cfg,'required')??true;
+                },
+                isCanAddTool(){
+                    return !_.isEmpty(this.Selected.EQP);
+                },
+                isCheckIn(){
+                    var sts = _.get(this.set_model,'CurrentLot.STATUS','Wait');
+                    return sts == 'Wait';
+                },
+				isOperModel(){
+					let {SID}  = this.oper_info;
+					return SID != null;
+				},
+                title() {
+                    let { title = "@RES.BLL.Face.OperEquipInfo" } = this.cfg;
+                    return title;
+                },
+                HasToolRule(){
+                    let {Tool} = this.oper_rule;
+                    return !_.isEmpty(Tool);
+                },
+                HasEqpRule(){
+                    let {EQP} = this.oper_rule;
+                    return !_.isEmpty(EQP);
+                },
+
+                c_EqpToolList(){
+                    return Object.values(this.Idx.EQP);
+                },
+            },
+
+            methods: {
+                //客製邏輯,不允許下機台
+                Rule_已上機台治具處理(arrSrc,tool) {
+                    let {Rule_已上機台治具處理} = this.cfg ||{};
+                    if (Rule_已上機台治具處理!=null){
+                        var _fn = this[Rule_已上機台治具處理];
+                        if (_.isFunction(_fn)){
+                            _fn(arrSrc,tool);
+                        }
+                    }else if (_.isFunction(Rule_已上機台治具處理)){
+                        arrSrc.push(tool);
+                    }
+                },
+                Rule_已上機台治具處理_CUB(arrSrc,tool){
+                    if (this.isCheckIn){
+                        this.$set(tool,'isNonRemove','isNonRemove');
+                        arrSrc.push(tool);
+                    }
+                },
+                expandData(src) {
+                    this.expandedTableData =  [];
+                    src.forEach(parentItem => {
+                        if (parentItem.subItem && parentItem.subItem.length > 0) {
+                        parentItem.subItem.forEach(subItem => {
+                            let [type_SID,type_No,type_Name] = subItem.Attr01.split('$');
+                            this.expandedTableData.push({
+                            parentNo: parentItem.No,
+                            parentDisplay: parentItem.Display,
+                            parentStatus: parentItem.Status,
+                            parentAttr02: parentItem.USE_COUNT,
+                            parentAttr03: parentItem.MAX_USE_COUNT,
+                            subNo: subItem.No,
+                            subDisplay: subItem.Display,
+                            type_SID,type_No,type_Name,
+                            //subAttr01: subItem.Attr01,
+                            subAttr02: subItem.USE_COUNT,
+                            subAttr03: subItem.MAX_USE_COUNT,
+                            });
+                        });
+                        } else {
+                        // 如果沒有子項目，也將父項目資訊加入表格
+                        this.expandedTableData.push({
+                            parentNo: parentItem.No,
+                            parentDisplay: parentItem.Display,
+                            parentStatus: parentItem.Status,
+                            parentAttr02: parentItem.USE_COUNT,
+                            parentAttr03: parentItem.MAX_USE_COUNT,
+                            subNo: '',
+                            subDisplay: '',
+                            //subAttr01: '',
+                            type_SID:'',type_No:'',type_Name:'',
+                            subAttr02: '',
+                            subAttr03: '',
+                        });
+                        }
+                    });
+                },
+                set_oper_rule(EQP,Tool){
+                    var _self = this;
+                    EQP = EQP||[];
+                    Tool = Tool||[];
+                    this.ddl_EQP.src = EQP;
+                    Tool = this.bind_Idx_Tool(Tool);
+                    this.oper_rule.EQP = EQP;
+                    this.oper_rule.Tool = Tool;
+                    this.check_OperRule(EQP);
+                },
+                bind_Idx_Tool(Tool) {
+                    var _self = this;
+                    _.each(Tool,(c)=>{
+                        _self.$set(c,'Checked',false);
+                        c.Ext = _self.parse_Ext(c);
+                        _self.Idx.Tool[c.No] = c;
+                    });
+                    return Tool;
+                },
+                handleEqpChange(value,$e) {
+                    var isTargetTag = $($e.srcElement).hasClass('el-radio__inner');
+                    if (isTargetTag && (value.No === this.Selected.EQP.No)){
+                        this.Selected.EQP = {};
+                    }else{
+                        this.Selected.EQP = value;
+                    }
+
+                },
+                check_has_tool(tool,EQP_No,isAlert=true){
+                    let {No,Display} = tool;
+                    var item = this.Selected.Tools[No];
+                    var isHasItem = item != null;
+                    if (isHasItem && isAlert){
+                        this.$Alert.Err(`治具(${No}-${Display}) 已設定在機台(${item})`);
+                    }
+                    if (isHasItem == false && EQP_No != "") this.Selected.Tools[No] = EQP_No;
+                    return isHasItem;
+                },
+                //標記 tool 是否合規
+                check_OperRule(list_epq) {
+                    var _self = this;
+                    list_epq = list_epq ?? this.c_EqpToolList;
+                    _.each(list_epq,(eqp)=>{
+                        eqp.Ext = _self.parse_Ext(eqp);
+                        if (eqp.subItem !=null){
+                            var _arr= []
+                            eqp.subItem.forEach(tool=>{
+                                let {No,RefKey} = tool;
+                                var _match = _self.Idx.Tool[No];
+                                tool.Ext = _self.parse_Ext(tool,eqp);
+                                if (_match) {
+                                    tool['link'] = _match.SID;
+                                    console.log('tool',tool);
+                                    _self.Selected.Tools[No] = _match.No;
+                                    _match.Checked = true;
+                                    _arr.push(tool);
+                                }else{
+                                    _self.Rule_已上機台治具處理(_arr,tool);
+                                }
+                            })
+                            eqp.subItem = _arr;
+                        }
+                    })
+                    return list_epq;
+                },
+                Add_Eqp(eqp){
+                    eqp.subItem.map(tool=>{
+                        let {No,RefKey} = tool;
+                        if (_self.check_has_tool(tool,eqp.No)){
+
+                        }
+                    })
+                    var _self = this;
+                    this.c_Return = '';
+                    return data;
+                },
+                f_search_tool(){
+                    var search = this.search_tool;
+                    if(search === '') search = '%';
+                    var _self = this;
+                    var url = _self.$URL.chg_Path('api/ddl/ToolSetupInfo',{search});
+                    var _ajax = {
+                        url,
+                        type:'get',
+                        success(data) {
+                            var data_count =  data.length;
+                            if (data == null || data_count == 0) {
+                                _self.$Alert.msg_NoData();
+                                    } else {
+                                if (data_count == 1
+                                    && _self.single_tool_add )
+                                {
+                                    _self.AddTool(data[0]);
+                                }else{
+                                    _self.Idx.Tool = data;
+                                }
+                            }
+                        },
+                        error:_self.$Alert.submitForm_Err
+                    };
+                    $.submitForm(_ajax);
+                },
+                f_OperToolInfo() {
+                    var _self = this;
+                    var OnlyIdle = _self.isCheckIn ? null : 'F';
+                    let { OPER_SID } =  _self.set_model.CurrentLot;
+                    var url = _self.$URL.chg_Path(`api/ddl/OperToolInfo/${OPER_SID}`, { OnlyIdle });
+                    var _ajax = {
+                        url,
+                        type: 'get',
+                        success(data) {
+                            if (data != null) {
+                                _self.oper_rule.Tool = data;
+                                _self.bind_Idx_Tool(data);
+                            }
+                        },
+                        error: _self.$Alert.submitForm_Err
+                    };
+                    $.submitForm(_ajax);
+                },
+                f_CheckOut(isExpandData=false) {
+                    let _self = this;
+                    _self.table_list = [];
+                    $.submitForm({
+                        url: $.getBaseUrl() + `/cub/machine_tool/lot/${_self.set_model.CurrentLot.LOT}/tool_link_sid/${_self.set_model.CurrentLot.TOOL_LINK_SID}/eqp_link_sid/${_self.set_model.CurrentLot.EQP_LINK_SID}`,
+                        type: "get",
+                        success: function (data) {
+                            if (data.Success) {
+                                _self.ddl_EQP.src = data.Data;
+                                if (isExpandData){
+                                    _self.expandData(data.Data);
+                                    _self.isExpandData = true;
+                                }
+                            } else {
+                                $.showMessageFire({ type: 'error' }, data.Message);
+                            }
+                        }
+                    });
+                },
+
+                remove_eqp(eqp){
+                    var _self = this;
+                    let {subItem,No} = eqp;
+                    if (subItem){
+                        subItem.map(c=>{
+                            _self.Selected.Tools =_.omit(_self.Selected.Tools, [c.No]);
+                            _.each(_self.Idx.Tool,c1=>{
+                                if (c1.SID == c.SID) {
+                                    c1.Checked = false;
+                                    c1.link = null;
+                                }
+                            })
+                        })
+                    }
+                    this.Idx.EQP = _.omit(this.Idx.EQP, [No]);
+                    this.Selected.UnLoad = _.omit(this.Selected.UnLoad, [No]);
+                    var x = this.c_err_isOver;
+                    this.Selected.EQP = {};
+                    this.c_Return = '';
+                },
+                remove_tool(EQP,tool_idx){
+                    let {subItem,No:EqpNo} = EQP;
+                    var tool = subItem[tool_idx];
+                    if (tool['isNonRemove']!= null)return;
+
+                    tool.Checked = false;
+                    tool.Ext = this.parse_Ext(tool);
+                    this.Selected.Tools[tool.No] = null;
+                    subItem.splice(tool_idx,1);
+                    var isNeedUnLoad =  tool['link'] == null;
+                    if (isNeedUnLoad){
+                        if (this.Selected.UnLoad[EqpNo] == null){
+                            this.Selected.UnLoad[EqpNo] = [tool];
+                        }else{
+                            this.Selected.UnLoad[EqpNo].push(tool);
+                        }
+                    }else{
+                        this.Idx.Tool[tool.No] = tool;
+                    }
+                    var x = this.c_err_isOver;
+                    this.c_Return = '';
+                },
+                parse_Ext(o,matchEQP=null){
+                    //var is_tool = matchEQP == null;
+                    let {No,USE_COUNT_RATIO:EQP_RATIO} = matchEQP ?? {};
+                    let {USE_COUNT_RATIO,MAX_USE_COUNT,USE_COUNT} = o;
+                    //USE_COUNT_RATIO = USE_COUNT_RATIO??1;
+                    USE_COUNT = USE_COUNT??0;
+                    var r =  {
+                        //is_tool,
+                        EQP_NO :No,
+                        //本體轉換率(機台/治具)
+                        USE_COUNT_RATIO,
+                        MAX_USE_COUNT,
+                        USE_COUNT,
+                        //機台轉換率
+                        EQP_RATIO,
+                        //LOT數量
+                        LOT_QTY :_.get(this.set_model,'CurrentLot.QUANTITY',0),
+                        get 預計使用次數(){
+                            var _EQP_RATIO = 1;
+                            var _USE_COUNT_RATIO = this.USE_COUNT_RATIO??1;
+                            if (this.EQP_RATIO != null && this.EQP_RATIO != 0) _EQP_RATIO = this.EQP_RATIO;
+                            var use_count =  this.LOT_QTY * _USE_COUNT_RATIO * _EQP_RATIO;
+                            const factor = Math.pow(10, 0);
+                            return Math.round((use_count + Number.EPSILON) * factor) / factor;
+                        },
+                        get isOver(){
+                            let {MAX_USE_COUNT,USE_COUNT} = this;
+                            if (MAX_USE_COUNT == null || MAX_USE_COUNT == 0) return false;
+                            return (USE_COUNT + this.預計使用次數)  >= MAX_USE_COUNT;
+                        },
+
+                    };
+                    //console.log('parse_Ext',r);
+                    return r;
+                },
+                AddTool(tool){
+                    //console.log('AddTool',tool);
+                    if (this.check_has_tool(tool,this.Selected.EQP.No)==false){
+                        tool.Checked = true;
+                        tool.Ext =this.parse_Ext(tool,this.Selected.EQP);
+                        var _match = _.find(this.oper_rule.Tool,{SID:tool.SID});
+                        if (_match) tool['link'] = _match.SID;
+                        this.Selected.EQP.subItem.push(tool);
+                        this.c_Return = '';
+                        this.$forceUpdate();
+                        if (this.HasToolRule == false) this.$refs.search_tool[0].focus();
+                    }
+                },
+                ddl_EQP_onChange(rows){
+                    let [row0] = rows||[];
+                    if (row0){
+                        var _some = _.some(this.Idx.EQP,{No:row0.No});
+                        this.$nextTick(()=>{
+                            this.ddl_EQP.val = '';
+                        });
+                        if (_some){
+                            this.$Alert.Err("資料己存在");
+                        }else{
+                            this.api_EqpSetupInfo(row0.No);
+                        }
+                    }
+                },
+                check_允許機台狀態(eqp) {
+                    if (this.enable_run_in){
+                        console.log('check_允許機台狀態-pass',eqp);
+                    } else {
+                        let { Status } = eqp;
+                        if (Status == 'Run') {
+                            this.$Alert.Err("機台狀態為 Run , 不允許選取!");
+                            return false;
+                        }
+                    }
+                    return true;
+                },
+                api_EqpSetupInfo(EqpNo){
+                    var _self = this;
+                    var url = _self.$URL.chg_Path('api/ddl/EqpSetupInfo',{EqpNo});
+                    var _ajax = {
+                        url,
+                        type:'get',
+                        automessage: false,
+                        success(data) {
+                            if (data == null || data.length == 0) {
+                                _self.$Alert.msg_NoData();
+                            } else if (_self.check_允許機台狀態(data)) {
+                                data = _self.check_OperRule([data])[0];
+                                _self.Selected.EQP = data;
+                                _self.$set(_self.Idx.EQP,data.No,data);
+                                _self.c_Return = '';
+                                _self.$refs.ddl_EQP.sel.clear();
+                            }
+                        },
+                        error:_self.$Alert.submitForm_Err
+                    };
+                    $.submitForm(_ajax);
+                },
+                e_dyn_query(search) {
+                    var _self = this;
+                    search = search ?? '%';
+                    var url = _self.$URL.chg_Path('api/ddl/Equipment',{search});
+                    var _ajax = {
+                        url,
+                        type:'get',
+                        success(data) {
+                            if (data == null || data.length == 0) {
+                                _self.ddl_EQP.src = [];
+                                _self.$Alert.msg_NoData();
+                            } else {
+                                _self.ddl_EQP.src = data;
+                            }
+                        }
+                    };
+                    $.submitForm(_ajax);
+                },
+            },
+        });
+    });
+</script>
+<style>
+    .cp-eqp-setup .tool_info {
+        max-width: 100%;
+        margin-bottom: 1rem;
+    }
+
+    .cp-eqp-setup .fa-plus-circle {
+        font-size: 2rem;
+    }
+
+    .cp-eqp-setup .tool_info .fa-exclamation-circle {
+        color: #F7BA2A;
+        font-size: 2rem;
+        left: 2.5rem;
+        position: absolute;
+        margin-top: -7px;
+    }
+
+    .cp-eqp-setup .el-tag {
+        font-size: 1.7rem;
+    }
+
+    .cp-eqp-setup .el-tag__close.el-icon-close {
+        color: red !important;
+        font-weight: bold !important;
+    }
+
+    .cp-eqp-setup .sty-area {
+        padding: 1rem .5rem;
+        max-width: inherit;
+        display: block;
+    }
+
+        .cp-eqp-setup .sty-area > .el-radio {
+            display: block;
+            margin-right: 0px;
+            max-width: inherit;
+        }
+
+    .cp-eqp-setup .sty-area1 {
+        display: flex;
+        flex-direction: column;
+        align-items: flex-start;
+        flex-wrap: wrap;
+    }
+
+    .cp-eqp-setup .fa.fa-search,
+    .cp-eqp-setup .fa.fa-filter {
+        font-size: 1.55rem;
+        font-weight: 400;
+    }
+
+    .cp-eqp-setup .fa.fa-trash {
+        font-size: 2rem;
+        color: red;
+        position: relative;
+        padding-right: .5rem;
+    }
+
+    .cp-eqp-setup .sty-ops {
+        padding: 1rem 1rem;
+    }
+
+
+
+    .cp-eqp-setup .sty-tool-input {
+        margin-left: 2.5rem;
+        padding: 1rem 1rem;
+        border-radius: 7px;
+        max-width: inherit;
+        border-width: 2px;
+        border-color: #51525373;
+        border-style: dotted;
+    }
+
+        .cp-eqp-setup .sty-tool-input .sty-area1 .el-tag {
+            max-width: 100%;
+        }
+
+    .cp-eqp-setup .adj-hide .sty-area1 {
+        padding-left: 3rem;
+    }
+
+    .cp-eqp-setup .sty-area1 {
+        padding-left: 3.5rem;
+    }
+
+    .sty-area2 {
+        display: flex;
+        flex-direction: column;
+        align-items: flex-start;
+        flex-wrap: wrap;
+    }
+
+    .cp-eqp-setup .eqp_info .el-tag,
+    .cp-eqp-setup .sty-area1 .el-tag {
+        white-space: nowrap; /* 防止文字換行 */
+        overflow: hidden; /* 隱藏超出容器寬度的文字 */
+        text-overflow: ellipsis; /* 在結尾顯示 ... */
+        width: 100%;
+    }
+
+    .cp-eqp-setup span.gt-no-name {
+        overflow: hidden; /* 隱藏超出容器寬度的文字 */
+        text-overflow: ellipsis;
+        max-width: 80%;
+    }
+
+    .cp-eqp-setup .eqp_info {
+        max-width: 95%;
+    }
+
+    .cp-eqp-setup .label-default {
+        color: #0000006e;
+        padding: 3px 5px;
+        font-size: 85%;
+    }
+
+        .cp-eqp-setup .label-default.isOver {
+            color: red;
+        }
+
+    .cp-eqp-setup .eqp_info span.el-tag {
+        max-width: 90%;
+    }
+
+    .cp-eqp-setup .el-radio-group.sty-area span.el-radio__inner {
+        top: -1rem;
+    }
+
+    .cp-eqp-setup .el-radio.adj-hide .el-radio__input,
+    .cp-eqp-setup .sty-tool-input.adj-hide {
+        display: none;
+    }
+
+    .gti-limits {
+        color: #0000006e;
+        font-size: 1.3rem;
+        margin-left: .5rem;
+    }
+
+        .gti-limits .is-over-limit {
+            color: red;
+        }
+
+    .sty-area1.adj-tool-input {
+        padding-left: 0rem;
+    }
+
+
+    .gti-limits-info.label-default {
+        position: relative;
+        right: 3rem;
+        top: -2rem;
+        margin-left: 1rem;
+        background-color: #0000003b;
+    }
+
+    .gti-limits-info-table {
+        font-size: 1.7rem;
+        text-align: right;
+    }
+
+        .gti-limits-info-table td:first-child {
+            font-weight: 900;
+        }
+
+        .gti-limits-info-table td {
+            padding: .5rem 1rem;
+        }
+
+    .tool_info i.isNonRemove.fa.fa-trash {
+        color: #ff000030;
+        cursor: not-allowed;
+    }
+</style>
+

@@ -14,6 +14,7 @@
 <div id="app">
     <form id="WipForm">
         <div class="panel b">
+            <gti-test></gti-test>
             <el-button @@click="Exec">Exec</el-button>
 
             <gt-form-col label="測試輸入錯誤訊息" v-model="c_ErrMsg"></gt-form-col>
@@ -23,9 +24,11 @@
             <br />
             <gt-err-tag v-model="this.table_list.length==0" msg="必須有選取資料." sid="cp_usemtlot.count">
             </gt-err-tag>
-
+            <gt-err-tag sid="996"></gt-err-tag>
 
             <el-button @@click="Add">Add</el-button>
+            <el-button @@click="fn_Case1()">由父層丟錯誤({{Case1}})</el-button>
+            <el-button @@click="fn_Case2()">由父層丟錯誤({{Case2}})</el-button>
 
             <el-table :data="table_list" data-parsley-table-required
                       data-parsley-error-messag="data-parsley-error-message"
@@ -49,6 +52,44 @@
         var form = $("#WipForm");
         let { v_rootEl, v_ErrGroup } = Vue.prototype.$UT.Mixins;
 
+        Vue.component('gti-test', {
+            mixins: [v_rootEl()],
+            props: {
+ 
+            },
+            template: `
+            <span class="gti-test">
+                gti-test
+                <gt-err-tag 
+                    sid="996">
+                </gt-err-tag>
+
+                <gt-err-tag v-model="c_996_1"
+                    sid="996_1">
+                </gt-err-tag>
+                {{this.c_ThrowErr}}
+            </span>
+            `,
+            watch: {
+                'c_ThrowErr.996'(val) {
+                    console.log('c_ThrowErr.A996_1');
+                    if (val == null) return;
+                    this.$message(val);
+                    this.$delete(this.c_ThrowErr, "996");
+                }
+            },
+            computed: {
+                c_996_1() {
+                    return ""
+                    debugger;
+                    let { A996_1 } = this.c_ThrowErr;
+                    //this.$delete(this.c_ThrowErr, "A996_1");
+                    this.SetErrGroup("996_1", A996_1);
+                    return A996_1;
+                }
+            }
+        });
+
         new Vue({
             mixins: [v_ErrGroup(),v_rootEl()],
             el: '#app',
@@ -63,7 +104,9 @@
                     value: null,
                     set_model: {},
                     ErrGroup: {},
-                    table_list:[],
+                    table_list: [],
+                    Case1: false,
+                    Case2:false,
                 }
             },
             mounted() {
@@ -88,6 +131,16 @@
                 },
             },
             methods: {
+                fn_Case1() {
+                    this.Case1 = !this.Case1;
+                    var msg = this.Case1 ? "err" : null;
+                    this.SetErrGroup("996",msg);
+                },
+                fn_Case2() {
+                    //this.Case2 = !this.Case2;
+                    //var msg = this.Case2 ? "err" : null;
+                    this.throwErr("996", "err-996");
+                },
                 Add() {
                     this.table_list.push({ No: Date.now() })
                 },

@@ -1,0 +1,285 @@
+@using System.Dynamic
+@{
+	bool isSingleModel = (bool)ViewData["SingleModel"];
+	if (true)
+	{
+		Layout = "~/Views/Shared/_LayoutSingle.cshtml";
+	}
+    GTI_Test GTest = new GTI_Test(Html, ViewContext.HttpContext);
+}
+@eBundle.QRender_CSS()
+@eBundle.QRender_JS()
+<pre>
+</pre>
+<div style="margin:1rem;">
+    <div id="app">
+        <!-- 場域範圍 -->
+    <div
+      class="grid-area"
+      :style="{
+        gridTemplateColumns: 'repeat(' + MainArea.X + ', 20px)',
+        gridTemplateRows: 'repeat(' + MainArea.Y + ', 20px)',
+      }"
+    >
+      <div
+        v-for="(cell, index) in gridCells"
+        :key="index"
+        class="cell"
+        :style="getCellStyle(cell.x, cell.y)"
+      >
+        <!-- 活動點 -->
+        <div
+          v-for="point in points"
+          :key="point.id"
+          v-if="point.x === cell.x && point.y === cell.y"
+          class="point"
+          :style="{
+            backgroundColor: point.color,
+            animation: 'blink 1s infinite',
+          }"
+        ></div>
+      </div>
+    </div>
+
+    <!-- 控制區 -->
+    <div class="control-panel">
+      <button @@click="addPoint">新增活動點</button>
+      <button @@click="addRestrictedArea">新增限制區域</button>
+
+      <ul>
+        <li v-for="point in points" :key="point.id">
+          <span
+            class="color-box"
+            :style="{ backgroundColor: point.color }"
+          ></span>
+          <strong>{{ point.id }}</strong>
+
+          <!-- 單選控制 -->
+          <label>
+            <input
+              type="radio"
+              name="activePoint"
+              :checked="point.isActive"
+              @@change="setActivePoint(point.id)"
+            />
+            控制
+          </label>
+
+          <!-- 自動/手動切換 -->
+          <label>
+            <select v-model="point.mode">
+              <option value="manual">手動</option>
+              <option value="auto">自動</option>
+            </select>
+          </label>
+
+          <!-- 移除 -->
+          <button @@click="removePoint(point.id)">移除</button>
+
+          <!-- 進入紀錄 -->
+          <div class="entered">
+            進入限制區: 
+            <span v-if="point.enteredAreas.length === 0">無</span>
+            <span v-else>{{ point.enteredAreas.join(', ') }}</span>
+          </div>
+        </li>
+      </ul>
+    
+  </div>
+</div>
+<script>
+Vue.config.devtools = true;
+
+$(() => {
+  var form = $("#WipForm");
+  let { v_rootEl, v_ErrGroup } = Vue.prototype.$UT.Mixins;
+
+  new Vue({
+    mixins: [v_ErrGroup(), v_rootEl()],
+    el: '#app',
+    data() {
+      return {
+        MainArea: { X: 30, Y: 20 },
+        points: [],
+        restrictedAreas: [],
+        moveInterval: null,
+        lastDirections: {}, // 紀錄每個活動點的上一次方向
+      };
+    },
+    computed: {
+      gridCells() {
+        const cells = [];
+        for (let y = this.MainArea.Y; y >= 1; y--) {
+          for (let x = 1; x <= this.MainArea.X; x++) {
+            cells.push({ x, y });
+          }
+        }
+        return cells;
+      },
+    },
+    methods: {
+      getCellStyle(x, y) {
+        let style = {};
+        // 檢查是否在限制區域
+        for (let area of this.restrictedAreas) {
+          if (x >= area.x1 && x <= area.x2 && y >= area.y1 && y <= area.y2) {
+            style.backgroundColor = "lightyellow";
+          }
+        }
+        return style;
+      },
+
+      addPoint() {
+        const id = "P" + (this.points.length + 1);
+        const color = "#" + Math.floor(Math.random() * 16777215).toString(16);
+        this.points.push({
+          id,
+          x: 1,
+          y: 1,
+          color,
+          isActive: this.points.length === 0, // 第一個預設可控
+          mode: "manual",
+          enteredAreas: [],
+        });
+      },
+
+      removePoint(id) {
+        this.points = this.points.filter((p) => p.id !== id);
+      },
+
+      setActivePoint(id) {
+        this.points.forEach((p) => (p.isActive = p.id === id));
+      },
+
+      addRestrictedArea() {
+        const id = "R" + (this.restrictedAreas.length + 1);
+        const x1 = Math.floor(Math.random() * (this.MainArea.X - 5)) + 1;
+        const y1 = Math.floor(Math.random() * (this.MainArea.Y - 5)) + 1;
+        const x2 = x1 + 4;
+        const y2 = y1 + 4;
+        this.restrictedAreas.push({ id, x1, y1, x2, y2 });
+      },
+
+      handleKeydown(e) {
+        const active = this.points.find((p) => p.isActive && p.mode === "manual");
+        if (!active) return;
+
+        if (e.key === "ArrowUp" && active.y < this.MainArea.Y) active.y++;
+        if (e.key === "ArrowDown" && active.y > 1) active.y--;
+        if (e.key === "ArrowLeft" && active.x > 1) active.x--;
+        if (e.key === "ArrowRight" && active.x < this.MainArea.X) active.x++;
+
+        this.checkRestricted(active);
+      },
+
+      autoMove() {
+        this.points.forEach((point) => {
+          if (point.mode !== "auto") return;
+
+          let directions = ["up", "down", "left", "right"];
+          // 避免往回走
+          if (this.lastDirections[point.id]) {
+            const opposite = {
+              up: "down",
+              down: "up",
+              left: "right",
+              right: "left",
+            };
+            directions = directions.filter(
+              (d) => d !== opposite[this.lastDirections[point.id]]
+            );
+          }
+          const dir = directions[Math.floor(Math.random() * directions.length)];
+
+          if (dir === "up" && point.y < this.MainArea.Y) point.y++;
+          if (dir === "down" && point.y > 1) point.y--;
+          if (dir === "left" && point.x > 1) point.x--;
+          if (dir === "right" && point.x < this.MainArea.X) point.x++;
+
+          this.lastDirections[point.id] = dir;
+          this.checkRestricted(point);
+        });
+      },
+
+      checkRestricted(point) {
+        const insideIds = this.restrictedAreas
+            .filter(area =>
+            point.x >= area.x1 && point.x <= area.x2 &&
+            point.y >= area.y1 && point.y <= area.y2
+            )
+            .map(area => area.id);
+
+        point.enteredAreas = insideIds; // 不在的會被移除，新的會加入
+        // this.restrictedAreas.forEach((area) => {
+        //   if (
+        //     point.x >= area.x1 &&
+        //     point.x <= area.x2 &&
+        //     point.y >= area.y1 &&
+        //     point.y <= area.y2
+        //   ) {
+        //     if (!point.enteredAreas.includes(area.id)) {
+        //       point.enteredAreas.push(area.id);
+        //     }
+        //   }
+        // });
+      },
+    },
+    mounted() {
+      // 鍵盤監聽
+      window.addEventListener("keydown", this.handleKeydown);
+      // 啟動自動移動 timer
+      this.moveInterval = setInterval(this.autoMove, 500);
+    },
+    beforeDestroy() {
+      window.removeEventListener("keydown", this.handleKeydown);
+      clearInterval(this.moveInterval);
+    },
+  });
+});
+</script>
+
+
+<style>
+.app {
+  display: flex;
+  gap: 20px;
+}
+.grid-area {
+  display: grid;
+  background-image: url("your-background.jpg");
+  background-size: cover;
+}
+.cell {
+  width: 20px;
+  height: 20px;
+  border: 1px solid rgba(0, 0, 0, 0.2);
+  position: relative;
+}
+.point {
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+}
+@@keyframes blink {
+  0% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.2;
+  }
+  100% {
+    opacity: 1;
+  }
+}
+.color-box {
+  display: inline-block;
+  width: 15px;
+  height: 15px;
+  margin-right: 5px;
+}
+.entered {
+  font-size: 12px;
+  color: #555;
+}
+</style>
+

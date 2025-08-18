@@ -1,0 +1,207 @@
+@using System.Dynamic
+@{
+	bool isSingleModel = (bool)ViewData["SingleModel"];
+	if (true)
+	{
+		Layout = "~/Views/Shared/_LayoutSingle.cshtml";
+	}
+    GTI_Test GTest = new GTI_Test(Html, ViewContext.HttpContext);
+}
+@eBundle.QRender_CSS()
+@eBundle.QRender_JS()
+<pre>
+</pre>
+<div style="margin:1rem;">
+<div id="app">
+    <h2>場域範例 ({{ MainArea.X }} x {{ MainArea.Y }})</h2>
+    <div
+      class="grid"
+      :style="{
+        gridTemplateColumns: `repeat(${MainArea.X}, 20px)`,
+        gridTemplateRows: `repeat(${MainArea.Y}, 20px)`
+      }"
+      tabindex="0"
+      @@keydown="handleKeydown"
+    >
+      <div
+        v-for="(cell, index) in gridCells"
+        :key="index"
+        class="cell"
+        :class="{
+          restricted: isRestricted(cell.x, cell.y),
+          active: isActive(cell.x, cell.y)
+        }"
+      ></div>
+    </div>
+    <p>活動點位置： ({{ Point.X }}, {{ Point.Y }})</p>
+    <p>是否進入限制區域 (isEnter)： <strong>{{ isEnter }}</strong></p>
+    <button @@click="toggleAutoMove">
+      {{ autoMove ? "停止自動移動" : "啟動自動移動" }}
+    </button>
+
+  </div>
+</div>
+<script>
+    Vue.config.devtools = true;
+
+    $(() => {
+        var form = $("#WipForm");
+        let { v_rootEl, v_ErrGroup } = Vue.prototype.$UT.Mixins;
+ 
+        new Vue({
+            mixins: [v_ErrGroup(),v_rootEl()],
+            el: '#app',
+            data() {
+                return {
+                        MainArea:{
+                            X:30,
+                            Y:20
+                        },
+                        Point:{
+                            X:1,
+                            Y:1
+                        },
+ 
+                        restrictedArea: {
+                            x1: 10,
+                            y1: 10,
+                            x2: 15,
+                            y2: 15
+                        },
+                        autoMove: false,
+                        autoMoveTimer: null,
+                         lastMove: null, // 記錄上一個移動方向
+                };
+            },
+            computed: {
+                gridCells() {
+                    let cells = [];
+                    for (let y = this.MainArea.Y; y >= 1; y--) {
+                        for (let x = 1; x <= this.MainArea.X; x++) {
+                        cells.push({ x, y });
+                        }
+                    }
+                    return cells;
+                },
+                isEnter() {
+                    const { x1, y1, x2, y2 } = this.restrictedArea;
+                    return (
+                        this.Point.X >= x1 &&
+                        this.Point.X <= x2 &&
+                        this.Point.Y >= y1 &&
+                        this.Point.Y <= y2
+                    );
+                }
+            },
+            methods: {
+                isActive(x, y) {
+                return this.Point.X === x && this.Point.Y === y;
+                },
+                isRestricted(x, y) {
+                const { x1, y1, x2, y2 } = this.restrictedArea;
+                return x >= x1 && x <= x2 && y >= y1 && y <= y2;
+                },
+                handleKeydown(e) {
+                if (e.key === "ArrowUp" && this.Point.Y < this.MainArea.Y) {
+                    this.Point.Y++;
+                } else if (e.key === "ArrowDown" && this.Point.Y > 1) {
+                    this.Point.Y--;
+                } else if (e.key === "ArrowLeft" && this.Point.X > 1) {
+                    this.Point.X--;
+                } else if (e.key === "ArrowRight" && this.Point.X < this.MainArea.X) {
+                    this.Point.X++;
+                }
+                },
+                randomMove() {
+    const directions = ["up", "down", "left", "right"];
+    let validDirections = directions.filter(dir => {
+      // 過濾掉上一個方向的反方向
+      if (this.lastMove === "up" && dir === "down") return false;
+      if (this.lastMove === "down" && dir === "up") return false;
+      if (this.lastMove === "left" && dir === "right") return false;
+      if (this.lastMove === "right" && dir === "left") return false;
+      return true;
+    });
+
+    // 再過濾掉會超出邊界的方向
+    validDirections = validDirections.filter(dir => {
+      if (dir === "up" && this.Point.Y >= this.MainArea.Y) return false;
+      if (dir === "down" && this.Point.Y <= 1) return false;
+      if (dir === "left" && this.Point.X <= 1) return false;
+      if (dir === "right" && this.Point.X >= this.MainArea.X) return false;
+      return true;
+    });
+
+    if (validDirections.length === 0) return; // 沒有可移動方向就跳過
+
+    // 隨機選擇一個方向
+    const dir = validDirections[Math.floor(Math.random() * validDirections.length)];
+
+    // 根據方向移動
+    if (dir === "up") this.Point.Y++;
+    else if (dir === "down") this.Point.Y--;
+    else if (dir === "left") this.Point.X--;
+    else if (dir === "right") this.Point.X++;
+
+    // 記錄這次移動方向
+    this.lastMove = dir;
+  },
+                toggleAutoMove() {
+                this.autoMove = !this.autoMove;
+                if (this.autoMove) {
+                    this.autoMoveTimer = setInterval(this.randomMove, 500);
+                } else {
+                    clearInterval(this.autoMoveTimer);
+                    this.autoMoveTimer = null;
+                }
+                }
+            },
+            mounted() {
+                // 聚焦到 grid 讓鍵盤事件能生效
+                this.$el.querySelector(".grid").focus();
+            },
+            beforeDestroy() {
+                if (this.autoMoveTimer) {
+                clearInterval(this.autoMoveTimer);
+                }
+            }
+        });
+    });
+</script>
+
+<style>
+.app {
+  padding: 20px;
+  font-family: Arial, sans-serif;
+}
+
+.grid {
+  display: grid;
+  outline: none;
+  border: 2px solid #333;
+  margin-bottom: 10px;
+}
+
+.cell {
+  width: 20px;
+  height: 20px;
+  border: 1px solid rgba(0, 0, 0, 0.2); /* 淡黑色邊框 */
+  box-sizing: border-box;
+}
+
+.cell.restricted {
+  background-color: #fff3b0; /* 淡黃色 */
+}
+
+.cell.active {
+  background-color: #00f;
+  animation: blink 1s infinite;
+}
+
+@@keyframes blink {
+  50% {
+    background-color: #66f; /* 亮藍閃爍 */
+  }
+}
+</style>
+

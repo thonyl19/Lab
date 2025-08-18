@@ -1,0 +1,53 @@
+﻿@using Frame.Code;
+@using BLL.InterFace;
+@using Frame.Code.Web.Select;
+@{
+    var xx = BLL.MES.WIPInjectServices.TxnBase.LzDBQuery<string>(Txn =>
+    {
+        var _EQP = Txn.EFQuery_MES.view_EqpExt()
+                .Where(c => c.Main.EQP_NO == "161600001129")
+                .ToList_CheckExists(RES.BLL.Face.EQP);
+        Check.Invalid("機台已被設為停用", _EQP[0].Main.ENABLE_FLAG != "T", _EQP);
+
+        var EQP = (from c in _EQP
+                   select new SelectModel()
+                   {
+                       SID = c.Main.EQP_SID,
+                       No = c.Main.EQP_NO,
+                       Display = c.Main.EQP_NAME,
+                       Value = c.Main.EQP_NO,
+                       Status = c.Main.STATE_NO,
+                       USE_COUNT = c.Ext?.USE_COUNT ?? 0,
+                       MAX_USE_COUNT = c.Ext?.MAX_USE_COUNT ?? 0,
+                       USE_COUNT_RATIO = c.Ext?.USE_COUNT_RATIO,
+                   }).FirstOrDefault();
+
+        var tools = (from a in Txn.EFQuery_MES.WP_EQP_TOOL_LIST
+                     join b in Txn.EFQuery_MES.FC_TOOL on a.TOOL_SID equals b.TOOL_SID
+                     join c in Txn.EFQuery_MES.FC_TOOL_TYPE on b.TYPE_SID equals c.TYPE_SID
+                     where a.UNLOAD_LINK_SID == null && a.EQP_NO == "161600001129"
+                     select new SelectModel()
+                     {
+                         RefKey = a.EQP_TOOL_LIST_SID,
+                         SID = a.TOOL_SID,
+                         No = a.TOOL_NO,
+                         Value = a.TOOL_NO,
+                         Display = a.TOOL_NAME,
+                         Attr01 = c.TYPE_SID + "$" + c.TYPE_NO + "$" + c.TYPE_NAME,
+                         USE_COUNT = b.USE_COUNT ?? 0,
+                         MAX_USE_COUNT = b.MAX_USE_COUNT ?? 0,
+                         USE_COUNT_RATIO = b.USE_COUNT_RATIO,
+                     }).ToList();
+        EQP.subItem = tools;
+        return "";
+    });
+
+    ViewBag.Title = Genesis.Common.PageBaseInfo.getCurrentResource("baseTpl").RESOURCE_NAME;
+}
+<div id="app">
+    @ViewContext.RouteData.Values["action"]
+    Html.Raw(ddl_reason.ToJson(true));
+
+    var ddl_reason = ;
+</div>
+

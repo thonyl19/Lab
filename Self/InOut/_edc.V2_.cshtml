@@ -1,0 +1,687 @@
+Html.Partial("~/Views/OperTaskPart/_edc.V2.cshtml")
+@using Frame.Code;
+@{
+	GTI_Test GTest = new GTI_Test(Html, ViewContext.HttpContext);
+}
+<script>
+    $(() => {
+        var _i18n = {
+            msg_EDC: "@Face.required_field",
+            edc_input_err1: "@RES.BLL.Message.edc_input_err1",
+						import_edc: "載入資料",
+						必須執行載入資料後才能出站: "必須執行EDC 載入資料後才能出站",
+        };
+        let { i18n,v_model, v_rootEl } = Vue.prototype.$UT.Mixins;
+        var _vue = {
+            template: `
+<div class="panel" v-cloak  ver="EDC.v3">
+    <slot>
+        <div class="area-catch" v-if="c_catch_tool">
+			<gti-catch-tool :e_save="e_catch_save" :e_read="e_catch_read" :config="c_catch_config" :category="c_category" v-model="value"></gti-catch-tool>
+		</div>
+        <div v-if="title!=''" class="panel-heading b panel-header-radius gti-wip-title mb-lg">
+            <h3 class="panel-title">{{title}}</h3>
+        </div>
+    </slot>
+    <gt-err-tag  sid="edc_input.API_err"></gt-err-tag>
+	<gti-rwd-layout v-model="value" rwd_width="1000" :form_height="cfg?.height??'auto'"
+             :set_mode="false" style="height:500px"
+            :readonly="readonly">
+			<template slot="form">
+			   	<div class="panel-body form-horizontal gt-form" v-for="(itemA,idx) in value" :key="idx">
+						<el-row>
+							<el-col :lg="8" :md="8" :xs="24" >
+								<div :class="itemA.mustInput=='T'?'req-sty':''" >
+									{{itemA.ItemName}}
+                                        <el-tooltip :tabindex="-1" placement="top" effect="light" v-if="fixedTip_1==1">
+                                            <div slot="content">
+                                                <edc-norm :row="itemA" display_table="true"></edc-norm>
+                                            </div>
+                                            <em class="fa fa-info-circle"></em>
+                                        </el-tooltip>
+                                    <el-tag type="primary" class="mini" >{{type[itemA.DataType]}}</el-tag>
+								</div>
+							</el-col>
+							<el-col :lg="16" :md="16" :xs="24">
+								<edc-input-group :row="itemA"></edc-input-group>
+							</el-col>
+						</el-row>
+						<div class="clearfix"></div>
+                    <hr></hr>
+                </div>
+            </template>
+
+			<div class="edc_container" style="height:auto">
+				<div class="container-fluid">
+					<div style="margin-top: 20px" class="row" v-if="LoadTest == 'T'">
+						<div class="col pull-right">
+							<el-button @@click="handleEdit(value)" type="success">載入資料</el-button>
+						</div>
+					</div>
+					<div class="row " v-if="LoadTest == 'T'">
+						<div class="col pull-right">
+							{{load_time}}
+						</div>
+					</div>
+				</div>
+				<el-table :data="value" empty-text=" " style="width: 100%" :height="cfg['height']??'auto'" class="fix gt-calculator-table" :default-sort="{ prop: 'ITEM_SEQ', order: 'ascending' }">
+					<el-table-column label="@Face.ITEM_SEQ" 順序號 v-if="item_seq_show" sortable fixed="left" width="80"
+					  prop="ITEM_SEQ">
+					</el-table-column>
+					<el-table-column label="@RES.BLL.Face.EDCNAME"
+									 fixed="left"
+									 min-width="60">
+						<template slot-scope="scope">
+                            <div>
+                                <label :class="scope.row.mustInput=='T'?'req-sty':''">{{scope.row.ItemName}}</label>
+                                <el-tooltip :tabindex="-1" placement="top" effect="light" v-if="fixedTip_1==1">
+                                    <div slot="content">
+                                        <edc-norm :row="scope.row" display_table="true"></edc-norm>
+                                    </div>
+                                    <em class="fa fa-info-circle"></em>
+                                </el-tooltip>
+                            </div>
+                            <el-tag type="primary" size="mini">{{type[scope.row.DataType]}}</el-tag>
+						</template>
+					</el-table-column>
+
+					<el-table-column fixed="left" min-width="270">
+						<template slot="header" slot-scope="scope">
+							<span>@RES.BLL.Face.Value</span>
+							<el-tooltip content="Edc Tips Display Control" placement="top">
+								<el-switch v-if="fixedTip>0" v-model.num="fixedTip_1"
+											:active-value=2
+											:inactive-value=1 />
+							</el-tooltip>
+							<el-button type='primary' size='mini' plain style='float:right;margin-right:1rem;' v-if="c_API_Show" @@click="callAPI" 載入資料>{{I18n.import_edc}}</el-button>
+							<el-button type='primary' size='mini' plain v-on:click='e_Fill' style='float:right;margin-right:1rem;' v-if="AutoFill" 自動填滿 >自動填滿</el-button>
+							<slot name="head-area"></slot>
+						</template>
+						<template slot-scope="scope">
+							<el-row v-if="fixedTip_1==2">
+                                <edc-norm :row="scope.row"></edc-norm>
+							</el-row>
+                            <edc-input-group :row="scope.row" v-if="scope.row.DataType != 'Z'"></edc-input-group>
+                            <tabulator-table v-model="scope.row.InputValueList" :columns="scope.row.Z_ColCfg" v-if="scope.row.DataType == 'Z'"></tabulator-table>
+							<div class="form-inline mr-lg mb-sm" v-if="dyn_add">
+								<el-button type="success" icon="el-icon-plus" size="mini" plain @@click="DynAdd(scope.row)"></el-button>
+								<el-button type="success" icon="el-icon-minus" size="mini" plain @@click="DynMinus(scope.row)"></el-button>
+							</div>
+						</el-row>
+						</template>
+					</el-table-column>
+				</el-table>
+			</div>
+
+
+			</gti-rwd-layout>
+
+</div>`,
+            mixins: [i18n(_i18n), v_rootEl()],
+            data() {
+                return {
+                    AutoFill: false ,
+                    DataTypeDisplay: {
+                        "B": "B",
+                        "S": "S",
+                        "N": "N",
+                        "D": "D"
+                    },
+                    displayValue: [],
+                    API: {
+                        Url:'',
+                        CHECK_MODE:'1',
+                        PARAM:'',
+                        EXTEN_RULE:{},
+                    },
+                    API_Execed: false,
+                    type: {
+                        N: 'Number',
+                        S: 'String',
+                        B: 'Boolean',
+                        D: 'Date',
+                    }
+                }
+            },
+            mounted() {
+                //GTest.Test("this.AutoFill=true;");
+				var _self = this;
+                let m = _self.value;
+                _self.displayValue = _.filter(m, function (o) { return o.DataType != "D"; });
+                let setData = _.filter(m, function (o) { return o.DataType == "B"; });
+                _.forEach(setData, function (value) {
+                    let i = 1;
+                    _.forEach(value.InputValueList, function (value2) {
+                        if (value2[i] === "")
+                            value2[i] = "N";
+                        i++;
+                    });
+                });
+                this.Load();
+            },
+            props: {
+                value: {
+                    type: Array
+                },
+                cfg: {
+                    type: Object,
+                    default() {
+                        return {};
+                    }
+                },
+                readonly: Vue.prototype.$PropDef.Bool(),
+                fixedTip: {
+                    type: Number,
+                    default: 1
+                },
+                LoadTest: {
+                    type: String,
+                    default: '@System.Configuration.ConfigurationManager.AppSettings["EDC_TESTLOAD"]'
+                },
+                load_time: {
+                    type: String,
+                    default: ''
+                },
+                idx_key: {
+                    type: String,
+                    default() { return "EdcParameterSid";}
+                },
+
+                dyn_add: {
+                    type: Boolean,
+                    default() { return false; }
+                },
+                item_seq_show: {
+                    type: Boolean,
+                    default() { return true; }
+                },
+            },
+            computed: {
+                c_catch_tool() {
+                    let { catch_tool = false } = this.cfg;
+                    return catch_tool;
+                },
+                c_category() {
+                    let { catch_ext_key = "" } = this.cfg;
+                    return `EDC${catch_ext_key == '' ? '' : `_${catch_ext_key}`}`;
+                },
+                c_catch_config() {
+                    var user = '@BLL.MVC.CurrentProvider.Provider.GetCurrent().UserNo';
+                    var fun_sid = '@Genesis.Common.PageBaseInfo.GetCurrentPageSid()';
+                    @GTest.Test("fun_sid= fun_sid === '' ? 'GTI22030910552936287':fun_sid;")
+                    var r = { user, fun_sid };
+                    console.log(['c_catch_config', r]);
+                    return r;
+                },
+                c_API_EXTEN_RULE(){
+	                let  {DynamicItem=false,ExecOnce=true,CallFailed=true} = this.API.EXTEN_RULE;
+	                return {DynamicItem,ExecOnce,CallFailed};
+	            },
+	            c_API_Show(){
+	                let {Url} = this.API;
+	                return Url !=null && Url !='';
+	            },
+	            c_is嚴謹模式(){
+	                return this.API.CHECK_MODE == '1'
+	            },
+	            c_API_Param(){
+	                var r = {};
+	                var _self = this;
+	                if (this.c_API_Show && this.API.PARAM !=null){
+	                    _.each(this.API.PARAM,(v,k)=>{
+	                        r[k] =  _.get(_self.c_Src,v,null);
+	                    })
+	                }
+	                return r;
+	            },
+                title() {
+                    let { title = "@RES.BLL.Face.OperEDCInfo" } = this.cfg;
+                    return title;
+				},
+ 				fixedTip_1:{
+					get() {
+
+						return Math.abs(this.fixedTip);
+					},
+					set(val){
+						this.fixedTip = val;
+                        this.$emit('update:fixedTip', val);
+					}
+                },
+                e_catch_save() {
+                    return {
+                        visable: true,
+                        enable: true,
+                        fn() { }
+                    }
+                },
+                e_catch_read() {
+                    return {
+                        visable: true,
+                        enable: true,
+                        fn: this.toolbar_read
+                    }
+                },
+            },
+            methods: {
+                toolbar_read(Data) {
+                    debugger
+                    let { DATA } = Data;
+                    try {
+                        var _d = JSON.parse(DATA);
+                        this.fillApiDataDyn(_d);
+
+                    } catch (ex) {
+                        this.$Alert.Err(ex);
+                    }
+                },
+                fillApiDataDyn(Data){
+	                var _self = this;
+	                _.each(Data, item => {
+	                    var target = _.find(_self.value, x => x.EdcParameterSid == item.EdcParameterSid);
+	                    if (target != null) {
+                            var values =item.InputValueList.map((x, idx) => {
+								var item = {};
+                                var key = Object.keys(x)[0] || (idx + 1);
+	                            item[key] = Object.values(x)[0];
+	                            return item;
+							});
+	                        target.InputValueList = values;
+	                    }
+	                });
+	            },
+	            fillApiData(Data){
+	                var _self = this;
+	                var err = {hasErr:false, NotFind:[],NotMatch:{},NotMatchType:{}};
+	                _.each(_self.value, EDC => {
+	                    var target = _.find(Data, x => x.EdcParameterSid == EDC.EdcParameterSid);
+	                    if (target == null ){
+	                        err.hasErr = true;
+	                        err.NotFind.push(EDC);
+	                    } else {
+	                        var _edcList = EDC.InputValueList;
+	                        var _apiList = target.InputValueList;
+	                        var _err = [];
+	                        _edcList.forEach((aObj, index) => {
+	                            const aKey = Object.keys(aObj)[0];
+	                            const bObj = _apiList.find(bObj => Object.keys(bObj)[0] === aKey);
+	                            if (bObj) {
+	                                const bValue = Object.values(bObj)[0];
+	                                _edcList[index][aKey] = bValue;
+	                                if (EDC.DataType == "N"){
+	                                    var num = Number(bValue);
+	                                    if (Number.isNaN(num)){
+	                                        err.hasErr = true;
+	                                        err.NotMatchType[`${EDC.EdcParameterSid}-${aKey}`]= bValue;
+	                                    }
+	                                }else if(EDC.DataType == "B" && EDC.mustInput == "Y"){
+	                                    if (bValue !='T' && bValue !='F'){
+	                                        err.hasErr = true;
+	                                        err.NotMatchType[`${EDC.EdcParameterSid}-${aKey}`]= bValue;
+	                                    }
+	                                }
+	                            } else {
+	                                if (EDC.mustInput == "Y" ) _err.push(aKey);
+	                            }
+	                        });
+	                        if (_err.length > 0) {
+	                            err.hasErr = true;
+	                            err.NotMatch[EDC.EdcParameterSid]=_err;
+	                        }
+	                    }
+	                });
+	                if (err.hasErr){
+	                    _self.msg_APIErr(_self.i18n.edc_input_err1);
+	                }else{
+	                    _self.SetErrGroup('edc_input.API_err');
+	                }
+	            },
+	            msg_APIErr(msg){
+	                if (this.is嚴謹模式 || this.c_API_EXTEN_RULE.CallFailed) this.SetErrGroup('edc_input.API_err',msg);
+	                this.$Alert.Err(msg);
+	            },
+	            chk_執行一次(){
+	                if (this.c_API_EXTEN_RULE.ExecOnce){
+	                    var isHasErr = this.API_Execed == false;
+	                    var msg = isHasErr ? this.I18n.必須執行載入資料後才能出站 : null;
+	                    this.SetErrGroup('edc_input.API_err', msg );
+	                    return isHasErr;
+	                }
+	                return false;
+	            },
+	            callAPI(){
+	                var _self = this;
+	                let {callAPI_success:success} = _self;
+	                var _test = _.get(_self.c_Src,'API.Test',null);
+	                if (_test!=null) return success(_test);
+	                var url = `@Genesis.Common.PageBaseInfo.GetBaseUrl()${this.API.Url}`;
+	                var _ajax = {
+	                    url,
+	                    type: 'get',
+	                    param:_self.c_API_Param,
+	                    automessage: false,
+	                    success,
+	                    error(xhr, status, error) {
+	                        if(xhr.status == 404) {
+	                            var _msg = "@RES.BLL.Message.RuleExecuteFailing".replace("{0}",`API(${_self.API.Url})`)  ;
+	                            _self.msg_APIErr(_msg);
+	                        } else {
+	                            console.log('Error:', error);
+	                        }
+	                    }
+	                };
+	                $.submitForm(_ajax);
+	            },
+	            callAPI_success(res){
+	                let { Success, Data, Message } = res;
+	                if (Success) {
+	                    if (Data){
+	                        debugger
+	                        if (this.c_API_EXTEN_RULE.DynamicItem){
+	                            this.fillApiDataDyn(Data);
+	                        }else{
+	                            this.fillApiData(Data);
+	                        }
+	                        this.API_Execed = true;
+	                    }else{
+	                        this.msg_APIErr('@RES.BLL.Message.edc_input_err2');
+	                    }
+	                } else {
+	                    this.msg_APIErr(Message);
+	                }
+	            },
+	            DynAdd(row) {
+	                let { InputValueList, DispayPointNameList } = row;
+	                var len = InputValueList.length + 1;
+	                var z = {};
+	                z[len] = "";
+	                InputValueList.push(z);
+	                DispayPointNameList.push(len);
+	            },
+	            DynMinus(row) {
+	                let { InputValueList, DispayPointNameList } = row;
+	                let len = InputValueList.length - 1;
+	                InputValueList.splice(len, 1);
+	                DispayPointNameList.splice(len, 1);
+	            },
+	            check(src) {
+	                var _self = this;
+	                src = src || this.value;
+	                if (src == null) return true;
+	                let isErr = src.some(d => {
+	                    if (d.mustInput === "T") {
+	                        return d.InputValueList.some(val => {
+	                            let key = Object.keys(val);
+	                            if (val[key] === null || val[key] === '') {
+	                                var isBoolen = d.DataType == 'B';
+	                                if (isBoolen) {
+	                                    val[key] = "N";
+	                                } else {
+	                                    _self.$alert(`${d.ItemName} - ${this.I18n.msg_EDC}`
+	                                        , '@Face.EDC_Check', {
+	                                        type: 'warning'
+	                                    });
+	                                    return true;
+	                                }
+	                            }
+	                        });
+	                    }
+	                });
+	                return !isErr;
+	            },
+				Load() {
+					//debugger;
+					let { API = {} } = this.c_Src;
+					if (API == null) return;
+			        let {EDC} = API;
+			        if (Array.isArray(EDC)){
+			            let [Row0={}] = EDC;
+			            let {RESOURCE_URL,CHECK_MODE,PARAM = '',EXTEN_RULE={}}  = Row0;
+			            this.API.Url = RESOURCE_URL;
+			            this.API.CHECK_MODE = CHECK_MODE;
+			            this.API.PARAM = PARAM;
+			            this.API.EXTEN_RULE = EXTEN_RULE;
+			            if (EXTEN_RULE['ExecOnce']==true){
+			                this.SetCheckList('edc_input.API_err', this.chk_執行一次);
+			            }
+			        }
+                },
+				//Tag:e_Fill
+				e_Fill() {
+                    _.each(this.value,(el)=>{
+                        let { DataType, InputValueList, TL } = el;
+                        var _val = TL != '' ? TL : 1;
+                        if (DataType == 'S') _val = _val != '' ? _val : 'A';
+						InputValueList.map(el_0=>{
+							for(var key in el_0){
+								el_0[key] = _val;
+							}
+						})
+					})
+                },
+                e_change() {
+                    this.c_Change = true;
+                },
+                handleEdit(val) {
+                    var self = this;
+                    _.forEach(val, function (item) {
+                        if (item.DataType == "N") {
+                            let ucl = item.UCL;
+                            let lcl = item.LCL;
+                            for (var i = 0; i < item.InputValueList.length; i++) {
+                                _.forEach(item.InputValueList[i], function (v, k) {
+                                    let num = Math.floor(Math.random() * (ucl - lcl + 1)) + lcl;
+                                    item.InputValueList[i][k] = num;
+                                });
+                            }
+                        }
+                        self.load_time = "載入時間：" + moment().format('YYYY-MM-DD HH:mm:ss');
+                    });
+                },
+				chk_keypress(event) {
+					return (/[-\d.]/.test(String.fromCharCode(event.keyCode)))
+                },
+                parseTooltip(data_row) {
+                    var _d = {};
+                    _.each(['TL', 'USL', 'UCL', 'LCL', 'LSL'], el => {
+                        _d[el] = data_row[el] == null ? '-' : data_row[el];
+                    })
+                    var TL = [_d.TL, null];
+                    //console.log({ TL, USL, UCL, LCL, LSL } );
+                    if (data_row.DataType == 'N') {
+                        var _r = {};
+                        _r['USL / LSL'] = [_d.USL, _d.LSL];
+                        _r['TL'] = TL;
+                        _r['UCL / LCL'] = [_d.UCL, _d.LCL];
+                        return _r;
+                    }
+                    return { TL };
+                },
+
+				parseDispayPointName(data_row, idx) {
+                    //<span v-if="scope.row.DispayPointName != ''" class="badge" v-text="scope.row.DispayPointNameList[indexDetail]" style="background-color:black"></span>
+					let { DispayPointName = "", DispayPointNameList = [] } = data_row;
+					if (DispayPointName == "") return idx + 1;
+					return DispayPointNameList[idx];
+				},
+
+            },
+            watch: {
+                value: {
+                    handler(val, oldName) {
+                        this.$emit('input', val);
+                    },
+                    deep: true,
+                    immediate: true,
+                },
+                idx_key: {
+                    handler(val, oldName) {
+                        if (val != null) this.$nextTick(() => { this.$forceUpdate(); });
+                    },
+                }
+            },
+        }
+		Vue.component('edc-input', _vue);
+		Vue.component('edc-norm', {
+			template: `
+            <span>
+                <dl class="sty-edc" :style="display_table ? 'display:table' : ''"
+                    v-for="(val,key) in c_Src" :key="key" >
+                    <dt>{{key}}</dt>
+                    <dd>{{val[0]}}</dd>
+                    <dd class="bg-danger" v-if="val[1]!=null">{{val[1]}}</dd>
+                </dl>
+            </span>`,
+
+            props: {
+                row: {
+                    type: Object,
+                    required: true
+                },
+                display_table: {
+                    type: [Boolean, String],
+                    default: false
+                }
+            },
+            computed: {
+                c_Src() {
+                    var _self = this;
+                    var _d = {};
+                    _.each(['TL', 'USL', 'UCL', 'LCL', 'LSL'], el => {
+                        _d[el] = _self.row[el] == null ? '-' : _self.row[el];
+                    })
+                    var TL = [_d.TL, null];
+                    //console.log({ TL, USL, UCL, LCL, LSL } );
+                    if (_self.row.DataType == 'N') {
+                        var _r = {};
+                        _r['USL / LSL'] = [_d.USL, _d.LSL];
+                        _r['TL'] = TL;
+                        _r['UCL / LCL'] = [_d.UCL, _d.LCL];
+                        return _r;
+                    }
+                    return { TL };
+                }
+            },
+		});
+        Vue.component('edc-input-group', {
+            template: `
+            <div>
+                <el-col :lg="8" :md="12" :xs="24" v-for="(item,idx) in row.InputValueList" :key="idx">
+                    <div class="form-inline mr-lg mb-sm" v-for="(val,key) in item">
+                        <span class="badge edc-no">{{key}}</span>
+                        <gti-switch v-if="row.DataType == 'B'" v-model="item[key]"
+												:readonly="readonly"
+												@@change="boolCheck(row,item[key])"
+												:bool_abnull="bool_abnull"
+												:item_key="row.ItemName + ' # ' + key"
+												></gti-switch>
+                        <input v-if="row.DataType == 'S'" type="text" name="StringItem"
+                               v-model="item[key]"
+                               :required="row.mustInput=='T'"
+                               onclick="this.select()"
+                               class="form-control" :disabled="readonly"
+                               autocomplete="off"
+                               v-on:change="e_change" />
+                        <input v-if="row.DataType == 'N'" name="num" type="number"
+                               v-model.number="item[key]" class="form-control"
+                               :disabled="readonly"
+                               step="0.0001"
+                               v-on:keypress="chk_keypress"
+                               onclick="this.select()"
+                               :required="row.mustInput=='T'"
+                               v-bind:style="numCheck_style(row,item[key])"
+                               autocomplete="off"
+                               v-on:change="e_change" />
+                        <label v-if="row.DataType == 'D'">
+                            <el-tag size="mini" type="warning">Table</el-tag>
+                            <el-tag effect="plain" size="mini">{{row.DBTable}}</el-tag>
+                            <br /><br />
+                            <el-tag size="mini" type="warning">Column</el-tag>
+                            <el-tag effect="plain" size="mini">{{row.DBColumnName}}</el-tag>
+                        </label>
+                    </div>
+                </el-col>
+            </div>
+            `,
+            props: {
+                row: {
+                    type: Object,
+                    required: true
+                },
+                readonly: {
+                    type: Boolean,
+                    default: false
+                },
+                e_change: {
+                    type: Function,
+                    default: () => {}
+                },
+                chk_keypress: {
+                    type: Function,
+                    default: () => {}
+                },
+                bool_abnull: {
+                    type: Boolean,
+                    default() { return _.get(SystemConfig, 'EDC.Bool_abNull', false); }
+                },
+            },
+            methods: {
+                numCheck_style(rowData, item_val) {
+                    if (item_val === "") return true;
+                    var _chk_u = this.parse_Data(rowData.USL, rowData.UCL);
+                    var _chk_l = this.parse_Data(rowData.LSL, rowData.LCL, false);
+                    var _chkType = `${_.isUndefined(_chk_u) ? 'F' : 'T'}${_.isUndefined(_chk_l) ? 'F' : 'T'}`;
+                    //_chkType
+                    var isPass = true;
+                    switch (_chkType) {
+                        case 'FF'://pass
+                            break;
+                        case 'TF'://上
+                            isPass = item_val <= _chk_u ;
+                            break;
+                        case 'FT'://下
+                            isPass = item_val >= _chk_l ;
+                            break;
+                        case 'TT':
+                            //debugger
+                            isPass = item_val <= _chk_u && item_val >= _chk_l;
+                            break;
+                    }
+                    var sty = isPass
+                        ? { 'background-color': '', 'color': '' }
+                        : { 'background-color': '#ffe6ff', 'color': 'red' };
+
+                    return sty;
+                },
+                numCheck(rowData, item_val, event) {
+                    $(event.target).css(this.numCheck_style(rowData, item_val));
+                },
+                parse_Data(sl, cl, isU = true) {
+                    var arr = [parseFloat(sl), parseFloat(cl)];
+                    return isU ? _.min(arr) : _.max(arr);
+                },
+            }
+        });
+
+    });
+</script>
+<style>
+    .edc-dyn-add {
+        display: none;
+    }
+
+    .hover-row .edc-dyn-add {
+        display: inherit;
+    }
+
+    .area-catch {
+        position: relative;
+        float: right;
+        margin-right: 1rem;
+    }
+
+        .area-catch button {
+            padding: 5px 15px !important;
+        }
+</style>
+
