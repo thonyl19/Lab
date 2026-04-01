@@ -6,7 +6,7 @@ GTI_Test GTest = new GTI_Test
 , ViewContext.HttpContext.Request);
 var BaseRoot = @"~/Areas/MES/Views";
 var ZZRoot = @"~/Areas/MPI/Views";
-
+Layout = "~/Views/Shared/_LayoutSingle.cshtml";
 //R:\MPI_Dev\Genesis_MVC\Views\Shared\part\_Mutlselect.cshtml
 }
 @eBundle.QRender_CSS()
@@ -22,7 +22,7 @@ var ZZRoot = @"~/Areas/MPI/Views";
         <div class="panel b">
             <el-button-group>
                 <el-button type="primary" size="small" v-for="(val,key) in TestGroup" :label="key" :key="key"
-                    @@click="val()">{{key}}{{TestGroup_v[key]}}</el-button>
+                           @@click="val()">{{key}}{{TestGroup_v[key]}}</el-button>
             </el-button-group>
             <el-checkbox v-model="readonly">readonly</el-checkbox>
             <el-checkbox v-model="disabled">disabled</el-checkbox>

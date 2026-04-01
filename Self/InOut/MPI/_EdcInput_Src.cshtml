@@ -1,1 +1,629 @@
-R:/MPI_Dev/Genesis_MVC/Areas/ZZ_MPI/Views/OperTask/_EdcInput.cshtml
+﻿@{ GTI_Test GTest = new GTI_Test
+(Html, HttpContext.Current.IsDebuggingEnabled
+, ViewContext.HttpContext.Request); }
+<script>
+    $(() => {
+        Vue.component('hot-table', Handsontable.vue.HotTable);
+        var form = $("#WipForm");
+        let { v_model, v_rootEl } = Vue.prototype.$UT.Mixins;
+
+        var data = {
+        };
+        var dyn = {
+            mixins: [v_model(), v_rootEl()],
+            template: `
+            <div>
+                <lable :class="c_api_err" >{{c_group}}</lable>
+                <hot-table class="hot-container" ref="myHotTable" :settings="hotSettings" :style="c_Hight"></hot-table>
+            </div>
+            `,
+            data() {
+                var _self = this;
+                return {
+                    hotSettings: {
+                        //afterChange : _self.afterChange,
+                        data: [],
+                        columns: [],
+                        fillHandle: false,
+                        rowHeaders: false,
+                        autoRowSize: true,
+                        autoColumnSize: true,
+                        manualColumnResize: true, // 開啟手動調整功能
+                        //manualColumnResize: true,
+                        licenseKey: 'non-commercial-and-evaluation',
+                        fixedColumnsLeft: 1,        // 左側凍結 1 欄
+                        //dropdownMenu: true,
+                        contextMenu: true,
+                        visibleRows: 8,
+                        //預設 tab 移動模式
+                        tabMoves: {
+                            row: 0,
+                            col: 1
+                        },
+                        colWidths(index) {
+                            const colType = _self.hotSettings.columns[index]?.type;
+                            return colType === 'dropdown' ? 150 : 100;
+                        },
+                        //cells:_self.cells,
+                        beforeKeyDown: function (event) {
+                            if (event.key === 'Tab') {
+                                const selected = this.getSelected();
+                                if (!selected) return;
+
+                                event.preventDefault(); // 阻止 Handsontable 內建處理，自己控制
+
+                                const [row, col] = selected[0];
+                                const lastColIndex = this.countCols() - 1;
+
+                                if (col < lastColIndex) {
+                                    // 還沒到最後一欄，正常往右一格
+                                    this.selectCell(row, col);
+                                } else {
+                                    // 如果已經在最後一欄
+                                    const nextRow = row + 1;
+                                    if (nextRow < this.countRows()) {
+                                        this.selectCell(nextRow, 0);
+                                    }
+                                }
+                            }
+                        },
+                        cells: (row, col) => {
+                            const cellProperties = {};
+                            if (col > 0) {
+                                var col_key = this.c_columns[col].data;
+                                var className = [];
+                                const param = this.c_Idx[col_key];
+                                var _val = this.c_data[row][col_key];
+                                var isEmpty = (_val == null || _val === '');
+                                if (param.MUST_INPUT === 'T') {
+                                    if (isEmpty) className.push('edc-valid-input');
+                                    _self.$nextTick(() => {
+                                        _self.$emit('c_must_input', isEmpty);
+                                    })
+                                }
+                                if (param.DATATYPE === 'N' && !isEmpty) {
+                                    var isPass = _self.numCheck(param, _val);
+                                    if (isPass == false) className.push('edc-valid-over');
+                                }
+                                cellProperties.className = className.join(' ');
+                            }
+                            return cellProperties;
+                        },
+                        afterGetColHeader: function (col, TH) {
+                            if (col == 0) return;
+                            //console.log({ col });
+                            const hotInstance = this; // Handsontable 實例
+                            var _colSet = _self.c_columns[col];
+                            var _edcSet = _self.c_Idx[_colSet.data];
+                            _self.addTooltipToHeader(col, TH, _edcSet);
+                            //const allData = hotInstance.getData(); // 取得所有資料
+                            //const firstRowData = hotInstance.getDataAtRow(0); // 取得第一列
+                            //const columnData = hotInstance.getDataAtCol(col); // 取得整欄資料
+
+                        }
+                    },
+                }
+            },
+            // props: {
+            //     c_must_input: {
+            //         type: Number,
+            //         default: 0
+            //     }
+            // },
+            mounted() {
+                this.Init();
+            },
+            computed: {
+                c_api_err() {
+                    return _.get(this.c_val, "data", []);
+                },
+                c_data() {
+                    return _.get(this.c_val, "data", []);
+                },
+                c_columns() {
+                    return _.get(this.c_val, "columns", []);
+                },
+                c_Idx() {
+                    return _.get(this.c_val, "FC_EDC_VER_PARAMETER_idx", {});
+                },
+                c_group() {
+                    let { ZZ_EDC_GROUP_CODE } = this.c_val || {};
+                    var r = _.get(ZZ_EDC_GROUP_CODE, "GROUP_CODE", null);
+                    return r;
+                },
+                c_Hight() {
+                    const dataLength = this.hotSettings.data ? this.hotSettings.data.length : 0;
+                    var finalHeight = (dataLength + 1) * 2.5;
+                    //console.log(finalHeight);
+                    return {
+                        'height': `${finalHeight}rem`,
+                        'width': '100%' // 确保宽度也是动态或固定的
+                    };
+                }
+            },
+            methods: {
+                fillData() {
+                    let { columns, data, FC_EDC_VER_PARAMETER_idx } = this.c_val;
+                    data = _.map(data, item =>
+                        _.mapValues(item, (value, key) => {
+                            if (key != 'SampleId') {
+                                let { TL, DEFAULT_TL, MUST_INPUT, DATATYPE } = FC_EDC_VER_PARAMETER_idx[key] || {};
+                                value = TL || DEFAULT_TL;
+                                var is不得為空 = value == null && MUST_INPUT == 'T';
+                                switch (DATATYPE) {
+                                    case 'B':
+                                        value = value == 'T' ? true : false;
+                                        break;
+                                    case 'L':
+                                        var _obj = _.find(columns, { data: key });
+                                        if (_obj) {
+                                            let [r0] = _obj['source'] || [];
+                                            value = r0 || ' ';
+                                        }
+                                        break;
+                                    case 'S':
+                                        if (is不得為空) value = "--";
+                                        break;
+                                }
+                            }
+                            return value;
+                        })
+                    );
+                    this.c_val.data = data;
+                    this.bind(columns, data);
+                },
+                fillCatch(catch_data) {
+                    //debugger
+                    let { columns, data, FC_EDC_VER_PARAMETER_idx, ZZ_EDC_GROUP_CODE } = this.c_val;
+                    // find match {ZZ_EDC_GROUP_CODE} in cathch_data
+                    var _matchData = _.find(catch_data, e => {
+                        var _sid = _.get(e, "ZZ_EDC_GROUP_CODE.SID", null);
+                        return _sid == ZZ_EDC_GROUP_CODE.SID;
+                    });
+                    if (_matchData) {
+                        var _CatchData = _.get(_matchData, "data", null);
+                        data = _.map(data, item => {
+                            var _matchRow = _.find(_CatchData, { SampleId: item.SampleId });
+                            for (var key in item) {
+                                var edcIdx = FC_EDC_VER_PARAMETER_idx[key];
+                                if (edcIdx) {
+                                    var _Val = _matchRow[key];
+                                    switch (edcIdx.DATATYPE) {
+                                        case 'L':
+                                            var _obj = _.find(columns, { data: key });
+                                            if (_obj) {
+                                                if (_obj['source'].indexOf(_Val) != -1) {
+                                                    item[key] = _Val;
+                                                }
+                                            }
+                                            break;
+                                        case 'B':
+                                            if (_.isBoolean(_Val))
+                                                item[key] = _Val;
+                                            break;
+                                        case 'N':
+                                            if (_.isNumber(_Val))
+                                                item[key] = _Val;
+                                            break;
+                                        default:
+                                            item[key] = _Val;
+                                            break;
+                                    }
+                                }
+                            }
+                            //if (_matchRow) _.assign(item, _.pick(_matchRow, _.keys(item)));
+                            return item;
+                        })
+                    }
+                    this.c_val.data = data;
+                    this.bind(columns, data);
+                },
+
+                Init() {
+                    let { data, columns } = this.c_val || {};
+                    this.bind(columns, data);
+                },
+                parse_Data(sl, cl, isU = true) {
+                    var arr = [parseFloat(sl), parseFloat(cl)];
+                    return isU ? _.min(arr) : _.max(arr);
+                },
+                //tag:numCheck
+                numCheck(rowData, item_val) {
+                    var _chk_tl = this.parse_Data(rowData.TL);
+                    var _chk_u = this.parse_Data(rowData.USL, rowData.UCL);
+                    var _chk_l = this.parse_Data(rowData.LSL, rowData.LCL, false);
+                    var _chkType = `${_.isUndefined(_chk_u) ? 'F' : 'T'}${_.isUndefined(_chk_l) ? 'F' : 'T'}`;
+                    //_chkType
+                    var isPass = true;
+                    switch (_chkType) {
+                        case 'FF'://未設上下限但有TL ,  則依據 TL做判定
+                            if (_.isUndefined(_chk_tl) == false) {
+                                isPass = item_val == _chk_tl;
+                            }
+                            break;
+                        case 'TF'://上
+                            isPass = item_val <= _chk_u && item_val > 0;
+                            break;
+                        case 'FT'://下
+                            isPass = item_val >= _chk_l && item_val > 0;
+                            break;
+                        case 'TT':
+                            //debugger
+                            isPass = item_val <= _chk_u && item_val >= _chk_l;
+                            break;
+                    }
+                    return isPass;
+                },
+
+
+                bind(columns, data) {
+                    console.log({ columns, data });
+                    this.hotSettings.columns = columns;
+                    this.$nextTick(() => {
+                        //tag: hotInstance
+                        var _obj = this.$refs.myHotTable;
+                        //debugger
+                        const hotInstance = _obj && _obj.hotInstance;
+                        if (hotInstance) {
+                            hotInstance.loadData(data);
+                            this.hotSettings.data = data;
+                        } else {
+                            console.error("Handsontable 未準備好");
+                        }
+                    });
+
+                },
+                getParamByColumnIndex(colIndex) {
+                    const sortedParams = [...this.c_data.ParameterList];
+                    return sortedParams[colIndex];
+                },
+                addTooltipToHeader(col, TH, param) {
+                    if (TH.querySelector('.header-tooltip-wrapper')) return;
+                    //const tooltipContent = this.generateTooltipContent(param);
+                    const originalHTML = TH.innerHTML;
+                    TH.innerHTML = '';
+
+                    // 創建包裝元素
+                    //const wrapper = document.createElement('div');
+                    //wrapper.title = tooltipContent;
+
+                    //TH.appendChild(wrapper);
+                    var _MUST_INPUT = param.MUST_INPUT == "T" ? "class='must-input'" : "";
+                    // 使用 Element UI 的 tooltip
+                    const tooltipDiv = document.createElement('div');
+                    tooltipDiv.className = 'header-tooltip-wrapper';
+                    tooltipDiv.innerHTML = originalHTML;
+                    //tooltipDiv.style.cursor = 'help';
+                    tooltipDiv.innerHTML = `
+                        <el-tooltip placement="top" effect="light">
+                            <div slot="content" style="max-width: 300px;">
+                                ${this.generateTooltipHTML(param)}
+                            </div>
+                            <span ${_MUST_INPUT}>${originalHTML}</span>
+                        </el-tooltip>
+                    `;
+
+                    //TH.innerHTML = '';
+                    TH.appendChild(tooltipDiv);
+
+                    // 編譯 Vue 組件
+                    new Vue({
+                        el: tooltipDiv,
+                        parent: this
+                    });
+                },
+
+                // 生成 tooltip 文字內容
+                generateTooltipContent(param) {
+                    let content = `資料類型: ${param.DATATYPE === 'N' ? '數值' : '字串'}\n`;
+                    if (param.TL !== null) content += `目標值: ${param.TL}\n`;
+                    if (param.USL !== null) content += `規格上限: ${param.USL}\n`;
+                    if (param.LSL !== null) content += `規格下限: ${param.LSL}\n`;
+                    if (param.UCL !== null) content += `管制上限: ${param.UCL}\n`;
+                    if (param.LCL !== null) content += `管制下限: ${param.LCL}\n`;
+                    return content;
+                },
+
+                // 生成 tooltip HTML 內容
+                generateTooltipHTML(param) {
+                    let html = `<div style="line-height: 1.8;">`;
+                    html += `<div><strong>資料類型:</strong> ${param.DATATYPE === 'N' ? '數值' : '字串'}</div>`;
+                    if (param.TL !== null) html += `<div><strong>目標值:</strong> ${param.TL}</div>`;
+                    if (param.USL !== null) html += `<div><strong>規格上限:</strong> ${param.USL}</div>`;
+                    if (param.LSL !== null) html += `<div><strong>規格下限:</strong> ${param.LSL}</div>`;
+                    if (param.UCL !== null) html += `<div><strong>管制上限:</strong> ${param.UCL}</div>`;
+                    if (param.LCL !== null) html += `<div><strong>管制下限:</strong> ${param.LCL}</div>`;
+                    html += `</div>`;
+                    return html;
+                }
+
+            }
+        }
+        Vue.component('gti-oper-edc', {
+            mixins: [v_model(), v_rootEl()],
+            components: {
+                'dyn-table': dyn
+            },
+            props: {
+                "set_model": {
+                    type: Object,
+                    default: []
+                },
+                "cfg": {
+                    type: Object,
+                    default() {
+                        return {}
+                    }
+                },
+
+                readonly: {
+                    type: Boolean,
+                    default: false
+                }
+            },
+            data() {
+                return {};
+            },
+            mounted() {
+                var _api = _.get(this.c_val, "Api", {});
+                let { success = false, message } = _api || {};
+                if (success == false && message != null) {
+                    if (message == "NotFound") message = `EDC-API ${message}`;
+                    this.$Alert.Err(message);
+                }
+            },
+            computed: {
+                c_EDC_Cfg() {
+                    //debugger
+                    return _.get(this.c_val, "edc_Model", null);
+                },
+                c_catch_tool() {
+                    let { catch_tool = true } = this.cfg;
+                    return catch_tool;
+                },
+                title() {
+                    let { title = "@RES.BLL.Face.OperEDCInfo" } = this.cfg;
+                    return title;
+                },
+                e_catch_save() {
+                    var _self = this;
+                    return {
+                        visable: true,
+                        enable: true,
+                        fn() {
+                            _self.__save();
+                        }
+                    }
+                },
+                e_catch_read() {
+                    return {
+                        visable: true,
+                        enable: true,
+                        fn: this.__read
+                    }
+                },
+
+                c_category() {
+                    let { SUB_ROUTE_KEY_PATH, LOT } = _.get(this.set_model, "CurrentLot", null) || {};
+                    if (SUB_ROUTE_KEY_PATH?.length > 255) {
+                        if (LZString == null) {
+                            alert('字長超過255,且找不到 LZString');
+                        }
+                        SUB_ROUTE_KEY_PATH = LZString.compressToBase64(SUB_ROUTE_KEY_PATH);
+                    }
+                    console.log({ category: SUB_ROUTE_KEY_PATH });
+                    return SUB_ROUTE_KEY_PATH;
+                },
+                c_Data() {
+                    let { SUB_ROUTE_KEY_PATH, LOT } = _.get(this.set_model, "CurrentLot", null) || {};
+                    if (_.isEmpty(SUB_ROUTE_KEY_PATH)) SUB_ROUTE_KEY_PATH = '-----';
+                    if (SUB_ROUTE_KEY_PATH.length > 255) {
+                        if (LZString == null) {
+                            alert('字長超過255,且找不到 LZString');
+                        }
+                        SUB_ROUTE_KEY_PATH = LZString.compressToBase64(SUB_ROUTE_KEY_PATH);
+                    }
+                    console.log({ category: SUB_ROUTE_KEY_PATH });
+                    var DATA = JSON.stringify(this.c_val);
+                    return { CREATE_USER: LOT, CATEGORY: SUB_ROUTE_KEY_PATH, DATA };
+                },
+
+                c_catch_config() {
+                    var user = '@BLL.MVC.CurrentProvider.Provider.GetCurrent().UserNo';
+                    var fun_sid = '@Genesis.Common.PageBaseInfo.GetCurrentPageSid()';
+                    @GTest.Test("fun_sid= fun_sid === '' ? 'GTI22030910552936287':fun_sid;")
+                    var r = { user, fun_sid };
+                    //console.log(['c_catch_config', r]);
+                    return r;
+                },
+                c_EdcInfo() {
+                    var edc_rule = _.get(this.c_val, "rule", {});
+                    console.log({ edc_rule });
+                    let { FC_EDC_TARGET } = edc_rule || {};
+                    return FC_EDC_TARGET;
+                }
+            },
+
+            methods: {
+                fillData() {
+                    var isTest = 0;
+                    @GTest.Test("isTest++;");
+                    if (isTest == 1) {
+                        this.$refs['dyn_table'].map(e => e.fillData());
+                    }
+                },
+                auto_catch() {
+                    this.__save(false);
+                },
+                //tag:c_must_input
+                c_must_input(val) {
+                    var _length = $(this.$el).find('.edc-valid-input').length;
+                    //console.log(['c_must_input', _length,val]);
+                    var msg = (_length == 0) ? null : "請填寫EDC必填欄位";
+                    if (!this.readonly) this.SetErrGroup('cp_oper_edc.MustInput', msg);
+                },
+                toolbar_read(Data) {
+                    let { DATA } = Data;
+                    try {
+                        var _d = JSON.parse(DATA);
+                        this.fillApiDataDyn(_d);
+
+                    } catch (ex) {
+                        this.$Alert.Err(ex);
+                    }
+                },
+                fillApiDataDyn(data) {
+                    console.log(data);
+                    var _self = this;
+                    var _test = {};
+                    //data = _test;
+                    let { edc_Model } = data;
+
+                    this.$nextTick(() => {
+                        _.each(_self.$refs.dyn_table, c => {
+                            c.fillCatch(edc_Model);
+                        });
+                    })
+                },
+
+                handleChange(value) {
+                    console.log(value);
+                },
+                __save(isAlert = true) {
+                    var _self = this;
+                    if (_self.c_val == null || _self.c_val === "") {
+                        _self.$Alert.Err("不允許緩存空值!");
+                        return;
+                    }
+                    var fun_sid = '@Genesis.Common.PageBaseInfo.GetCurrentPageSid()';
+                    var url = this.$URL.chg_Path(`api/Catch/FunSID/${fun_sid}/Update/CheckOutEDC`);
+                    var param = _self.c_Data;
+                    var _ajax = {
+                        url,
+                        param,
+                        type: 'post',
+                        automessage: false,
+                        showloading: isAlert,
+                        success: (res) => {
+                            let { Success, Message, Data } = res;
+                            if (Success) {
+                                if (isAlert) _self.$Alert.Success("暫存資料存檔成功");
+                            } else {
+                                _self.$Alert.Err(Message);
+                            }
+                        }
+                    };
+                    $.submitForm(_ajax);
+                },
+                __read() {
+                    var _self = this;
+                    if (_self.c_val == null || _self.c_val === "") {
+                        _self.$Alert.Err("不允許緩存空值!");
+                        return;
+                    }
+                    var fun_sid = '@Genesis.Common.PageBaseInfo.GetCurrentPageSid()';
+                    let { CREATE_USER, CATEGORY: Category } = _self.c_Data;
+                    var url = this.$URL.chg_Path(`api/Catch/FunSID/${fun_sid}/GetDate/CheckOutEDC`);
+                    var param = _self.c_Data;
+                    var _ajax = {
+                        url,
+                        param,
+                        type: 'post',
+                        automessage: false,
+                        success: (res) => {
+                            let { Success, Message, Data } = res;
+                            if (Success) {
+                                let { DATA } = Data;
+                                try {
+                                    var _d = JSON.parse(DATA);
+                                    _self.fillApiDataDyn(_d);
+
+                                } catch (ex) {
+                                    _self.$Alert.Err(ex);
+                                }
+                            } else {
+                                _self.$Alert.Err(Message);
+                            }
+                        }
+                    };
+                    $.submitForm(_ajax);
+                },
+            },
+            template: `
+			<div class="gti-oper-edc panel"  v-if="c_val != null" >
+                <slot>
+                    <div class="area-catch" v-if="c_catch_tool">
+			            <gti-catch-tool ref="catch" :e_save="e_catch_save" :e_read="e_catch_read" :config="c_catch_config" :category="c_category" v-model="value"></gti-catch-tool>
+		            </div>
+                    <div class="panel-heading b panel-header-radius gti-wip-title" v-if="title!=''">
+                        <el-tooltip
+                            placement="top"
+                            v-if="c_EdcInfo!=null"
+                          >
+                           <div slot="content">{{c_EdcInfo.EDC_NAME}}(Ver:{{c_EdcInfo.VERSION}})</div>
+                            <i class="fa fa-info-circle edc-info"></i>
+                          </el-tooltip>
+
+			            <h3 class="panel-title"  @@click="fillData()">{{title}}</h3>
+		            </div>
+                </slot>
+                <gt-err-tag sid="cp_oper_edc.MustInput"></gt-err-tag>
+ 		        <div class="panel-body">
+		            <dyn-table v-for="(item,key) in c_EDC_Cfg" v-model="item"  :key="key"
+                        @@c_must_input="c_must_input" ref="dyn_table"></dyn-table>
+	            </div>
+            </div>
+			`
+        });
+
+    });
+</script>
+<style>
+    .gti-oper-edc.panel {
+        padding-bottom: 12rem;
+    }
+
+    .hot-container,
+    .handsontable {
+        font-size: 1.3rem !important;
+    }
+
+    .edc-info {
+        position: relative;
+        float: right;
+    }
+
+    .must-input .colHeader::before {
+        content: "*";
+        color: red;
+        margin-right: 4px;
+        font-size: 1.5rem;
+    }
+
+    .api-err::after {
+        content: ".";
+        color: red;
+        margin-right: 4px;
+        font-size: 1.5rem;
+    }
+
+    .edc-valid-over,
+    .edc-valid-input {
+        background-color: #ffcccc !important;
+        /*color: red !important;*/
+    }
+
+    .htDimmed {
+        background-color: #f0f0f0 !important;
+    }
+
+    .area-catch {
+        position: relative;
+        float: right;
+        margin-right: 1rem;
+    }
+
+    .fill-data {
+        text-decoration: underline;
+    }
+</style>

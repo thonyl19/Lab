@@ -1,1 +1,489 @@
-R:/MPI_Dev/Genesis_MVC/Views/OperTaskPart/_SetUpEQP.cshtml
+﻿<script>
+    //todo-PRD
+    $(() => {
+        Vue.component('cp-eqp-setup', {
+            mixins: [Vue.prototype.$UT.Mixins.v_rootEl()],
+            template: `
+            <div class="cp-eqp-setup">
+                <div class="panel-heading b panel-header-radius gti-wip-title req-sty" >
+                    <h3 class="panel-title">{{title}}</h3>
+                </div>
+                <gt-err-tag v-model="c_Total_valid" sid="cp-eqp-setup.total"></gt-err-tag>
+                <div class="sty-ops">
+                    <vue-selectize-dynquery
+                        ref="ddl_EQP"
+                        action="Equipment"
+                                    v-model="ddl_EQP.val"
+                                    :options="ddl_EQP.src"
+                                    :rows.sync="ddl_EQP.rows"
+                                    :icon_search="!HasEqpRule"
+                                    :fn_query="e_dyn_query"
+                                    :icon_search_click="()=>{e_dyn_query(null)}"
+                                    render_sty="GTIMES"
+                                    @@change-rows="ddl_EQP_onChange"
+                                    ></vue-selectize-dynquery>
+                        <div class="clearfix"></div>
+                        <el-radio-group v-model="Selected.EQP" class="sty-area" >
+                            <el-radio v-for="(item,eqp_key) in list_EQP"
+                                :key="eqp_key"
+                                :label="item" @@click.native.prevent="handleEqpChange(item,$event)"
+                                :class="[sty_enable_tool]"
+                                >
+                                <span class="eqp_info">
+                                    <el-tag  @@close="">
+                                        <gt-no-name v-model="item.Display" :no="item.No" tag="span" ></gt-no-name>
+                                    </el-tag>
+                                    <i class="fa fa-trash" @@click="remove_eqp(item)" ></i>
+                                </span>
+                                <div v-if="item.subItem && item.subItem.length > 0" class="sty-area1" style="padding-left:2.5rem" >
+                                    <div v-for="(tool,tool_idx) in item.subItem" class="tool_info">
+                                        <el-tag  type="success" :key="tool.SID" >
+                                            <gt-no-name v-model="tool.Display" :no="tool.No"  tag="span" > </gt-no-name>
+                                        </el-tag>
+                                        <i class="fa fa-exclamation-circle" v-if="HasToolRule&&tool['link']==null"></i>
+                                        <i class="fa fa-trash" v-if="add_tool" @@click="remove_tool(item.subItem , tool_idx)" ></i>
+                                    </div>
+                                </div>
+                                <div class="sty-tool-input" :class="[c_ToolInputCount,sty_enable_tool]" v-if="Selected.EQP.No==item.No">
+                                    <el-input v-model="search_tool" ref="search_tool" size="small" v-if="!HasToolRule">
+                                        <el-button slot="append" icon="fa fa-search"
+                                            @@click="f_search_tool"
+                                        ></el-button>
+                                    </el-input>
+                                    <div class="sty-area1" >
+                                        <el-tag v-for="(tool,tool_idx) in list_Tool" type="success"
+                                            :key="tool.SID"
+                                            @@click="AddTool(tool)"
+                                            v-show="Selected.Tools[tool.No]==null">
+                                            <gt-no-name v-model="tool.Display" :no="tool.No"  tag="span" >
+                                            </gt-no-name>
+                                        </el-tag>
+                                    </div>
+                                </div>
+                            </el-radio>
+                        </el-radio-group>
+                    </div>
+                </div>
+            </div>
+        </div>
+			`,
+            props: {
+                "set_model": {
+                    type: Object,
+                    default: []
+                },
+                cfg: Vue.prototype.$PropDef.Array(),
+				oper_info: {
+                    type: Object,
+                    default: {}
+                },
+                single_tool_add:{
+                    type: [String,Boolean],
+                    default: true
+                },
+                enable_tool:{
+                    type: [String,Boolean],
+                    default: false
+                },
+                enable_run_in: {
+                    type: [String, Boolean],
+                    default: false
+                },
+                //控制治具 新增/移除
+                add_tool: {
+                    type: [String, Boolean],
+                    default: false,
+                }
+            },
+            data() {
+                var _self = this;
+                return {
+                    search_tool:'',
+					ddl_EQP: {
+                        val: '',
+                        src: [],
+                        rows:[],
+                    },
+					ddl_reason: {
+						val: '',
+						src: [{}],
+						rows: [],
+					},
+                    Selected:{
+                        EQP:'',
+                        Tools:{},
+                    },
+                    oper_rule:{
+                        EQP:{},
+                        Tool:{},
+                    },
+                    list_EQP:{},
+                    list_Tool:[],
+                };
+            },
+            mounted() {
+                var EQP = _.get(this.set_model,'EqumentSelectList',{});
+                var Tool = _.get(this.set_model,'ToolSelectList',{});
+                
+                this.ddl_EQP.src = EQP;
+                this.oper_rule =  {EQP,Tool};
+                // var oper_rule = _.get(this.oper_info,'oper_rule',{});
+                // this.set_oper_rule(oper_rule);
+            },
+            computed: {
+                c_Total_valid() {
+                    var r = _.isEmpty(this.list_EQP) ? "必須選取機台" : null;
+                    this.SetErrGroup('cp-eqp-setup.total', r);
+                    return r;
+                },
+                c_Return: {
+                    get() {
+                        var r = [];
+                        let { $store } = this;
+                        if ($store) {
+                            return _.get($store, 'state.globalvar.EqpToolList', []);
+                        }
+                        return r;
+                    },
+                    set(val) {
+                        var r = Object.values(this.list_EQP);
+                        let { $store } = this;
+                        if ($store) this.$set($store.state.globalvar, 'EqpToolList', r);
+                    }
+                },
+                sty_enable_tool() {
+                    return this.enable_tool ? '' : 'adj-hide';
+                },
+                c_ToolInputCount(){
+                    if (this.HasToolRule == false ) return '';
+                    var _sum  = _.sumBy(this.list_Tool,{Checked:false});
+                    return _sum >0 ? '':'hide';
+                },
+                isCanAddTool(){
+                    return !_.isEmpty(this.Selected.EQP);
+                },
+				isOperModel(){
+					let {SID}  = this.oper_info;
+					return SID != null;
+				},
+                title() {
+                    let { title = "@RES.BLL.Face.OperEquipInfo" } = this.cfg;
+                    return title;
+                },
+                HasToolRule(){
+                    let {Tool} = this.oper_rule;
+                    return !_.isEmpty(Tool);
+                },
+                HasEqpRule(){
+                    let {EQP} = this.oper_rule;
+                    return !_.isEmpty(EQP);
+                },
+            },
+
+            methods: {
+                set_oper_rule(oper_rule){
+                    var _self = this;
+                    let {EQP={},Tool={}} = oper_rule;
+                    this.oper_rule = {EQP,Tool};
+                    var list_Tool = [];
+
+                    _.each(Tool,(c)=>{
+                        _self.$set(c,'Checked',false);
+                        list_Tool.push(c);
+                    });
+                    this.list_Tool = list_Tool;
+                },
+                handleEqpChange(value,$e) {
+                    var isTargetTag = $($e.srcElement).hasClass('el-radio__inner');
+                    if (isTargetTag && (value.No === this.Selected.EQP.No)){
+                        this.Selected.EQP = {};
+                    }else{
+                        this.Selected.EQP = value;
+                    }
+
+                },
+                check_has_tool(tool,EQP_No,isAlert=true){
+                    let {No,Display} = tool;
+                    var item = this.Selected.Tools[No];
+                    var isHasItem = item != null;
+                    if (isHasItem && isAlert){
+                        this.$Alert.Err(`治具(${No}-${Display}) 已設定在機台(${item})`);
+                    }
+                    if (isHasItem == false && EQP_No != "") this.Selected.Tools[No] = EQP_No;
+                    return isHasItem;
+                },
+                //標記 tool 是否合規
+                bind_Attr01(list_epq){
+                    var _self = this;
+                    list_epq = list_epq ?? this.list_EQP;
+                    if (this.HasToolRule){
+                        _.each(list_epq,(eqp)=>{
+                            if (eqp.subItem !=null){
+                                eqp.subItem.map(tool=>{
+                                    let {No,RefKey} = tool;
+                                    var _match = _self.oper_rule.Tool[No];
+                                    if (_match) tool['link'] = _match.SID;
+                                })
+                            }
+                        })
+                    }
+                    return list_epq;
+                },
+                Add_Eqp(eqp){
+                    eqp.subItem.map(tool=>{
+                        let {No,RefKey} = tool;
+                        if (_self.check_has_tool(tool,eqp.No)){
+
+                        }
+                    })
+                    var _self = this;
+                    data = data ?? this.list_EQP;
+                    _.each(data,(eqp)=>{
+
+                    })
+                    this.c_Return = '';
+                    return data;
+                },
+                f_search_tool(){
+                    var search = this.search_tool;
+                    if(search === '') search = '%';
+                    var _self = this;
+                    var url = _self.$URL.chg_Path('api/ddl/ToolSetupInfo',{search});
+                    var _ajax = {
+                        url,
+                        type:'get',
+                        success(data) {
+                            var data_count =  data.length;
+                            if (data == null || data_count == 0) {
+                                _self.$Alert.msg_NoData();
+                                    } else {
+                                if (data_count == 1
+                                    && _self.single_tool_add )
+                                {
+                                    _self.AddTool(data[0]);
+                                }else{
+                                    _self.list_Tool = data;
+                                    // _self.list_Tool = data.map(c=>{
+                                    //     _self.$set(c,'Checked',false);
+                                    // });
+                                }
+                            }
+                        },
+                        error:_self.$Alert.submitForm_Err
+                    };
+                    $.submitForm(_ajax);
+                },
+                //remove_eqp(eqp_idx){
+                remove_eqp(eqp){
+                    var _self = this;
+                    let {subItem,No} = eqp;
+                    if (subItem){
+                        subItem.map(c=>{
+                            _self.Selected.Tools =_.omit(_self.Selected.Tools, [c.No]);
+                        })
+                    }
+                    this.list_EQP = _.omit(this.list_EQP, [No]);
+                    this.Selected.EQP = {};
+                    this.c_Return = '';
+
+                    // 將當前的值 EqpNo 作為參數傳遞給父元件
+                    _self.$emit('on-change', _.keys(this.list_EQP));
+                },
+                remove_tool(subItem,tool_idx){
+                    var tool = subItem[tool_idx];
+                    tool.Checked = false;
+                    this.Selected.Tools[tool.No] = null;
+                    subItem.splice(tool_idx,1);
+                    this.c_Return = '';
+                },
+                AddTool(tool){
+                    if (this.check_has_tool(tool,this.Selected.EQP.No)==false){
+                        tool.Checked = true;
+                        var _match = this.oper_rule.Tool[tool.No];
+                        if (_match) tool['link'] = _match.SID;
+                        this.Selected.EQP.subItem.push(tool);
+                        this.c_Return = '';
+                        
+                        this.$refs.search_tool[0].focus();
+                    }
+                },
+                ddl_EQP_onChange(rows) {
+                    let [row0] = rows||[];
+                    if (row0){
+                        var _some = _.some(this.list_EQP,{No:row0.No});
+                        if (_some){
+                            this.$Alert.Err("資料己存在");
+                        }else{
+                            this.api_EqpSetupInfo(row0.No);
+                        }
+                    }
+                },
+                check_允許機台狀態(eqp) {
+                    if (this.enable_run_in == false) {
+                        let { Status } = eqp;
+                        if (Status == 'Run') {
+                            this.$Alert.Err("機台狀態為 Run , 不允許選取!");
+                            return false;
+                        }
+                    }
+                    return true;
+                },
+                api_EqpSetupInfo(EqpNo){
+                   var _self = this;
+                    var url = _self.$URL.chg_Path('api/ddl/EqpSetupInfo',{EqpNo});
+                    var _ajax = {
+                        url,
+                        type:'get',
+                        success(data) {
+                            if (data == null || data.length == 0) {
+                                _self.$Alert.msg_NoData();
+                            } else {
+                                data = _self.bind_Attr01([data])[0];
+                                //_self.list_EQP[data.No] = data;
+                                _self.$set(_self.list_EQP,data.No,data);
+                                _self.c_Return = '';
+                                _self.$refs.ddl_EQP.sel.clear();
+
+                                // 將當前的值 EqpNo 作為參數傳遞給父元件
+                                _self.$emit('on-change', _.keys(_self.list_EQP));
+                            }
+                        },
+                        error:_self.$Alert.submitForm_Err
+                    };
+                    $.submitForm(_ajax);
+                },
+                e_dyn_query(search) {
+                    var _self = this;
+                    search = search ?? '%';
+                    var url = _self.$URL.chg_Path('api/ddl/Equipment',{search});
+                    var _ajax = {
+                        url,
+                        type:'get',
+                        success(data) {
+                            if (data == null || data.length == 0) {
+                                _self.ddl_EQP.src = [];
+                                _self.$Alert.msg_NoData();
+                            } else {
+                                _self.ddl_EQP.src = data;
+                            }
+                        }
+                    };
+                    $.submitForm(_ajax);
+                },
+            },
+        });
+    });
+</script>
+<style>
+    .cp-eqp-setup .tool_info {
+        max-width: 100%;
+        margin-top: 1rem;
+    }
+
+    .cp-eqp-setup .fa-plus-circle {
+        font-size: 2rem;
+    }
+
+    .cp-eqp-setup .tool_info .fa-exclamation-circle {
+        color: #F7BA2A;
+        font-size: 2rem;
+        left: 1.5rem;
+        position: absolute;
+    }
+
+    .cp-eqp-setup .el-tag {
+        font-size: 1.5rem;
+    }
+
+    .cp-eqp-setup .el-tag__close.el-icon-close {
+        color: red !important;
+        font-weight: bold !important;
+    }
+
+    .cp-eqp-setup .sty-area {
+        padding: 1rem .5rem;
+        max-width: inherit;
+        display: block;
+    }
+
+        .cp-eqp-setup .sty-area > .el-radio {
+            display: block;
+            margin-right: 0px;
+            max-width: inherit;
+        }
+
+    .cp-eqp-setup .sty-area1 {
+        display: flex;
+        flex-direction: column;
+        align-items: flex-start;
+        flex-wrap: wrap;
+    }
+
+    .cp-eqp-setup .fa.fa-search,
+    .cp-eqp-setup .fa.fa-filter {
+        font-size: 1.55rem;
+        font-weight: 400;
+    }
+
+    .cp-eqp-setup .fa.fa-trash {
+        font-size: 2rem;
+        color: red;
+        top: -1rem;
+        position: relative;
+    }
+
+    .cp-eqp-setup .sty-ops {
+        padding: 1rem 1rem;
+    }
+
+
+
+    .cp-eqp-setup .sty-tool-input {
+        margin-left: 2.5rem;
+        padding: 1rem 1rem;
+        border-radius: 7px;
+        background-color: #e0e0e0f0;
+        max-width: inherit;
+    }
+
+        .cp-eqp-setup .sty-tool-input .sty-area1 .el-tag {
+            max-width: 100%;
+            margin-top: 1rem;
+        }
+
+ 
+
+    .cp-eqp-setup .eqp_info .el-tag,
+    .cp-eqp-setup .sty-area1 .el-tag {
+        white-space: nowrap; /* 防止文字換行 */
+        overflow: hidden; /* 隱藏超出容器寬度的文字 */
+        text-overflow: ellipsis; /* 在結尾顯示 ... */
+        max-width: 95%;
+        padding-top: .5rem;
+    }
+
+    .cp-eqp-setup span.gt-no-name {
+        overflow: hidden; /* 隱藏超出容器寬度的文字 */
+        text-overflow: ellipsis;
+        max-width: 80%;
+    }
+
+    .cp-eqp-setup .eqp_info {
+        max-width: 95%;
+    }
+
+
+        .cp-eqp-setup .eqp_info span.el-tag {
+            max-width: 90%;
+        }
+
+    .cp-eqp-setup .el-radio-group.sty-area span.el-radio__inner {
+        top: -1rem;
+    }
+
+    .cp-eqp-setup .el-radio.adj-hide .el-radio__input  ,
+    .cp-eqp-setup .sty-tool-input.adj-hide 
+    {
+        display: none;
+    }
+</style>

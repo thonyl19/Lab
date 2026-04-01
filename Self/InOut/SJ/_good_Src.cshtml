@@ -1,1 +1,380 @@
-O:/SJ_Dev/Genesis_MVC/Areas/ZZ_SJ/Views/OperTask/_goodQty.cshtml
+﻿<script>
+
+    $(() => {
+        var form = $("#WipForm");
+
+        var data = {
+            layout:['col-lg-5 col-sm-5', 'col-lg-7 col-sm-7 col-xs-12'],
+			LotScrapRes: {},
+			form : {
+				LotGoodQty: 0,
+                REMARK_GOOD_QTY: 0,
+                REMARK_NONGOOD_QTY: 0,
+                RemainderQty: 0,
+                selectedItem: "",
+				IncrementsQty: 0
+			},
+            selectize_ops: {
+                valueField: 'SID',
+                searchField: ['Display', 'No'],
+                tagField: 'No',
+			},
+			i18n: {
+				合計報工數量: '合計良品數量',
+				機台資訊: '@Face.OperEquipInfo',
+				良品數: '良品數',
+                備註良品數: '備註良品數',
+                備註不良品數:'備註不良品數',
+			}
+        };
+        var dyn = {
+            mixins:[Vue.prototype.$UT.Mixins.v_model()],
+            template: `
+            <div>
+                <gt-form-col label="良品數" required :layout_mode="layout">
+                    <el-input-number :span="12" :precision="c_systemConfig.DecimalPoint" :step="c_systemConfig.setp" v-model.number="c_val[c_LotGoodQty]" size="large" min="0" required
+                    ></el-input-number>
+                </gt-form-col>
+                <div style="font-size: 1.55rem;font-weight: bold;padding-left: 5rem;clear: both;"><label>備註數量</label></div>
+                <gt-form-col label="備註良品數" :layout_mode="layout">
+                    <el-input-number :span="12" :precision="c_systemConfig.DecimalPoint" :step="c_systemConfig.setp" v-model.number="c_val[c_REMARK_GOOD_QTY]" size="large" min="0" required
+                    ></el-input-number>
+                </gt-form-col>
+                <gt-form-col label="備註不良品數" :layout_mode="layout">
+                    <el-input-number :span="12" :precision="c_systemConfig.DecimalPoint" :step="c_systemConfig.setp" v-model.number="c_val[c_REMARK_NONGOOD_QTY]" size="large" min="0" required
+                    ></el-input-number>
+                </gt-form-col>
+            </div>
+            `,
+            data(){
+                return {
+                    layout:['col-lg-12 col-sm-12 col-xs-12 adj', 'col-lg-4 col-sm-4', 'col-lg-8 col-sm-8'],
+                    tmp:'',
+                    result:'',
+                    //isObj:{},
+                    tplCfg:{},
+                    input_res:{},
+                }
+            },
+            props:{
+                "set_model": {
+					type: Object,
+					default: []
+				},
+                "is_form": {
+                    type: Number,
+                    default() {
+                        return 0
+                    }
+                },
+                "c_systemConfig":{
+                    type: Object,
+                    default() {
+                        return {}
+                    }
+                }
+            },
+            computed: {
+                c_LotGoodQty(){
+                    return ["LotGoodQty","INum"][this.is_form];
+                },
+                c_REMARK_GOOD_QTY(){
+                    return ["REMARK_GOOD_QTY","Attr01"][this.is_form];
+                },
+                c_REMARK_NONGOOD_QTY(){
+                    return ["REMARK_NONGOOD_QTY","Attr02"][this.is_form];
+                },
+            }
+        }
+		Vue.component('sj-goodqty', {
+            components:{
+                'dyn-template':dyn 
+            },
+			props: {
+				"set_model": {
+					type: Object,
+					default: []
+				},
+				"cfg": {
+					type: Object,
+					default() {
+						return {}
+					}
+				}
+			},
+			data: function () {
+				return data;
+			},
+			mounted() {
+				var _self = this;
+				_self.$emit('input', _self.form);
+
+			},
+			computed: {
+				c_Total() {
+					return  _.sumBy(this.c_ListEqp, 'INum');
+				},
+				__curUser() {
+					return _.get(this, '$store.state.curUser', {});
+				},
+				c_ListEqp() {
+                    let { subItem } = this.__curUser;
+                    return subItem || [];
+				},
+				c_isEqpMode() {
+					//debugger
+					return this.c_ListEqp.length != 0;
+				},
+				c_systemConfig(){
+					let {systemConfig} = this.set_model;
+					systemConfig = systemConfig
+						||{
+							DecimalPoint:0,
+							setp:1,
+						};
+					return systemConfig;
+				},
+
+				isShowResource() {
+
+					if (parseFloat(this.IS_ScrapNum.replace(/,/g, "")) > 0)
+						return true;
+
+					return false;
+
+				},
+				title() {
+                    let { title = "良品數" } = this.cfg;
+					return title;
+				},
+				IS_ScrapNum() {
+					let _self = this;
+					let scrapQty = 0, goodQty = 0, RemainderQty = 0;
+					goodQty = this.form.LotGoodQty || 0;
+					RemainderQty = this.form.RemainderQty || 0;
+					//todo-test:
+					return ;
+					let { state = null } = this.$store;
+					if (state != null) {
+						let { CurrentLot, send_data, ScrapList } = state.MainData;
+						if (CurrentLot != null) {
+							var { scrapList = [] } = send_data;
+							let scrapTotalQty = 0;
+							let canChecnOutQty = this.form.IncrementsQty + parseFloat(CurrentLot.QUANTITY);
+							scrapTotalQty -= _.sumBy(scrapList.model, (e) => {
+								let { INum = 0 } = e;
+								return parseFloat(INum);
+							});
+
+							scrapQty = canChecnOutQty - parseFloat(goodQty) - parseFloat(RemainderQty);
+							scrapQty += scrapTotalQty;
+
+						}
+					}
+
+
+
+
+					if (scrapQty == 0) {
+						this.form.selectedItem = "";
+					}
+
+
+     //               //報廢回傳
+					//
+     //               if (_self.set_model.Setting.CheckOutSet.IsGoodUseType == "GoodAndScrap") {
+     //                   _self.form.LotScrapQty = parseFloat(this.IS_ScrapNum.replace(/,/g, ""));
+     //               }
+     //               _self.$emit('input', _self.form);
+
+
+					return this.$UT.Thousands(scrapQty);
+				},
+				can_CHECKOUTNUM() {
+					let canQty = 0, goodQty = 0, RemainderQty = 0;
+					goodQty = this.form.LotGoodQty || 0;
+					RemainderQty = this.form.RemainderQty || 0;
+					//todo-test
+					return 0;
+					let { state = null } = this.$store;
+					if (state != null) {
+						let { CurrentLot, send_data, ScrapList } = state.MainData;
+						if (CurrentLot != null) {
+							canQty = (parseFloat(CurrentLot.QUANTITY) * 0.2);
+						}
+					}
+
+					if (canQty == 0) {
+						this.form.selectedItem = "";
+					}
+
+					return this.$UT.Thousands(canQty);
+
+				},
+				Overweight_CHECKOUTNUM() {
+					let canQty = 0, goodQty = 0, RemainderQty = 0;
+					goodQty = this.form.LotGoodQty || 0;
+					RemainderQty = this.form.RemainderQty || 0;
+					var canCheckQty = parseFloat(this.can_CHECKOUTNUM.replace(/,/g, ""));
+
+					let { state = null } = this.$store;
+					if (state != null) {
+						let { CurrentLot, send_data, ScrapList } = state.MainData;
+						if (CurrentLot != null) {
+
+							var { scrapList = [] } = send_data;
+							let scrapTotalQty = 0;
+							scrapTotalQty = _.sumBy(scrapList.model, (e) => {
+								let { INum = 0 } = e;
+								return parseFloat(INum);
+							});
+							if ((goodQty + scrapTotalQty) > parseFloat(CurrentLot.QUANTITY)) {
+								canQty = (goodQty + scrapTotalQty) - parseFloat(CurrentLot.QUANTITY)
+							}
+							//canQty = (parseFloat(CurrentLot.QUANTITY) * 0.2);
+
+
+
+
+
+						}
+					}
+
+					this.form.IncrementsQty = canQty.toFixed(this.c_systemConfig.DecimalPoint);
+
+					return this.$UT.Thousands(canQty);
+
+				},
+				chk_1() {
+					var _self = this;
+					return {
+						get err() {
+
+							var result = parseFloat(_self.IS_ScrapNum) < 0;
+							if (!result) {
+								//由報廢頁籤處理完觸發此項目更新資料
+                                _self.form.LotScrapQty = parseFloat(_self.IS_ScrapNum.replace(/,/g, ""));
+
+							}
+
+							return result;
+						},
+						get msg() {
+							let verifyMsg = this.err ? `${_self.title}報廢數量不得小於0` : '';
+							let { state = null } = _self.$store;
+							state.Rule.is_validation = !this.err;
+							state.Rule.validation_msg = verifyMsg;
+
+							return verifyMsg;
+
+						}
+					}
+				},
+				chk_2() {
+					var _self = this;
+					return {
+						get err() {
+							var result = parseFloat(_self.can_CHECKOUTNUM) < 0;
+
+							return result;
+						},
+						get msg() {
+							let verifyMsg = this.err ? `${_self.title}超量上限不得小於0` : '';
+							let { state = null } = _self.$store;
+							state.Rule.is_validation = !this.err;
+							state.Rule.validation_msg = verifyMsg;
+
+							return verifyMsg;
+						}
+					}
+				},
+				chk_3() {
+					var _self = this;
+					return {
+						get err() {
+							var result = parseFloat(_self.Overweight_CHECKOUTNUM.replace(/,/g, "")) > parseFloat(_self.can_CHECKOUTNUM.replace(/,/g, ""));
+
+
+							return result;
+						},
+						get msg() {
+
+							let verifyMsg = this.err ? `${_self.title}已超量數不得大於可超量數` : '';
+							let { state = null } = _self.$store;
+							state.Rule.is_validation = !this.err;
+							state.Rule.validation_msg = verifyMsg;
+
+							return verifyMsg;
+						}
+
+					}
+				}
+			},
+			watch: {
+				form: {
+					handler: function (newValue, oldValue) {
+						var _self = this;
+
+						//報廢
+						var isGoodAndScrap = _.get(_self.set_model.Setting.CheckOutSet, "IsGoodUseType") == "GoodAndScrap";
+                        if (isGoodAndScrap) {
+
+							if (newValue.selectedItem != "") {
+								_self.LotScrapRes = _self.$refs.selectRes.getSelectedRow();
+								if (_self.LotScrapRes.length > 0) {
+									_self.form.LotScrapRes = _self.LotScrapRes[0];
+								}
+							} else {
+								_self.form.LotScrapRes = null;
+							}
+						}
+						_self.$emit('input', _self.form);
+                    },
+
+                    deep: true
+                }
+            },
+            methods: {
+                handleChange(value) {
+        console.log(value);
+      }
+            },
+            template: `
+			<div class="panel" v-cloak>
+		<div class="panel-heading b panel-header-radius gti-wip-title">
+			<h3 class="panel-title">{{title}}</h3>
+		</div>
+		<div class="panel-body">
+			<div v-if="c_isEqpMode==false">
+                <dyn-template v-model="form" :set_model="set_model" :cfg="cfg"></dyn-template>
+			</div>
+			<div v-if="c_isEqpMode">
+				<gt-label-val v-model="c_Total" style="margin-right:3rem;">{{i18n.合計報工數量}}</gt-label-val>
+                <div  v-for="item in c_ListEqp" key="SID">
+                    <el-row :gutter="12">
+                        <el-col :md="24" :lg="6" class="machine-col">
+                            <gt-no-name v-model="item.Display" :no="item.No" :inline="false"></gt-no-name>
+                        </el-col>
+                        <el-col :md="24" :lg="18" >
+                            <dyn-template v-model="item" :set_model="set_model" :cfg="cfg" is_form=1></dyn-template>
+                        </el-col>
+                    </el-row>
+                    <hr></hr>
+                </div>
+			</div>
+		</div>
+	</div>
+
+			`
+        });
+
+    });
+</script>
+<style>     
+.machine-col {
+  display: flex;
+  align-items: center; /* 垂直置中 */
+  justify-content: center; /* 水平置中，如果你希望文字在中間 */
+  min-height: 100px; /* 給個固定高度，才能有明顯垂直置中效果 */
+}
+</style>

@@ -1,1 +1,282 @@
-N:/CUB_Dev/Genesis_MVC/Areas/ZZ_CUB/Views/OperTask/_useOperPart.cshtml
+﻿<script>
+    $(() => {
+        var _tpl = {
+            dvUseOperPartScope: `
+    <div class="panel cp-usemtlot" tabindex='-1' v-cloak v-show="c_UserTrace.check.sts11==false">
+        <div class="panel-heading b panel-header-radius gti-wip-title">
+            <h3 class="panel-title">@RES.BLL.Face.OperPartInfo</h3>
+        </div>
+        <div class="panel-body">
+            <gt-err-tag v-model="c_return" :sid="errSid"></gt-err-tag>
+
+            <el-input v-model="barcode"
+                      placeholder="@RES.BLL.Message.PleaseScanTheBarcodeOrUseKeywords"
+                      @@keyup.enter.native="checkBarcode"
+                      v-if="c_before_enter"
+                      >
+                <template slot="append">
+                    <span>{{c_curPartTypeCount}}</span>/
+                    <span><sup style="color:red" v-if="c_required">*</sup>{{c_partTypeCount}}</span>
+                </template>
+            </el-input>
+            <el-table :data="tempList" empty-text=" " style="width: 100%">
+                <el-table-column fixed="left" prop="SID" label="@RES.Partial.normal.remove" width="70px;" v-if="c_before_enter">
+                    <template slot-scope="scope">
+                        <el-button size="small" v-on:click="remove(scope.$index)" type="danger" icon="el-icon-delete" circle>
+                        </el-button>
+                    </template>
+                </el-table-column>
+                <el-table-column prop="TARGET_NO" label="@RES.BLL.Face.MLOT"></el-table-column>
+                <el-table-column prop="PARTNO" label="@RES.BLL.Face.PartNo"></el-table-column>
+                <el-table-column prop="PART_NAME" label="@RES.BLL.Face.PartName"></el-table-column>
+                <el-table-column prop="TARGET_CUST_ONLYKEY" label="唯一碼"></el-table-column>
+            </el-table>
+        </div>
+        {{c_RunCode}}
+    </div>
+            `
+        }
+        var _fn =()=>{
+            return {
+                mixins: [Vue.prototype.$UT.Mixins.v_rootEl(),@Html.Raw(GTI.Vue.Mixins_RunCode)],
+                template: _tpl.dvUseOperPartScope,
+                data() {
+                    var _self = this;
+                    return {
+                        errSid: 'dvUseOperPartScope',
+                        error: '',
+                        barcode: '',
+                        tempList: [],
+                        pickingList:[],
+                        RunCode:{
+                            val: '',
+                            '31':{
+                                desc:"上崗後, 調用 ConsumedMateriaCatch",
+                                fn(){
+                                    if (_self.tempList.length != 0) return ;
+                                    var _fn = (data)=>{
+                                        for (var mlot of data) {
+                                            let { TARGET_CUST_ONLYKEY } = mlot;
+                                            var isHasKey = _.some(_self.tempList, { TARGET_CUST_ONLYKEY });
+                                            if (isHasKey) {
+                                                console.log({ '料批重覆': mlot });
+                                            } else {
+                                                _self.tempList.push(mlot);
+                                            }
+                                            //_self.tempList = _self.tempList.concat(data);
+                                        }
+                                        _self.c_return = _self.tempList;
+                                    };
+                                    _self.api_ConsumedMateriaCatch(_fn);
+                                }
+                            },
+                        },
+                    };
+                },
+                props: {
+                    "set_model": {
+                        type: Object,
+                        default: []
+                    },
+                },
+                watch: {
+                    '$store.state.globalvar.Select_User': function (n) {
+                        let _self = this;
+                        if (n != '' && n != null) {
+                            var param = { t: Date.now() };
+                            $.submitForm({
+                                url: $.getBaseUrl() + `/cub/use_oper_part/lot/${_self.set_model.CurrentLot.LOT}/route_ver_oper_sid/${_self.set_model.CurrentLot.ROUTE_VER_OPER_SID}/user_no/${n}`,
+                                param,
+                                type: "get",
+                                success: function (data) {
+                                    if (data.Success) {
+                                        let { tempList = [], pickingList = [] } = data.Data;
+                                        // 載入清單
+                                        if (_self.tempList.length == 0) _self.tempList = tempList;
+                                        _self.pickingList = pickingList;
+                                        _self.c_return = _self.tempList;
+                                        _self.formVaild();
+                                    }
+                                    else
+                                        $.showMessageFire({ type: 'error' }, data.Message);
+                                }
+                            });
+                        }
+                    },
+                },
+                mounted() {
+                },
+                computed:{
+                    //#tag:c_UserTrace()
+                    c_UserTrace(){
+                        var userTrace = _.get(this.$store, 'state.globalvar.UserTrace', null);
+                        var check = {
+                            sts11: userTrace.sts == 11,
+                            before_enter : userTrace.sts == 21,
+                            after_enter : userTrace.sts == 31,
+                        }
+                        return {userTrace,check};
+                    },
+                    c_before_enter(){
+                        return this.c_UserTrace.check.before_enter;
+                    },
+                    c_RunCode() {
+                        var r = this.RunCode.val; 
+                        let {userTrace,check} = this.c_UserTrace;
+                        console.log({ userTrace, check });
+                        if (userTrace.sts == 11 && r == 21) {
+                            console.log("未上崗直接離站!");
+                            this.tempList.splice(0, this.tempList.length);
+                        }
+
+                        //if (userTrace.sts == 21) {
+                        if (check.before_enter) {
+                            $('.cp-usemtlot').parent().show();
+                            r = '21'
+                        }
+                        if (check.after_enter){
+                            r = '31';
+                        }
+                        this.RunCode.val = r;
+                        return '';
+                    },
+                    c_partTypeCount() {
+                        let num = Number(this.set_model.CurrentOperation.ATTRIBUTE_03);
+                        num = isNaN(num) ? 0 : num;
+                        return num;
+                    },
+                    c_curPartTypeCount() {
+                        //同料不同批 視為同一個料
+                        return [...new Set(this.tempList.map(x => x.PARTNO))].length;
+                    },
+                    c_required() {
+                        return ['MO01', 'MO04'].some(x=>x==this.set_model.WOInfo.WO_TYPE);
+                    },
+                    c_isMatch() {
+                        return (this.c_required && this.c_partTypeCount == this.c_curPartTypeCount) || !this.c_required;
+                    },
+                    //#tag:c_return()
+                    c_return: {
+                        get() {
+                            let { $store } = this;
+                            return $store ? this.$store.state.globalvar.ConsumedMaterialInfo : [];
+                        },
+                        set(list) {
+                            this.$store.state.globalvar.ConsumedMaterialInfo = list;
+                            this.formVaild();
+                        }
+                    }
+                },
+                methods:{
+                    api_ConsumedMateriaCatch(cb=null){
+                        var _self = this;
+                        var KEY = _.get(this.c_UserTrace,'userTrace.KEY',null);
+                        var url = $.getBaseUrl() + `/cub/ConsumedMateriaCatch/KEY/${KEY}`;
+                        var param = { t: Date.now() };
+
+                        var _ajax = {
+                            url,
+                            param,
+                            type:'get',
+                            automessage: false,
+                            success(res) {
+                                let {Success,Data} = res;
+                                if (Success){
+                                    if (Data != null && Data.length > 0){
+                                        if (cb != null) cb(Data);
+                                    }else{
+                                        console.log('ConsumedMateriaCatch',Data);
+                                    }
+                                }
+                            },
+                            error:_self.$Alert.submitForm_Err
+                        };
+                        $.submitForm(_ajax);
+                    },
+                    formVaild() {
+                        let _self = this;
+
+                        // 如工單類型為必填，工站也有設定需要檢核的量，但來源為空
+                        if (_self.c_required && _self.pickingList.length == 0 && _self.c_partTypeCount > 0) {
+                            _self.SetErrGroup(_self.errSid, `本站需檢核料號種類: ${_self.c_partTypeCount}，但來源無領料紀錄，請確認！`);
+                            return;
+                        }
+
+                        // SA-WIP-14 item b. 數量指的是工站彈性欄位03會維護此站應該有"幾種"料號，
+                        if (!_self.c_isMatch) {
+                            _self.SetErrGroup(_self.errSid, `料號數量與工站設定的數量不符！`);
+                            return;
+                        }
+
+                        _self.SetErrGroup(_self.errSid);
+                    },
+
+                    checkBarcode() {
+                        let _self = this;
+
+                        if (_self.barcode == '') {
+                            _self.SetErrGroup(_self.errSid);
+                            return;
+                        }
+
+                        let data = _self.barcode.split('@@');
+                        //console.log(data);
+                        if (data.length != 8) {
+                            _self.SetErrGroup(_self.errSid, `刷入的資訊格式需符合「廠區@品號@數量@唯一碼@物料批號@版次@儲位@@」，請確認條碼資訊！`);
+                            _self.barcode = '';
+                            return;
+                        }
+
+                        let factory = data[0];   // 廠區
+                        let productNo = data[1]; // 品號
+                        let qty = data[2];       // 數量
+                        let sn = data[3];        // 唯一碼(WMS產生)
+                        let mlot = data[4];      // 物料批號
+                        let version = data[5];   // 版次
+                        let storeNo = data[6];   // 儲位
+
+                        // SA-WIP-14 item c.
+                        let pickingItem = _self.pickingList.find(x => x.MLOT == mlot && (x.SN??'') == sn);
+                        if (pickingItem == undefined) {
+                            _self.SetErrGroup(_self.errSid, `物料批號[唯一碼] ${mlot}[${sn}] 不在工單領料單的範圍！`);
+                            _self.barcode = '';
+                            return;
+                        }
+
+                        /*
+                        Anthony-20250922)
+                        因為 後站程序物料批處理LotConsumeMlot(~\Library\BLL\ZZ\CUB\OperTask\ParallelCheckOut.CUB.cs) ,
+                        直接把 CONSUM_TARGET == "3" 寫死了, 但考慮到既有舊資料的相容性 ,
+                        所以只能將判斷寫在前端
+                        */
+                        var _chk_條碼已存在清單 = _self.tempList.some(x =>
+                            (x.CONSUM_TARGET == mlot || x.CONSUM_TARGET == "3")
+                            && x.TARGET_CUST_ONLYKEY == sn
+                            && x.PARTNO == pickingItem.PART_NO);
+                        if (_chk_條碼已存在清單) {
+                            _self.$Alert.Err(`此條碼已存在清單！`);
+                            _self.barcode = '';
+                            return;
+                        }
+
+                        _self.tempList.push({ TARGET_SID: mlot, TARGET_NO: mlot, CONSUM_TARGET: mlot, TARGET_CUST_ONLYKEY: sn, PARTNO: pickingItem.PART_NO, PART_NAME: pickingItem.PART_NAME });
+
+                        _self.SetErrGroup(_self.errSid);
+                        _self.barcode = '';
+
+                        _self.c_return = _self.tempList;
+                    },
+
+                    remove(idx) {
+                        this.tempList.splice(idx, 1);
+                        this.c_return = this.tempList;
+                    },
+                },
+            }
+        }
+
+        Vue.component('cp-usemtlot', _fn());
+    });
+
+
+</script>

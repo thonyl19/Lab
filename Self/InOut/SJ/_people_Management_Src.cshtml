@@ -1,1 +1,872 @@
-O:/SJ_Dev/Genesis_MVC/Areas/ZZ_SJ/Views/OperTask/_people_Management.cshtml
+﻿<script>
+	//todo-SJ
+    $(() => {
+		var _sj_tpl ={
+			table:`
+		<el-table :data="table_list" key="SID"
+				v-if="table_list.length > 0"
+				empty-text=" "
+				style="width: 100%">
+			<el-table-column fixed="left"  label="@RES.Partial.normal.remove" min-width="50px;">
+				<template slot-scope="scope">
+					<el-button size="small" v-on:click="DelRow(scope.$index, scope.row)" type="danger" icon="el-icon-delete" circle
+						v-if="scope.row.Attr02 ==null"
+					></el-button>
+				</template>
+			</el-table-column>
+			<el-table-column label="@RES.BLL.Face.Jobreport" min-width="50px;">
+				<template slot-scope="scope">
+					<el-button size="small" v-on:click="Action(scope.$index,scope.row)" type="success" icon="el-icon-caret-right"
+						:disabled="scope.row.Attr02!=null"
+					></el-button>
+				</template>
+			</el-table-column>
+			<el-table-column prop="No" label="@RES.BLL.Face.AccountNo">
+				<template slot-scope="scope">
+					<gt-no-name v-model="scope.row.Display" :no="scope.row.No"  :inline="false" >
+					</gt-no-name>
+				</template>
+			</el-table-column>
+
+			<el-table-column prop="No" label="@RES.BLL.Face.Equipment" v-if="c_EqpDisplay">
+				<template slot-scope="scope">
+				<div v-for="(item,idx) in scope.row.subItem"
+						><gt-no-name tag='span' v-model="item.Display" :no="item.No">
+					</gt-no-name></div>
+
+				</template>
+			</el-table-column>
+
+			<el-table-column  label="@RES.BLL.Face.StartWorkTime">
+				<template slot-scope="scope">
+					<gt-split-data v-model="scope.row.Attr01"></gt-split-data>
+				</template>
+			</el-table-column>
+			<el-table-column  label="@RES.BLL.Face.EndJobTime">
+				<template slot-scope="scope">
+					<gt-split-data v-model="scope.row.Attr02"></gt-split-data>
+				</template>
+			</el-table-column>
+		</el-table>
+			`,
+			dialog_body1 :`
+			<gti-rwd-layout v-model="c_ListEqp" rwd_width="1000"
+				:i18n="i18n" :set_mode="set_mode" rwd="true" set_mod="false">
+			    <template slot="form">
+                <div v-for="(item,key) in c_ListEqp">
+					<div v-for="(item,key) in set_model.send_data">
+						<el-col :md="24" :lg="item.col" class="wipDynDiv">
+							<component :is="item.is"
+										v-model="item.model"
+										:cfg="item.cfg"
+										:ref="item.ref"
+										:set_model="set_model"
+										v-if="item.isByUser"
+										>
+								<template v-slot:head-area>
+								</template>
+							</component>
+						</el-col>
+					</div>
+					<div class="clearfix hidden-xs"></div>
+				</div>
+            </template>
+			<el-table :data="c_ListEqp" key="SID"
+								empty-text=" "
+								style="width: 100%">
+							<el-table-column prop="No" label="i18n.機台資訊" width="160">
+								<template slot-scope="scope">
+									<gt-no-name v-model="scope.row.Display" :no="scope.row.No" :inline="false"></gt-no-name>
+								</template>
+							</el-table-column>
+							<el-table-column  label="i18n.良品數">
+								<template slot-scope="scope">
+									<el-input-number :span="12" :precision="c_systemConfig.DecimalPoint" :step="c_systemConfig.setp" v-model.number="scope.row.INum" size="large" min="0" required
+				></el-input-number>
+								</template>
+							</el-table-column>
+							<el-table-column  label="i18n.良品數">
+								<template slot-scope="scope">
+
+								</template>
+							</el-table-column>
+
+				</el-table>
+			</gti-rwd-layout>
+			`,
+            dialog_body: `
+	 		<el-row :gutter="12">
+				<div v-for="(item,key) in set_model.send_data">
+					<el-col :md="24" :lg="item.col" class="wipDynDiv">
+						<component :is="item.is"
+									v-model="item.model"
+									:cfg="item.cfg"
+									:ref="item.ref"
+									:set_model="set_model"
+									v-if="item.isByUser"
+									>
+							<template v-slot:head-area>
+							</template>
+						</component>
+					</el-col>
+				</div>
+				<div class="clearfix hidden-xs"></div>
+			</el-row>
+			`,
+		}
+
+        Vue.component('sj-people-management', {
+			mixins: [Vue.prototype.$UT.Mixins.v_model()],
+            props: {
+                "max_count": {
+                    type: Number,
+                    default: null
+                },
+                "set_model": {
+                    type: Object,
+                    default: []
+                },
+				cfg: Vue.prototype.$PropDef.Array(),
+				test: {
+                    type: Boolean,
+                    default: false
+                },
+            },
+            data() {
+                return {
+					curUser: '',
+					ShowUserForm: false,
+					form_cf: {
+                        USER_NO: '',
+						USER_PW: '',
+						row: {},
+						idx:'',
+					},
+					curUser_idx:-1,
+					TotalFinishQty: 0,
+                    TotalScrapQty:0,
+					dialogVisible:false,
+                    selected_Shiftitem: "",
+                    selected_item: "",
+                    userSelected: [],
+                    table_list: [],
+                    //test: [
+                    //    {
+                    //        "RefKey": null,
+                    //        "SID": "ca009140-44ab-4595-b627-b976801a2c90",
+                    //        "No": "UserAdmin",
+                    //        "Value": null,
+                    //        "Display": "系統管理人員",
+                    //        "StatusSid": null,
+                    //        "Status": null,
+                    //        "FromNum": 0,
+                    //        "INum": 0,
+                    //        "Attr01": "UserAdmin",
+                    //        "Attr02": null,
+                    //        "Attr03": null,
+                    //        "Attr04": "2024/01/01 12:59:59",
+                    //        "Attr05": null,
+                    //    },
+                    //    {
+                    //        "RefKey": null,
+                    //        "SID": "GTI24072815180795288",
+                    //        "No": "TA20240101",
+                    //        "Value": null,
+                    //        "Display": "紀穀枝",
+                    //        "StatusSid": null,
+                    //        "Status": null,
+                    //        "FromNum": 0,
+                    //        "INum": 0,
+                    //        "Attr01": "TA20240101",
+                    //        "Attr02": null,
+                    //        "Attr03": null,
+                    //        "Attr04": "2024/01/01 12:59:59",
+                    //        "Attr05": "2024/01/01 12:59:59",
+                    //    }
+                    //],
+                    Total: 0,
+					ddl_eqp: {
+						val: '',
+                        //list: [{ "RefKey": null, "SID": "GTI24072816351496353", "No": "CUT-001", "Value": null, "Display": "切割機001", "StatusSid": null, "Status": null, "FromNum": 0, "INum": 0, "Attr01": null, "Attr02": null, "Attr03": null }],
+						rows:[],
+                    },
+                    selectize_ops: {
+                        valueField: 'No',
+                        searchField: ['Display', 'No'],
+                        tagField: 'No',
+                    },
+                    selectize_opsCust: {
+                        tagField: 'Attr01',
+                        valueField: 'No',
+                        searchField: ['Display', 'Attr01'],
+                    },
+					i18n: {
+                        placeholder_User: "請掃入人員代碼或關鍵字",
+                        placeholder_Eqp:"請掃入設備代碼或關鍵字",
+						報工: '報工',
+						支援人數: '@RES.BLL.Face.NumberOfSupporters',
+						完工總數量: '@RES.BLL.Face.TotalFinishQty',
+						完工良品總數: '@RES.BLL.Face.TheTotalNumberOfFinishedProducts',
+						報廢總數量: '@RES.BLL.Face.TotalScrapQty2',
+						登入使用者: '登入使用者',
+						清除重新輸入: '清除重新輸入',
+						請確認是否清除: '請確認是否清除',
+                        SaveSuccessful:'@RES.BLL.Message.SaveSuccessful',
+                    },
+					ddl_user:{
+						rows:[]
+					},
+                    isChange:false,
+                }
+            },
+            mounted() {
+				this.f_取得預設進站人員資料();
+            },
+			computed: {
+				c_ListEqp: {
+					get() {
+						let { subItem } = this.curUser;
+						return subItem || [];
+					},
+					set(val) {
+                        this.$set(this.curUser, 'subItem', val);
+					}
+				},
+                c_EqpDisplay() {
+				    let { EqumentSelectList } = this.set_model;
+                    return EqumentSelectList != null && EqumentSelectList.length != 0;
+                },
+                c_isChange() {
+                    return this.isChange ? 'is-change' : '';
+                },
+				c_systemConfig(){
+					let {systemConfig} = this.set_model;
+					systemConfig = systemConfig
+						||{
+							DecimalPoint:0,
+							setp:0,
+						};
+					return systemConfig;
+				},
+				c_Total(){
+					return  this.Total==0;
+				},
+				c_defectList: {
+					get() {
+                        var _d = _.get(this.set_model.send_data, `defectList.model`,[]);
+						if (_d.length != 0) this.isChange = true;
+						return _d;
+					},
+					set(val) {
+						if (_.get(this.set_model.send_data, 'defectList') != null) {
+                            this.$set(this.set_model.send_data.defectList, 'model', val);
+						}
+					}
+				},
+                c_scrapList: {
+                    get() {
+                        var _d = _.get(this.set_model.send_data, `scrapList.model`, []);
+                        if (_d.length != 0) this.isChange = true;
+                        return _d;
+                    },
+					set(val) {
+                        if (_.get(this.set_model.send_data, 'scrapList') != null) {
+                            this.$set(this.set_model.send_data.scrapList, 'model', val);
+                        }
+                    }
+				},
+                c_GoodQty: {
+					get() {
+						//debugger
+                        var _d = _.get(this.set_model.send_data.GoodComponent.model, `LotGoodQty`, 0);
+                        if (_d > 0) this.isChange = true;
+                        return _d;
+                    },
+                    set(val) {
+                        this.$set(this.set_model.send_data.GoodComponent.model,'LotGoodQty', val);
+                    }
+				},
+				c_dialog:{
+					get(){return this.dialogVisible;},
+					set(val) {
+						var _self = this;
+
+						if (val == false && this.isChange) {
+							var confirm_arg = { type: 'warning' };
+							var confirm_msg = "如果取消,畫面上未儲存的資料將會清空,請確認.";
+							_self.$confirm(confirm_msg, '提示', confirm_arg)
+								.then(() => {
+                                    this.set_cwin(false);
+								}).catch(() => {
+
+								});
+						} else {
+							this.set_cwin(val);
+						}
+					}
+				},
+				c_User(){
+					let {No,Display,Attr01} = this.curUser ||{};
+					return `(${No})${Display} - ${Attr01}`;
+				},
+                "table_list": {
+                    get() {
+                        return this.value;
+                    },
+                    set(val) {
+                        this.Total = this.table_list.length;
+                        this.$emit('input', val);
+                    }
+                },
+                title() {
+                    let { title = "人員報工" } = this.cfg;
+                    return title;
+				},
+				c_user_readonly() {
+                    return this.c_ListEqp.length != 0;
+				}
+            },
+			watch: {
+				selected_Shiftitem: function (newVal, oldVal) {
+					var _self = this;
+					let state = _self.$store.state;
+
+					var item = _self.$refs.selectShiftItem.getSelectedRow();
+					state.globalvar.UserShift = item[0];
+					//let control = controlScope.$refs.Select_User.sel;
+
+				},
+                table_list: function (newValue, oldValue) {
+                    var _self = this;
+                    _self.Total = _self.table_list.length;
+                    _self.$emit('input', newValue);
+
+                },
+				selected_item: function (newValue, oldValue) {
+					if (newValue == "") return ;
+                    var _self = this;
+                    var checkLists = _self.table_list;
+					var [user_0] = _self.ddl_user.rows;
+					//user_0;
+					for(var idx = 0 ; idx <checkLists.length ; idx++){
+						var item = checkLists[idx];
+						var is人員己存在 = item.No == newValue;
+                        if (is人員己存在) {
+							_self.curUser_idx = idx;
+                            user_0 = _.cloneDeep(item);
+						}
+					}
+                    let { Attr04: 開始作業, Attr02: 結束作業 } = user_0;
+                    var is作業中 = 開始作業 != null && 結束作業 == null;
+					if (is作業中) {
+						$.showMessageFire({ type: 'error' }, '人員已存在,尚未完成報工');
+						_self.selected_item = '';
+                        _self.$refs.selectItem.sel.clear();
+						return;
+					}
+
+					_self.curUser = user_0;
+					_self.c_ListEqp = [];
+                    var is沒有設備 = _self.c_EqpDisplay == false;
+					if (is沒有設備)  _self.api_AddUser();
+				},
+                'ddl_eqp.val'(newValue, oldValue) {
+                    if (newValue == "") return;
+                    //debugger
+                    var _self = this;
+                    var _支援人員記錄表 = _self.table_list;
+                    var [ItemInfo] = _self.ddl_eqp.rows;
+					let { No } = ItemInfo;
+                    var isSelected0 = _.some(_self.c_ListEqp, { No });
+					if (isSelected0) {
+                        $.showMessageFire({ type: 'error' }, '設備已被選用');
+                        _self.$refs.ddl_eqp.sel.clear();
+                        return;
+					}
+
+                    for (var idx = 0; idx < _支援人員記錄表.length; idx++) {
+                        let { subItem:list_eqp } = _支援人員記錄表[idx];
+                        if (list_eqp != null && list_eqp.lenght !=0 ) {
+                            var isSelected = _.some(list_eqp, { No });
+							if (isSelected) {
+                                $.showMessageFire({ type: 'error' }, '設備已被選用');
+								_self.$refs.ddl_eqp.sel.clear();
+								return;
+							}
+						}
+                    }
+                    _self.c_ListEqp.push(ItemInfo);
+                    _self.$refs.ddl_eqp.sel.clear();
+                }
+            },
+			methods: {
+				fn_覆確_exe() {
+					var _self = this;
+					var param = Object.assign({}, _self.form_cf);
+					param.USER_PW = btoa(param.USER_PW);
+					param = _self.$UT.isTest(param);
+
+					var url = _self.$URL.chg_Path(`api/ZZ_SJ/User/CancelCheckIn_CF`);
+					var _ajax = {
+						url,
+						param,
+						type: 'POST',
+						automessage: false,
+						success(res) {
+							if (res!=null){
+								let {list,LotFinishQty} = res;
+								_self.TotalFinishQty = LotFinishQty;
+								if (list.length == 0){
+                                    _self.table_list.splice(_self.curUser_idx, 1);
+                                } else {
+                                    _self.BindTableRow(list[0]);
+                                }
+								_self.ShowUserForm = false;
+								_self.USER_NO = '';
+                                _self.USER_PW = '';
+							}
+						},
+                        error(res) {
+                            console.log({ err: res });
+                            let { ExceptionMessage, Message } = _.get(res, 'responseJSON', {});
+                            var msg = ExceptionMessage || Message || 'API 回應異常!!';
+                            _self.$Alert.Err(msg);
+                        }
+					};
+					$.submitForm(_ajax);
+ 				},
+				remove_eqp(idx) {
+                    this.c_ListEqp.splice(idx, 1);
+				},
+                handleClose() { },
+				set_cwin(val) {
+                    this.dialogVisible = val;
+                    var z = val
+                        ? $('body').addClass('sj-people-management-adj')
+                        : $('body').removeClass('sj-people-management-adj');
+                    if (val == false) {
+						this.curUser = '';
+						this.curUser_idx = -1;
+                        this.c_defectList = [];
+                        this.c_scrapList = [];
+                        this.c_GoodQty = 0;
+						this.isChange = false;
+                    }
+				},
+                check_isOverQty(_self, Qty) {
+                    var arr = [
+                        parseFloat(_.get(_self, 'set_model.CurrentLot.QUANTITY', 0)),
+                        parseFloat(_.get(_self, '$store.getters.getData.partialGoodQtyCheckout.qty', 0)),
+                        parseFloat(_.get(_self, '$store.getters.getData.GoodComponent.LotGoodQty', 0)),
+                    ];
+                    var maxQty = _.max(arr);
+                    return Qty > maxQty;
+				},
+				chk_isOver() {
+                    var EXE_OUTPUT_QTY = this.c_GoodQty;
+					var ScrapList = this.c_scrapList;
+                    var ScrapQty = parseFloat(_.sumBy(ScrapList, 'INum'));
+					let { QUANTITY } = this.set_model.CurrentLot;
+					let { TotalFinishQty, TotalScrapQty } = this;
+					var 批號待完工餘數 = (QUANTITY - TotalFinishQty - TotalScrapQty);
+					var 報工總數 = (EXE_OUTPUT_QTY + ScrapQty);
+                    var isOver = 報工總數 > 批號待完工餘數;
+					if (isOver) this.$Alert.Err(`報工總數(${報工總數}) 超過 批號待完工餘數(${批號待完工餘數})`);
+					return isOver;
+				},
+                init_curUser(isNeedConfirm=false) {
+					var _self = this;
+					var fn = function () {
+                        _self.curUser = '';
+                        _self.curUser_idx = -1;
+                        _self.$refs.selectItem.sel.clear();
+					};
+					if (isNeedConfirm) {
+						_self.$confirm(
+                            _self.i18n.請確認是否清除,
+							"@RES.BLL.Face.ColumnHint"
+						)
+						.then(() => {
+							fn();
+						});
+					} else {
+						fn();
+					}
+				},
+				SubmitReport() {
+					let _self = this;
+					let { GoodComponent } = _self.$store.getters.getData;
+                    let { REMARK_GOOD_QTY, REMARK_NONGOOD_QTY } = this.set_model.send_data.GoodComponent.model;
+					var EXE_OUTPUT_QTY = _self.c_GoodQty;
+                    var ScrapList = _self.c_scrapList;
+                    var DefectList = _self.c_defectList;
+					var param = {
+						user:_self.curUser
+						,DefectList
+						,ScrapList
+						,LotNo: _self.set_model.CurrentLot.LOT
+						, EXE_OUTPUT_QTY
+						, REMARK_GOOD_QTY
+                        , REMARK_NONGOOD_QTY
+					}
+					param = _self.$UT.isTest(param);
+
+					var url = _self.$URL.chg_Path(`api/ZZ_SJ/User/JobReport`);
+					var _ajax = {
+						url,
+						param,
+						success(res) {
+							if (res != null) {
+								var isTest = param.isTest == 'T';
+								if (!isTest) {
+									let { list, LotFinishQty, LotScrapQty} = res;
+									_self.TotalFinishQty = LotFinishQty;
+									_self.TotalScrapQty = LotScrapQty;
+									_self.BindTableRow(list[0]);
+								}
+
+                                _self.$Alert.Success(_self.i18n.SaveSuccessful).then(() => {
+                                    if (!isTest) _self.set_cwin(false);
+								});
+							}
+						},
+						error(res){
+                            //debugger
+							console.log({err:res});
+							let {ExceptionMessage,Message} = _.get(res,'responseJSON',{});
+							var msg = ExceptionMessage || Message || 'API 回應異常!!';
+							_self.$Alert.Err(msg);
+						}
+					};
+
+					_self.$confirm(
+						"@RES.BLL.Message.ConfirmAdd?",
+						"@RES.BLL.Face.ColumnHint"
+					)
+					.then(() => {
+						$.submitForm(_ajax);
+					});
+
+				},
+				Action(idx, row){
+					this.c_dialog = true;
+					this.curUser = row;
+					this.curUser_idx = idx;
+                    this.$set(this.$store.state, 'curUser', row);
+				},
+                f_取得預設進站人員資料() {
+                    var _self = this;
+                    if (_self.set_model.CurrentLot == null) return;
+
+					var param = {
+						LotNo: _self.set_model.CurrentLot.LOT
+					};
+					var url = _self.$URL.chg_Path('api/ddl/GetMuliteStageWorker');
+					var _ajax = {
+						url,
+						param,
+						type: 'get',
+						automessage: false,
+						success: this.f_取得預設進站人員資料_success
+					};
+					$.submitForm(_ajax);
+				},
+				f_取得預設進站人員資料_success(res) {
+                    if (res != null) {
+                        let { list, LotFinishQty, LotScrapQty, LotCheckInQty} = res;
+                        this.TotalFinishQty = LotFinishQty;
+						this.TotalScrapQty = LotScrapQty;
+						if (LotCheckInQty != null) {
+                            this.$set(this.set_model.CurrentLot, 'QUANTITY', LotCheckInQty);
+						}
+
+                        this.table_list = list;
+                    }
+				},
+				DelRow(idx, row) {
+					this.ShowUserForm = true;
+                    this.curUser_idx = idx;
+                    this.form_cf.row = row;
+				},
+				DelRow_old(idx, row) {
+					let _self = this;
+					_self.curUser_idx = idx;
+					var LotNo =  _self.set_model.CurrentLot.LOT;
+					let {SID:IN_SUPPORT_SID,No:USER_NO } = row;
+					var param = {
+						IN_SUPPORT_SID,
+						USER_NO,
+						LotNo,
+					};
+                    param = _self.$UT.isTest(param);
+					//var url = _self.$URL.chg_Path(`api/ZZ_SJ/User/CancelCheckIn?LotNo=${LotNo}&isTest=T`);
+					var url = _self.$URL.chg_Path(`api/ZZ_SJ/User/CancelCheckIn`);
+					var _ajax = {
+						url,
+						//contentType:'application/json;charset=utf-8;',
+						param,//:JSON.stringify(param),
+						type: 'GET',
+						//dataType: "json",
+						automessage: false,
+						success(res) {
+							if (res!=null){
+								let {list,LotFinishQty} = res;
+								_self.TotalFinishQty = LotFinishQty;
+								if (list.length == 0){
+									_self.table_list.splice(idx, 1);
+								}else{
+									_self.BindTableRow(list[0]);
+								}
+							}
+						},
+                        error(res) {
+                            console.log({ err: res });
+                            let { ExceptionMessage, Message } = _.get(res, 'responseJSON', {});
+                            var msg = ExceptionMessage || Message || 'API 回應異常!!';
+                            _self.$Alert.Err(msg);
+                        }
+					};
+
+					_self.$confirm(
+						"@RES.BLL.Message.DeleteConfirm?",
+						"@RES.BLL.Face.ColumnHint"
+					)
+					.then(() => {
+						$.submitForm(_ajax);
+						@* $.post(url,
+							JSON.stringify(param)
+							,
+							 {
+								data: JSON.stringify(param)
+								//data: param
+							},
+							function(data) {
+								debugger
+								if (data.success) {
+									console.log("成功取消登入");
+								} else {
+									console.error("取消登入失敗", data.error);
+								}
+							},
+							"json" // 指定回傳資料格式為 JSON
+						); *@
+					});
+
+				},
+                BindTableRow(row){
+					//debugger
+					var _Target = this.table_list[this.curUser_idx];
+					for(var key in row){
+					 	_Target[key] = row[key];
+					}
+				},
+				api_AddUser() {
+					//debugger
+					let _self = this;
+					var LotNo =  _self.set_model.CurrentLot.LOT;
+					var param = {
+                        user: _self.curUser,
+						LotNo,
+					};
+                    param = _self.$UT.isTest(param);
+
+					var url = _self.$URL.chg_Path(`api/ZZ_SJ/User/CheckIn`);
+					var _ajax = {
+						url,
+						param,
+						type: 'post',
+						automessage: false,
+                        success: _self.api_AddUser_success,
+                        error: _self.$Alert.submitForm_Err
+					};
+
+					_self.$confirm(
+						"@RES.BLL.Message.ConfirmAdd?",
+						"@RES.BLL.Face.ColumnHint"
+					)
+					.then(() => {
+						$.submitForm(_ajax);
+					});
+					_self.$refs.selectItem.sel.clear();
+				},
+				api_AddUser_success(res) {
+                    if (res != null) {
+                        let { list, LotFinishQty } = res;
+                        this.TotalFinishQty = LotFinishQty;
+                        if (this.curUser_idx != -1) {
+                            this.BindTableRow(list[0]);
+                        } else {
+                            this.table_list.push(list[0]);
+						}
+						this.init_curUser();
+                    }
+				},
+				bind_SHIFT() {
+                    var timeSlots = this.set_model.UserShiftList;
+                    const now = new Date();
+                    const nowTime = now.getHours() * 100 + now.getMinutes();
+
+                    let currentSlot = null;
+
+                    for (let i = 0; i < timeSlots.length; i++) {
+                        const slot = timeSlots[i];
+                        if (slot.Attr01 == "") continue;
+
+                        const slotTimeRange = slot.Attr01.split("~");
+                        if (slotTimeRange.length != 2) continue;
+                        const startTime = parseInt(slotTimeRange[0].replace(":", ""));
+                        const endTime = parseInt(slotTimeRange[1].replace(":", ""));
+
+                        if (endTime < startTime) {
+                            if (nowTime >= startTime || nowTime < endTime) {
+                                currentSlot = slot;
+                                break;
+                            }
+                        } else {
+                            if (nowTime >= startTime && nowTime < endTime) {
+                                currentSlot = slot;
+                                break;
+                            }
+                        }
+                    }
+
+                    if (currentSlot) {
+                        let { No } = currentSlot;
+                        this.selected_Shiftitem = No;
+                    }
+                }
+            },
+            template: `
+            <div class="panel sj-people-management" tabindex='-1' v-cloak  >
+        <div class="panel-heading b panel-header-radius gti-wip-title req-sty" >
+			<i class="fa fa-solid fa-rotate-right" style="float: right;margin:0 3px;color:#409eff;" @@click="f_取得預設進站人員資料()"></i>
+            <h3 class="panel-title" v-text="title"></h3>
+        </div>
+		<div class="panel-body">
+			<div class="col-lg-12 col-md-12">
+				<gt-label-val v-model="Total" style="margin-right:3rem;">{{i18n.支援人數}}</gt-label-val>
+				<gt-label-val v-model="TotalFinishQty" style="margin-right:3rem;">{{i18n.完工良品總數}}</gt-label-val>
+				<gt-label-val v-model="TotalScrapQty" >{{i18n.報廢總數量}}</gt-label-val>
+			</div>
+			<div class="col-lg-12 col-md-12"  :class="[c_EqpDisplay?'eqp-area':'']">
+				<vue-selectize ref="selectItem" :placeholder="i18n.placeholder_User"
+							   v-model="selected_item"
+							   :options="set_model.UserSelectList"
+							   :selectize_ops="selectize_opsCust"
+							   :rows.sync="ddl_user.rows"
+							   render_sty="GTIMES"
+							   err_REASON="找不到資料"
+							   autocomplete="off"
+							   :readonly="c_user_readonly"
+							   >
+				</vue-selectize>
+				<div v-if="c_EqpDisplay">
+					<vue-selectize ref="ddl_eqp" :placeholder="i18n.placeholder_Eqp"
+								   v-model="ddl_eqp.val"
+								   :rows.sync="ddl_eqp.rows"
+								   :options="set_model.EqumentSelectList"
+								   render_sty="GTIMES"
+								   err_REASON="找不到資料"
+								   autocomplete="off">
+					</vue-selectize>
+					<el-tag
+						  :key="idx" type="gray"
+						  v-for="(item,idx) in c_ListEqp"
+						  :closable="true"
+						  @@close="remove_eqp(idx)"
+						><gt-no-name tag='span' v-model="item.Display" :no="item.No" >
+					</gt-no-name></el-tag>
+					<div>
+						<el-button type="primary" size="mini" @@click="api_AddUser">{{i18n.登入使用者}}</el-button>
+						<el-button type="warning" size="mini" @@click="init_curUser(true)">{{i18n.清除重新輸入}}</el-button>
+					</div>
+				</div>
+			</div>
+
+			<gt-err-tag v-model="c_Total" msg="@RES.BLL.Message.SetsuccessfullyNo" sid="sj-people-management.Total"></gt-err-tag>
+			<div class="col-lg-12 col-md-12">
+			${_sj_tpl.table}
+			</div>
+		</div>
+		<el-dialog
+			:title="c_User"
+			:visible.sync="dialogVisible"
+			:fullscreen="true"
+			size="full"
+			:close-on-press-escape="false"
+			:show-close="false"
+			:before-close="handleClose">
+			<div  class="sty-scroll hover hover_y">
+			${_sj_tpl.dialog_body}
+			<div class="clearfix hidden-xs"></div>
+		    </div>
+			<span slot="footer" class="dialog-footer" style="z-index: 9904;">
+				<el-button @@click="c_dialog = false">@RES.BLL.Face.FunctionBarCancelButton</el-button>
+				<el-button type="primary" @@click="SubmitReport" :class=[c_isChange] >@RES.BLL.Face.FunctionBarSaveButton</el-button>
+			</span>
+		</el-dialog>
+			<el-dialog title="報工記錄移除-權限驗証" :append-to-body="true" width="450px"
+					   :visible.sync="ShowUserForm"
+					   size="tiny">
+				<el-form ref="form" :model="form_cf" label-width="150px">
+					<el-form-item label="@Face.LoginUserName">
+						<el-input v-model="form_cf.USER_NO" autocomplete="off"></el-input>
+					</el-form-item>
+					<el-form-item label="@Face.LoginPassword">
+						<el-input type="password" v-model="form_cf.USER_PW" autocomplete="off"></el-input>
+					</el-form-item>
+				</el-form>
+				<span slot="footer" class="dialog-footer">
+					<el-button type="primary" @@click="fn_覆確_exe()">確定</el-button>
+				</span>
+			</el-dialog>
+		</div>
+            `
+        });
+    });
+</script>
+<style>
+ 
+	.sj-people-management .el-dialog__header ,
+	.sj-people-management .el-dialog__footer{
+		background-image: linear-gradient(to right, #002F46 0%, #002F46 100%) !important;
+	}
+	.sj-people-management .el-dialog__title {
+		color:white;
+	}
+
+    .sj-people-management .el-dialog__footer {
+        position: absolute;
+        bottom: 0;
+        left: 0;
+        right: 0;
+        padding: 10px 20px; /* 自定義 padding */
+        text-align: center;
+        z-index: 3100;
+    }
+    .sj-people-management .el-dialog__body {
+        overflow-y: auto;
+        height: calc(100vh - 100px); /* 根據需要調整高度 */
+    }
+
+    .sj-people-management .el-tag {
+		margin-right:3px;
+    }
+    .sj-people-management .eqp-area {
+        background-color: #b3e19d54;
+        padding: 1rem;
+        margin: 5px 1.5rem;
+        border-radius: 10px;
+    }
+
+    body.sj-people-management-adj .fixed-header, body.sj-people-management-adj .fixed-footer {
+        z-index: 1 !important;
+    }
+	body.sj-people-management-adj .swal2-container 
+	{
+		z-index: 3100 !important;
+	}
+
+
+
+</style>
