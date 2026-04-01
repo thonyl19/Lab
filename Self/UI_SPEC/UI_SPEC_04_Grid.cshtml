@@ -1,0 +1,52 @@
+﻿
+<el-table empty-text=" " style="width: 100%"
+		  @@sort-change="sort_change"
+		  :data="grid.data"
+		  :default-sort="{prop: 'CREATE_DATE', order: 'ascending'}">
+	<el-table-column min-width="115" prop="WO" sortable="custom"
+					 :sort-orders="$UT.sort_order"
+					 label="@RES.BLL.Face.WO">
+		<template slot-scope="scope">
+			<el-button type="text" @@click="act_WO(scope.row.WO)">{{scope.row.WO}}</el-button>
+		</template>
+	</el-table-column>
+	<el-table-column label="@RES.BLL.Face.STATE"
+					 prop="STATUS" sortable="custom"
+					 :sort-orders="$UT.sort_order">
+	</el-table-column>
+	<el-table-column prop="ROUTE"
+					 label="@RES.BLL.Face.ROUTE">
+		<template slot-scope="scope">
+			<el-tooltip :content="scope.row.ROUTE_VER_SID" placement="top" effect="light">
+				<span>{{scope.row.ROUTE}}</span>
+			</el-tooltip>
+		</template>
+	</el-table-column>
+	<el-table-column prop="PRODUCT"
+					 label="@RES.BLL.Face.PRODUCT">
+
+	</el-table-column>
+	<el-table-column prop="PARTNO"
+					 :label="i18n.品號"></el-table-column>
+	<el-table-column prop="PART_NAME"
+					 :label="i18n.品名"></el-table-column>
+	<el-table-column prop="RELEASE_QUANTITY"
+					 label="@RES.BLL.Face.WOInQuantity"
+					 :formatter="$UT.el_table_Thousands"
+					 align="right"></el-table-column>
+	<el-table-column prop="CREATE_DATE"
+					 label="@RES.BLL.Face.CREATE_DATE" sortable="custom" :sort-orders="$UT.sort_order">
+		<template slot-scope="scope">
+			<gt-split-data v-model="scope.row.UPDATE_DATE"></gt-split-data>
+		</template>
+	</el-table-column>
+
+</el-table>
+<el-pagination background
+			   @*@@size-change="e_SizeChange"*@
+			   @@current-change="e_CurrentChange"
+			   :current-page="grid.Page.Index"
+			   :page-sizes="[5,10,15]"
+			   :page-size="grid.Page.Size"
+			   layout="total, prev, pager, next, jumper"
+			   :total="grid.row_count"></el-pagination>

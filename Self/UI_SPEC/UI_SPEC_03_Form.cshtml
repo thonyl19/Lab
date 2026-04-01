@@ -1,0 +1,43 @@
+﻿<h3><span class="label label-info">兩欄式佈局-by欄位</span></h3>
+<div class="row ">
+	<gt-lot-query label="lot-query" :callback="lot_Query"></gt-lot-query>
+	<gt-form-col label="使用其他複合元件">
+		<div class="input-group ">
+			<input type="text" class="form-control" />
+			<span class="input-group-addon" style="min-width: 130px;">.00</span>
+		</div>
+	</gt-form-col>
+	<gt-form-col label="搭配 el-radio-group">
+		<el-radio-group v-model="radio">
+			<el-radio label="T">@RES.BLL.Face.Enable</el-radio>
+			<el-radio label="F">@RES.BLL.Face.Disable</el-radio>
+			<el-radio label="All">@RES.BLL.Face.AllStatus</el-radio>
+		</el-radio-group>
+
+	</gt-form-col>
+</div>
+
+<h3><span class="label label-info">兩欄式佈局-by區域</span></h3>
+<div class="row">
+	<div class="col-lg-6">
+		<gt-form-col label="col-lg-4" col_sty="col-lg-4"></gt-form-col>
+		<gt-form-col label="col-lg-8" col_sty="col-lg-8"></gt-form-col>
+	</div>
+	<vue-selectize-ddl-opper class="col-lg-6 col-xs-12"
+							 old_operation="Old Operation"
+							 :main_oper.sync="main_oper"
+							 :i18n="i18n"
+							 :reason="reason">
+	</vue-selectize-ddl-opper>
+	<div class="clearfix hidden-xs"></div>
+</div>
+
+<h3><span class="label label-info">單欄式佈局</span></h3>
+<div class="row">
+	<gt-lot-query label="lot-query" :callback="lot_Query"
+				  col_sty="col-lg-12"
+				  :layout_mode="['col-lg-1 col-md-2 col-xs-2','col-lg-11 col-md-10 col-xs-10']"></gt-lot-query>
+	<vue-selectize-reason is_groupmode="true" :i18n="i18n"
+						  :reason="reason">
+	</vue-selectize-reason>
+</div>
