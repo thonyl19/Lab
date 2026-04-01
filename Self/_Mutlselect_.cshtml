@@ -1,0 +1,140 @@
+﻿<script>
+    $(() => {
+        Vue.component('gt-mutlselect', {
+            template: `
+            <div class="gt-mutlselect">
+                <div class="sty-ops">
+                    <vue-selectize-dynquery
+                        ref="ddl_EQP"
+                        action="Equipment"
+                        v-model="ddl_EQP.val"
+                        :options="src"
+                        :rows.sync="ddl_EQP.rows"
+                        :icon_search="false"
+                        render_sty="GTIMES"
+                        @@change-rows="ddl_EQP_onChange"
+                        :disabled="disabled"
+                    ></vue-selectize-dynquery>
+                    <div class="clearfix"></div>
+                    <div class="sty-area">
+                        <span v-for="(item, idx) in list_EQP" :key="item.NO" class="eqp_info">
+                            <el-tag>
+                                <gt-no-name v-model="item.Display" :no="item.No" tag="span"></gt-no-name>
+                            </el-tag>
+                            <i class="fa fa-trash" @@click="remove_eqp(item)" v-show="!readonly"></i>
+                        </span>
+                    </div>
+                </div>
+            </div>
+            `,
+            props: {
+                value: {
+                    type: Array,
+                    default: () => []
+                },
+                src: {
+                    type: Array,
+                    default: () => []
+                },
+                cfg: {
+                    type: Object,
+                    default: () => ({})
+                },
+                disabled: {
+                    type: Boolean,
+                    default: false
+                },
+                readonly: {
+                    type: Boolean,
+                    default: false
+                },
+
+            },
+            data() {
+                return {
+                    ddl_EQP: {
+                        val: '',
+                        src: [],
+                        rows: [],
+                    },
+                    list_EQP: []
+                };
+            },
+            watch: {
+                value: {
+                    handler(val) {
+                        this.list_EQP = val || [];
+                    },
+                    immediate: true,
+                    deep: true
+                },
+
+            },
+            computed: {
+                title() {
+                    return this.cfg.title || "@RES.BLL.Face.OperEquipInfo";
+                }
+            },
+            methods: {
+                ddl_EQP_onChange(rows) {
+                    let [row0] = rows || [];
+                    if (row0) {
+                        const exists = this.list_EQP.some(item => item.No === row0.No);
+                        if (exists) {
+                            this.$Alert.Err("資料已存在");
+                        } else {
+                            this.list_EQP.push(row0);
+                            this.c_val = this.list_EQP;
+                        }
+                        this.$refs.ddl_EQP.sel.clear();
+                    }
+                },
+
+                remove_eqp(item) {
+                    this.list_EQP = this.list_EQP.filter(i => i.No !== item.No);
+                    this.c_val = this.list_EQP;
+                }
+            }
+        });
+    });
+</script>
+
+<style>
+    .gt-mutlselect .sty-ops {
+        padding: 1rem 1rem;
+    }
+
+    .gt-mutlselect .sty-area {
+        padding: 1rem 0;
+        display: flex;
+        flex-wrap: wrap;
+    }
+
+    .gt-mutlselect .el-tag {
+        font-size: 1.5rem;
+        height: auto;
+        padding: 5px 10px;
+    }
+
+    /* 容器樣式 */
+    .gt-mutlselect .eqp_info {
+        max-width: 95%;
+        display: inline-block;
+        margin-right: 1.5rem;
+        margin-bottom: 1rem;
+    }
+
+    /* 標籤限寬處理 */
+    .gt-mutlselect .eqp_info span.el-tag {
+        max-width: 90%;
+        font-size: 1.5rem;
+    }
+
+    /* 垃圾桶圖標樣式：鮮紅色、位置偏移以產生重疊感 */
+    .gt-mutlselect .fa.fa-trash {
+        font-size: 2rem;
+        color: red;
+        position: relative;
+        cursor: pointer;
+    }
+</style>

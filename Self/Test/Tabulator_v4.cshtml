@@ -41,7 +41,6 @@
             },
             computed: {
                 resolvedColumns() {
-                    
                     if (this.columns && this.columns.length > 0) {
                         return this.columns
                             .map(col => col.editable === false ? { ...col, 

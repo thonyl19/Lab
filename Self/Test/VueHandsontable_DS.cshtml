@@ -1,0 +1,263 @@
+﻿@{
+    var _url = "https://cdn.jsdelivr.net/npm/@handsontable/vue@15.2.0/dist/vue-handsontable.min.js";
+}
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>Vue2 Handsontable Example</title>
+    @eBundle.QRender_CSS()
+    @eBundle.QRender_JS()
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/handsontable@12.4.0/dist/handsontable.full.min.css" />
+    <script src="https://cdn.jsdelivr.net/npm/handsontable@12.4.0/dist/handsontable.full.min.js"></script>
+
+    <!-- 引入 vue-handsontable 封裝 -->
+    <script src="@_url"></script>
+    <script type="text/javascript" src="@_url"></script>
+    <style>
+        .hot-container {
+            margin: 20px;
+        }
+        .valid-err {
+            background-color: #ffcccc !important;
+        }
+
+        .valid-over {
+            background-color: #ffeb3b !important;
+        }
+    </style>
+</head>
+<body>
+    <div id="app" class="hot-container">
+        <h3>Vue2 Handsontable Example</h3>
+        <hot-table ref="hotTable" :settings="hotSettings"></hot-table>
+        
+    </div>
+
+    <script>
+        $(document).ready(() => {
+            // 註冊 hot-table 元件
+            Vue.component('hot-table', Handsontable.vue.HotTable);
+            const edcData = {
+                "GROUP_CODE_SID": "GTI25102018062518131",
+                "GroupCodeList": [
+                    {
+                        "GROUP_CODE": "GROUP",
+                        "SAMPLE_TYPE": "FreeText",
+                        "ITEM_RESOURCE": null,
+                        "MAXIMUM": "3",
+                        "API_ROUTE": null
+                    }
+                ],
+                "ParameterList": [
+                    {
+                        "EDC_VER_PARA_SID": "GTI25102018093018157",
+                        "PARA_NO": "EDC_Cutting_001",
+                        "PARAMETER": "產品尺寸_長度",
+                        "DATATYPE": "N",
+                        "TL": "21",
+                        "UCL": null,
+                        "LCL": null,
+                        "USL": 21.25000,
+                        "LSL": 20.75000,
+                        "MUST_INPUT": "T",
+                        "ITEM_SEQ": 1.00000,
+                        "DEFAULT_TL": null,
+                        "VALUE": "",
+                    },
+                    {
+                        "EDC_VER_PARA_SID": "GTI25102018093118159",
+                        "PARA_NO": "EDC_Cutting_003",
+                        "PARAMETER": "CNC",
+                        "DATATYPE": "S",
+                        "TL": null,
+                        "UCL": null,
+                        "LCL": null,
+                        "USL": null,
+                        "LSL": null,
+                        "MUST_INPUT": "T",
+                        "ITEM_SEQ": 3.00000,
+                        "DEFAULT_TL": null,
+                        "VALUE": "1",
+                    },
+                    {
+                        "EDC_VER_PARA_SID": "GTI25102018093018158",
+                        "PARA_NO": "EDC_Cutting_002",
+                        "PARAMETER": "是否為客製",
+                        "DATATYPE": "B",
+                        "TL": "11",
+                        "UCL": null,
+                        "LCL": null,
+                        "USL": 11.06000,
+                        "LSL": 10.94000,
+                        "MUST_INPUT": "T",
+                        "ITEM_SEQ": 2.00000,
+                        "DEFAULT_TL": null,
+                        "VALUE": "",
+                    },
+                    {
+                        "EDC_VER_PARA_SID": "GTI25102018093018158",
+                        "PARA_NO": "EDC_Cutting_002",
+                        "PARAMETER": "客製選項",
+                        "DATATYPE": "L",
+                        "TL": "11",
+                        "UCL": null,
+                        "LCL": null,
+                        "USL": 11.06000,
+                        "LSL": 10.94000,
+                        "MUST_INPUT": "T",
+                        "ITEM_SEQ": 2.00000,
+                        "DEFAULT_TL": null,
+                        "VALUE": "",
+                    },
+                ]
+            };
+            var _fn = {
+                generateColumns(parameters) {
+                    return parameters.map(param => {
+                        const baseColumn = {
+                            data: param.PARAMETER,
+                            type: _fn.getColumnType(param.DATATYPE)
+                        };
+
+                        if (param.DATATYPE === 'L') {
+                            baseColumn.source = ['紅色', '綠色'];
+                            baseColumn.type = 'dropdown';
+                        } else if (param.DATATYPE === 'B') {
+                            baseColumn.type = 'checkbox';
+                            baseColumn.className = 'htCenter';
+                        }
+
+                        return baseColumn;
+                    });
+                },
+
+                getColumnType(dataType) {
+                    const typeMap = {
+                        'S': 'text',
+                        'N': 'numeric',
+                        'B': 'checkbox',
+                        'L': 'dropdown'
+                    };
+                    return typeMap[dataType] || 'text';
+                },
+            }
+
+            new Vue({
+                el: '#app',
+                data() {
+                    return {
+
+                        hotSettings: 
+                            //data: [[]],
+                            //colHeaders: ['', ...edcData.ParameterList.map(p => p.PARAMETER)],
+                            //rowHeaders: true,
+                            //columns: _fn.generateColumns(edcData.ParameterList),
+                            {
+                        "data": [
+                            {
+                                "產品尺寸_長度": "",
+                                "CNC": "1",
+                                "是否為客製": "",
+                                "客製選項": ""
+                            }
+                        ],
+                            "colHeaders": [
+                                "產品尺寸_長度",
+                                "CNC",
+                                "是否為客製",
+                                "客製選項"
+                            ],
+                                "rowHeaders": true,
+                                    "columns": [
+                                        {
+                                            "data": "產品尺寸_長度",
+                                            "type": "numeric"
+                                        },
+                                        {
+                                            "data": "CNC",
+                                            "type": "text"
+                                        },
+                                        {
+                                            "data": "是否為客製",
+                                            "type": "checkbox",
+                                            "className": "htCenter"
+                                        },
+                                        {
+                                            "data": "客製選項",
+                                            "type": "dropdown",
+                                            "source": [
+                                                "紅色",
+                                                "綠色"
+                                            ]
+                                        }
+                                    ],
+                     
+
+                            afterChange: (changes, source) => {
+                                if (changes) {
+                                    changes.forEach(([row, col, oldValue, newValue]) => {
+                                        if (col >= 0) {
+                                            const param = edcData.ParameterList[col];
+                                            param.VALUE = newValue;
+                                        }
+                                    });
+                                    this.validateData();
+                                }
+                            },
+                            cells: (row, col) => {
+                                const cellProperties = {};
+                                if (col >= 0) {
+                                    const param = edcData.ParameterList[col];
+
+                                    if (param.MUST_INPUT === 'T' && (!param.VALUE || param.VALUE === '')) {
+                                        cellProperties.className = 'valid-err';
+                                    }
+
+                                    if (param.DATATYPE === 'N' && param.VALUE) {
+                                        const numValue = parseFloat(param.VALUE);
+                                        if ((param.UCL !== null && numValue > param.UCL) ||
+                                            (param.LCL !== null && numValue < param.LCL)) {
+                                            cellProperties.className = (cellProperties.className || '') + ' valid-over';
+                                        }
+                                    }
+                                }
+                                return cellProperties;
+                            },
+                            licenseKey: 'non-commercial-and-evaluation'
+                        },
+                        parameterData: edcData.ParameterList
+                    }
+
+                },
+                mounted() {
+                    this.initializeData();
+                    console.log(this.hotSettings);
+                },
+                methods: {
+                    
+
+                    initializeData() {
+                        const initialData = {};
+                        this.parameterData.forEach(param => {
+                            initialData[param.PARAMETER] = param.VALUE;
+                        });
+
+                        this.hotSettings.data = [initialData];
+                        this.$nextTick(() => {
+                            this.validateData();
+                        });
+                    },
+
+                    validateData() {
+                        const hot = this.$refs.hotTable.hotInstance;
+                        if (hot) {
+                            hot.render();
+                        }
+                    }
+                }
+            });
+        })
+    </script>
+</body>
+</html> 

@@ -25,7 +25,6 @@
             gridTemplateRows: 'repeat(' + Cfg.MainArea.Y + ', 20px)',
             backgroundImage: Cfg.MainArea.backgroundUrl ? 'url(' + Cfg.MainArea.backgroundUrl + ')' : 'none'
           }"
-  			@@mouseup="stopDrawing($event)"
         >
           <template v-for="y in Cfg.MainArea.Y" >
             <div
@@ -33,9 +32,7 @@
               :key="'cell-' + x + '-' + y"
               class="grid-cell"
               :class="setCellClass(x, Cfg.MainArea.Y - y + 1)"
-              	@@click="onCellClick(x, Cfg.MainArea.Y - y + 1)"
-				@@mousedown="startDrawing(x, Cfg.MainArea.Y - y + 1)"
-			  	@@mouseover="drawOnHover(x, Cfg.MainArea.Y - y + 1)"
+              @@click="onCellClick(x, Cfg.MainArea.Y - y + 1)"
             ></div>
           </template>
           <!-- 活動點 -->
@@ -71,24 +68,15 @@
           <!-- 場域範圍 -->
           <el-tab-pane label="場域範圍" name="area">
             <el-form label-position="right">
-				<el-form-item label="資料收集模式">
-					<el-select v-model="Cfg.dataCollectionMode" placeholder="請選擇模式">
-						<el-option label="進入/離開" value="enter-exit"></el-option>
-						<el-option label="即時事件" value="realtime"></el-option>
-					</el-select>
-				</el-form-item>
-			<el-form-item label="X">
+              <el-form-item label="X">
                 <el-input-number v-model="Cfg.MainArea.X" :min="1" @@change="onAreaSizeChange"></el-input-number>
               </el-form-item>
               <el-form-item label="Y">
                 <el-input-number v-model="Cfg.MainArea.Y" :min="1" @@change="onAreaSizeChange"></el-input-number>
               </el-form-item>
-
               <el-form-item label="背景圖 URL">
                 <el-input v-model="Cfg.MainArea.backgroundUrl" width="80px"></el-input>
               </el-form-item>
-
-
               <p>(1,1) 為左下，(X,Y) 為右上</p>
             </el-form>
           </el-tab-pane>
@@ -97,7 +85,6 @@
           <el-tab-pane label="禁入區域" name="forbidden">
             <p>目前為禁入設置模式，點擊左側場域的格子即可加入/移除禁入</p>
             <el-button type="danger" @@click="clearForbidden">清空全部禁入</el-button>
-			<div>{{isDrawingRestrictedArea}}</div>
 			<div>{{Cfg.RestrictedArea}}</div>
           </el-tab-pane>
 
@@ -124,12 +111,12 @@
           <el-tab-pane label="活動點" name="points">
             <el-button type="primary" @@click="addPoint">新增活動點</el-button>
             <el-table :data="points" style="margin-top:10px" >
-              <el-table-column  width="40px">
+              <el-table-column  width="60px">
                 <template slot-scope="scope">
                   <span :style="{color: scope.row.color,'font-size':'2rem'}" >●</span>
                 </template>
               </el-table-column>
-              <el-table-column label="控制" width="300px">
+              <el-table-column label="控制">
                 <template slot-scope="scope">
                   <el-radio v-model="activePointId" :label="scope.row.id" @@change="setActivePoint(scope.row.id)"></el-radio>
 				  <el-switch
@@ -142,7 +129,7 @@
                   <el-button type="text" @@click="removePoint(scope.row.id)">移除</el-button>
                 </template>
               </el-table-column>
-              <el-table-column label="已進入區域" prop="enteredAreas" >
+              <el-table-column label="已進入區域" prop="enteredAreas" width="180px">
                 <template slot-scope="scope">
                   {{ scope.row.enteredAreas.join(', ') }}
                 </template>
@@ -164,60 +151,27 @@ $(() => {
     el: '#app',
     data() {
       return {
-		Cfg:{"dataCollectionMode":"enter-exit","MainArea":{"X":40,"Y":25,"backgroundUrl":"/GenesisNewMes/Content/Images/Factory_area.jpg"},"showForbidden":true,"showGrid":false,"RestrictedArea":{"1":{"3":true,"9":true,"10":true,"11":true},"2":{"3":true,"8":true,"11":true,"12":true,"13":true},"3":{"2":true,"8":true,"13":true,"14":true,"15":true},"4":{"2":true,"3":true,"4":true,"5":true,"8":true,"15":true,"16":true,"17":true},"5":{"6":true,"7":true,"18":true,"19":true},"6":{"1":true,"2":true,"3":true,"7":true,"20":true,"21":true},"7":{"4":true,"5":true,"22":true,"23":true},"8":{"6":true,"24":true,"25":true},"9":{"6":true},"10":{"5":true},"11":{"5":true},"12":{"4":true},"13":{"4":true},"14":{"5":true,"6":true},"15":{"6":true},"16":{"6":true},"17":{"6":true},"18":{"6":true},"19":{"1":true,"2":true,"3":true,"4":true,"5":true,"6":true,"19":true,"20":true,"21":true,"22":true,"23":true,"24":true,"25":true},"20":{"19":true},"21":{"19":true},"22":{"6":true,"7":true,"8":true,"9":true,"10":true,"11":true,"12":true,"19":true},"23":{"6":true,"12":true,"19":true},"24":{"6":true,"12":true,"19":true},"25":{"6":true,"7":true,"8":true,"9":true,"10":true,"11":true,"12":true,"19":true},"26":{"19":true},"27":{"19":true},"28":{"1":true,"2":true,"3":true,"4":true,"5":true,"14":true,"15":true,"16":true,"17":true,"18":true,"19":true},"29":{"5":true,"14":true},"30":{"5":true,"14":true},"31":{"5":true,"14":true},"32":{"5":true,"14":true},"33":{"5":true,"14":true},"34":{"5":true,"14":true},"35":{"5":true,"14":true},"36":{"5":true,"14":true},"37":{"5":true,"14":true},"38":{"5":true,"14":true},"39":{"5":true,"14":true},"40":{"5":true,"14":true}},"LimitedAreas":[{"id":"L1","color":"rgba(101,214,207,0.37)","cells":{"3":{"1":true},"4":{"1":true},"5":{"9":true,"10":true,"11":true},"6":{"9":true,"10":true,"11":true},"7":{"8":true,"9":true,"10":true,"11":true},"8":{"8":true,"9":true,"10":true},"9":{"7":true,"8":true,"9":true,"10":true},"10":{"7":true,"8":true,"9":true}},"_class":"limited-L1"},{"id":"L6","color":"rgba(160,192,34,0.37)","cells":{"7":{"13":true,"14":true,"15":true},"8":{"13":true,"14":true},"9":{"13":true,"14":true},"10":{"12":true,"13":true},"11":{"11":true,"12":true,"13":true,"19":true,"20":true,"21":true},"12":{"11":true,"12":true,"13":true,"19":true,"20":true,"21":true},"13":{"19":true,"20":true,"21":true},"14":{"19":true,"20":true,"21":true},"16":{"14":true,"15":true,"16":true,"17":true},"17":{"14":true,"15":true,"16":true,"17":true},"18":{"14":true,"15":true,"16":true,"17":true}},"_class":"limited-L6"},{"id":"L7","color":"rgba(229,199,251,0.37)","cells":{"14":{"10":true,"11":true},"15":{"9":true,"10":true,"11":true,"12":true},"16":{"8":true,"9":true,"10":true,"11":true,"12":true},"17":{"8":true,"9":true,"10":true,"11":true,"12":true},"18":{"8":true,"9":true,"10":true,"11":true,"12":true},"19":{"8":true,"9":true,"10":true,"11":true,"12":true},"22":{"14":true,"15":true,"16":true,"17":true},"23":{"14":true,"15":true,"16":true,"17":true},"24":{"14":true,"15":true,"16":true,"17":true}},"_class":"limited-L7"},{"id":"L8","color":"rgba(120,224,142,0.37)","cells":{"29":{"7":true,"8":true,"9":true,"10":true,"11":true,"12":true},"30":{"7":true,"8":true,"9":true,"10":true,"11":true,"12":true},"31":{"7":true,"8":true,"9":true,"10":true,"11":true,"12":true},"32":{"7":true,"8":true,"9":true,"10":true,"11":true,"12":true}},"_class":"limited-L8"},{"id":"L9","color":"rgba(150,234,52,0.37)","cells":{"22":{"1":true,"2":true,"3":true,"4":true},"23":{"1":true,"2":true,"3":true,"4":true},"24":{"1":true,"2":true,"3":true,"4":true},"25":{"1":true,"2":true,"3":true,"4":true}},"_class":"limited-L9"}],"LimitedAreas_idx":9},
-		Cfg1:{
+		Cfg:{
 			MainArea: { X: 30, Y: 20, backgroundUrl: '/GenesisNewMes/Content/Images/Factory_area.jpg'},
 			showForbidden:true,
 			showGrid:true,
 			RestrictedArea: { "3": { "3": true }, "4": { "2": true } },
 			LimitedAreas: [],
 			LimitedAreas_idx:0,
-			dataCollectionMode:'enter-exit'
 		},
         activeTab: 'area',
         currentLimitedArea: null,
         points: [],
         activePointId: null,
-		isDrawingRestrictedArea: false,
       };
     },
     mounted() {
-		var _self = this;
       window.addEventListener('keydown', this.onKeyDown);
       setInterval(this.autoMovePoints, 500);
-	  for(var area of this.Cfg.LimitedAreas){
-		_self.set_CssRule(area);
-	  }
     },
     methods: {
 		f_copy(){
-			var textToCopy = JSON.stringify(this.Cfg);
-			navigator.clipboard.writeText(textToCopy)
-			.then(() => {
-				this.$message('複製完成!');
-			})
-			.catch(err => {
-				this.$message({
-					message: '複製失敗!',
-					type: 'warning'
-				});
-			});
-		},
-		startDrawing(x, y) {
-			// 檢查是否為右鍵點擊 (event.button === 2)
-			if (this.activeTab === 'forbidden' && event.button === 0 && event.shiftKey) {
-				this.isDrawingRestrictedArea = true;
-				this.toggleForbidden(x, y);
-			}
-		},
-
-		stopDrawing() {
-			if (this.isDrawingRestrictedArea) this.isDrawingRestrictedArea = false;
-		},
-		drawOnHover(x,y) {
-			if (this.isDrawingRestrictedArea) {
-				this.toggleForbidden(x, y);
-			}
+			
 		},
       isForbidden(x, y) {
         return this.Cfg.RestrictedArea[x] && this.Cfg.RestrictedArea[x][y];
@@ -283,16 +237,13 @@ $(() => {
 		};
         this.Cfg.LimitedAreas.push(newArea);
 		this.selectedLimitedAreaId = newArea.id;
-		// 動態生成 CSS 規則並注入
-		this.set_CssRule(newArea);
 
+		// 動態生成 CSS 規則並注入
+		const styleEl = document.createElement('style');
+		const cssRule = `.limited-${newArea.id} { background-color: ${newArea.color }}`;
+		styleEl.innerHTML = cssRule;
+		document.head.appendChild(styleEl);
       },
-		set_CssRule(newArea){
-			const styleEl = document.createElement('style');
-			const cssRule = `.limited-${newArea.id} { background-color: ${newArea.color }}`;
-			styleEl.innerHTML = cssRule;
-			document.head.appendChild(styleEl);
-		},
 		getRandomColor() {
 			const letters = '0123456789ABCDEF';
 			let color = '#';
@@ -326,57 +277,8 @@ $(() => {
         for (let area of this.Cfg.LimitedAreas) {
           if (area.cells[point.x] && area.cells[point.x][point.y]) areas.push(area.id);
         }
-		var chk =  `${point.enteredAreas.length??0}${areas.length}` ;
-		switch(this.Cfg.dataCollectionMode){
-			case "enter-exit":
-				switch(chk){
-					case "01":
-						//this.$message(`${point.id} enter ${areas[0]}`);
-						this.SendToSplunk(point);
-						break;
-					case "10":
-						//this.$message(`${point.id} exit ${point.enteredAreas[0]}`);
-						this.SendToSplunk(point);
-						break;
-				}
-				break;
-			case "realtime":
-
-				break;
-		}
- 
         point.enteredAreas = areas;
       },
-	  SendToSplunk(src,sourcetype="Test_Event"){
-		var _data = {
-			"event":src,
-			sourcetype
-		}
-
-		$.ajax({
-		url: "http://localhost:59394/GenesisNewMes/api/proxy/splunk?url=http://10.96.1.23:8088/services/collector", // 替換成你的 API 網址
-		type: "POST", // 設定請求類型為 POST
-		//dataType: "json", // 預期從伺服器接收的資料類型
-		contentType: "application/json", // 設定發送到伺服器的資料類型
-		data:JSON.stringify(_data), // 將 JavaScript 物件轉換為 JSON 字串
-		success: function(response) {
-			// 請求成功時執行的回調函數
-			console.log("請求成功！");
-			console.log("伺服器回應:", response);
-			// 你可以在這裡處理伺服器返回的資料
-		},
-		error: function(xhr, status, error) {
-			// 請求失敗時執行的回調函數
-			console.error("請求失敗！");
-			console.error("錯誤狀態:", status);
-			console.error("錯誤訊息:", error);
-			console.log("XHR 對象:", xhr);
-			// 根據錯誤訊息進行除錯
-		}
-		});
-
-	  },
-
       onKeyDown(e) {
         const point = this.points.find(p => p.isActive && p.mode==='manual');
         if (!point) return;

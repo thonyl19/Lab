@@ -109,10 +109,13 @@
                                 }, {
                                     value: 'F_DAE',
                                     label: '大鐿'
-                                }, {
-                                    value: 'K_MWF',
-                                    label: '美吾華'
-                                }],
+                                    }, {
+                                        value: 'K_MWF',
+                                        label: '美吾華'
+                                    },{
+                                        value: 'N_CUB',
+                                        label: '為升'
+                                    }],
                             } 
                         }
                     },
@@ -137,8 +140,8 @@
                     methods: {
 
                         search_key() {
-                            alert('test');
-                            var url = _self.$URL.chg_Path(`DDD/APP/i18n/Search/${_self.c_tw}`);
+                            var _self = this;
+                            var url = _self.$URL.chg_Path(`DDD/APP/i18n/Search/${_self.form.key}/${_self.project.val}`);
                             var _ajax = {
                                 url,
                                 type: 'get',
@@ -167,7 +170,7 @@
                             this.form.key = this.capitalizeWordsAndJoin(this.form.en);
                             clickedElement.remove();
                         },
-                        //todo-self: 依key 值, 直接將資料轉入當前專案中
+                        //todo-self: 依key 值, 直接將資料轉入當前專案中 project
                         get_key() {
                             var _self = this;
                             if (_self.c_tw == "") return;

@@ -1,0 +1,162 @@
+﻿@{
+    var _url = "https://cdn.jsdelivr.net/npm/@handsontable/vue@15.2.0/dist/vue-handsontable.min.js";
+}
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>Vue2 Handsontable with el-radio</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/handsontable@12.4.0/dist/handsontable.full.min.css" />
+    <script src="https://cdn.jsdelivr.net/npm/handsontable@12.4.0/dist/handsontable.full.min.js"></script>
+    <script src="@_url"></script>
+    @eBundle.QRender_CSS()
+    @eBundle.QRender_JS()
+    <style>
+        #app {
+            margin: 50px;
+        }
+
+        .hot-container {
+            width: 800px;
+            height: 400px;
+        }
+        /* 設定 radio 元件在儲存格中垂直置中 */
+        .el-radio-cell {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            height: 100%;
+        }
+    </style>
+</head>
+<body>
+    <div id="app">
+        <gti-switch v-model="test"
+                    ></gti-switch>
+        <hot-table class="hot-container"
+                   :settings="hotSettings" ref="hotTable">
+        </hot-table>
+        <pre>{{ hotSettings.data | json }}</pre>
+    </div>
+
+    <script>
+        $(() => {
+            Vue.component('hot-table', Handsontable.vue.HotTable);
+
+            const BaseEditor = Handsontable.editors.BaseEditor;
+
+            class VueSwitchEditor extends BaseEditor {
+                init() {
+                    this.container = document.createElement('div');
+                    this.container.style.position = 'absolute';
+                    this.container.style.zIndex = 9999;
+                    this.container.style.backgroundColor = '#fff';
+                    this.container.style.padding = '4px';
+                    this.container.style.boxShadow = '0 0 5px rgba(0,0,0,0.3)';
+                    this.instance.rootElement.appendChild(this.container);
+
+                    this.vueInstance = new Vue({
+                        el: this.container,
+                        data: {
+                            switchValue: this.originalValue
+                        },
+                        methods: {
+                            onChange(val) {
+                                this.$emit('input', val);
+                                this.instance.finishEditing();
+                            }
+                        },
+                        template: `
+            <el-switch
+              v-model="switchValue"
+              active-value="T"
+              inactive-value="F"
+              @@change="onChange">
+            </el-switch>
+          `
+                    });
+                }
+
+                getValue() {
+                    return this.vueInstance.switchValue;
+                }
+
+                setValue(value) {
+                    this.vueInstance.switchValue = value;
+                }
+
+                open() {
+                    const td = this.instance.getCell(this.row, this.col);
+                    const rect = td.getBoundingClientRect();
+                    const offset = this.instance.rootElement.getBoundingClientRect();
+
+                    this.container.style.top = (rect.top - offset.top) + 'px';
+                    this.container.style.left = (rect.left - offset.left) + 'px';
+                    this.container.style.display = 'block';
+
+                    this.vueInstance.switchValue = this.originalValue;
+                }
+
+                close() {
+                    this.container.style.display = 'none';
+                }
+
+                destroy() {
+                    this.vueInstance.$destroy();
+                    this.container.parentNode.removeChild(this.container);
+                }
+            }
+
+            //Handsontable.editors.VueSwitchEditor = VueSwitchEditor;
+            // **重點：註冊自訂 Editor 名稱**
+            Handsontable.editors.registerEditor('VueSwitchEditor', VueSwitchEditor);
+
+
+
+            new Vue({
+                el: '#app',
+                data() {
+                    return {
+                    test:[],
+                        hotSettings: {
+                            data: [
+                                { id: 1, name: "小明", gender: "男", age: 18, city: "台北" , status:'F'},
+                                { id: 2, name: "小華", gender: "女", age: 22, city: "台中", status: 'T'},
+                                { id: 3, name: "小美", gender: "男", age: 21, city: "高雄", status: 'F'},
+                            ],
+                            colHeaders: ['ID', '姓名', '年齡', '城市', '分數', '班級', '備註', '狀態'],
+                            columns: [
+                                { data: 'id', readOnly: true },
+                                { data: 'name' },
+                                { data: 'age' },
+                                { data: 'city', type: 'dropdown', source: ['台北', '台中', '高雄'] },
+                                { data: 'grade' },
+                                { data: 'detail' },
+                                { data: 'extra' },
+                                {
+                                    data: 'status',
+                                    editor: 'VueSwitchEditor',
+                                    renderer: function (hotInstance, TD, row, col, prop, value) {
+                                        TD.className = 'htCenter';
+                                        TD.textContent = value === 'active' ? '啟用' : '停用';
+                                    }
+                                }
+                            ],
+                            manualColumnResize: true,
+                            licenseKey: 'non-commercial-and-evaluation',
+                        }
+                    };
+                },
+                methods: {
+                    onStatusChange(row, val) {
+                        // 更新 hotSettings.data，確保響應式觸發
+                        this.$set(this.hotSettings.data[row], 'status', val);
+                        // Optional: 手動觸發 Handsontable 更新
+                        this.$refs.hotTable.hotInstance.setDataAtCell(row, 7, val);
+                    }
+                }
+            });
+        });
+    </script>
+</body>
+</html>

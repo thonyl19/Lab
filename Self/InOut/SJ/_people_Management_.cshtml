@@ -53,7 +53,7 @@
 			dialog_body1 :`
 			<gti-rwd-layout v-model="c_ListEqp" rwd_width="1000"
 				:i18n="i18n" :set_mode="set_mode" rwd="true" set_mod="false">
-			    <template slot="form">
+				<template slot="form">
                 <div v-for="(item,key) in c_ListEqp">
 					<div v-for="(item,key) in set_model.send_data">
 						<el-col :md="24" :lg="item.col" class="wipDynDiv">
@@ -96,7 +96,7 @@
 			</gti-rwd-layout>
 			`,
             dialog_body: `
-	 		<el-row :gutter="12">
+	 		<el-row :gutter="12">{{curUser}}
 				<div v-for="(item,key) in set_model.send_data">
 					<el-col :md="24" :lg="item.col" class="wipDynDiv">
 						<component :is="item.is"

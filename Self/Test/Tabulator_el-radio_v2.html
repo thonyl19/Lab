@@ -1,0 +1,116 @@
+﻿<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>Vue2 + Handsontable@15.2.0 + Custom CheckboxEditor</title>
+  <!-- Handsontable 核心 -->
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/handsontable@15.2.0/dist/handsontable.full.min.css">
+  <script src="https://cdn.jsdelivr.net/npm/handsontable@15.2.0/dist/handsontable.full.min.js"></script>
+
+  <!-- Vue 2 & Element-UI -->
+  <script src="https://cdn.jsdelivr.net/npm/vue@2.7.16/dist/vue.min.js"></script>
+  <link rel="stylesheet" href="https://unpkg.com/element-ui/lib/theme-chalk/index.css">
+  <script src="https://unpkg.com/element-ui/lib/index.js"></script>
+
+  <!-- Handsontable Vue Wrapper -->
+  <script src="https://cdn.jsdelivr.net/npm/@handsontable/vue@15.2.0/dist/vue-handsontable.min.js"></script>
+
+  <style>
+    #app {
+      margin: 40px;
+    }
+    .hot-container {
+      width: 600px;
+      height: 300px;
+    }
+    .checkbox-cell {
+      text-align: center;
+      vertical-align: middle;
+    }
+  </style>
+</head>
+<body>
+<div id="app">
+  <hot-table class="hot-container" :settings="hotSettings"></hot-table>
+  <pre>{{ hotSettings.data }}</pre>
+</div>
+
+<script>
+Vue.component('hot-table', Handsontable.vue.HotTable);
+
+// 取得 BaseEditor (CDN 環境用 _editors)
+const BaseEditor = Handsontable.editors.BaseEditor;
+
+class CheckboxEditor extends BaseEditor {
+  open() {
+    this.checkboxContainer = document.createElement('div');
+    this.TD.appendChild(this.checkboxContainer);
+
+    // 創建 Vue 實例
+    this.vueInstance = new Vue({
+      el: this.checkboxContainer,
+      data: {
+        checked: this.originalValue
+      },
+      template: `<el-checkbox v-model="checked"></el-checkbox>`
+    });
+  }
+
+  close() {
+    if (this.vueInstance) {
+      this.vueInstance.$destroy();
+      this.vueInstance.$el.remove();
+      this.vueInstance = null;
+    }
+  }
+
+  getValue() {
+    return this.vueInstance ? this.vueInstance.checked : this.originalValue;
+  }
+
+  setValue(value) {
+    if (this.vueInstance) {
+      this.vueInstance.checked = value;
+    }
+  }
+
+  focus() {
+    // 可選：Element-UI checkbox 不需要 focus 特別處理
+  }
+}
+
+// Renderer 只負責顯示，不創建 Vue 實例
+function checkboxRenderer(instance, TD, row, col, prop, value, cellProperties) {
+  Handsontable.dom.empty(TD);
+  TD.classList.add('checkbox-cell');
+  TD.innerHTML = value ? '✅' : '⬜'; // 可自行換成更好看的樣式
+}
+
+new Vue({
+  el: '#app',
+  data() {
+    return {
+      hotSettings: {
+        data: [
+          { id: 1, name: '小明', active: true },
+          { id: 2, name: '小華', active: false },
+          { id: 3, name: '小美', active: true }
+        ],
+        colHeaders: ['ID', '姓名', '啟用'],
+        columns: [
+          { data: 'id', readOnly: true },
+          { data: 'name' },
+          {
+            data: 'active',
+            renderer: checkboxRenderer,
+            editor: CheckboxEditor
+          }
+        ],
+        licenseKey: 'non-commercial-and-evaluation'
+      }
+    };
+  }
+});
+</script>
+</body>
+</html>

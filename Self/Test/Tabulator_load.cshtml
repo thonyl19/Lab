@@ -1,0 +1,136 @@
+﻿@{
+    var _url = "https://cdn.jsdelivr.net/npm/@handsontable/vue@15.2.0/dist/vue-handsontable.min.js";
+}
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>Vue2 Handsontable with el-radio</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/handsontable@12.4.0/dist/handsontable.full.min.css" />
+    <script src="https://cdn.jsdelivr.net/npm/handsontable@12.4.0/dist/handsontable.full.min.js"></script>
+    <script src="@_url"></script>
+    @eBundle.QRender_CSS()
+    @eBundle.QRender_JS()
+    <style>
+        #app {
+            margin: 50px;
+        }
+
+        .hot-container {
+            width: 800px;
+            height: 400px;
+        }
+        /* 設定 radio 元件在儲存格中垂直置中 */
+        .el-radio-cell {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            height: 100%;
+        }
+    </style>
+
+</head>
+<body>
+    <div id="app">
+        <el-button @@click="load">更新</el-button>
+        <el-button @@click="load_ops">動態載入 選項</el-button>
+        <hot-table class="hot-container" ref="hotTable"
+                   :settings="hotSettings">
+        </hot-table>
+        <div style="margin-top: 20px;">
+            <p>目前資料：</p>
+            <pre>{{ hotSettings.data | json }}</pre>
+        </div>
+    </div>
+
+    <script>
+        $(() => {
+            Vue.component('hot-table', Handsontable.vue.HotTable);
+            Vue.component('hot-column', Handsontable.vue.HotColumn);
+
+             
+
+            new Vue({
+                el: '#app',
+                data() {
+                    var _self = this;
+                    let {bindSrc:source} = _self;
+                    return {
+                        src: {
+                            Main:[
+                                { id: 101, name: "小明", age: 18, city: "台北", grade: 91, detail: "A班", extra: "動態載入1" },
+                                { id: 102, name: "小華", age: 22, city: "台中", grade: 88, detail: "B班", extra: "動態載入2" },
+                                { id: 103, name: "小美", age: 20, city: "高雄", grade: 85, detail: "A班", extra: "動態載入3" },
+                                { id: 104, name: "小邱", age: 35, city: "台北", grade: 87, detail: "C班", extra: "動態載入4" }
+                            ],
+                            Ops: {
+                                city: ["台北", "台中", "高雄", "台南", "其他"],
+                                city1: ["台北1", "台中1", "高雄1", "台南1", "其他1"],
+                                city1_: ["台北2", "台中2"],
+                            }
+                        },
+
+                        hotSettings: {
+                            data: [],
+                            //colHeaders: ['ID', '姓名', '年齡', '城市', '分數', '班級', '備註'],
+                            columns: [
+                                { data: 'id', readOnly: true },
+                                { data: 'name' },
+                                { data: 'age' },
+                                {
+                                    data: 'city',  
+                                    title: "城市",
+                                    type: 'dropdown', // 指定為下拉選單類型
+                                    source(query, process){
+                                        let { data, source_key } = this;
+                                        source_key = source_key || data;
+                                        process(_self.src.Ops[source_key]);
+                                    },
+                                    width: 120,
+                                    source_key:'city1'
+                                },
+                                { data: 'grade' },
+                                { data: 'detail' },
+                                { data: 'extra' }
+                            ],
+                            manualColumnResize: true,
+                            licenseKey: 'non-commercial-and-evaluation',
+                            rowHeaders: false,
+                        }
+                    };
+                },
+                methods: {
+                    bindSrc(query, process){
+                        debugger
+                        let { data, source_key } = this;
+                        source_key = source_key || data;
+                        process(_self.src.Ops[source_key]);
+                   },
+                    SetOps() {
+                        var _self = this;
+                        this.hotSettings.columns.forEach(item => {
+                            let { type, data, source_key } = item;
+                            if (type === 'dropdown'){
+                                source_key = source_key || data;
+                                var _Ops = this.src.Ops[source_key];
+                                if (Array.isArray(_Ops)) {
+                                    item.source = _Ops;
+                                }
+                            }
+                        });
+                        this.$refs.hotTable.hotInstance.updateSettings({
+                            columns: this.hotSettings.columns
+                        });
+                    },
+                    load() {
+                        this.hotSettings.data.splice(0, this.hotSettings.data.length, ...this.src.Main);
+                    },
+                    load_ops() {
+                        this.SetOps();
+                    },
+                }
+            });
+        });
+    </script>
+</body>
+</html>

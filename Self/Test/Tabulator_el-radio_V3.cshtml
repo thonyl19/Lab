@@ -1,0 +1,130 @@
+﻿@{
+    var _url = "https://cdn.jsdelivr.net/npm/@handsontable/vue@15.2.0/dist/vue-handsontable.min.js";
+}
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>Vue2 Handsontable with el-checkbox - Cache Optimized</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/handsontable@12.4.0/dist/handsontable.full.min.css" />
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/element-ui@2.15.14/lib/theme-chalk/index.css" />
+    <script src="https://cdn.jsdelivr.net/npm/handsontable@12.4.0/dist/handsontable.full.min.js"></script>
+    <script src="@_url"></script>
+    @eBundle.QRender_CSS()
+    @eBundle.QRender_JS()
+    <style>
+        #app {
+            margin: 50px;
+        }
+
+        .hot-container {
+            width: 800px;
+            height: 400px;
+        }
+        
+        .el-radio-cell {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            height: 100%;
+        }
+    </style>
+</head>
+<body>
+    <div id="app">
+        <hot-table class="hot-container"
+                   :settings="hotSettings">
+        </hot-table>
+        {{cellCache }}
+        <pre>{{ hotSettings.data | json }}</pre>
+    </div>
+
+    <script>
+        $(() => {
+            Vue.use(ELEMENT);
+            Vue.component('hot-table', Handsontable.vue.HotTable);
+
+            new Vue({
+                el: '#app',
+                data() {
+                    var _self = this;
+                    return {
+                        test: [],
+                        cellCache: new Map(),
+                        cellComponents: new Map(),
+                        hotSettings: {
+                            data: [
+                                { id: 1, name: "小明", gender: "男", age: 18, city: "台北", status:'T' },
+                                { id: 2, name: "小華", gender: "女", age: 22, city: "台中", status:'F' },
+                                { id: 3, name: "小美", gender: "男", age: 21, city: "高雄", status:'F' },
+                                { id: 4, name: "小美", gender: "男", age: 21, city: "高雄", status:'F' },
+                                { id: 5, name: "小美", gender: "男", age: 21, city: "高雄", status:'F' },
+                            ],                            
+                            colHeaders: ['ID', '城市', '年齡', '狀態'],
+                            columns: [
+                                { data: 'id', readOnly: true},
+                                { data: 'city', type: 'dropdown', source: ['台北', '台中', '高雄'] },
+                                { data: 'age' }, {
+                                    data: 'status',
+                                    renderer:(hotInstance, TD, row, col, prop, value, cellProperties)=>{
+                                        const cellKey = `${row}-${col}`;
+                                        const cachedValue = _self.cellCache.get(cellKey);
+                                        const cachedComponent = _self.cellComponents.get(cellKey);
+                                        var isNewTd = TD.innerHTML === undefined || TD.innerHTML === '';
+                                        var isNeedCread = cachedComponent == null || isNewTd; //(isNewTd && cachedComponent.TD !== TD) ;
+                                        if (isNeedCread){
+                                            console.log(cellKey, value, cachedValue, TD.innerHTML);
+                                            var _obj = _self.ts_VueObj(hotInstance,TD, row, col,value);
+                                            _self.cellCache.set(cellKey, value);
+                                            _self.cellComponents.set(cellKey, _obj);
+                                        }
+                                    },
+                                }
+                            ] ,
+                            manualColumnResize: true,
+                            licenseKey: 'non-commercial-and-evaluation',
+                        }
+                    };
+                },
+                
+                beforeDestroy() {
+                    // 清理所有快取的組件
+                    this.cellComponents.forEach((component, key) => {
+                        if (component.vue) {
+                            component.vue.$destroy();
+                        }
+                    });
+                    this.cellComponents.clear();
+                    this.cellCache.clear();
+                },
+                methods: {
+                    ts_VueObj(hotInstance,TD, row, col, value) {
+                        const container = document.createElement('div');
+                        TD.appendChild(container);
+                        var vueInstance = new Vue({
+                            el: container,
+                            data(){
+                                return {
+                                    radioValue: value
+                                }
+                            },
+                            watch: {
+                                radioValue(newVal) {
+                                    // 更新 Handsontable 的資料，實現雙向綁定
+                                    hotInstance.setDataAtCell(row, col, newVal);
+                                }
+                            },
+                            //template: `<gti-switch v-model="radioValue" size="small"></gti-switch>`,
+                            template: `<el-checkbox v-model="radioValue" size="small"></el-checkbox>`
+                        });
+                        return {
+                            vueInstance,
+                            TD,
+                        }
+                    }
+                }
+            });
+        });
+    </script>
+</body>
+</html>

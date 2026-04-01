@@ -1,0 +1,165 @@
+﻿@using System.Dynamic
+@model BLL.MES.DataViews.LotData
+@{
+    GTI_Test GTest = new GTI_Test
+     (Html, HttpContext.Current.IsDebuggingEnabled
+     , ViewContext.HttpContext.Request);
+    var BaseRoot = @"~/Areas/MES/Views";
+    var ZZRoot = @"~/Areas/MPI/Views";
+
+    //R:\MPI_Dev\Genesis_MVC\Views\Shared\part\_Mutlselect.cshtml
+}
+@eBundle.QRender_CSS()
+@eBundle.QRender_JS(eBundle.VueVirtualScrollList)
+@Html.Partial("_pw_test")
+@Html.Partial("_VirtualTransfer_Src")
+@GTest.Test("_SetUpEQP",2)
+<pre>
+</pre>
+
+<div id="app">
+    <form id="WipForm">
+        @Html.AntiForgeryToken()
+        <div class="panel b">
+            <el-button-group>
+                <el-button type="primary" size="small" v-for="(val,key) in TestGroup" :label="key" :key="key" @@click="val()">{{key}}{{TestGroup_v[key]}}</el-button>
+            </el-button-group>
+            <virtual-transfer v-model="form.RoleOpertions"
+                              :data="operations"
+                              :props="{ key: 'key', label: 'label' }"></virtual-transfer>
+            @*
+
+            <pw-test v-model="cfg" label="cfg"></pw-test>
+            <pw-test v-model="$store.state.globalvar.EqpToolList">$store.state.globalvar.EqpToolList</pw-test>
+            <pw-test v-model="$store.state.globalvar.UserTrace">$store.state.globalvar.UserTrace</pw-test>
+            *@
+        </div>
+    </form>
+</div>
+<div id="footerCommand">
+    <button type="button" class="btn btn-lg btn-labeled btn-success  btn_submit" style="margin:10px 30px;">
+        <span class="btn-label">
+            <i class="fa fa-play"></i>
+        </span>@RES.BLL.Face.Exec
+    </button>
+
+</div>
+<script>
+    Vue.config.devtools = true;
+    $(() => {
+        let { value, set_model } = test;
+        set_model = _.cloneDeep(set_model);
+        Vue.use(Vuex);
+
+        const store = new Vuex.Store({
+            state: {
+                set_model,
+                globalvar: {
+                    scrapTotal: 0,
+                    GoodList: [],
+                    ScrapList: [],
+                    DefectList: [],
+                    isUserTraceEnter: false,
+                    UserTrace: {
+                        sts: 21
+                    }
+                }
+            },
+            getters: {
+                getData(state) {
+                    return state.globalvar;
+                }
+            }
+        })
+        const Item = {
+            props: ['source'],
+            template: `
+    <div style="height:40px; display:flex; align-items:center;">
+      {{ source.name }}
+    </div>
+  `
+        }
+
+
+        var form = $("#WipForm");
+        new Vue({
+            el: '#app',
+            mixins: [Vue.prototype.$UT.Mixins.v_ErrGroup()],
+            store,
+            provide() {
+                return {
+                    rootEl: this,
+                };
+            },
+            data() {
+                var _self = this;
+                return {
+                    selectedIds: [],
+                    //itemComponent: Item,
+                    allData: Array.from({ length: 10 }).map((_, i) => ({
+                        id: i,
+                        name: `權限項目_${i}`
+                    })),
+                    form:{
+                    "RoleOpertions": [
+                        "GTI26031216340001724",
+                    ],
+                        "Role": {
+                        "SID": "848ec7c7-d908-4f2b-bdb5-b828d214fd91",
+                            "ROLE_NO": "Admin",
+                                "ROLE_NAME": "Admin",
+                                    "PERMISSION_RULE": "{\"IsModify\":true,\"IsDelete\":false}",
+                                        "DESCRIPTION": "9800",
+                                            "CREATE_USER": "Admin",
+                                                "CREATE_DATE": "2019-02-27 23:16:55",
+                                                    "UPDATE_USER": "Admin",
+                                                        "UPDATE_DATE": "2024-12-24 16:36:06"
+                    }
+                    },
+                    operations: [{
+        "key": "GTI26031216340001724",
+        "disabled": false,
+        "label": "[B122-005NA1-190_1000-0030]成品包裝"
+    }
+],
+                    TestGroup_v: {},
+                    TestGroup: {
+                        注入list_EQP() {
+                            _self.src = test.list_EQP;
+                        },
+                    },
+                    set_model,
+                    i18n: {
+                        料號: 'AAAA'
+                    }
+                }
+            },
+            computed: {
+                cp() {
+                    return this.$refs['cp'];
+                },
+            },
+            mounted() {
+                //this.TestGroup.切換Check();
+                //this.TestGroup.注入list_EQP();
+            },
+            methods: {
+                Exec(e) {
+                    this.$message('ok');
+                    if (this.cfg.single_checkout) {
+                        e.preventDefault();
+                    } else if (form.parsley().validate()) {
+
+                    }
+                }
+            }
+        });
+        @GTest.Test("i.fa.fa-play", 9);
+    });
+    var test = { }
+</script>
+<style>
+    .gti-limits-info-table {
+        width: 23rem;
+    }
+</style>

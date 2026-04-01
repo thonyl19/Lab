@@ -1,0 +1,286 @@
+﻿@{
+    var _url = "https://cdn.jsdelivr.net/npm/@handsontable/vue@15.2.0/dist/vue-handsontable.min.js";
+
+}
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>Vue2 Handsontable Example</title>
+    @eBundle.QRender_CSS()
+    @eBundle.QRender_JS()
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/handsontable@12.4.0/dist/handsontable.full.min.css" />
+    <script src="https://cdn.jsdelivr.net/npm/handsontable@12.4.0/dist/handsontable.full.min.js"></script>
+
+    <!-- 引入 vue-handsontable 封裝 -->
+    <script src="@_url"></script>
+    <script type="text/javascript" src="@_url"></script>
+    <style>
+        .hot-container {
+            margin: 20px;
+        }
+        /* 必填錯誤樣式 */
+        .valid-err {
+            background-color: #ffcccc !important; /* 淺紅色背景 */
+            border: 2px solid red !important;
+        }
+        /* 超出上下限樣式 */
+        .valid-over {
+            background-color: #ffebcc !important; /* 淺橘色/黃色背景 */
+            border: 2px solid orange !important;
+        }
+    </style>
+</head>
+<body>
+    <div id="app" class="hot-container">
+        <h3>Vue2 Handsontable Example</h3>
+        <button v-on:click="validateTable">執行必填與格式驗證</button>
+        <hot-table v-if="hotSettings.data.length" :settings="hotSettings"></hot-table>
+    </div>
+
+    <script>
+        $(document).ready(() => {
+            // 註冊 hot-table 元件
+            Vue.component('hot-table', Handsontable.vue.HotTable);
+            // 原始 JSON 資料
+            const rawData = {
+                "GROUP_CODE_SID": "GTI25102018062518131",
+                "GroupCodeList": [{ "GROUP_CODE": "GROUP", "SAMPLE_TYPE": "FreeText", "ITEM_RESOURCE": null, "MAXIMUM": "3", "API_ROUTE": null }],
+                "ParameterList": [
+                    { "EDC_VER_PARA_SID": "GTI25102018093018157", "PARA_NO": "EDC_Cutting_001", "PARAMETER": "產品尺寸_長度", "DATATYPE": "N", "TL": "21", "UCL": 21.25000, "LCL": 20.75000, "USL": 21.25000, "LSL": 20.75000, "MUST_INPUT": "T", "ITEM_SEQ": 1.00000, "DEFAULT_TL": null, "VALUE": "" },
+                    { "EDC_VER_PARA_SID": "GTI25102018093118159", "PARA_NO": "EDC_Cutting_003", "PARAMETER": "CNC", "DATATYPE": "S", "TL": null, "UCL": null, "LCL": null, "USL": null, "LSL": null, "MUST_INPUT": "T", "ITEM_SEQ": 3.00000, "DEFAULT_TL": null, "VALUE": "1" },
+                    { "EDC_VER_PARA_SID": "GTI25102018093018158", "PARA_NO": "EDC_Cutting_002", "PARAMETER": "是否為客製", "DATATYPE": "B", "TL": "11", "UCL": null, "LCL": null, "USL": 11.06000, "LSL": 10.94000, "MUST_INPUT": "T", "ITEM_SEQ": 2.00000, "DEFAULT_TL": null, "VALUE": "" },
+                    { "EDC_VER_PARA_SID": "GTI25102018093018158", "PARA_NO": "EDC_Cutting_002", "PARAMETER": "客製選項", "DATATYPE": "L", "TL": "11", "UCL": null, "LCL": null, "USL": 11.06000, "LSL": 10.94000, "MUST_INPUT": "T", "ITEM_SEQ": 2.00000, "DEFAULT_TL": null, "VALUE": "" },
+                ]
+            };
+
+            $(document).ready(() => {
+
+                // 1. 整理 ParameterList: 排序並準備資料
+                // 排序 ParameterList 以確保欄位順序正確
+                const sortedParameters = rawData.ParameterList.sort((a, b) => a.ITEM_SEQ - b.ITEM_SEQ);
+
+                // 提取欄位標題 (colHeaders)
+                const headers = sortedParameters.map(p => p.PARAMETER);
+                // 提取初始資料 (data) - 只有一行，欄位值為各參數的 VALUE
+                const initialDataRow = sortedParameters.map(p => p.VALUE);
+                const initialData = [initialDataRow];
+
+                // 建立 Handsontable 的 columns 配置
+                const columnsConfig = sortedParameters.map((p, index) => {
+                    let column = {
+                        data: index, // 欄位索引，因為使用 array of arrays 作為 data
+                        p: p,        // 將原始參數物件附加到 column 配置中，方便後續取值
+                        editor: 'text', // 預設編輯器
+                        renderer: customRenderer // 使用自訂渲染器來處理樣式
+                    };
+
+                    // 根據 DATATYPE 設置 Handsontable 的 type 和 source
+                    switch (p.DATATYPE) {
+                        case 'N': // 數字
+                            column.type = 'numeric';
+                            column.numericFormat = {
+                                pattern: '0.00000' // 確保數字格式化
+                            };
+                            break;
+                        case 'B': // 布林 (使用 Checkbox)
+                            column.type = 'checkbox';
+                            column.checkedTemplate = 'Y';
+                            column.uncheckedTemplate = 'N';
+                            break;
+                        case 'L': // Lookup Table (使用 Dropdown)
+                            column.type = 'dropdown';
+                            column.source = ['紅色', '綠色']; // 預設選項
+                            break;
+                        case 'S': // 字串
+                        default:
+                            column.type = 'text';
+                            break;
+                    }
+                    return column;
+                });
+
+                // 2. 自訂渲染器 (Custom Renderer)
+                // 用於處理必填和上下限樣式
+                function customRenderer(instance, td, row, col, prop, value, cellProperties) {
+                    // 必須先呼叫基礎渲染器，才能正確顯示值和編輯器
+                    Handsontable.renderers.TextRenderer.apply(this, arguments);
+
+                    // 移除舊的樣式
+                    $(td).removeClass('valid-err valid-over');
+
+                    const param = cellProperties.p; // 取得附加的參數物件
+
+                    if (param) {
+                        const valueStr = String(value || '').trim();
+
+                        // 1. 必填驗證 (MUST_INPUT == "T")
+                        if (param.MUST_INPUT === 'T' && valueStr === '') {
+                            $(td).addClass('valid-err');
+                            return; // 必填錯誤優先顯示
+                        }
+
+                        // 2. 上下限驗證 (UCL / LCL)
+                        if (param.DATATYPE === 'N') {
+                            const numValue = parseFloat(valueStr);
+                            const UCL = param.UCL;
+                            const LCL = param.LCL;
+
+                            if (!isNaN(numValue) && (UCL !== null || LCL !== null)) {
+                                // 檢查是否超出上限或下限
+                                const isOverLimit = (UCL !== null && numValue > UCL) || (LCL !== null && numValue < LCL);
+
+                                if (isOverLimit) {
+                                    $(td).addClass('valid-over');
+                                }
+                            }
+                        }
+                    }
+                }
+
+                var _columnsConfig = [
+                    {
+                        "data": "產品尺寸_長度",
+                        "type": "numeric"
+                    },
+                    {
+                        "data": "CNC",
+                        "type": "text"
+                    },
+                    {
+                        "data": "是否為客製",
+                        "type": "checkbox",
+                        "className": "htCenter"
+                    },
+                    {
+                        "data": "客製選項",
+                        "type": "dropdown",
+                        "source": [
+                            "紅色",
+                            "綠色"
+                        ]
+                    }
+                ];
+
+                new Vue({
+                    el: '#app',
+                    data() {
+                        var _self = this;
+                        return {
+                            // 原始資料，用於儲存和同步
+                            originalData: rawData,
+                            // Handsontable 設定物件
+                            hotSettings: {
+                                data: initialData,
+                                colHeaders: headers,
+                                rowHeaders: true,
+                                height: 'auto',
+                                columns: _columnsConfig, // 應用複雜的欄位配置
+                                licenseKey: 'non-commercial-and-evaluation',
+                                manualColumnResize: true,
+                                // 3. 雙向繫結 (After Change)
+                                afterChange: (changes, source) => {
+                                    if (!changes || source === 'loadData') {
+                                        return;
+                                    }
+
+                                    changes.forEach(([row, colIndex, oldValue, newValue]) => {
+                                        // 取得對應的參數物件
+                                        const param = sortedParameters[colIndex];
+
+                                        // 更新原始資料中的 VALUE
+                                        if (param && param.VALUE !== newValue) {
+                                            param.VALUE = newValue;
+                                            console.log(`Updated ${param.PARAMETER} (Index: ${colIndex}) to: ${newValue}`);
+                                        }
+
+                                        // 觸發重新渲染以更新樣式 (重要: 在 afterChange 中需要重新渲染)
+                                        if (_self.$refs.hotTable) {
+                                            _self.$refs.hotTable.hotInstance.render();
+                                        }
+                                    });
+                                },
+                                // 在 Handsontable 實例準備好後，手動儲存引用 (用於驗證)
+                                afterInit: function () {
+                                    _self.$refs.hotTable = this;
+                                }
+                            }
+                        }
+                        
+                    },
+                    methods: {
+                        generateColumns(parameters) {
+                            var r = parameters.map(param => {
+                                const baseColumn = {
+                                    data: param.PARAMETER,
+                                    type: this.getColumnType(param.DATATYPE)
+                                };
+
+                                if (param.DATATYPE === 'L') {
+                                    baseColumn.source = ['紅色', '綠色'];
+                                    baseColumn.type = 'dropdown';
+                                } else if (param.DATATYPE === 'B') {
+                                    baseColumn.type = 'checkbox';
+                                    baseColumn.className = 'htCenter';
+                                }
+
+                                return baseColumn;
+                            });
+                            console.log(r);
+                            return r;
+                        },
+                        // 執行手動必填和格式驗證
+                        validateTable() {
+                            const hotInstance = this.$refs.hotTable.hotInstance;
+                            hotInstance.render(); // 強制重新渲染，觸發 customRenderer
+
+                            let isValid = true;
+                            let errorMessages = [];
+
+                            // 遍歷所有欄位，手動檢查必填
+                            sortedParameters.forEach((param, colIndex) => {
+                                const value = hotInstance.getDataAtCell(0, colIndex);
+                                const valueStr = String(value || '').trim();
+
+                                // 必填檢查
+                                if (param.MUST_INPUT === 'T' && valueStr === '') {
+                                    isValid = false;
+                                    errorMessages.push(`[必填錯誤] ${param.PARAMETER} 不可為空.`);
+                                }
+
+                                // 上下限檢查 (只需再次檢查數字型態，字串和下拉菜單通常不需此檢查)
+                                if (param.DATATYPE === 'N' && valueStr !== '') {
+                                    const numValue = parseFloat(valueStr);
+                                    const UCL = param.UCL;
+                                    const LCL = param.LCL;
+
+                                    if (!isNaN(numValue)) {
+                                        if (UCL !== null && numValue > UCL) {
+                                            isValid = false;
+                                            errorMessages.push(`[超限錯誤] ${param.PARAMETER}: ${numValue} 超出上限 ${UCL}.`);
+                                        }
+                                        if (LCL !== null && numValue < LCL) {
+                                            isValid = false;
+                                            errorMessages.push(`[超限錯誤] ${param.PARAMETER}: ${numValue} 低於下限 ${LCL}.`);
+                                        }
+                                    }
+                                }
+                            });
+
+                            if (isValid) {
+                                alert('驗證成功！所有欄位皆符合要求。');
+                            } else {
+                                alert('驗證失敗！請檢查紅色和橙色標記的欄位：\n' + errorMessages.join('\n'));
+                            }
+                        }
+                    },
+                    mounted() {
+                        // 將 Handsontable 實例儲存到 Vue 實例中，方便在 methods 中呼叫
+                        this.$refs.hotTable = this.$children.find(c => c.$options._componentTag === 'hot-table');
+                    }
+                });
+            });
+        })
+    </script>
+</body>
+</html> 

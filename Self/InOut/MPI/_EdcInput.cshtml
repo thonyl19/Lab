@@ -1,0 +1,1439 @@
+﻿@using System.Dynamic
+@model BLL.MES.DataViews.LotData
+@{
+dynamic data = new ExpandoObject();
+data.LOT="Test";
+Model.CurrentLot = data;
+GTI_Test GTest = new GTI_Test(Html, ViewContext.HttpContext);
+var _url = "https://cdn.jsdelivr.net/npm/@handsontable/vue@15.2.0/dist/vue-handsontable.min.js";
+
+bool isSingleModel = (bool)(ViewData["SingleModel"]??false);
+if (isSingleModel) {
+Layout = "~/Views/Shared/_LayoutSingle.cshtml";
+}
+}
+<h3>
+    @ViewBag.Title
+</h3>
+@Html.AntiForgeryToken()
+@GTest.Test("_EDC", 2)
+
+@eBundle.QRender_CSS()
+@eBundle.QRender_JS()
+@Html.Partial("InOut/MPI/_EdcInput_")
+<pre>
+</pre>
+
+<!--<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/handsontable@12.4.0/dist/handsontable.full.min.css" />
+<script src="https://cdn.jsdelivr.net/npm/handsontable@12.4.0/dist/handsontable.full.min.js"></script>-->
+<!-- 引入 vue-handsontable 封裝 -->
+<!--<script src="@_url"></script>-->
+
+
+
+<div id="app">
+    <form id="WipForm">
+        @Html.AntiForgeryToken()
+        <div class="panel b">
+            <el-button-group>
+                <el-button type="primary" size="small" v-for="(val,key) in TestGroup" :label="key" :key="key"
+                           @@click="val()">{{key}}{{TestGroup_v[key]}}</el-button>
+            </el-button-group>
+            <el-row :gutter="12">
+                <el-col :md="24" :lg="8">
+                    <gti-oper-edc v-model="OperEdcCfg" :set_model="set_model"></gti-oper-edc>
+                </el-col>
+
+                <el-col :md="24" :lg="8">
+
+                    @*<hot-table class="hot-container" ref="myHotTable" :settings="hotSettings">
+                    </hot-table>*@
+                </el-col>
+            </el-row>
+        </div>
+        <div class="clearfix hidden-xs"></div>
+    </form>
+</div>
+<div id="footerCommand">
+    <button type="button" class="btn btn-lg btn-labeled btn-success  btn_submit" style="margin:10px 30px;">
+        <span class="btn-label">
+            <i class="fa fa-play"></i>
+        </span>@RES.BLL.Face.Exec
+    </button>
+</div>
+<script>
+    Vue.config.devtools = true;
+    var test = {
+        set_model: {
+            CurrentLot: {
+                STATUS: 'Run'
+            },
+        },
+        Case0:   {
+            "CatchKey": null,
+            "Api": {
+                "data": [
+                    {
+                        "Confidential": null,
+                        "Page": null,
+                        "edc_ver_para_sid": "GTI25102018093118160",
+                        "parameter": "PAD 高度:左上",
+                        "tl": "5.5",
+                        "ucl": 10.5,
+                        "lcl": 0.5,
+                        "usl": 10.5,
+                        "lsl": 0.5
+                    },
+                    {
+                        "Confidential": null,
+                        "Page": null,
+                        "edc_ver_para_sid": "GTI25110614204194981",
+                        "parameter": "JK_API_TEST_EDP",
+                        "tl": "11",
+                        "ucl": 21,
+                        "lcl": 11,
+                        "usl": 21,
+                        "lsl": 11
+                    }
+                ],
+                "ReturnCode": null,
+                "trace_id": "843a2b0a-2cfe-4580-b209-c18dc83d9d1d",
+                "success": true,
+                "message": null,
+                "action": null
+            },
+            "rule": {
+                "FROM_RULE_SID": "GTI26010914120811316",
+                "TotalWeight": 1.01,
+                "FC_EDC_TARGET": {
+                    "EDC_TARGET_SID": "GTI26010914120811316",
+                    "EDC_VER_SID": "GTI25102017515717578",
+                    "EDC_SID": "GTI25031715305697084",
+                    "EDC_NO": "EDCGROUP_Cutting_001",
+                    "EDC_NAME": "切割_工程參數群組_001",
+                    "VERSION": 2,
+                    "ENABLE_FLAG": "T",
+                    "CREATE_USER": "thony",
+                    "CREATE_DATE": "2026-01-09T14:12:08",
+                    "WIP_SCOPE": "Run",
+                    "QUOTE_ONCE": "F",
+                    "UPDATE_USER": "thony",
+                    "UPDATE_DATE": "2026-01-09T14:12:08",
+                    "LINE_NO": "TF"
+                },
+                "FC_TARGETs": [
+                    {
+                        "RECIPE_SID": null,
+                        "P_SID": "GTI26010914120811317",
+                        "FROM_RULE": "EDC",
+                        "FROM_RULE_SID": "GTI26010914120811316",
+                        "TARGET_OBJECT": "Part",
+                        "TARGET_SID": "GTI25072113355877735",
+                        "TARGET_NO": "TF-PNO-00000001",
+                        "TARGET_NAME": "PKZ215000001A",
+                        "CREATE_USER": "thony",
+                        "CREATE_DATE": "2026-01-09T14:12:08",
+                        "VERSION": 0
+                    }
+                ]
+            },
+            "edc_Model": [
+                {
+                    "ZZ_EDC_GROUP_CODE": {
+                        "SID": "GTI25102017525117597",
+                        "GROUP_CODE": "鑽孔孔徑",
+                        "SAMPLE_TYPE": "生產批",
+                        "ITEM_RESOURCE": null,
+                        "MAXIMUM": null
+                    },
+                    "EdcSrcs": [
+                        {
+                            "edc_ver": {
+                                "EDC_VER_PARA_SID": "GTI25111316471934383",
+                                "EDC_VER_SID": "GTI25102017515717578",
+                                "EDC_SID": "GTI25031715305697084",
+                                "EDC_NO": "EDCGROUP_Cutting_001",
+                                "EDC_NAME": "切割_工程參數群組_001",
+                                "VERSION": 2,
+                                "EDC_PARA_SID": "GTI25031715305597071",
+                                "PARA_NO": "EDC_Cutting_004",
+                                "PARAMETER": "鑽孔孔徑A",
+                                "DATATYPE": "N",
+                                "TL": "0",
+                                "UCL": null,
+                                "LCL": null,
+                                "USL": null,
+                                "LSL": null,
+                                "CREATE_USER": "Jake.Tu",
+                                "CREATE_DATE": "2025-11-13T16:47:19",
+                                "UPDATE_USER": "Jake.Tu",
+                                "UPDATE_DATE": "2025-11-13T16:47:19",
+                                "SAMPLESIZE": 4,
+                                "THROW_SPC": "F",
+                                "MUST_INPUT": "F",
+                                "ITEM_SEQ": 4,
+                                "DB_TABLE": null,
+                                "DISPLAY_POINT_NAME": null,
+                                "DB_COLUMN_NAME": null,
+                                "GROUP_CODE_SID": "GTI25102017525117597",
+                                "GROUP_CODE": null,
+                                "DEFAULT_TL": null
+                            },
+                            "edc": {
+                                "LINE_NO": null,
+                                "LUT_NAME": null,
+                                "DEFAULT_TL": null,
+                                "EDC_PARA_SID": "GTI25031715305597071",
+                                "PARA_NO": "EDC_Cutting_004",
+                                "PARAMETER": "鑽孔孔徑A",
+                                "DATATYPE": "N",
+                                "DESCRIPTION": "",
+                                "TL": "0",
+                                "UCL": null,
+                                "LCL": null,
+                                "USL": null,
+                                "LSL": null,
+                                "ENABLE_FLAG": "T",
+                                "QUOTE_ONCE": "F",
+                                "CREATE_USER": "Admin",
+                                "CREATE_DATE": "2025-03-17T15:30:55",
+                                "UPDATE_USER": "Admin",
+                                "UPDATE_DATE": "2025-03-17T15:30:55",
+                                "UNIT": "",
+                                "MUST_INPUT": "T",
+                                "DISPLAY_TYPE": "",
+                                "DB_TABLE": null,
+                                "DB_COLUMN_NAME": null
+                            }
+                        },
+                        {
+                            "edc_ver": {
+                                "EDC_VER_PARA_SID": "GTI25111316471934384",
+                                "EDC_VER_SID": "GTI25102017515717578",
+                                "EDC_SID": "GTI25031715305697084",
+                                "EDC_NO": "EDCGROUP_Cutting_001",
+                                "EDC_NAME": "切割_工程參數群組_001",
+                                "VERSION": 2,
+                                "EDC_PARA_SID": "GTI25031715305597072",
+                                "PARA_NO": "EDC_Cutting_005",
+                                "PARAMETER": "鑽孔孔徑B",
+                                "DATATYPE": "N",
+                                "TL": "0",
+                                "UCL": null,
+                                "LCL": null,
+                                "USL": null,
+                                "LSL": null,
+                                "CREATE_USER": "Jake.Tu",
+                                "CREATE_DATE": "2025-11-13T16:47:19",
+                                "UPDATE_USER": "Jake.Tu",
+                                "UPDATE_DATE": "2025-11-13T16:47:19",
+                                "SAMPLESIZE": 4,
+                                "THROW_SPC": "F",
+                                "MUST_INPUT": "F",
+                                "ITEM_SEQ": 5,
+                                "DB_TABLE": null,
+                                "DISPLAY_POINT_NAME": null,
+                                "DB_COLUMN_NAME": null,
+                                "GROUP_CODE_SID": "GTI25102017525117597",
+                                "GROUP_CODE": null,
+                                "DEFAULT_TL": null
+                            },
+                            "edc": {
+                                "LINE_NO": null,
+                                "LUT_NAME": null,
+                                "DEFAULT_TL": null,
+                                "EDC_PARA_SID": "GTI25031715305597072",
+                                "PARA_NO": "EDC_Cutting_005",
+                                "PARAMETER": "鑽孔孔徑B",
+                                "DATATYPE": "N",
+                                "DESCRIPTION": "",
+                                "TL": "0",
+                                "UCL": null,
+                                "LCL": null,
+                                "USL": null,
+                                "LSL": null,
+                                "ENABLE_FLAG": "T",
+                                "QUOTE_ONCE": "F",
+                                "CREATE_USER": "Admin",
+                                "CREATE_DATE": "2025-03-17T15:30:55",
+                                "UPDATE_USER": "Admin",
+                                "UPDATE_DATE": "2025-03-17T15:30:55",
+                                "UNIT": "",
+                                "MUST_INPUT": "T",
+                                "DISPLAY_TYPE": "",
+                                "DB_TABLE": null,
+                                "DB_COLUMN_NAME": null
+                            }
+                        },
+                        {
+                            "edc_ver": {
+                                "EDC_VER_PARA_SID": "GTI25111316471934385",
+                                "EDC_VER_SID": "GTI25102017515717578",
+                                "EDC_SID": "GTI25031715305697084",
+                                "EDC_NO": "EDCGROUP_Cutting_001",
+                                "EDC_NAME": "切割_工程參數群組_001",
+                                "VERSION": 2,
+                                "EDC_PARA_SID": "GTI25031715305597073",
+                                "PARA_NO": "EDC_Cutting_006",
+                                "PARAMETER": "鑽孔孔徑C",
+                                "DATATYPE": "N",
+                                "TL": "0",
+                                "UCL": null,
+                                "LCL": null,
+                                "USL": null,
+                                "LSL": null,
+                                "CREATE_USER": "Jake.Tu",
+                                "CREATE_DATE": "2025-11-13T16:47:19",
+                                "UPDATE_USER": "Jake.Tu",
+                                "UPDATE_DATE": "2025-11-13T16:47:19",
+                                "SAMPLESIZE": 4,
+                                "THROW_SPC": "F",
+                                "MUST_INPUT": "F",
+                                "ITEM_SEQ": 6,
+                                "DB_TABLE": null,
+                                "DISPLAY_POINT_NAME": null,
+                                "DB_COLUMN_NAME": null,
+                                "GROUP_CODE_SID": "GTI25102017525117597",
+                                "GROUP_CODE": null,
+                                "DEFAULT_TL": null
+                            },
+                            "edc": {
+                                "LINE_NO": null,
+                                "LUT_NAME": null,
+                                "DEFAULT_TL": null,
+                                "EDC_PARA_SID": "GTI25031715305597073",
+                                "PARA_NO": "EDC_Cutting_006",
+                                "PARAMETER": "鑽孔孔徑C",
+                                "DATATYPE": "N",
+                                "DESCRIPTION": "",
+                                "TL": "0",
+                                "UCL": null,
+                                "LCL": null,
+                                "USL": null,
+                                "LSL": null,
+                                "ENABLE_FLAG": "T",
+                                "QUOTE_ONCE": "F",
+                                "CREATE_USER": "Admin",
+                                "CREATE_DATE": "2025-03-17T15:30:55",
+                                "UPDATE_USER": "Admin",
+                                "UPDATE_DATE": "2025-03-17T15:30:55",
+                                "UNIT": "",
+                                "MUST_INPUT": "T",
+                                "DISPLAY_TYPE": "",
+                                "DB_TABLE": null,
+                                "DB_COLUMN_NAME": null
+                            }
+                        }
+                    ],
+                    "FC_EDC_VER_PARAMETER_idx": {
+                        "GTI25111316471934383": {
+                            "TL": "0",
+                            "UCL": null,
+                            "LCL": null,
+                            "USL": null,
+                            "LSL": null,
+                            "DEFAULT_TL": null,
+                            "MUST_INPUT": "F",
+                            "DATATYPE": "N",
+                            "LUT_NAME": null,
+                            "PARAMETER": "鑽孔孔徑A"
+                        },
+                        "GTI25111316471934384": {
+                            "TL": "0",
+                            "UCL": null,
+                            "LCL": null,
+                            "USL": null,
+                            "LSL": null,
+                            "DEFAULT_TL": null,
+                            "MUST_INPUT": "F",
+                            "DATATYPE": "N",
+                            "LUT_NAME": null,
+                            "PARAMETER": "鑽孔孔徑B"
+                        },
+                        "GTI25111316471934385": {
+                            "TL": "0",
+                            "UCL": null,
+                            "LCL": null,
+                            "USL": null,
+                            "LSL": null,
+                            "DEFAULT_TL": null,
+                            "MUST_INPUT": "F",
+                            "DATATYPE": "N",
+                            "LUT_NAME": null,
+                            "PARAMETER": "鑽孔孔徑C"
+                        }
+                    },
+                    "data": [
+                        {
+                            "SampleId": "Lot",
+                            "GTI25111316471934383": null,
+                            "GTI25111316471934384": null,
+                            "GTI25111316471934385": null
+                        }
+                    ],
+                    "columns": [
+                        {
+                            "title": "Sample Id",
+                            "data": "SampleId",
+                            "type": null,
+                            "source": null,
+                            "readOnly": true,
+                            "strict": null,
+                            "allowInvalid": null
+                        },
+                        {
+                            "title": "鑽孔孔徑A",
+                            "data": "GTI25111316471934383",
+                            "type": "numeric",
+                            "source": null,
+                            "readOnly": null,
+                            "strict": null,
+                            "allowInvalid": null
+                        },
+                        {
+                            "title": "鑽孔孔徑B",
+                            "data": "GTI25111316471934384",
+                            "type": "numeric",
+                            "source": null,
+                            "readOnly": null,
+                            "strict": null,
+                            "allowInvalid": null
+                        },
+                        {
+                            "title": "鑽孔孔徑C",
+                            "data": "GTI25111316471934385",
+                            "type": "numeric",
+                            "source": null,
+                            "readOnly": null,
+                            "strict": null,
+                            "allowInvalid": null
+                        }
+                    ]
+                },
+                {
+                    "ZZ_EDC_GROUP_CODE": {
+                        "SID": "GTI25102017542817606",
+                        "GROUP_CODE": "孔徑X",
+                        "SAMPLE_TYPE": "清單",
+                        "ITEM_RESOURCE": "TFPCSNoPosition",
+                        "MAXIMUM": "20"
+                    },
+                    "EdcSrcs": [
+                        {
+                            "edc_ver": {
+                                "EDC_VER_PARA_SID": "GTI25111316472034386",
+                                "EDC_VER_SID": "GTI25102017515717578",
+                                "EDC_SID": "GTI25031715305697084",
+                                "EDC_NO": "EDCGROUP_Cutting_001",
+                                "EDC_NAME": "切割_工程參數群組_001",
+                                "VERSION": 2,
+                                "EDC_PARA_SID": "GTI25031715305597074",
+                                "PARA_NO": "EDC_Cutting_007",
+                                "PARAMETER": "鑽孔孔徑D",
+                                "DATATYPE": "N",
+                                "TL": "0",
+                                "UCL": null,
+                                "LCL": null,
+                                "USL": null,
+                                "LSL": null,
+                                "CREATE_USER": "Jake.Tu",
+                                "CREATE_DATE": "2025-11-13T16:47:20",
+                                "UPDATE_USER": "Jake.Tu",
+                                "UPDATE_DATE": "2025-11-13T16:47:20",
+                                "SAMPLESIZE": 4,
+                                "THROW_SPC": "F",
+                                "MUST_INPUT": "F",
+                                "ITEM_SEQ": 7,
+                                "DB_TABLE": null,
+                                "DISPLAY_POINT_NAME": null,
+                                "DB_COLUMN_NAME": null,
+                                "GROUP_CODE_SID": "GTI25102017542817606",
+                                "GROUP_CODE": null,
+                                "DEFAULT_TL": null
+                            },
+                            "edc": {
+                                "LINE_NO": null,
+                                "LUT_NAME": null,
+                                "DEFAULT_TL": null,
+                                "EDC_PARA_SID": "GTI25031715305597074",
+                                "PARA_NO": "EDC_Cutting_007",
+                                "PARAMETER": "鑽孔孔徑D",
+                                "DATATYPE": "N",
+                                "DESCRIPTION": "",
+                                "TL": "0",
+                                "UCL": null,
+                                "LCL": null,
+                                "USL": null,
+                                "LSL": null,
+                                "ENABLE_FLAG": "T",
+                                "QUOTE_ONCE": "F",
+                                "CREATE_USER": "Admin",
+                                "CREATE_DATE": "2025-03-17T15:30:55",
+                                "UPDATE_USER": "Admin",
+                                "UPDATE_DATE": "2025-03-17T15:30:55",
+                                "UNIT": "",
+                                "MUST_INPUT": "T",
+                                "DISPLAY_TYPE": "",
+                                "DB_TABLE": null,
+                                "DB_COLUMN_NAME": null
+                            }
+                        },
+                        {
+                            "edc_ver": {
+                                "EDC_VER_PARA_SID": "GTI25111316472034387",
+                                "EDC_VER_SID": "GTI25102017515717578",
+                                "EDC_SID": "GTI25031715305697084",
+                                "EDC_NO": "EDCGROUP_Cutting_001",
+                                "EDC_NAME": "切割_工程參數群組_001",
+                                "VERSION": 2,
+                                "EDC_PARA_SID": "GTI25031715305597075",
+                                "PARA_NO": "EDC_Cutting_008",
+                                "PARAMETER": "鑽孔孔徑E",
+                                "DATATYPE": "L",
+                                "TL": "0",
+                                "UCL": null,
+                                "LCL": null,
+                                "USL": null,
+                                "LSL": null,
+                                "CREATE_USER": "Jake.Tu",
+                                "CREATE_DATE": "2025-11-13T16:47:20",
+                                "UPDATE_USER": "Jake.Tu",
+                                "UPDATE_DATE": "2025-11-13T16:47:20",
+                                "SAMPLESIZE": 4,
+                                "THROW_SPC": "F",
+                                "MUST_INPUT": "F",
+                                "ITEM_SEQ": 8,
+                                "DB_TABLE": null,
+                                "DISPLAY_POINT_NAME": null,
+                                "DB_COLUMN_NAME": "TF-LUT-00000001",
+                                "GROUP_CODE_SID": "GTI25102017542817606",
+                                "GROUP_CODE": null,
+                                "DEFAULT_TL": "111"
+                            },
+                            "edc": {
+                                "LINE_NO": null,
+                                "LUT_NAME": "GRD",
+                                "DEFAULT_TL": null,
+                                "EDC_PARA_SID": "GTI25031715305597075",
+                                "PARA_NO": "EDC_Cutting_008",
+                                "PARAMETER": "鑽孔孔徑E",
+                                "DATATYPE": "N",
+                                "DESCRIPTION": "",
+                                "TL": "0",
+                                "UCL": null,
+                                "LCL": null,
+                                "USL": null,
+                                "LSL": null,
+                                "ENABLE_FLAG": "T",
+                                "QUOTE_ONCE": "F",
+                                "CREATE_USER": "Admin",
+                                "CREATE_DATE": "2025-03-17T15:30:55",
+                                "UPDATE_USER": "Admin",
+                                "UPDATE_DATE": "2025-03-17T15:30:55",
+                                "UNIT": "",
+                                "MUST_INPUT": "T",
+                                "DISPLAY_TYPE": "",
+                                "DB_TABLE": null,
+                                "DB_COLUMN_NAME": null
+                            }
+                        }
+                    ],
+                    "FC_EDC_VER_PARAMETER_idx": {
+                        "GTI25111316472034386": {
+                            "TL": "0",
+                            "UCL": null,
+                            "LCL": null,
+                            "USL": null,
+                            "LSL": null,
+                            "DEFAULT_TL": null,
+                            "MUST_INPUT": "F",
+                            "DATATYPE": "N",
+                            "LUT_NAME": null,
+                            "PARAMETER": "鑽孔孔徑D"
+                        },
+                        "GTI25111316472034387": {
+                            "TL": "0",
+                            "UCL": null,
+                            "LCL": null,
+                            "USL": null,
+                            "LSL": null,
+                            "DEFAULT_TL": "111",
+                            "MUST_INPUT": "F",
+                            "DATATYPE": "L",
+                            "LUT_NAME": "GRD",
+                            "PARAMETER": "鑽孔孔徑E"
+                        }
+                    },
+                    "data": [
+                        {
+                            "SampleId": "A",
+                            "GTI25111316472034386": null,
+                            "GTI25111316472034387": "111"
+                        },
+                        {
+                            "SampleId": "B",
+                            "GTI25111316472034386": null,
+                            "GTI25111316472034387": "111"
+                        },
+                        {
+                            "SampleId": "C",
+                            "GTI25111316472034386": null,
+                            "GTI25111316472034387": "111"
+                        },
+                        {
+                            "SampleId": "D",
+                            "GTI25111316472034386": null,
+                            "GTI25111316472034387": "111"
+                        },
+                        {
+                            "SampleId": "E",
+                            "GTI25111316472034386": null,
+                            "GTI25111316472034387": "111"
+                        },
+                        {
+                            "SampleId": "F",
+                            "GTI25111316472034386": null,
+                            "GTI25111316472034387": "111"
+                        },
+                        {
+                            "SampleId": "G",
+                            "GTI25111316472034386": null,
+                            "GTI25111316472034387": "111"
+                        },
+                        {
+                            "SampleId": "H",
+                            "GTI25111316472034386": null,
+                            "GTI25111316472034387": "111"
+                        },
+                        {
+                            "SampleId": "I",
+                            "GTI25111316472034386": null,
+                            "GTI25111316472034387": "111"
+                        },
+                        {
+                            "SampleId": "J",
+                            "GTI25111316472034386": null,
+                            "GTI25111316472034387": "111"
+                        },
+                        {
+                            "SampleId": "11",
+                            "GTI25111316472034386": null,
+                            "GTI25111316472034387": "111"
+                        },
+                        {
+                            "SampleId": "12",
+                            "GTI25111316472034386": null,
+                            "GTI25111316472034387": "111"
+                        },
+                        {
+                            "SampleId": "13",
+                            "GTI25111316472034386": null,
+                            "GTI25111316472034387": "111"
+                        },
+                        {
+                            "SampleId": "14",
+                            "GTI25111316472034386": null,
+                            "GTI25111316472034387": "111"
+                        },
+                        {
+                            "SampleId": "15",
+                            "GTI25111316472034386": null,
+                            "GTI25111316472034387": "111"
+                        },
+                        {
+                            "SampleId": "16",
+                            "GTI25111316472034386": null,
+                            "GTI25111316472034387": "111"
+                        },
+                        {
+                            "SampleId": "17",
+                            "GTI25111316472034386": null,
+                            "GTI25111316472034387": "111"
+                        },
+                        {
+                            "SampleId": "18",
+                            "GTI25111316472034386": null,
+                            "GTI25111316472034387": "111"
+                        },
+                        {
+                            "SampleId": "19",
+                            "GTI25111316472034386": null,
+                            "GTI25111316472034387": "111"
+                        },
+                        {
+                            "SampleId": "20",
+                            "GTI25111316472034386": null,
+                            "GTI25111316472034387": "111"
+                        }
+                    ],
+                    "columns": [
+                        {
+                            "title": "Sample Id",
+                            "data": "SampleId",
+                            "type": null,
+                            "source": null,
+                            "readOnly": true,
+                            "strict": null,
+                            "allowInvalid": null
+                        },
+                        {
+                            "title": "鑽孔孔徑D",
+                            "data": "GTI25111316472034386",
+                            "type": "numeric",
+                            "source": null,
+                            "readOnly": null,
+                            "strict": null,
+                            "allowInvalid": null
+                        },
+                        {
+                            "title": "鑽孔孔徑E",
+                            "data": "GTI25111316472034387",
+                            "type": "dropdown",
+                            "source": [
+                                "VGE01-立磨3",
+                                "VGE02-立磨4",
+                                "VGJ01-立磨1",
+                                "VGJ02-立磨2",
+                                "VGJ03-立磨5",
+                                "VGJ04-立磨6"
+                            ],
+                            "readOnly": null,
+                            "strict": true,
+                            "allowInvalid": false
+                        }
+                    ]
+                },
+                {
+                    "ZZ_EDC_GROUP_CODE": {
+                        "SID": "GTI25102018062518131",
+                        "GROUP_CODE": "GROUP",
+                        "SAMPLE_TYPE": "FreeText",
+                        "ITEM_RESOURCE": null,
+                        "MAXIMUM": "1"
+                    },
+                    "EdcSrcs": [
+                        {
+                            "edc_ver": {
+                                "EDC_VER_PARA_SID": "GTI25111316471934380",
+                                "EDC_VER_SID": "GTI25102017515717578",
+                                "EDC_SID": "GTI25031715305697084",
+                                "EDC_NO": "EDCGROUP_Cutting_001",
+                                "EDC_NAME": "切割_工程參數群組_001",
+                                "VERSION": 2,
+                                "EDC_PARA_SID": "GTI25031715305597068",
+                                "PARA_NO": "EDC_Cutting_001",
+                                "PARAMETER": "產品尺寸_長度",
+                                "DATATYPE": "N",
+                                "TL": "21",
+                                "UCL": null,
+                                "LCL": null,
+                                "USL": 21.25,
+                                "LSL": 20.75,
+                                "CREATE_USER": "Jake.Tu",
+                                "CREATE_DATE": "2025-11-13T16:47:19",
+                                "UPDATE_USER": "Jake.Tu",
+                                "UPDATE_DATE": "2025-11-13T16:47:19",
+                                "SAMPLESIZE": 1,
+                                "THROW_SPC": "F",
+                                "MUST_INPUT": "T",
+                                "ITEM_SEQ": 1,
+                                "DB_TABLE": null,
+                                "DISPLAY_POINT_NAME": null,
+                                "DB_COLUMN_NAME": null,
+                                "GROUP_CODE_SID": "GTI25102018062518131",
+                                "GROUP_CODE": null,
+                                "DEFAULT_TL": null
+                            },
+                            "edc": {
+                                "LINE_NO": null,
+                                "LUT_NAME": null,
+                                "DEFAULT_TL": null,
+                                "EDC_PARA_SID": "GTI25031715305597068",
+                                "PARA_NO": "EDC_Cutting_001",
+                                "PARAMETER": "產品尺寸_長度",
+                                "DATATYPE": "N",
+                                "DESCRIPTION": "",
+                                "TL": "21",
+                                "UCL": null,
+                                "LCL": null,
+                                "USL": 21.25,
+                                "LSL": 20.75,
+                                "ENABLE_FLAG": "F",
+                                "QUOTE_ONCE": "F",
+                                "CREATE_USER": "Admin",
+                                "CREATE_DATE": "2025-03-17T15:30:55",
+                                "UPDATE_USER": "MPIUser6",
+                                "UPDATE_DATE": "2025-04-08T16:12:42",
+                                "UNIT": "",
+                                "MUST_INPUT": "T",
+                                "DISPLAY_TYPE": "",
+                                "DB_TABLE": null,
+                                "DB_COLUMN_NAME": null
+                            }
+                        },
+                        {
+                            "edc_ver": {
+                                "EDC_VER_PARA_SID": "GTI25111316471934381",
+                                "EDC_VER_SID": "GTI25102017515717578",
+                                "EDC_SID": "GTI25031715305697084",
+                                "EDC_NO": "EDCGROUP_Cutting_001",
+                                "EDC_NAME": "切割_工程參數群組_001",
+                                "VERSION": 2,
+                                "EDC_PARA_SID": "GTI25031715305597069",
+                                "PARA_NO": "EDC_Cutting_002",
+                                "PARAMETER": "產品尺寸_寬度",
+                                "DATATYPE": "N",
+                                "TL": "11",
+                                "UCL": null,
+                                "LCL": null,
+                                "USL": 11.06,
+                                "LSL": 10.94,
+                                "CREATE_USER": "Jake.Tu",
+                                "CREATE_DATE": "2025-11-13T16:47:19",
+                                "UPDATE_USER": "Jake.Tu",
+                                "UPDATE_DATE": "2025-11-13T16:47:19",
+                                "SAMPLESIZE": 1,
+                                "THROW_SPC": "F",
+                                "MUST_INPUT": "T",
+                                "ITEM_SEQ": 2,
+                                "DB_TABLE": null,
+                                "DISPLAY_POINT_NAME": null,
+                                "DB_COLUMN_NAME": null,
+                                "GROUP_CODE_SID": "GTI25102018062518131",
+                                "GROUP_CODE": null,
+                                "DEFAULT_TL": null
+                            },
+                            "edc": {
+                                "LINE_NO": null,
+                                "LUT_NAME": null,
+                                "DEFAULT_TL": null,
+                                "EDC_PARA_SID": "GTI25031715305597069",
+                                "PARA_NO": "EDC_Cutting_002",
+                                "PARAMETER": "產品尺寸_寬度",
+                                "DATATYPE": "N",
+                                "DESCRIPTION": "",
+                                "TL": "11",
+                                "UCL": null,
+                                "LCL": null,
+                                "USL": 11.06,
+                                "LSL": 10.94,
+                                "ENABLE_FLAG": "T",
+                                "QUOTE_ONCE": "F",
+                                "CREATE_USER": "Admin",
+                                "CREATE_DATE": "2025-03-17T15:30:55",
+                                "UPDATE_USER": "Admin",
+                                "UPDATE_DATE": "2025-03-17T15:30:55",
+                                "UNIT": "",
+                                "MUST_INPUT": "T",
+                                "DISPLAY_TYPE": "",
+                                "DB_TABLE": null,
+                                "DB_COLUMN_NAME": null
+                            }
+                        },
+                        {
+                            "edc_ver": {
+                                "EDC_VER_PARA_SID": "GTI25111316471934382",
+                                "EDC_VER_SID": "GTI25102017515717578",
+                                "EDC_SID": "GTI25031715305697084",
+                                "EDC_NO": "EDCGROUP_Cutting_001",
+                                "EDC_NAME": "切割_工程參數群組_001",
+                                "VERSION": 2,
+                                "EDC_PARA_SID": "GTI25031715305597070",
+                                "PARA_NO": "EDC_Cutting_003",
+                                "PARAMETER": "CNC",
+                                "DATATYPE": "S",
+                                "TL": null,
+                                "UCL": null,
+                                "LCL": null,
+                                "USL": null,
+                                "LSL": null,
+                                "CREATE_USER": "Jake.Tu",
+                                "CREATE_DATE": "2025-11-13T16:47:19",
+                                "UPDATE_USER": "Jake.Tu",
+                                "UPDATE_DATE": "2025-11-13T16:47:19",
+                                "SAMPLESIZE": 1,
+                                "THROW_SPC": "F",
+                                "MUST_INPUT": "T",
+                                "ITEM_SEQ": 3,
+                                "DB_TABLE": null,
+                                "DISPLAY_POINT_NAME": null,
+                                "DB_COLUMN_NAME": null,
+                                "GROUP_CODE_SID": "GTI25102018062518131",
+                                "GROUP_CODE": null,
+                                "DEFAULT_TL": null
+                            },
+                            "edc": {
+                                "LINE_NO": null,
+                                "LUT_NAME": null,
+                                "DEFAULT_TL": null,
+                                "EDC_PARA_SID": "GTI25031715305597070",
+                                "PARA_NO": "EDC_Cutting_003",
+                                "PARAMETER": "CNC",
+                                "DATATYPE": "S",
+                                "DESCRIPTION": "",
+                                "TL": "",
+                                "UCL": null,
+                                "LCL": null,
+                                "USL": null,
+                                "LSL": null,
+                                "ENABLE_FLAG": "T",
+                                "QUOTE_ONCE": "F",
+                                "CREATE_USER": "Admin",
+                                "CREATE_DATE": "2025-03-17T15:30:55",
+                                "UPDATE_USER": "Admin",
+                                "UPDATE_DATE": "2025-03-17T15:30:55",
+                                "UNIT": "",
+                                "MUST_INPUT": "T",
+                                "DISPLAY_TYPE": "",
+                                "DB_TABLE": null,
+                                "DB_COLUMN_NAME": null
+                            }
+                        }
+                    ],
+                    "FC_EDC_VER_PARAMETER_idx": {
+                        "GTI25111316471934380": {
+                            "TL": "21",
+                            "UCL": null,
+                            "LCL": null,
+                            "USL": 21.25,
+                            "LSL": 20.75,
+                            "DEFAULT_TL": null,
+                            "MUST_INPUT": "T",
+                            "DATATYPE": "N",
+                            "LUT_NAME": null,
+                            "PARAMETER": "產品尺寸_長度"
+                        },
+                        "GTI25111316471934381": {
+                            "TL": "11",
+                            "UCL": null,
+                            "LCL": null,
+                            "USL": 11.06,
+                            "LSL": 10.94,
+                            "DEFAULT_TL": null,
+                            "MUST_INPUT": "T",
+                            "DATATYPE": "N",
+                            "LUT_NAME": null,
+                            "PARAMETER": "產品尺寸_寬度"
+                        },
+                        "GTI25111316471934382": {
+                            "TL": null,
+                            "UCL": null,
+                            "LCL": null,
+                            "USL": null,
+                            "LSL": null,
+                            "DEFAULT_TL": null,
+                            "MUST_INPUT": "T",
+                            "DATATYPE": "S",
+                            "LUT_NAME": null,
+                            "PARAMETER": "CNC"
+                        }
+                    },
+                    "data": [
+                        {
+                            "SampleId": "Sample001",
+                            "GTI25111316471934380": null,
+                            "GTI25111316471934381": null,
+                            "GTI25111316471934382": null
+                        }
+                    ],
+                    "columns": [
+                        {
+                            "title": "Sample Id",
+                            "data": "SampleId",
+                            "type": null,
+                            "source": null,
+                            "readOnly": true,
+                            "strict": null,
+                            "allowInvalid": null
+                        },
+                        {
+                            "title": "產品尺寸_長度",
+                            "data": "GTI25111316471934380",
+                            "type": "numeric",
+                            "source": null,
+                            "readOnly": null,
+                            "strict": null,
+                            "allowInvalid": null
+                        },
+                        {
+                            "title": "產品尺寸_寬度",
+                            "data": "GTI25111316471934381",
+                            "type": "numeric",
+                            "source": null,
+                            "readOnly": null,
+                            "strict": null,
+                            "allowInvalid": null
+                        },
+                        {
+                            "title": "CNC",
+                            "data": "GTI25111316471934382",
+                            "type": null,
+                            "source": null,
+                            "readOnly": null,
+                            "strict": null,
+                            "allowInvalid": null
+                        }
+                    ]
+                }
+            ]
+        }
+        ,
+        Case1: {
+            "edc_Model":[
+                {
+                    "ZZ_EDC_GROUP_CODE": {
+                        "SID": "GTI25102017525117597",
+                        "GROUP_CODE": "鑽孔孔徑",
+                        "SAMPLE_TYPE": "生產批",
+                        "ITEM_RESOURCE": null,
+                        "MAXIMUM": null
+                    },
+                    "EdcSrcs": null,
+                    "FC_EDC_VER_PARAMETER_idx": {
+                        "GTI25102018093118160": {
+                            "TL": "0",
+                            "UCL": null,
+                            "LCL": null,
+                            "USL": null,
+                            "LSL": null,
+                            "DEFAULT_TL": null,
+                            "MUST_INPUT": "F",
+                            "DATATYPE": "N",
+                            "LUT_NAME": null
+                        },
+                        "GTI25102018093118161": {
+                            "TL": "0",
+                            "UCL": null,
+                            "LCL": null,
+                            "USL": null,
+                            "LSL": null,
+                            "DEFAULT_TL": null,
+                            "MUST_INPUT": "F",
+                            "DATATYPE": "N",
+                            "LUT_NAME": null
+                        },
+                        "GTI25102018093218162": {
+                            "TL": "0",
+                            "UCL": null,
+                            "LCL": null,
+                            "USL": null,
+                            "LSL": null,
+                            "DEFAULT_TL": null,
+                            "MUST_INPUT": "F",
+                            "DATATYPE": "N",
+                            "LUT_NAME": null
+                        }
+                    },
+                    "data": [
+                        {
+                            "SampleId": "Lot",
+                            "GTI25102018093118160": null,
+                            "GTI25102018093118161": null,
+                            "GTI25102018093218162": null
+                        }
+                    ],
+                    "columns": [
+                        {
+                            "title": "Sample Id",
+                            "data": "SampleId",
+                            "type": null,
+                            "source": null,
+                            "readOnly": true
+                        },
+                        {
+                            "title": "鑽孔孔徑A",
+                            "data": "GTI25102018093118160",
+                            "type": "numeric",
+                            "source": null,
+                            "readOnly": null
+                        },
+                        {
+                            "title": "鑽孔孔徑B",
+                            "data": "GTI25102018093118161",
+                            "type": "numeric",
+                            "source": null,
+                            "readOnly": null
+                        },
+                        {
+                            "title": "鑽孔孔徑C",
+                            "data": "GTI25102018093218162",
+                            "type": "numeric",
+                            "source": null,
+                            "readOnly": null
+                        }
+                    ]
+                },
+                {
+                    "ZZ_EDC_GROUP_CODE": {
+                        "SID": "GTI25102017542817606",
+                        "GROUP_CODE": "孔徑X",
+                        "SAMPLE_TYPE": "清單",
+                        "ITEM_RESOURCE": "TFPCSNoPosition",
+                        "MAXIMUM": "3"
+                    },
+                    "EdcSrcs": null,
+                    "FC_EDC_VER_PARAMETER_idx": {
+                        "GTI25102018093218163": {
+                            "TL": "0",
+                            "UCL": null,
+                            "LCL": null,
+                            "USL": null,
+                            "LSL": null,
+                            "DEFAULT_TL": null,
+                            "MUST_INPUT": "F",
+                            "DATATYPE": "N",
+                            "LUT_NAME": null
+                        },
+                        "GTI25102018093218164": {
+                            "TL": "0",
+                            "UCL": null,
+                            "LCL": null,
+                            "USL": null,
+                            "LSL": null,
+                            "DEFAULT_TL": null,
+                            "MUST_INPUT": "F",
+                            "DATATYPE": "L",
+                            "LUT_NAME": "GRD"
+                        }
+                    },
+                    "data": [
+                        {
+                            "SampleId": "A",
+                            "GTI25102018093218163": null,
+                            "GTI25102018093218164": null
+                        },
+                        {
+                            "SampleId": "B",
+                            "GTI25102018093218163": null,
+                            "GTI25102018093218164": null
+                        },
+                        {
+                            "SampleId": "C",
+                            "GTI25102018093218163": null,
+                            "GTI25102018093218164": null
+                        },
+                        {
+                            "SampleId": "D",
+                            "GTI25102018093218163": null,
+                            "GTI25102018093218164": null
+                        },
+                        {
+                            "SampleId": "E",
+                            "GTI25102018093218163": null,
+                            "GTI25102018093218164": null
+                        }
+                    ],
+                    "columns": [
+                        {
+                            "title": "Sample Id",
+                            "data": "SampleId",
+                            "type": null,
+                            "source": null,
+                            "readOnly": true
+                        },
+                        {
+                            "title": "鑽孔孔徑D",
+                            "data": "GTI25102018093218163",
+                            "type": "checkbox",
+                            "source": null,
+                            "readOnly": null
+                        },
+                        {
+                            "title": "鑽孔孔徑E",
+                            "data": "GTI25102018093218164",
+                            "type": "dropdown",
+                            "source": ["VGE01-立磨3", "VGE02-立磨4", "VGJ01-立磨1"],
+                            "readOnly": null
+                        }
+                    ]
+                },
+                {
+                    "ZZ_EDC_GROUP_CODE": {
+                        "SID": "GTI25102018062518131",
+                        "GROUP_CODE": "GROUP",
+                        "SAMPLE_TYPE": "FreeText",
+                        "ITEM_RESOURCE": null,
+                        "MAXIMUM": "3"
+                    },
+                    "EdcSrcs": null,
+                    "FC_EDC_VER_PARAMETER_idx": {
+                        "GTI25102018093018157": {
+                            "TL": "21",
+                            "UCL": 21.2500,
+                            "LCL": 20.7500,
+                            "USL": 21.2500,
+                            "LSL": 20.7500,
+                            "DEFAULT_TL": null,
+                            "MUST_INPUT": "T",
+                            "DATATYPE": "N",
+                            "LUT_NAME": null
+                        },
+                        "GTI25102018093018158": {
+                            "TL": "11",
+                            "UCL": null,
+                            "LCL": null,
+                            "USL": 11.0600,
+                            "LSL": 10.9400,
+                            "DEFAULT_TL": null,
+                            "MUST_INPUT": "T",
+                            "DATATYPE": "N",
+                            "LUT_NAME": null
+                        },
+                        "GTI25102018093118159": {
+                            "TL": null,
+                            "UCL": null,
+                            "LCL": null,
+                            "USL": null,
+                            "LSL": null,
+                            "DEFAULT_TL": null,
+                            "MUST_INPUT": "T",
+                            "DATATYPE": "S",
+                            "LUT_NAME": null
+                        }
+                    },
+                    "data": [
+                        {
+                            "SampleId": "Sample001",
+                            "GTI25102018093018157": null,
+                            "GTI25102018093018158": null,
+                            "GTI25102018093118159": null
+                        },
+                        {
+                            "SampleId": "Sample002",
+                            "GTI25102018093018157": null,
+                            "GTI25102018093018158": null,
+                            "GTI25102018093118159": null
+                        }
+                    ],
+                    "columns": [
+                        {
+                            "title": "Sample Id",
+                            "data": "SampleId",
+                            "type": null,
+                            "source": null,
+                            "readOnly": true
+                        },
+                        {
+                            "title": "產品尺寸_長度",
+                            "data": "GTI25102018093018157",
+                            "type": "numeric",
+                            "source": null,
+                            "readOnly": null
+                        },
+                        {
+                            "title": "產品尺寸_寬度",
+                            "data": "GTI25102018093018158",
+                            "type": "numeric",
+                            "source": null,
+                            "readOnly": null
+                        },
+                        {
+                            "title": "CNC",
+                            "data": "GTI25102018093118159",
+                            "type": null,
+                            "source": null,
+                            "readOnly": null
+                        }
+                    ]
+                }
+            ]
+        }
+
+            
+    }
+
+    let { set_model } = test;
+    Vue.use(Vuex);
+    const store = new Vuex.Store({
+        state: {
+            set_model,
+            globalvar: {
+                scrapTotal: 0,
+            }
+        },
+        getters: {
+            getData(state) {
+                return set_model;
+            }
+        }
+    })
+    $(() => {
+        var form = $("#WipForm");
+        new Vue({
+            el: '#app',
+            mixins: [Vue.prototype.$UT.Mixins.v_ErrGroup()],
+            store,
+            provide() {
+                return {
+                    rootEl: this,
+                };
+            },
+            data() {
+                var _self = this;
+                return {
+                    OperEdcCfg: {},
+                    TestGroup_v: {},
+                    hotSettings: {
+
+                        //afterChange : _self.afterChange,
+                        "data": [
+                            {
+                                "SampleId": "A",
+                                "GTI25102018093218163": null,
+                                "GTI25102018093218164": null
+                            },
+                            {
+                                "SampleId": "B",
+                                "GTI25102018093218163": null,
+                                "GTI25102018093218164": null
+                            },
+                            {
+                                "SampleId": "C",
+                                "GTI25102018093218163": null,
+                                "GTI25102018093218164": null
+                            },
+                            {
+                                "SampleId": "D",
+                                "GTI25102018093218163": null,
+                                "GTI25102018093218164": null
+                            },
+                            {
+                                "SampleId": "E",
+                                "GTI25102018093218163": null,
+                                "GTI25102018093218164": null
+                            },
+                            {
+                                "SampleId": "F",
+                                "GTI25102018093218163": null,
+                                "GTI25102018093218164": null
+                            },
+                            {
+                                "SampleId": "G",
+                                "GTI25102018093218163": null,
+                                "GTI25102018093218164": null
+                            },
+                            {
+                                "SampleId": "H",
+                                "GTI25102018093218163": null,
+                                "GTI25102018093218164": null
+                            },
+                            {
+                                "SampleId": "I",
+                                "GTI25102018093218163": null,
+                                "GTI25102018093218164": null
+                            },
+                            {
+                                "SampleId": "J",
+                                "GTI25102018093218163": null,
+                                "GTI25102018093218164": null
+                            }
+                        ],
+                        "columns": [
+                            {
+                                "title": "Sample Id",
+                                "data": "SampleId",
+                                "type": "text",
+
+                            },
+                            {
+                                "title": "鑽孔孔徑D",
+                                "data": "GTI25102018093218163",
+                                "type": "numeric",
+                                "source": null
+                            },
+                            {
+                                "title": "鑽孔孔徑E",
+                                "data": "GTI25102018093218164",
+                                "type": "dropdown",
+                                "source": ["VGE01-立磨3", "VGE02-立磨4", "VGJ01-立磨1", "VGJ02-立磨2", "VGJ03-立磨5", "VGJ04-立磨6"]
+                            }
+                        ],
+                        fillHandle: false,
+                        rowHeaders: false,
+                        //manualColumnResize: true,
+                        // Handsontable 免費版需要加這行
+                        licenseKey: 'non-commercial-and-evaluation',
+
+                        fixedColumnsLeft: 1,        // 左側凍結 1 欄
+                        //dropdownMenu: true,
+                        contextMenu: true,
+                        //預設 tab 移動模式
+                        tabMoves: {
+                            row: 0,
+                            col: 1
+                        },
+                        //cells:_self.cells,
+                        beforeKeyDown: function (event) {
+                            if (event.key === 'Tab') {
+                                const selected = this.getSelected();
+                                if (!selected) return;
+
+                                event.preventDefault(); // 阻止 Handsontable 內建處理，自己控制
+
+                                const [row, col] = selected[0];
+                                const lastColIndex = this.countCols() - 1;
+
+                                if (col < lastColIndex) {
+                                    // 還沒到最後一欄，正常往右一格
+                                    this.selectCell(row, col);
+                                } else {
+                                    // 如果已經在最後一欄
+                                    const nextRow = row + 1;
+                                    if (nextRow < this.countRows()) {
+                                        this.selectCell(nextRow, 0);
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    TestGroup: {
+                        'Case0'() {
+                            _self.OperEdcCfg = test.Case0;
+                        },
+                        'Case1'() {
+                            _self.OperEdcCfg = test.Case1;
+                        }
+                    },
+                    value: [{
+                        PARTNO: 'PARTNO',
+                        PART_NAME: 'PART_NAME',
+                        scraps: [
+                            { "RefKey": null, "SID": "GTI11110115550180956", "No": "other", "Value": null, "Display": "其他", "StatusSid": null, "Status": null, "FromNum": 0, "INum": 10, "Attr01": null, "Attr02": null, "Attr03": null }
+                            , { "RefKey": null, "SID": "GTI22092622011391630", "No": "R.C01-0002", "Value": null, "Display": "過期", "StatusSid": null, "Status": null, "FromNum": 0, "INum": 20, "Attr01": null, "Attr02": null, "Attr03": null }
+                        ],
+                        單位: 'kg',
+                        長度: 100,
+                    }],
+                    set_model: {
+                        CurrentLot: {
+                            LOT: 'D5101-230831001-02',
+                            STATUS: 'Run',
+                            //Test:true,
+                        },
+                        Setting: {},
+
+                    },
+                    i18n: {
+                        料號: 'AAAA'
+                    }
+                }
+            },
+            mounted() {
+                //this.TestGroup.基礎測試();
+            },
+            computed: {
+
+            },
+            methods: {
+                Exec(e) {
+                    this.$message('ok');
+                    if (this.cfg.single_checkout) {
+                        e.preventDefault();
+                    } else if (form.parsley().validate()) {
+
+                    }
+                }
+            }
+        })
+    });
+</script>

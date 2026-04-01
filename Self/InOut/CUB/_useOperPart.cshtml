@@ -8,8 +8,7 @@
 }
 @eBundle.QRender_CSS()
 @eBundle.QRender_JS()
-Html.Partial("~/Areas/ZZ_SJ/Views/OperTask/_goodQty.cshtml")
-@Html.Partial("InOut/SJ/_good_")
+@Html.Partial("InOut/CUB/_useOperPart_")
 <pre>
 </pre>
 <div id="app">
@@ -19,11 +18,8 @@ Html.Partial("~/Areas/ZZ_SJ/Views/OperTask/_goodQty.cshtml")
             <el-button-group>
                 <el-button type="primary" size="small" v-for="(val,key) in TestGroup" :label="key" :key="key" @@click="val()">{{key}}{{TestGroup_v[key]}}</el-button>
             </el-button-group>
-            <el-row :gutter="12">
-                <el-col :md="24" :lg="8">
-                    <sj-goodqty :set_model="set_model"></sj-goodqty>
-                </el-col>
-            </el-row>
+            <cp-usemtlot :set_model="set_model"></cp-usemtlot>
+
         </div>
     </form>
 </div>
@@ -49,7 +45,7 @@ Html.Partial("~/Areas/ZZ_SJ/Views/OperTask/_goodQty.cshtml")
         備料出站_退庫: [{ "MTR_LOT": "15422-1-1C02-00001", "PARTNO": "3D5000", "PART_NAME": "4518預成形", "UseQty": 5086.55, "QUANTITY": 5256, "WAREHOUSE_NO": "1C02" }, { "MTR_LOT": "3K0010-1-2C01-00001", "PARTNO": "3K0010", "PART_NAME": "Center ring內", "UseQty": 400, "QUANTITY": 500, "WAREHOUSE_NO": "2C00" }],
         多料批: [{ "LIST_MT_SID": "GTI23112815390069536", "MES_MTR_LOT": "15127-1-1C01-00001", "QUANTITY": 418.70000, "ACTION_LINK_SID": null }, { "LIST_MT_SID": "GTI23112815390069535", "MES_MTR_LOT": "15127-1-1C01-00002", "QUANTITY": 418.70000, "ACTION_LINK_SID": null }],
         單一料批: { "WH_MTR_LOT": "2001-15409-1-1B01", "PARTNO": "2001", "WAREHOUSE_NO": "1B01", "Items": [{ "LIST_MT_SID": "GTI23121413324877843", "MES_MTR_LOT": "2001-15409-1-1B01-00001", "QUANTITY": 150.00000, "ACTION_LINK_SID": null }] },
-        userInfo:{ "ItemType": null, "Attr": null, "Attr04": "2025-02-18 15:18:01", "Attr05": null, "Attr06": null, "Attr07": null, "Attr08": null, "Attr09": null, "Attr10": "4", "RefKey": null, "SID": "49069840-e7f3-490e-bba8-d441cf27e08e", "No": "UserAdmin", "Value": null, "Display": "系統管理人員", "StatusSid": null, "Status": null, "FromNum": 0, "INum": 0, "Attr01": null, "Attr02": null, "Attr03": null, "subItem": [ { "RefKey": "7232e53a-88df-4760-b9b1-96d39dd00a24", "SID": "GTI24072816351496353", "No": "CUT-001", "Value": null, "Display": "切割機001", "StatusSid": null, "Status": null, "FromNum": 0, "INum": 1, "Attr01": null, "Attr02": null, "Attr03": null, "subItemExt": [ { "SID": "GTI11110115550180956", "No": "other", "Display": "其他", "INum": "1" } ] }, { "RefKey": "e9e9e1a0-6ecc-4af6-ab5a-29d5e3b66932", "SID": "GTI24072816361996361", "No": "CUT-002", "Value": null, "Display": "切割機002", "StatusSid": null, "Status": null, "FromNum": 0, "INum": 1, "Attr01": null, "Attr02": null, "Attr03": null, "subItem": null } ] },
+        userInfo: { "ItemType": null, "Attr": null, "Attr04": "2025-02-18 15:18:01", "Attr05": null, "Attr06": null, "Attr07": null, "Attr08": null, "Attr09": null, "Attr10": "4", "RefKey": null, "SID": "49069840-e7f3-490e-bba8-d441cf27e08e", "No": "UserAdmin", "Value": null, "Display": "系統管理人員", "StatusSid": null, "Status": null, "FromNum": 0, "INum": 0, "Attr01": null, "Attr02": null, "Attr03": null, "subItem": [{ "RefKey": "7232e53a-88df-4760-b9b1-96d39dd00a24", "SID": "GTI24072816351496353", "No": "CUT-001", "Value": null, "Display": "切割機001", "StatusSid": null, "Status": null, "FromNum": 0, "INum": 1, "Attr01": null, "Attr02": null, "Attr03": null, "subItemExt": [{ "SID": "GTI11110115550180956", "No": "other", "Display": "其他", "INum": "1" }] }, { "RefKey": "e9e9e1a0-6ecc-4af6-ab5a-29d5e3b66932", "SID": "GTI24072816361996361", "No": "CUT-002", "Value": null, "Display": "切割機002", "StatusSid": null, "Status": null, "FromNum": 0, "INum": 1, "Attr01": null, "Attr02": null, "Attr03": null, "subItem": null }] },
         Lot: {
             Case1: {
                 QUANTITY: 10,
@@ -118,9 +114,9 @@ Html.Partial("~/Areas/ZZ_SJ/Views/OperTask/_goodQty.cshtml")
                             _self.set_model.Setting.fastAI.cmd = cmd;
                         },
                         '切換有無設備'() {
-                            var _x = _.get(_self.$store.state,"curUser",[]);
-                            var _src  = _.isEmpty(_x)?test.userInfo:[];
-                            _self.$set(_self.$store.state,"curUser",_src);
+                            var _x = _.get(_self.$store.state, "curUser", []);
+                            var _src = _.isEmpty(_x) ? test.userInfo : [];
+                            _self.$set(_self.$store.state, "curUser", _src);
                         },
                     },
                     value: [{

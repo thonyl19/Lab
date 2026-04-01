@@ -207,7 +207,7 @@ Html.Partial("~/Views/OperTaskPart/_edc.V2.cshtml")
                 },
                 c_catch_config() {
                     var user = '@BLL.MVC.CurrentProvider.Provider.GetCurrent().UserNo';
-                    var fun_sid = '@Genesis.Common.PageBaseInfo.GetCurrentPageSid()';
+                    var fun_sid = '';//'Genesis.Common.PageBaseInfo.GetCurrentPageSid()';
                     @GTest.Test("fun_sid= fun_sid === '' ? 'GTI22030910552936287':fun_sid;")
                     var r = { user, fun_sid };
                     console.log(['c_catch_config', r]);

@@ -1,0 +1,100 @@
+﻿@{
+    var _url = "https://cdn.jsdelivr.net/npm/@handsontable/vue@15.2.0/dist/vue-handsontable.min.js";
+}
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>Vue2 Handsontable with el-radio</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/handsontable@12.4.0/dist/handsontable.full.min.css" />
+    <script src="https://cdn.jsdelivr.net/npm/handsontable@12.4.0/dist/handsontable.full.min.js"></script>
+    <script src="@_url"></script>
+    @eBundle.QRender_CSS()
+    @eBundle.QRender_JS()
+    <style>
+        #app {
+            margin: 50px;
+        }
+
+        .hot-container {
+            width: 800px;
+            height: 400px;
+        }
+        /* 設定 radio 元件在儲存格中垂直置中 */
+        .el-radio-cell {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            height: 100%;
+        }
+    </style>
+</head>
+<body>
+    <div id="app">
+        <gti-switch v-model="test"
+                    ></gti-switch>
+        <hot-table class="hot-container"
+                   :settings="hotSettings">
+        </hot-table>
+        <pre>{{ hotSettings.data | json }}</pre>
+    </div>
+
+    <script>
+        $(() => {
+            Vue.component('hot-table', Handsontable.vue.HotTable);
+             
+
+            new Vue({
+                el: '#app',
+                data() {
+                    return {
+                    test:[],
+                        hotSettings: {
+                            data: [
+                                { id: 1, name: "小明", gender: "男", age: 18, city: "台北" , status:'F'},
+                                { id: 2, name: "小華", gender: "女", age: 22, city: "台中", status: 'T'},
+                                { id: 3, name: "小美", gender: "男", age: 21, city: "高雄", status: 'F'},
+                            ],
+                            colHeaders: ['ID', '姓名', '年齡', '城市', '分數', '班級', '備註', '狀態'],
+                            columns: [
+                                { data: 'id', readOnly: true },
+                                { data: 'name' },
+                                { data: 'age' },
+                                { data: 'city', type: 'dropdown', source: ['台北', '台中', '高雄'] },
+                                { data: 'grade' },
+                                { data: 'detail' },
+                                { data: 'extra' },
+                                {
+                                    data: 'status',
+                                    renderer: (hotInstance, TD, row, col, prop, value, cellProperties) => {
+                                        TD.innerHTML = ''; // 清空
+                                        const container = document.createElement('div');
+                                        TD.appendChild(container);
+
+                                        // 創建 Vue 實例掛載 el-radio
+                                        new Vue({
+                                            el: container,
+                                            data: {
+                                                radioValue: value
+                                            },
+                                            watch: {
+                                                radioValue(newVal) {
+                                                    // 更新 Handsontable 的資料，實現雙向綁定
+                                                    hotInstance.setDataAtCell(row, col, newVal);
+                                                }
+                                            },
+                                            template: `<gti-switch v-model="radioValue" size="small"></gti-switch>`
+                                        });
+                                    }
+                                }
+                            ],
+                            manualColumnResize: true,
+                            licenseKey: 'non-commercial-and-evaluation',
+                        }
+                    };
+                }
+            });
+        });
+    </script>
+</body>
+</html>

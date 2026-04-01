@@ -1,0 +1,249 @@
+﻿@{
+    var _url = "https://cdn.jsdelivr.net/npm/@handsontable/vue@15.2.0/dist/vue-handsontable.min.js";
+}
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>Vue2 Handsontable with el-checkbox - Cache Optimized</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/handsontable@12.4.0/dist/handsontable.full.min.css" />
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/element-ui@2.15.14/lib/theme-chalk/index.css" />
+    <script src="https://cdn.jsdelivr.net/npm/handsontable@12.4.0/dist/handsontable.full.min.js"></script>
+    <script src="@_url"></script>
+    @eBundle.QRender_CSS()
+    @eBundle.QRender_JS()
+    <style>
+        #app {
+            margin: 50px;
+        }
+
+        .hot-container {
+            width: 800px;
+            height: 400px;
+        }
+
+        .el-radio-cell {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            height: 100%;
+        }
+    </style>
+</head>
+<body>
+    <div id="app">
+        <hot-table class="hot-container"
+                   :settings="hotSettings">
+        </hot-table>
+        {{cellCache }}
+        <pre>{{ hotSettings.data | json }}</pre>
+    </div>
+
+    <script>
+        $(() => {
+            Vue.use(ELEMENT);
+            Vue.component('hot-table', Handsontable.vue.HotTable);
+
+            new Vue({
+                el: '#app',
+                data() {
+                    var _self = this;
+                    return {
+                        apiData: {
+                            "GROUP_CODE_SID": "GTI25102018062518131",
+                            "GroupCodeList": [
+                                {
+                                    "GROUP_CODE": "GROUP",
+                                    "SAMPLE_TYPE": "FreeText",
+                                    "ITEM_RESOURCE": null,
+                                    "MAXIMUM": "3",
+                                    "API_ROUTE": null
+                                }
+                            ],
+                            "ParameterList": [
+                                {
+                                    "EDC_VER_PARA_SID": "GTI25102018093018157",
+                                    "PARA_NO": "EDC_Cutting_001",
+                                    "PARAMETER": "產品尺寸_長度",
+                                    "DATATYPE": "N",
+                                    "TL": "21",
+                                    "UCL": null,
+                                    "LCL": null,
+                                    "USL": 21.25000,
+                                    "LSL": 20.75000,
+                                    "MUST_INPUT": "T",
+                                    "ITEM_SEQ": 1.00000,
+                                    "DEFAULT_TL": null,
+                                    "VALUE": "",
+                                },
+                                {
+                                    "EDC_VER_PARA_SID": "GTI25102018093018158",
+                                    "PARA_NO": "EDC_Cutting_002",
+                                    "PARAMETER": "產品尺寸_寬度",
+                                    "DATATYPE": "N",
+                                    "TL": "11",
+                                    "UCL": null,
+                                    "LCL": null,
+                                    "USL": 11.06000,
+                                    "LSL": 10.94000,
+                                    "MUST_INPUT": "T",
+                                    "ITEM_SEQ": 2.00000,
+                                    "DEFAULT_TL": null,
+                                    "VALUE": "",
+                                },
+                                {
+                                    "EDC_VER_PARA_SID": "GTI25102018093118159",
+                                    "PARA_NO": "EDC_Cutting_003",
+                                    "PARAMETER": "CNC",
+                                    "DATATYPE": "S",
+                                    "TL": null,
+                                    "UCL": null,
+                                    "LCL": null,
+                                    "USL": null,
+                                    "LSL": null,
+                                    "MUST_INPUT": "T",
+                                    "ITEM_SEQ": 3.00000,
+                                    "DEFAULT_TL": null,
+                                    "VALUE": "1",
+                                }
+                            ]
+                        },
+                        test: [],
+                        cellCache: new Map(),
+                        cellComponents: new Map(),
+                        hotSettings: {
+                            data: [],
+                            colHeaders: [],
+                            columns: [],
+                            manualColumnResize: true,
+                            licenseKey: 'non-commercial-and-evaluation',
+                        }
+                    };
+                },
+                mounted() {
+                    this.initializeTable();
+                },
+                beforeDestroy() {
+                    // 清理所有快取的組件
+                    this.cellComponents.forEach((component, key) => {
+                        if (component.vue) {
+                            component.vue.$destroy();
+                        }
+                    });
+                    this.cellComponents.clear();
+                    this.cellCache.clear();
+                },
+                methods: {
+                    initializeTable() {
+                        debugger
+                        const { colHeaders, columns, data } = this.convertParametersToTableFormat();
+
+                        this.hotSettings.colHeaders = colHeaders;
+                        this.hotSettings.columns = columns;
+                        this.hotSettings.data = data;
+
+                        // 設定 afterChange 事件處理器
+                        this.hotSettings.afterChange = this.handleTableChange;
+                    },
+                    convertParametersToTableFormat() {
+                        const paramList = this.apiData.ParameterList;
+
+                        // 按 ITEM_SEQ 排序
+                        const sortedParams = [...paramList].sort((a, b) => a.ITEM_SEQ - b.ITEM_SEQ);
+
+                        // 生成欄位標題
+                        const colHeaders = sortedParams.map(p => p.PARAMETER);
+
+                        // 生成欄位定義
+                        const columns = sortedParams.map(p => {
+                            const colDef = {
+                                data: p.PARAMETER,
+                                type: 'text'
+                            };
+
+                            // 根據 DATATYPE 設定欄位類型
+                            if (p.DATATYPE === 'N') {
+                                colDef.type = 'numeric';
+                                colDef.numericFormat = {
+                                    pattern: '0.00'
+                                };
+                            }
+
+                            return colDef;
+                        });
+
+                        // 生成初始資料行(一行資料)
+                        const dataRow = {};
+                        sortedParams.forEach(p => {
+                            dataRow[p.PARAMETER] = p.VALUE || '';
+                        });
+
+                        return {
+                            colHeaders,
+                            columns,
+                            data: [dataRow]
+                        };
+                    },
+
+                    // 處理表格資料變更
+                    handleTableChange(changes, source) {
+                        if (!changes || source === 'loadData') {
+                            return;
+                        }
+
+                        changes.forEach(([row, prop, oldValue, newValue]) => {
+                            // 找到對應的 Parameter
+                            const param = this.apiData.ParameterList.find(p => p.PARAMETER === prop);
+
+                            if (param) {
+                                // 更新 VALUE
+                                param.VALUE = newValue;
+
+                                console.log(`更新參數: ${prop}, 新值: ${newValue}`);
+
+                                // 這裡可以加入驗證邏輯
+                                if (param.DATATYPE === 'N') {
+                                    const numValue = parseFloat(newValue);
+                                    if (!isNaN(numValue)) {
+                                        // 檢查上下限
+                                        if (param.USL !== null && numValue > param.USL) {
+                                            this.$message.warning(`${prop} 超過上限 ${param.USL}`);
+                                        }
+                                        if (param.LSL !== null && numValue < param.LSL) {
+                                            this.$message.warning(`${prop} 低於下限 ${param.LSL}`);
+                                        }
+                                    }
+                                }
+                            }
+                        });
+                    },
+                    ts_VueObj(hotInstance, TD, row, col, value) {
+                        const container = document.createElement('div');
+                        TD.appendChild(container);
+                        var vueInstance = new Vue({
+                            el: container,
+                            data() {
+                                return {
+                                    radioValue: value
+                                }
+                            },
+                            watch: {
+                                radioValue(newVal) {
+                                    // 更新 Handsontable 的資料，實現雙向綁定
+                                    hotInstance.setDataAtCell(row, col, newVal);
+                                }
+                            },
+                            //template: `<gti-switch v-model="radioValue" size="small"></gti-switch>`,
+                            template: `<el-checkbox v-model="radioValue" size="small"></el-checkbox>`
+                        });
+                        return {
+                            vueInstance,
+                            TD,
+                        }
+                    }
+                }
+            });
+        });
+    </script>
+</body>
+</html>

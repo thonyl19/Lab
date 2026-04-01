@@ -1,0 +1,126 @@
+﻿@{
+var action = ViewContext.RouteData.Values["action"].ToString();
+var controller = ViewContext.RouteData.Values["controller"].ToString();
+GTI_Test GTest = new GTI_Test(Html, HttpContext.Current.IsDebuggingEnabled);
+ViewBag.Title = Genesis.Common.PageBaseInfo.getCurrentResource(action).RESOURCE_NAME;
+
+var _URL = new{
+Query = $"{Url.Action("PagerQuery")}",
+};
+}
+@eBundle.QRender_CSS()
+@eBundle.QRender_JS()
+<div id="app">
+    <el-button type="primary" @@click="query">執行</el-button>
+    <el-input type="textarea" v-model="c_data" :rows="10"></el-input>
+    <pre>{{result | json}}</pre>
+</div>
+
+
+<script>
+    $(() => {
+        new Vue({
+            el: '#app',
+            data() {
+                return {
+                    c_data: `{
+    "Conditions": {
+        "condition": "AND",
+        "rules": [
+            {
+                "condition": "A",
+                "rules": [
+                    {
+                        "field": "QC_NO",
+                        "type": "string",
+                        "operator": "contains",
+                        "value": [
+                            "I"
+                        ]
+                    }
+                ]
+            },
+            {
+                "condition": "B",
+                "rules": [
+                    {
+                        "field": "QC_NO",
+                        "type": "string",
+                        "operator": "contains",
+                        "value": [
+                            "I"
+                        ]
+                    }
+                ]
+            }
+        ]
+    },
+    "CustomFilter": [{
+            "Condition": "MAIN",
+            "Rules": [
+                {
+                    "Condition": "AND",
+                    "Rules": [
+                        {
+                            "Field": "QC_NO",
+                            "Type": "string",
+                            "Operator": "contains",
+                            "Value": [
+                                "I"
+                            ]
+                        }
+                    ]
+                }
+            ]
+        }
+                ],
+    "Sort": {
+        "Name": "UPDATE_DATE",
+        "isAsc": false
+    },
+    "Page": {
+        "Index": 1,
+        "Size": 10
+    }
+}`,
+                    val: '',
+                    result: ''
+                }
+            },
+            computed: {
+                c_data: {
+                    get() {
+                        console.log(this.data);
+                        return JSON.stringify(this.data, null, 4);
+                    },
+                    set(val) {
+                        var _v = [];
+                        try {
+                            _v = JSON.parse(val);
+                        }
+                        catch {
+                        }
+                        this.data = _v;
+                    }
+                }
+            },
+            methods: {
+                query() {
+                    var _self = this;
+
+                    var param = JSON.parse(this.c_data);
+                    var _ajax = {
+                        url: '@_URL.Query',
+                        type: 'post',
+                        param,
+                        success(res) {
+                            _self.result = res;
+                        }
+                    };
+                    $.submitForm(_ajax);
+                }
+            }
+
+        })
+    });
+</script>

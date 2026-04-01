@@ -1,14 +1,15 @@
-﻿Html.Partial($"~/Areas/ZZ_SJ/Views/OperTask/_people_Management.cshtml")
-<script>
-
+﻿<script>
+	//Html.Partial($"~/Areas/ZZ_SJ/Views/OperTask/_people_Management.cshtml")
+	//Html.Partial($"~/Areas/ZZ_SJ/Views/OperTask/_goodQty.cshtml")
     $(() => {
         var form = $("#WipForm");
 
         var data = {
-
 			LotScrapRes: {},
 			form : {
 				LotGoodQty: 0,
+                REMARK_GOOD_QTY: 0,
+                REMARK_NONGOOD_QTY: 0,
                 RemainderQty: 0,
                 selectedItem: "",
 				IncrementsQty: 0
@@ -21,11 +22,74 @@
 			i18n: {
 				合計報工數量: '合計良品數量',
 				機台資訊: '@Face.OperEquipInfo',
-                良品數:'良品數',
+				良品數: '良品數',
+                備註良品數: '備註良品數',
+                備註不良品數:'備註不良品數',
 			}
         };
-
+        var dyn = {
+            mixins:[Vue.prototype.$UT.Mixins.v_model()],
+            template: `
+            <div>
+                <gt-form-col label="良品數" required :layout_mode="layout">
+                    <el-input-number :span="12" :precision="c_systemConfig.DecimalPoint" :step="c_systemConfig.setp" v-model.number="c_val[c_LotGoodQty]" size="large" min="0" required
+                    ></el-input-number>
+                </gt-form-col>
+                <div style="font-size: 1.55rem;font-weight: bold;padding-left: 5rem;clear: both;"><label>備註數量</label></div>
+                <gt-form-col label="備註良品數" :layout_mode="layout">
+                    <el-input-number :span="12" :precision="c_systemConfig.DecimalPoint" :step="c_systemConfig.setp" v-model.number="c_val[c_REMARK_GOOD_QTY]" size="large" min="0" required
+                    ></el-input-number>
+                </gt-form-col>
+                <gt-form-col label="備註不良品數" :layout_mode="layout">
+                    <el-input-number :span="12" :precision="c_systemConfig.DecimalPoint" :step="c_systemConfig.setp" v-model.number="c_val[c_REMARK_NONGOOD_QTY]" size="large" min="0" required
+                    ></el-input-number>
+                </gt-form-col>
+            </div>
+            `,
+            data(){
+                return {
+                    layout:['col-lg-12 col-sm-12 col-xs-12 adj', 'col-lg-4 col-sm-4', 'col-lg-8 col-sm-8'],
+                    tmp:'',
+                    result:'',
+                    //isObj:{},
+                    tplCfg:{},
+                    input_res:{},
+                }
+            },
+            props:{
+                "set_model": {
+					type: Object,
+					default: []
+				},
+                "is_form": {
+                    type: Number,
+                    default() {
+                        return 0
+                    }
+                },
+                "c_systemConfig":{
+                    type: Object,
+                    default() {
+                        return {}
+                    }
+                }
+            },
+            computed: {
+                c_LotGoodQty(){
+                    return ["LotGoodQty","INum"][this.is_form];
+                },
+                c_REMARK_GOOD_QTY(){
+                    return ["REMARK_GOOD_QTY","Attr01"][this.is_form];
+                },
+                c_REMARK_NONGOOD_QTY(){
+                    return ["REMARK_NONGOOD_QTY","Attr02"][this.is_form];
+                },
+            }
+        }
 		Vue.component('sj-goodqty', {
+            components:{
+                'dyn-template':dyn 
+            },
 			props: {
 				"set_model": {
 					type: Object,
@@ -50,7 +114,7 @@
 				c_Total() {
 					return  _.sumBy(this.c_ListEqp, 'INum');
 				},
-                __curUser() {
+				__curUser() {
 					return _.get(this, '$store.state.curUser', {});
 				},
 				c_ListEqp() {
@@ -61,16 +125,16 @@
 					//debugger
 					return this.c_ListEqp.length != 0;
 				},
-				c_systemConfig(){
+
+                c_systemConfig(){
 					let {systemConfig} = this.set_model;
 					systemConfig = systemConfig
 						||{
 							DecimalPoint:0,
-							setp:0,
+							setp:1,
 						};
 					return systemConfig;
 				},
-
 				isShowResource() {
 
 					if (parseFloat(this.IS_ScrapNum.replace(/,/g, "")) > 0)
@@ -252,7 +316,8 @@
 						var _self = this;
 
 						//報廢
-						if (_self.set_model.Setting.CheckOutSet.IsGoodUseType == "GoodAndScrap") {
+						var isGoodAndScrap = _.get(_self.set_model.Setting.CheckOutSet, "IsGoodUseType") == "GoodAndScrap";
+                        if (isGoodAndScrap) {
 
 							if (newValue.selectedItem != "") {
 								_self.LotScrapRes = _self.$refs.selectRes.getSelectedRow();
@@ -262,52 +327,40 @@
 							} else {
 								_self.form.LotScrapRes = null;
 							}
-
-							//_self.form.LotScrapQty = parseFloat(this.IS_ScrapNum.replace(/,/g, ""));
-
-							//_self.$emit('input', _self.form)
 						}
 						_self.$emit('input', _self.form);
-
-
                     },
 
                     deep: true
                 }
             },
             methods: {
-
+                handleChange(value) {
+        console.log(value);
+      }
             },
             template: `
 			<div class="panel" v-cloak>
 		<div class="panel-heading b panel-header-radius gti-wip-title">
 			<h3 class="panel-title">{{title}}</h3>
 		</div>
-		<div class="panel-body">
+		<div class="panel-body"> 
 			<div v-if="c_isEqpMode==false">
-				<div class="col-lg-12 col-md-12">
-				良品數 <el-input-number :span="12" :precision="c_systemConfig.DecimalPoint" :step="c_systemConfig.setp" v-model.number="form.LotGoodQty" size="large" min="0" required
-				></el-input-number>
-				</div>
+                <dyn-template v-model="form" :set_model="set_model" :cfg="cfg"></dyn-template>
 			</div>
 			<div v-if="c_isEqpMode">
 				<gt-label-val v-model="c_Total" style="margin-right:3rem;">{{i18n.合計報工數量}}</gt-label-val>
-					<el-table :data="c_ListEqp" key="SID"
-								empty-text=" "
-								style="width: 100%">
-							<el-table-column prop="No" :label="i18n.機台資訊" width="160">
-								<template slot-scope="scope">
-									<gt-no-name v-model="scope.row.Display" :no="scope.row.No" :inline="false"></gt-no-name>
-								</template>
-							</el-table-column>
-							<el-table-column  :label="i18n.良品數">
-								<template slot-scope="scope">
-									<el-input-number :span="12" :precision="c_systemConfig.DecimalPoint" :step="c_systemConfig.setp" v-model.number="scope.row.INum" size="large" min="0" required
-				></el-input-number>
-								</template>
-							</el-table-column>
-
-				</el-table>
+                <div  v-for="item in c_ListEqp" key="SID">
+                    <el-row :gutter="12">
+                        <el-col :md="24" :lg="6" class="machine-col">
+                            <gt-no-name v-model="item.Display" :no="item.No" :inline="false"></gt-no-name>
+                        </el-col>
+                        <el-col :md="24" :lg="18" >
+                            <dyn-template v-model="item" :set_model="set_model" :cfg="cfg" is_form=1></dyn-template>
+                        </el-col>
+                    </el-row>
+                    <hr></hr>
+                </div>
 			</div>
 		</div>
 	</div>
@@ -317,3 +370,11 @@
 
     });
 </script>
+<style>     
+.machine-col {
+  display: flex;
+  align-items: center; /* 垂直置中 */
+  justify-content: center; /* 水平置中，如果你希望文字在中間 */
+  min-height: 100px; /* 給個固定高度，才能有明顯垂直置中效果 */
+}
+</style>

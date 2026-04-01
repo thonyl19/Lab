@@ -51,44 +51,91 @@
                     var _self=this;
                     return {
                         src :[
-                                { id: 1, name: "小明", age: 18, city: "台北", grade: 90, detail: "A班", extra: "備註1" },
-                                { id: 2, name: "小華", age: 22, city: "台中", grade: 85, detail: "B班", extra: "備註2" },
-                                { id: 3, name: "小美", age: 21, city: "高雄", grade: 88, detail: "A班", extra: "備註3" },
-                                { id: 20, name: "小邱", age: 39, city: "其他", grade: 85, detail: "B班", extra: "備註20" },
-                                { id: 21, name: "小何", age: 40, city: "台北", grade: 92, detail: "A班", extra: "備註21" },
-                                { id: 22, name: "小藍", age: 41, city: "台中", grade: 87, detail: "C班", extra: "備註22" },
-                                { id: 23, name: "小宋", age: 42, city: "高雄", grade: 95, detail: "B班", extra: "備註23" },
+                            
                             ],
                         hotSettings: {
 
                             //afterChange : _self.afterChange,
-                            data: [],
-                            colHeaders: ['ID'
-                                , '姓名',  // 只對姓名欄位加上 Tooltip
-                            //, '<el-tooltip content="姓名欄位" placement="top"><span>姓名</span></el-tooltip>',  // 只對姓名欄位加上 Tooltip
+                            "data": [
+                                {
+                                    "SampleId": "A",
+                                    "GTI25102018093218163": null,
+                                    "GTI25102018093218164": null
+                                },
+                                {
+                                    "SampleId": "B",
+                                    "GTI25102018093218163": null,
+                                    "GTI25102018093218164": null
+                                },
+                                {
+                                    "SampleId": "C",
+                                    "GTI25102018093218163": null,
+                                    "GTI25102018093218164": null
+                                },
+                                {
+                                    "SampleId": "D",
+                                    "GTI25102018093218163": null,
+                                    "GTI25102018093218164": null
+                                },
+                                {
+                                    "SampleId": "E",
+                                    "GTI25102018093218163": null,
+                                    "GTI25102018093218164": null
+                                },
+                                {
+                                    "SampleId": "F",
+                                    "GTI25102018093218163": null,
+                                    "GTI25102018093218164": null
+                                },
+                                {
+                                    "SampleId": "G",
+                                    "GTI25102018093218163": null,
+                                    "GTI25102018093218164": null
+                                },
+                                {
+                                    "SampleId": "H",
+                                    "GTI25102018093218163": null,
+                                    "GTI25102018093218164": null
+                                },
+                                {
+                                    "SampleId": "I",
+                                    "GTI25102018093218163": null,
+                                    "GTI25102018093218164": null
+                                },
+                                {
+                                    "SampleId": "J",
+                                    "GTI25102018093218163": null,
+                                    "GTI25102018093218164": null
+                                }
+                            ],
+                            "columns": [
+                                {
+                                    "title": "Sample Id",
+                                    "data": "SampleId",
+                                    "type": "text",
 
-                            , '年齡', '城市', '分數', '班級', '備註'],
+                                },
+                                {
+                                    "title": "鑽孔孔徑D",
+                                    "data": "GTI25102018093218163",
+                                    "type": "numeric",
+                                    "source": null
+                                },
+                                {
+                                    "title": "鑽孔孔徑E",
+                                    "data": "GTI25102018093218164",
+                                    "type": "dropdown",
+                                    "source": ["VGE01-立磨3", "VGE02-立磨4", "VGJ01-立磨1", "VGJ02-立磨2", "VGJ03-立磨5", "VGJ04-立磨6"]
+                                }
+                            ],
                             fillHandle: false,
                             rowHeaders: false,
-                            manualColumnResize: true,
+                            //manualColumnResize: true,
                             // Handsontable 免費版需要加這行
                             licenseKey: 'non-commercial-and-evaluation', 
-                            columns: [{
-                                        data: 'id'
-                                        , readOnly: true
-                                    }, 
-                                    { data: 'name' },
-                                    { data: 'age' },
-                                    { data: 'city',
-                                        type: 'dropdown',
-                                        source: ['台北', '台中', '高雄']
-                                    },
-                                    { data: 'grade' },
-                                    { data: 'detail' },
-                                    { data: 'extra' },
-                                    ],
+                             
                             fixedColumnsLeft: 1,        // 左側凍結 1 欄
-                            dropdownMenu: true,
+                            //dropdownMenu: true,
                             contextMenu: true,
                             //預設 tab 移動模式
                             tabMoves: {
@@ -124,14 +171,14 @@
 
                 mounted() {
                     // 確保在表格渲染後 Vue 會自動處理 el-tooltip 的顯示
-                    this.$nextTick(() => {
-                        const tooltipElement = document.querySelector('el-tooltip');
-                        if (tooltipElement) {
-                            this.$nextTick(() => {
-                            // 確保 tooltip 正常工作
-                            });
-                        }
-                    });
+                    //this.$nextTick(() => {
+                    //    const tooltipElement = document.querySelector('el-tooltip');
+                    //    if (tooltipElement) {
+                    //        this.$nextTick(() => {
+                    //        // 確保 tooltip 正常工作
+                    //        });
+                    //    }
+                    //});
                 },
                 methods: {
                     bind_Data(){

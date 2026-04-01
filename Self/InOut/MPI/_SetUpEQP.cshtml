@@ -1,0 +1,241 @@
+﻿@using System.Dynamic
+@model BLL.MES.DataViews.LotData
+@{
+	dynamic data = new ExpandoObject();
+	data.LOT="Test";
+	Model.CurrentLot = data;
+    GTI_Test GTest = new GTI_Test
+     (Html, HttpContext.Current.IsDebuggingEnabled
+     , ViewContext.HttpContext.Request);
+    var BaseRoot = @"~/Areas/MES/Views";
+    var ZZRoot = @"~/Areas/MPI/Views";
+}
+@eBundle.QRender_CSS()
+@eBundle.QRender_JS()
+@Html.Partial("_pw_test")
+@Html.Partial("InOut/MPI/_SetUpEQP_")
+@GTest.Test("operation,_SetUpEQP",2)
+<pre>
+</pre>
+<div id="app">
+    <form id="WipForm">
+        @Html.AntiForgeryToken()
+        <div class="panel b">
+            <el-button-group>
+                <el-button type="primary" size="small" v-for="(val,key) in TestGroup" :label="key" :key="key" @@click="val()">{{key}}{{TestGroup_v[key]}}</el-button>
+            </el-button-group>
+            {{eqp}}
+            <eqp-mutlselect v-model="eqp" :src="src"></eqp-mutlselect>
+            <gti-limits-info-table v-model="toolTip"></gti-limits-info-table>
+            <pw-test v-model="cfg" label="cfg"></pw-test>
+            <pw-test v-model="$store.state.globalvar.EqpToolList">$store.state.globalvar.EqpToolList</pw-test>
+            <pw-test v-model="$store.state.globalvar.UserTrace">$store.state.globalvar.UserTrace</pw-test>
+        </div>
+    </form>
+</div>
+<div id="footerCommand">
+    <button type="button" class="btn btn-lg btn-labeled btn-success  btn_submit" style="margin:10px 30px;">
+        <span class="btn-label">
+            <i class="fa fa-play"></i>
+        </span>@RES.BLL.Face.Exec
+    </button>
+
+</div>
+<script>
+    Vue.config.devtools = true;
+    $(() => {
+        let { value, set_model } = test;
+        set_model = _.cloneDeep(set_model);
+        Vue.use(Vuex);
+
+        const store = new Vuex.Store({
+            state: {
+                set_model,
+                globalvar: {
+                    scrapTotal: 0,
+                    GoodList: [],
+                    ScrapList: [],
+                    DefectList: [],
+                    isUserTraceEnter: false,
+                    UserTrace: {
+                        sts: 21
+                    }
+                }
+            },
+            getters: {
+                getData(state) {
+                    return state.globalvar;
+                }
+            }
+        })
+
+
+        var form = $("#WipForm");
+        new Vue({
+            el: '#app',
+            mixins: [Vue.prototype.$UT.Mixins.v_ErrGroup()],
+            store,
+            provide() {
+                return {
+                    rootEl: this,
+                };
+            },
+            data() {
+                var _self = this;
+                return {
+                    eqp:[],
+                    src:[],
+                    isTest: true,
+                    cfg: {
+                        enable_tool: true,
+                        enable_run_in: false,
+                    },
+                    toolTip: test._tooltip,
+                    readonly: false,
+                    oper_info: {},
+                    value,
+                    TestGroup_v: {},
+                    TestGroup: {
+                        注入list_EQP() {
+                            _self.src = test.list_EQP;
+                        },
+                    },
+                    set_model,
+                    i18n: {
+                        料號: 'AAAA'
+                    }
+                }
+            },
+            computed: {
+                cp() {
+                    return this.$refs['cp'];
+                },
+            },
+            mounted() {
+                //this.TestGroup.切換Check();
+                //this.TestGroup.注入list_EQP();
+            },
+            methods: {
+                Exec(e) {
+                    this.$message('ok');
+                    if (this.cfg.single_checkout) {
+                        e.preventDefault();
+                    } else if (form.parsley().validate()) {
+
+                    }
+                }
+            }
+        });
+        @GTest.Test("i.fa.fa-play", 9);
+    });
+    var test = {
+        //可以從測試案例中,直接複製
+        set_model: { "EqumentSelectList": [{ "RefKey": null, "SID": "GTI24072816351496353", "No": "CUT-002", "Value": null, "Display": "切割機002", "StatusSid": null, "Status": null, "FromNum": 0, "INum": 0, "Attr01": null, "Attr02": null, "Attr03": null }, { "RefKey": null, "SID": "GTI24072816361996361", "No": "CUT-002", "Value": null, "Display": "切割機002", "StatusSid": null, "Status": null, "FromNum": 0, "INum": 0, "Attr01": null, "Attr02": null, "Attr03": null }, { "RefKey": null, "SID": "GTI24072816361996369", "No": "CUT-003", "Value": null, "Display": "切割機003", "StatusSid": null, "Status": null, "FromNum": 0, "INum": 0, "Attr01": null, "Attr02": null, "Attr03": null }], "LotEqpCheckOutNum": 0, "LotSplitCheckOutNum": 0, "UserShiftList": [{ "RefKey": null, "SID": "GTI24072815372296321", "No": "D01", "Value": null, "Display": "白班", "StatusSid": null, "Status": null, "FromNum": 0, "INum": 0, "Attr01": "~", "Attr02": null, "Attr03": null }, { "RefKey": null, "SID": "GTI24072815372296322", "No": "D02", "Value": null, "Display": "夜班", "StatusSid": null, "Status": null, "FromNum": 0, "INum": 0, "Attr01": "~", "Attr02": null, "Attr03": null }], "ReWorkOperList": null, "BinList": null, "PlateList": null, "WarehouseList": null, "StorageList": null, "CarrierList": [], "GradeList": [{ "RefKey": null, "SID": "A:A規", "No": "A:A規", "Value": "A:A規", "Display": "A:A規", "StatusSid": null, "Status": null, "FromNum": 0, "INum": 0, "Attr01": null, "Attr02": null, "Attr03": null }, { "RefKey": null, "SID": "B:B規", "No": "B:B規", "Value": "B:B規", "Display": "B:B規", "StatusSid": null, "Status": null, "FromNum": 0, "INum": 0, "Attr01": null, "Attr02": null, "Attr03": null }, { "RefKey": null, "SID": "C:C規", "No": "C:C規", "Value": "C:C規", "Display": "C:C規", "StatusSid": null, "Status": null, "FromNum": 0, "INum": 0, "Attr01": null, "Attr02": null, "Attr03": null }, { "RefKey": null, "SID": "G:Golden", "No": "G:Golden", "Value": "G:Golden", "Display": "G:Golden", "StatusSid": null, "Status": null, "FromNum": 0, "INum": 0, "Attr01": null, "Attr02": null, "Attr03": null }], "WafersPackage": null, "EqpEDCAttribute": null, "ROUTE_VER_OPER_SID": null, "CurrentLot": { "EnableEditMode": false, "SID": "GTI24122315194602809", "No": "TWO-241223A-02", "Name": "TWO-241223A-02", "Identity": "TWO-241223A-02", "TableName": "WP_LOT", "IsExist": true, "LOT": "TWO-241223A-02", "LOT_1": "", "LOT_2": "", "IS_BATCH_ENABLE": "T", "BATCH_NO": "", "BATCH_SEQ": 0, "STATUS": "Run", "LOT_TYPE": "Normal", "QUANTITY": 50, "UNIT": "PCS", "QTY_1": 0, "UNIT_1": "", "QTY_2": 0, "UNIT_2": "", "WO_SID": "TWO-241223A", "WO": "TWO-241223A", "INVENTORY_NO": "", "ROUTE_VER_SID": "GTI24122315062802725", "ROUTE": "高週波演示範例", "ROUTE_VERSION": 1, "IN_ROUTE_CATEGORY": "M", "SUBROUTE_VER_SID": "", "PREGO_ROUTE_VER_OPER_SID": "", "FROM_ROUTE_VER_SID": "GTI24122315062802725", "FROM_ROUTE": "高週波演示範例", "FROM_ROUTE_VERSION": 1, "NEXT_ROUTE_VER_SID": "GTI24122315062802725", "NEXT_ROUTE": "高週波演示範例", "NEXT_ROUTE_VERSION": 1, "ROUTE_VER_OPER_SID": "GTI24122315164102765", "OPER_SID": "GTI24072718094195075", "OPER_SEQ": "002", "OPERATION": "成型", "OPER_TYPE_VER_SID": "GTI24122615565706396", "FROM_ROUTE_VER_OPER_SID": "GTI24122315164102764", "FROM_OPER_SID": "GTI24072718002295060", "FROM_OPER_SEQ": "001", "FROM_OPERATION": "裁斷", "FROM_OPER_TYPE_VER_SID": "GTI22071216262591285", "NEXT_ROUTE_VER_OPER_SID": "GTI24122315164102766", "NEXT_OPER_SID": "GTI24072718094195076", "NEXT_OPER_SEQ": "003", "NEXT_OPERATION": "剪邊", "NEXT_OPER_TYPE_VER_SID": "GTI22071216262591285", "FUN_SEQ": 2, "FUN_SID": "GTI24122609452205765", "FUN_CODE": "MuliteStageCheckOut", "NEXT_FUN_SEQ": 1, "NEXT_FUN_SID": "a4852f0c-a981-47d6-ab75-9a07129f3375", "NEXT_FUN_CODE": "StationCheckIn", "PRODUCT_SID": "GTI24072813300795153", "PRODUCT": "3Dmats", "PARTNO_VER_SID": "GTI24072813321795164", "PARTNO": "24C50P001T01", "PARTNO_VERSION": 0, "PRIORITY": "3", "MES_PRIORITY": "", "SCHEDULEDATE": null, "DUEDATE": null, "MES_SCHEDULEDATE": null, "MES_DUEDATE": null, "WTIME_END": null, "QTIME_END": null, "YIELD": 1, "TOTAL_YIELD": 0, "GRADE": "", "IS_QC_REJECT": "F", "QC_REJECT_COUNT": 0, "LOCATION": "", "CUSTOMER": "", "OWNER": "", "DISPATCH_FUTURE_HOLD": "N", "SHIFT_SID": "", "SHIFT_NO": "", "SHIFT": "", "LINE_SID": "", "LINE_NO": "", "LINE": "", "ECN_SID": "", "ECN_NO": "", "ECN_NAME": "", "EQP_LINK_SID": "", "PARTNO_LINK_SID": "", "CARRIER_LINK_SID": "", "TOOL_LINK_SID": "", "ROOT_LOT_SID": "", "PARENT_LOT_SID": "", "OPER_SUM_SCRAP_QTY": 0, "OPER_SUM_SCRAP_QTY1": 0, "OPER_SUM_SCRAP_QTY2": 0, "OPER_SUM_BOUNS_QTY": 0, "OPER_SUM_BOUNS_QTY1": 0, "OPER_SUM_BOUNS_QTY2": 0, "TOTAL_SUM_SCRAP_QTY": 0, "TOTAL_SUM_SCRAP_QTY1": 0, "TOTAL_SUM_SCRAP_QTY2": 0, "TOTAL_SUM_BOUNS_QTY": 0, "TOTAL_SUM_BOUNS_QTY1": 0, "TOTAL_SUM_BOUNS_QTY2": 0, "LAST_STATUS_CHANGE_TIME": "2025-01-15 14:51:21", "OPER_START_TIME": "2025-01-15 14:50:54", "RUN_START_TIME": "2025-01-15 14:51:21", "RUN_END_TIME": null, "OPER_END_TIME": null, "ATTRIBUTE_01": "", "ATTRIBUTE_02": "", "ATTRIBUTE_03": "", "ATTRIBUTE_04": "", "ATTRIBUTE_05": "", "ATTRIBUTE_06": "", "ATTRIBUTE_07": "", "ATTRIBUTE_08": "", "ATTRIBUTE_09": "", "ATTRIBUTE_10": "", "ATTRIBUTE_11": 0, "ATTRIBUTE_12": 0, "ATTRIBUTE_13": 0, "ATTRIBUTE_14": null, "ATTRIBUTE_15": null, "ATTRIBUTE_16": null, "ATTRIBUTE_17": "", "ATTRIBUTE_18": "", "ATTRIBUTE_19": "", "ATTRIBUTE_20": "", "ATTRIBUTE_21": "", "ATTRIBUTE_22": "", "ATTRIBUTE_23": "", "ATTRIBUTE_24": "", "ATTRIBUTE_25": "", "ATTRIBUTE_26": "", "ATTRIBUTE_27": "", "ATTRIBUTE_28": "", "ATTRIBUTE_29": "", "ATTRIBUTE_30": "", "ATTRIBUTE_31": "", "ATTRIBUTE_32": "", "ATTRIBUTE_33": "", "ATTRIBUTE_34": "", "ATTRIBUTE_35": "", "ATTRIBUTE_36": null, "ATTRIBUTE_37": null, "ATTRIBUTE_38": null, "ATTRIBUTE_39": null, "ATTRIBUTE_40": null, "CREATE_USER": "Admin", "CREATE_DATE": "2024-12-23 15:19:46", "UPDATE_USER": "Admin", "UPDATE_DATE": "2025-01-15 14:51:21", "NOTE": "", "WO_LINE_SID": "GTI24072813471495190", "WO_LINE_NO": "LINE-A", "WO_LINE": "產線A", "MLOT": "" }, "RootLot": null, "CurrentOperation": { "SID": "GTI24072718094195075", "No": "C01-0020", "Name": "成型", "Identity": "[C01-0020]成型", "TableName": "PF_OPERATION", "IsExist": true, "OPER_TYPE_SID": "GTI24122615565106392", "OPER_TYPE_VER_SID": "GTI24122615565706396", "OPERATION_TYPE": "SJ001", "OPERATION_TYPE_NAME": "分段報工站", "OPERATION_TYPE_CATEGORY": "S", "DESCRIPTION": "", "ENABLE_FLAG": "T", "QUOTE_ONCE": "T", "DEFECT_THROW_ATTRSPC": "", "SCRAP_THROW_ATTRSPC": "", "CREATE_USER": "Admin", "CREATE_DATE": "2024-07-27 18:09:41", "UPDATE_USER": "Admin", "UPDATE_DATE": "2025-01-15 15:03:28", "ATTRIBUTE_01": "", "ATTRIBUTE_02": "", "ATTRIBUTE_03": "", "ATTRIBUTE_04": "", "ATTRIBUTE_05": "", "ATTRIBUTE_06": "", "ATTRIBUTE_07": "", "ATTRIBUTE_08": "", "ATTRIBUTE_09": "", "ATTRIBUTE_10": "", "ATTRIBUTE_11": 0, "ATTRIBUTE_12": 0, "ATTRIBUTE_13": 0, "ATTRIBUTE_14": null, "ATTRIBUTE_15": null, "ATTRIBUTE_16": null }, "PartInfo": { "SID": "GTI24072813321795163", "No": "24C50P001T01", "Name": "踏墊24C50P001T01", "Identity": "24C50P001T01", "TableName": "PF_PARTNO", "IsExist": true, "PRODUCT_SID": "GTI24072813300795153", "DEFAULT_VERSION": 0, "VERSION_SPEC": "T01", "VERSION_DESCRIPTION": "", "MAX_VERSION": 0, "CATEGORY": "Product", "ABC_CODE": "C", "LOT_CONTROL_FLAG": "T", "BONDED_FLAG": "F", "PARTNO_TYPE_SID": "121856a8-d410-43a7-abd0-ec040ef71562", "PARTNO_CATEGORY_SID_1": "", "PARTNO_CATEGORY_SID_2": "", "PARTNO_CATEGORY_SID_3": "", "PARTNO_CATEGORY_SID_4": "", "PARTNO_CATEGORY_SID_5": "", "PARTNO_CATEGORY_SID_6": "", "PARTNO_CATEGORY_SID_7": "", "UNIT": "PCS", "UNIT_1": "", "UNIT_2": "", "SAVE_QTY": 0, "PARTNO_VER_SID": "GTI24072813321795164", "VERSION": 0, "VERSION_STATE": "Disable", "DEFAULT_FLAG": "F", "ENG_FLAG": "F", "BOM_ENABLE_FLAG": "F", "MANUFACTURE_FALG": "T", "COMP_DEFAULT_QTY": 0, "QTIME_CHECK_TYPE": "", "QTIME_HOLD_FLAG": "F", "QTIME_CHECK_TIME": 0, "EXPIRATION_DATE": 0, "EXTEND_EXPIRATION_DATE": 0, "QTIME": null, "WTIME": null, "ENABLE_TIME": null, "DISABLE_TIME": null, "ATTRIBUTE_01": "L1R|00411509", "ATTRIBUTE_02": "RIVIAN R1S/R1T", "ATTRIBUTE_03": "2022~2024+", "ATTRIBUTE_04": "KAGU BLACK R1", "ATTRIBUTE_05": "24 G 12 1L", "ATTRIBUTE_06": "", "ATTRIBUTE_07": "", "ATTRIBUTE_08": "", "ATTRIBUTE_09": "", "ATTRIBUTE_10": "", "ATTRIBUTE_11": null, "ATTRIBUTE_12": null, "ATTRIBUTE_13": null, "ATTRIBUTE_14": null, "ATTRIBUTE_15": null, "ATTRIBUTE_16": null, "ATTRIBUTE_17": "", "ATTRIBUTE_18": "", "ATTRIBUTE_19": "", "ATTRIBUTE_20": "", "ATTRIBUTE_21": "", "ATTRIBUTE_22": "", "ATTRIBUTE_23": "", "ATTRIBUTE_24": "", "ATTRIBUTE_25": "", "ATTRIBUTE_26": "", "ATTRIBUTE_27": "", "ATTRIBUTE_28": "", "ATTRIBUTE_29": "", "ATTRIBUTE_30": "", "ATTRIBUTE_31": "", "ATTRIBUTE_32": "", "ATTRIBUTE_33": "", "ATTRIBUTE_34": "", "ATTRIBUTE_35": "", "ATTRIBUTE_36": null, "ATTRIBUTE_37": null, "ATTRIBUTE_38": null, "ATTRIBUTE_39": null, "ATTRIBUTE_40": null, "CREATE_USER": "Admin", "CREATE_DATE": "2024-07-28 13:32:17", "UPDATE_USER": "Admin", "UPDATE_DATE": "2025-01-15 13:25:28" }, "UseEqumentInfo": null, "UseEqumentList": null, "UserSelectList": [{ "RefKey": null, "SID": "ca009140-44ab-4595-b627-b976801a2c90", "No": "UserAdmin", "Value": "ca009140-44ab-4595-b627-b976801a2c90", "Display": "系統管理人員", "StatusSid": null, "Status": null, "FromNum": 0, "INum": 0, "Attr01": "UserAdmin", "Attr02": null, "Attr03": null, "subItem": [{ "RefKey": null, "SID": "GTI24072816351496353", "No": "CUT-001", "Value": null, "Display": "切割機001", "StatusSid": null, "Status": null, "FromNum": 0, "INum": 0, "Attr01": null, "Attr02": null, "Attr03": null }] }, { "RefKey": null, "SID": "865bc3f0-7092-48d8-b6c8-f27c3e81807d", "No": "ting", "Value": "865bc3f0-7092-48d8-b6c8-f27c3e81807d", "Display": "黃國庭", "StatusSid": null, "Status": null, "FromNum": 0, "INum": 0, "Attr01": "ting", "Attr02": null, "Attr03": null }, { "RefKey": null, "SID": "GTI24072815180795288", "No": "TA20240101", "Value": "GTI24072815180795288", "Display": "紀穀枝", "StatusSid": null, "Status": null, "FromNum": 0, "INum": 0, "Attr01": "TA20240101", "Attr02": null, "Attr03": null }, { "RefKey": null, "SID": "GTI24072815180795289", "No": "PI20200301", "Value": "GTI24072815180795289", "Display": "洪元裕", "StatusSid": null, "Status": null, "FromNum": 0, "INum": 0, "Attr01": "PI20200301", "Attr02": null, "Attr03": null }, { "RefKey": null, "SID": "GTI24072815180795290", "No": "PI20230501", "Value": "GTI24072815180795290", "Display": "郭宥騰", "StatusSid": null, "Status": null, "FromNum": 0, "INum": 0, "Attr01": "PI20230501", "Attr02": null, "Attr03": null }, { "RefKey": null, "SID": "GTI24072815180795291", "No": "PI20190701", "Value": "GTI24072815180795291", "Display": "陳冠綸", "StatusSid": null, "Status": null, "FromNum": 0, "INum": 0, "Attr01": "PI20190701", "Attr02": null, "Attr03": null }, { "RefKey": null, "SID": "GTI24072815180795292", "No": "PI20220702", "Value": "GTI24072815180795292", "Display": "洪智雄", "StatusSid": null, "Status": null, "FromNum": 0, "INum": 0, "Attr01": "PI20220702", "Attr02": null, "Attr03": null }, { "RefKey": null, "SID": "GTI24072815180795293", "No": "PI20240602", "Value": "GTI24072815180795293", "Display": "鍾志敏", "StatusSid": null, "Status": null, "FromNum": 0, "INum": 0, "Attr01": "PI20240602", "Attr02": null, "Attr03": null }, { "RefKey": null, "SID": "GTI24072815180795294", "No": "PI20210301", "Value": "GTI24072815180795294", "Display": "曾瀞慧", "StatusSid": null, "Status": null, "FromNum": 0, "INum": 0, "Attr01": "PI20210301", "Attr02": null, "Attr03": null }, { "RefKey": null, "SID": "GTI24072815180795295", "No": "PI19970501", "Value": "GTI24072815180795295", "Display": "陳英蘭", "StatusSid": null, "Status": null, "FromNum": 0, "INum": 0, "Attr01": "PI19970501", "Attr02": null, "Attr03": null }, { "RefKey": null, "SID": "GTI24072815180795296", "No": "PI20210701", "Value": "GTI24072815180795296", "Display": "王堇詒", "StatusSid": null, "Status": null, "FromNum": 0, "INum": 0, "Attr01": "PI20210701", "Attr02": null, "Attr03": null }, { "RefKey": null, "SID": "GTI24072815180795297", "No": "PI20190601", "Value": "GTI24072815180795297", "Display": "楊力衡", "StatusSid": null, "Status": null, "FromNum": 0, "INum": 0, "Attr01": "PI20190601", "Attr02": null, "Attr03": null }, { "RefKey": null, "SID": "GTI24072815180795298", "No": "PI20060501", "Value": "GTI24072815180795298", "Display": "羅偉賢", "StatusSid": null, "Status": null, "FromNum": 0, "INum": 0, "Attr01": "PI20060501", "Attr02": null, "Attr03": null }, { "RefKey": null, "SID": "GTI24072815180795299", "No": "KS20060301", "Value": "GTI24072815180795299", "Display": "姚永芬", "StatusSid": null, "Status": null, "FromNum": 0, "INum": 0, "Attr01": "KS20060301", "Attr02": null, "Attr03": null }, { "RefKey": null, "SID": "GTI24072815180795300", "No": "KS20050801", "Value": "GTI24072815180795300", "Display": "陳剛", "StatusSid": null, "Status": null, "FromNum": 0, "INum": 0, "Attr01": "KS20050801", "Attr02": null, "Attr03": null }, { "RefKey": null, "SID": "GTI24072815180795301", "No": "KS20051101", "Value": "GTI24072815180795301", "Display": "沈軍", "StatusSid": null, "Status": null, "FromNum": 0, "INum": 0, "Attr01": "KS20051101", "Attr02": null, "Attr03": null }, { "RefKey": null, "SID": "GTI24072815180795302", "No": "TA20170701", "Value": "GTI24072815180795302", "Display": "鄒玫芬", "StatusSid": null, "Status": null, "FromNum": 0, "INum": 0, "Attr01": "TA20170701", "Attr02": null, "Attr03": null }, { "RefKey": null, "SID": "GTI10090316343800001", "No": "Admin", "Value": "GTI10090316343800001", "Display": "系統管理員", "StatusSid": null, "Status": null, "FromNum": 0, "INum": 0, "Attr01": "Admin", "Attr02": null, "Attr03": null }, { "RefKey": null, "SID": "865bc3f0-7092-48d8-b6c8-f27c3e81807d", "No": "ting", "Value": "865bc3f0-7092-48d8-b6c8-f27c3e81807d", "Display": "黃國庭", "StatusSid": null, "Status": null, "FromNum": 0, "INum": 0, "Attr01": "ting", "Attr02": null, "Attr03": null }, { "RefKey": null, "SID": "99d0a82c-9cd3-4ba2-bd94-c98e59dd5741", "No": "Jordan", "Value": "99d0a82c-9cd3-4ba2-bd94-c98e59dd5741", "Display": "Jordan", "StatusSid": null, "Status": null, "FromNum": 0, "INum": 0, "Attr01": "Jordan", "Attr02": null, "Attr03": null }], "OperSOP": null, "OperRecipe": null, "OperDefectList": [{ "ItemType": null, "Attr": null, "Attr04": null, "Attr05": null, "Attr06": null, "Attr07": null, "Attr08": null, "Attr09": null, "Attr10": null, "RefKey": null, "SID": "GTI24072821034996668", "No": "D.C01-0001", "Value": null, "Display": "汙損", "StatusSid": null, "Status": null, "FromNum": 0, "INum": 0, "Attr01": null, "Attr02": null, "Attr03": null }], "OperScrapList": [{ "RefKey": null, "SID": "GTI11110115550180956", "No": "other", "Value": null, "Display": "其他", "StatusSid": null, "Status": null, "FromNum": 0, "INum": 0, "Attr01": null, "Attr02": null, "Attr03": null }], "EdcList": [{ "EdcVerSid": "GTI24072817343096457", "EdcParameterSid": "GTI24072817292896446", "QCItemSID": "GTI24072817292896446", "DataType": "N", "DataCount": 4, "DispayPointName": "", "DispayPointNameList": [""], "ItemSid": "GTI24072817292896446", "ItemNo": "EDC-0001", "ItemName": "厚度測量", "mustInput": "T", "UCL": 13, "USL": 13, "LCL": 11, "LSL": 11, "TL": "12", "EDCSid": "GTI24072817333296454", "EDCThrowSpc": "F", "pass": false, "ThrowSpc": "F", "EDCVerParaSid": "GTI24072817383796466", "DBTable": "", "DBColumnName": "", "ITEM_SEQ": null, "InputValueList": [{ "1": "" }, { "2": "" }, { "3": "" }, { "4": "" }] }], "ServerPrintInfo": null, "ReasonList": [{ "RefKey": null, "SID": "GTI11110115550180956", "No": "other", "Value": null, "Display": "其他", "StatusSid": null, "Status": null, "FromNum": 0, "INum": 0, "Attr01": "F", "Attr02": null, "Attr03": null }], "ReasonGroupList": null, "QCInfo": null, "QC1916Info": null, "HoldInfoList": null, "OperationPartUseList": [], "List_MLotOnEqp": null, "CarrierInfo": null, "DetailLotList": null, "Setting": { "CheckInSet": { "IsShowEdcView": false, "IsCollectEDC": false, "IsUseCopeAllEDC": false }, "CheckOutSet": { "IsShowSplit": false, "SplitCfg": { "SplitMode": 0, "CodeRule": "SplitLot", "ParentLotCheckOut": true, "title": null, "enable": false, "required": false }, "SplitType": "Out", "IsPrintLabel": false, "IsLotSplitQTY": false, "IsLotSplitQTYCheckList": [], "IsSplitBIN": false, "IsPackage": false, "IsPackage_cfg": { "title": null, "enable": false, "required": false, "CodeRule": null }, "IsReWork": false, "LotFinlishTransfromMLot": false, "IsReWork_cfg": { "title": null, "enable": false, "required": false, "CodeRule": null }, "IsGoodQTY": false, "IsGoodUseType": "GoodAndScrap", "IsGrade": false, "IsGradePack": false, "IsWaferLogEDC": false, "IsIngotLogEDC": false, "IsIngotLogEDCTarget": "AssemblyMaterials", "IsUseCopeAllEDC": false }, "AnySet": { "IsMultiLotSpitEqps": false, "IsOperationWorkingTimeSummery": true, "IsWarehousingOp": false, "UseWareEncodeSetting": "Default", "IsOperationWoBin": false, "IsOperationWoPlate": false, "FinishedReturnERP": false, "UseWMS": false, "SuportRec": { "title": null, "enable": false, "required": false, "CodeRule": null, "Path": "", "API": { "Create": null, "Query": "", "Save": null, "Del": null } }, "BoxInOut": { "In": { "title": null, "enable": false, "required": false, "CodeRule": null, "Path": "", "API": { "Create": null, "Query": "", "Save": null, "Del": null } }, "Out": { "title": null, "enable": false, "required": false, "CodeRule": null, "Path": "", "API": { "Create": null, "Query": "", "Save": null, "Del": null } }, "title": null, "enable": false, "required": false, "CodeRule": null }, "APICfg": {} } }, "OperRouteList": { "OperRouteList": [{ "SID": "GTI24122315164102764", "No": "[001]裁斷", "Name": "[001]裁斷", "Identity": "[001]裁斷", "TableName": "PF_ROUTE_VER_OPER", "IsExist": true, "ROUTE_VER_OPER_SID": "GTI24122315164102764", "ROUTE_VER_SID": "GTI24122315062802725", "ROUTE_SID": "GTI24122315062802724", "ROUTE_NO": "R-B001", "ROUTE": "高週波演示範例", "VERSION": 1, "OPER_CATEGORY": "O", "OPER_SEQ": "001", "OPER_SID": "GTI24072718002295060", "OPERATION_NO": "C01-0010", "OPERATION": "裁斷", "IS_START": "T", "IS_END": "F", "CREATE_USER": "Admin", "CREATE_DATE": "2024-12-23 15:16:41", "UPDATE_USER": "Admin", "UPDATE_DATE": "2024-12-23 15:16:41" }, { "SID": "GTI24122315164102765", "No": "[002]成型", "Name": "[002]成型", "Identity": "[002]成型", "TableName": "PF_ROUTE_VER_OPER", "IsExist": true, "ROUTE_VER_OPER_SID": "GTI24122315164102765", "ROUTE_VER_SID": "GTI24122315062802725", "ROUTE_SID": "GTI24122315062802724", "ROUTE_NO": "R-B001", "ROUTE": "高週波演示範例", "VERSION": 1, "OPER_CATEGORY": "O", "OPER_SEQ": "002", "OPER_SID": "GTI24072718094195075", "OPERATION_NO": "C01-0020", "OPERATION": "成型", "IS_START": "F", "IS_END": "F", "CREATE_USER": "Admin", "CREATE_DATE": "2024-12-23 15:16:41", "UPDATE_USER": "Admin", "UPDATE_DATE": "2024-12-23 15:16:41" }, { "SID": "GTI24122315164102766", "No": "[003]剪邊", "Name": "[003]剪邊", "Identity": "[003]剪邊", "TableName": "PF_ROUTE_VER_OPER", "IsExist": true, "ROUTE_VER_OPER_SID": "GTI24122315164102766", "ROUTE_VER_SID": "GTI24122315062802725", "ROUTE_SID": "GTI24122315062802724", "ROUTE_NO": "R-B001", "ROUTE": "高週波演示範例", "VERSION": 1, "OPER_CATEGORY": "O", "OPER_SEQ": "003", "OPER_SID": "GTI24072718094195076", "OPERATION_NO": "C01-0030", "OPERATION": "剪邊", "IS_START": "F", "IS_END": "F", "CREATE_USER": "Admin", "CREATE_DATE": "2024-12-23 15:16:41", "UPDATE_USER": "Admin", "UPDATE_DATE": "2024-12-23 15:16:41" }, { "SID": "GTI24122315164102767", "No": "[004]高週波補強片", "Name": "[004]高週波補強片", "Identity": "[004]高週波補強片", "TableName": "PF_ROUTE_VER_OPER", "IsExist": true, "ROUTE_VER_OPER_SID": "GTI24122315164102767", "ROUTE_VER_SID": "GTI24122315062802725", "ROUTE_SID": "GTI24122315062802724", "ROUTE_NO": "R-B001", "ROUTE": "高週波演示範例", "VERSION": 1, "OPER_CATEGORY": "O", "OPER_SEQ": "004", "OPER_SID": "GTI24072718094195077", "OPERATION_NO": "C01-0040", "OPERATION": "高週波補強片", "IS_START": "F", "IS_END": "F", "CREATE_USER": "Admin", "CREATE_DATE": "2024-12-23 15:16:41", "UPDATE_USER": "Admin", "UPDATE_DATE": "2024-12-23 15:16:41" }, { "SID": "GTI24122315164102768", "No": "[005]入庫", "Name": "[005]入庫", "Identity": "[005]入庫", "TableName": "PF_ROUTE_VER_OPER", "IsExist": true, "ROUTE_VER_OPER_SID": "GTI24122315164102768", "ROUTE_VER_SID": "GTI24122315062802725", "ROUTE_SID": "GTI24122315062802724", "ROUTE_NO": "R-B001", "ROUTE": "高週波演示範例", "VERSION": 1, "OPER_CATEGORY": "O", "OPER_SEQ": "005", "OPER_SID": "GTI24072718094195083", "OPERATION_NO": "C01-0100", "OPERATION": "入庫", "IS_START": "F", "IS_END": "T", "CREATE_USER": "Admin", "CREATE_DATE": "2024-12-23 15:16:41", "UPDATE_USER": "Admin", "UPDATE_DATE": "2024-12-23 15:16:41" }], "CurrentOperKey": "2" }, "WOInfo": { "SID": "TWO-241223A", "No": "TWO-241223A", "Name": "TWO-241223A", "Identity": "TWO-241223A", "TableName": "WP_WO", "IsExist": true, "EnableEditMode": false, "WO": "TWO-241223A", "SO": "", "PO": "", "WO_TYPE": "Normal", "WO_TYPE2": "", "WO_TYPE3": "", "STATUS": "Release", "ERP_STATUS": "", "QUANTITY": 200, "ERP_QUANTITY": 0, "UNIT": "PCS", "QTY_1": 0, "UNIT_1": "", "QTY_2": 0, "UNIT_2": "", "UNRELEASE_QUANTITY": 100, "RELEASE_QUANTITY": 100, "UNRELEASE_QTY_1": 0, "RELEASE_QTY_1": 0, "UNRELEASE_QTY_2": 0, "RELEASE_QTY_2": 0, "LOT_SIZE": 50, "ROUTE_VER_SID": "GTI24122315062802725", "ROUTE": "高週波演示範例", "ROUTE_VERSION": 1, "PRODUCT_SID": "GTI24072813300795153", "PRODUCT": "3Dmats", "PARTNO_VER_SID": "GTI24072813321795164", "PARTNO": "24C50P001T01", "PARTNO_VERSION": 0, "PRIORITY": "3", "OWNER": "", "CUSTOMER": "", "RELEASE_QUANTITY2": 100, "BONDED_FLAG": "F", "BONDED_NO": "", "SCHEDULEDATE": null, "DUEDATE": null, "FACTORY": "", "ECN_SID": "", "ECN_NO": "", "ECN_NAME": "", "WO_LINE_SID": "GTI24072813471495190", "WO_LINE_NO": "LINE-A", "WO_LINE": "產線A", "ATTRIBUTE_01": "", "ATTRIBUTE_02": "", "ATTRIBUTE_03": "", "ATTRIBUTE_04": "", "ATTRIBUTE_05": "", "ATTRIBUTE_06": "", "ATTRIBUTE_07": "", "ATTRIBUTE_08": "", "ATTRIBUTE_09": "", "ATTRIBUTE_10": "", "ATTRIBUTE_11": 0, "ATTRIBUTE_12": 0, "ATTRIBUTE_13": 0, "ATTRIBUTE_14": null, "ATTRIBUTE_15": null, "ATTRIBUTE_16": null, "ATTRIBUTE_17": "", "ATTRIBUTE_18": "", "ATTRIBUTE_19": "", "ATTRIBUTE_20": "", "ATTRIBUTE_21": "", "ATTRIBUTE_22": "", "ATTRIBUTE_23": "", "ATTRIBUTE_24": "", "ATTRIBUTE_25": "", "ATTRIBUTE_26": "", "ATTRIBUTE_27": "", "ATTRIBUTE_28": "", "ATTRIBUTE_29": "", "ATTRIBUTE_30": "", "ATTRIBUTE_31": "", "ATTRIBUTE_32": "", "ATTRIBUTE_33": "", "ATTRIBUTE_34": "", "ATTRIBUTE_35": "", "ATTRIBUTE_36": null, "ATTRIBUTE_37": null, "ATTRIBUTE_38": null, "ATTRIBUTE_39": null, "ATTRIBUTE_40": null, "CREATE_USER": "系統管理員", "CREATE_DATE": "2024-12-23 15:18:57", "UPDATE_USER": "Admin", "UPDATE_DATE": "2024-12-23 15:19:46", "CUST_PART_NO": "", "CUST_PART_NO_SID": "", "CUST_PART_NO_VER_SID": "" }, "EqpUseToolList": null, "PosiMap": null, "CollectLotAttr": null, "WafersWarehouseInfo": null, "LOT_Ext": {}, "API": {}, "CheckTime": "2025-01-15 14:51:21", "systemConfig": { "DecimalPoint": 0, "SystemTitle": "聖州", "IsOpenNewDataImport": false, "IsGlobalPermissions": true, "IsEnableUserTraceLog": true, "IsAutoGenerateSPCControl": false, "IsSystemLayoutConfig": false, "IsReleaseCustomProject": false, "ProjectFolder": "Project", "IsUseWebRoute": true, "IsDCS": false, "IsDefectAllowOverZero": false, "IsRecordOperationRecipeHist": true, "ProductCategory": "SmartMES", "IsAPI": false, "UserAdminValidateRoleNo": "UserAdmin", "setp": "1" }, "send_data": { "user_list": { "col": 8, "ref": "peopleManagement", "is": "sj-people-management", "floatFix": false, "model": [{ "ItemType": null, "Attr": null, "Attr04": "2025-01-15 15:45:53", "Attr05": "2025-01-15 15:47:26", "Attr06": null, "Attr07": null, "Attr08": null, "Attr09": null, "Attr10": "2", "RefKey": null, "SID": "24f1a73a-0f05-4cb4-89f6-7cafdc5f345f", "No": "PI20200301", "Value": null, "Display": "洪元裕", "StatusSid": null, "Status": null, "FromNum": 0, "INum": 0, "Attr01": null, "Attr02": null, "Attr03": null }, { "ItemType": null, "Attr": null, "Attr04": "2025-02-09 14:55:51", "Attr05": null, "Attr06": null, "Attr07": null, "Attr08": null, "Attr09": null, "Attr10": "7", "RefKey": null, "SID": "31489ed8-887d-4a41-b828-20a58c84c66c", "No": "TA20240101", "Value": null, "Display": "紀穀枝", "StatusSid": null, "Status": null, "FromNum": 0, "INum": 0, "Attr01": null, "Attr02": null, "Attr03": null }, { "ItemType": null, "Attr": null, "Attr04": "2025-01-15 15:47:40", "Attr05": "2025-01-15 15:47:58", "Attr06": null, "Attr07": null, "Attr08": null, "Attr09": null, "Attr10": "2", "RefKey": null, "SID": "0b44ea7c-4c1e-4435-b1e4-23fa9b36dd75", "No": "UserAdmin", "Value": null, "Display": "系統管理人員", "StatusSid": null, "Status": null, "FromNum": 0, "INum": 0, "Attr01": null, "Attr02": null, "Attr03": null }], "isByUser": false }, "LotModifyData.Note": { "col": 8, "ref": "dvlotChangeNote", "is": "lot-change-note", "floatFix": false, "model": [], "isByUser": false }, "GoodComponent": { "col": 8, "ref": "inputGoodQtyScope", "is": "sj-goodqty", "floatFix": false, "model": [], "isByUser": true }, "defectList": { "col": 8, "ref": "defectScope", "is": "cp-defect", "floatFix": true, "model": [], "isByUser": true }, "scrapList": { "col": 8, "ref": "scrapScope", "is": "cp-scrap", "floatFix": false, "model": [], "isByUser": true }, "edcList": { "col": 16, "ref": "edcScope", "is": "edc-input", "floatFix": true, "model": [{ "EdcVerSid": "GTI24072817343096457", "EdcParameterSid": "GTI24072817292896446", "QCItemSID": "GTI24072817292896446", "DataType": "N", "DataCount": 4, "DispayPointName": "", "DispayPointNameList": [""], "ItemSid": "GTI24072817292896446", "ItemNo": "EDC-0001", "ItemName": "厚度測量", "mustInput": "T", "UCL": 13, "USL": 13, "LCL": 11, "LSL": 11, "TL": "12", "EDCSid": "GTI24072817333296454", "EDCThrowSpc": "F", "pass": false, "ThrowSpc": "F", "EDCVerParaSid": "GTI24072817383796466", "DBTable": "", "DBColumnName": "", "ITEM_SEQ": null, "InputValueList": [{ "1": "" }, { "2": "" }, { "3": "" }, { "4": "" }] }], "isByUser": false } }, "ErrGroup": {}, "CheckList": {} },
+        UserModel: {
+            "ItemType": null,
+            "Attr": null,
+            "Attr04": "2025-02-09 14:55:51",
+            "Attr05": null,
+            "Attr06": null,
+            "Attr07": null,
+            "Attr08": null,
+            "Attr09": null,
+            "Attr10": "7",
+            "RefKey": null,
+            "SID": "31489ed8-887d-4a41-b828-20a58c84c66c",
+            "No": "TA20240101",
+            "Value": null,
+            "Display": "紀穀枝",
+            "StatusSid": null,
+            "Status": null,
+            "FromNum": 0,
+            "INum": 0,
+            "Attr01": null,
+            "Attr02": null,
+            "Attr03": null,
+            "subItem": [],
+        },
+        oper_info: { SID: '123' },
+        Idx: {
+            EQP1: {
+                "161600000118": {
+                    "USE_COUNT_RATIO": null,
+                    "USE_COUNT": 59,
+                    "MAX_USE_COUNT": 9999999,
+                    "RefKey": null,
+                    "SID": "GTI24122419462090597",
+                    "No": "161600000118",
+                    "Value": "161600000118",
+                    "Display": "雷雕機_1",
+                    "StatusSid": null,
+                    "Status": "Run",
+                    "FromNum": 0,
+                    "INum": 0,
+                    "Attr01": null,
+                    "Attr02": null,
+                    "Attr03": null,
+                    "subItem": [
+                        {
+                            "USE_COUNT_RATIO": 1,
+                            "USE_COUNT": 47,
+                            "MAX_USE_COUNT": 9999999,
+                            "RefKey": "GTI25010216460904465",
+                            "SID": "GTI24122420055092943",
+                            "No": "J50-C001-010NA1-A1-01-06",
+                            "Value": "J50-C001-010NA1-A1-01-06",
+                            "Display": "外殼雷雕治具 J50-C001-010NA1-A1-01-06",
+                            "StatusSid": null,
+                            "Status": null,
+                            "FromNum": 0,
+                            "INum": 0,
+                            "Attr01": "GTI24122420054692933$A001-018NA6-166_1000-0010$A001-018NA6-166_1000-0010ECU-外殼雷雕",
+                            "Attr02": null,
+                            "Attr03": null,
+                            "subItem": [],
+                            "subItemExt": [],
+                            "is_空subItem錯誤": false
+                        }
+                    ],
+                    "subItemExt": [],
+                    "is_空subItem錯誤": false
+                }
+            }
+        },
+
+        list_EQP: [
+            {
+                "RefKey": null,
+                "SID": "GTI24072816361996361",
+                "No": "CUT-002",
+                "Value": null,
+                "Display": "切割機002-",
+                "StatusSid": null,
+                "Status": null,
+                "FromNum": 0,
+                "INum": 0,
+                "Attr01": null,
+                "Attr02": null,
+                "Attr03": null
+            },
+            {
+                "RefKey": null,
+                "SID": "GTI24072816361996369",
+                "No": "CUT-003",
+                "Value": null,
+                "Display": "切割機003-",
+                "StatusSid": null,
+                "Status": null,
+                "FromNum": 0,
+                "INum": 0,
+                "Attr01": null,
+                "Attr02": null,
+                "Attr03": null
+            }
+        ],
+    }
+</script>
+<style>
+    .gti-limits-info-table {
+        width: 23rem;
+    }
+</style>

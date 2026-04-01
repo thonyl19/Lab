@@ -1,0 +1,326 @@
+﻿<script>
+    $(() => {
+        Vue.component('virtual-list', VirtualList)
+        const item = {
+            props: ['source', 'index', 'checked', 'toggle', 'keyField', 'labelField'],
+            render(h) {
+                const keyVal = this.source[this.keyField];
+                const labelVal = this.source[this.labelField];
+                const isChecked = this.checked.indexOf(keyVal) > -1;
+                return h('div', {
+                    class: 'vt-item-row',
+                    on: {
+                        click: () => this.toggle(keyVal)
+                    }
+                }, [
+                    h('el-checkbox', {
+                        props: {
+                            value: isChecked
+                        },
+                        nativeOn: {
+                            click: (e) => e.stopPropagation()
+                        },
+                        on: {
+                            change: () => this.toggle(keyVal)
+                        }
+                    }, labelVal)
+                ])
+            }
+        }
+        Vue.component('virtual-transfer', {
+            template: `
+            <div class="el-transfer">
+                <!-- 左側面板 -->
+                <div class="el-transfer-panel">
+                    <p class="el-transfer-panel__header">
+                        <el-checkbox :indeterminate="isIndeterminateLeft" v-model="allLeft">
+                            未授權
+                        </el-checkbox>
+                        <span class="vt-count">{{ checkedLeft.length }}/{{ filteredLeft.length }}</span>
+                    </p>
+                    <div class="el-transfer-panel__body">
+                        <el-input 
+                            v-model="leftKeyword" 
+                            size="small" 
+                            placeholder="搜尋..." 
+                            prefix-icon="el-icon-search"
+                            class="el-transfer-panel__filter">
+                        </el-input>
+                        <virtual-list
+                            class="el-transfer-panel__list"
+                            :data-sources="filteredLeft"
+                            :data-key="props.key"
+                            :data-component="item"
+                            :extra-props="{ checked: checkedLeft, toggle: toggleLeft, keyField: props.key, labelField: props.label }"
+                            :keeps="20"
+                            :size="30"
+                        />
+                    </div>
+                </div>
+
+                <!-- 中間按鈕 -->
+                <div class="el-transfer__buttons">
+                    <el-button 
+                        type="primary" 
+                        class="el-transfer__button"
+                        :disabled="checkedLeft.length === 0" 
+                        @@click="toRight" 
+                        circle 
+                        icon="el-icon-arrow-right">
+                    </el-button>
+                    <el-button 
+                        type="primary" 
+                        class="el-transfer__button"
+                        :disabled="checkedRight.length === 0" 
+                        @@click="toLeft" 
+                        circle 
+                        icon="el-icon-arrow-left">
+                    </el-button>
+                </div>
+
+                <!-- 右側面板 -->
+                <div class="el-transfer-panel">
+                    <p class="el-transfer-panel__header">
+                        <el-checkbox :indeterminate="isIndeterminateRight" v-model="allRight">
+                            已授權
+                        </el-checkbox>
+                        <span class="vt-count">{{ checkedRight.length }}/{{ filteredRight.length }}</span>
+                    </p>
+                    <div class="el-transfer-panel__body">
+                        <el-input 
+                            v-model="rightKeyword" 
+                            size="small" 
+                            placeholder="搜尋..." 
+                            prefix-icon="el-icon-search"
+                            class="el-transfer-panel__filter">
+                        </el-input>
+                        <virtual-list
+                            class="el-transfer-panel__list"
+                            :data-sources="filteredRight"
+                            :data-key="props.key"
+                            :data-component="item"
+                            :extra-props="{ checked: checkedRight, toggle: toggleRight, keyField: props.key, labelField: props.label }"
+                            :keeps="20"
+                            :size="30"
+                        />
+                    </div>
+                </div>
+            </div>
+            `,
+            components: { VirtualList, item },
+            props: {
+                value: {
+                    type: Array,
+                    default: () => []
+                },
+                data: {
+                    type: Array,
+                    default: () => []
+                },
+                props: {
+                    type: Object,
+                    default: () => ({ key: 'id', label: 'name' })
+                }
+            },
+            data() {
+                return {
+                    item,
+                    checkedLeft: [],
+                    checkedRight: [],
+                    leftKeyword: '',
+                    rightKeyword: ''
+                }
+            },
+            computed: {
+                rightSet() {
+                    return new Set(this.value)
+                },
+                leftList() {
+                    return this.data.filter(d => !this.rightSet.has(d[this.props.key]))
+                },
+                rightList() {
+                    return this.data.filter(d => this.rightSet.has(d[this.props.key]))
+                },
+                filteredLeft() {
+                    const kw = this.leftKeyword.trim().toLowerCase();
+                    return this.leftList.filter(d =>
+                        String(d[this.props.label]).toLowerCase().includes(kw)
+                    )
+                },
+                filteredRight() {
+                    const kw = this.rightKeyword.trim().toLowerCase();
+                    return this.rightList.filter(d =>
+                        String(d[this.props.label]).toLowerCase().includes(kw)
+                    )
+                },
+                // 全選控制 - 左
+                isIndeterminateLeft() {
+                    const len = this.checkedLeft.length;
+                    return len > 0 && len < this.filteredLeft.length;
+                },
+                allLeft: {
+                    get() {
+                        return this.filteredLeft.length > 0 && this.checkedLeft.length === this.filteredLeft.length;
+                    },
+                    set(val) {
+                        if (val) {
+                            this.checkedLeft = this.filteredLeft.map(d => d[this.props.key]);
+                        } else {
+                            this.checkedLeft = [];
+                        }
+                    }
+                },
+                // 全選控制 - 右
+                isIndeterminateRight() {
+                    const len = this.checkedRight.length;
+                    return len > 0 && len < this.filteredRight.length;
+                },
+                allRight: {
+                    get() {
+                        return this.filteredRight.length > 0 && this.checkedRight.length === this.filteredRight.length;
+                    },
+                    set(val) {
+                        if (val) {
+                            this.checkedRight = this.filteredRight.map(d => d[this.props.key]);
+                        } else {
+                            this.checkedRight = [];
+                        }
+                    }
+                }
+            },
+            methods: {
+                toggleLeft(key) {
+                    const idx = this.checkedLeft.indexOf(key);
+                    if (idx > -1) {
+                        this.checkedLeft.splice(idx, 1);
+                    } else {
+                        this.checkedLeft.push(key);
+                    }
+                    this.checkedLeft = [...this.checkedLeft];
+                },
+                toggleRight(key) {
+                    const idx = this.checkedRight.indexOf(key);
+                    if (idx > -1) {
+                        this.checkedRight.splice(idx, 1);
+                    } else {
+                        this.checkedRight.push(key);
+                    }
+                    this.checkedRight = [...this.checkedRight];
+                },
+                toRight() {
+                    const newValue = new Set(this.value);
+                    this.checkedLeft.forEach(id => newValue.add(id));
+                    this.$emit('input', Array.from(newValue));
+                    this.checkedLeft = [];
+                },
+                toLeft() {
+                    const newValue = new Set(this.value);
+                    this.checkedRight.forEach(id => newValue.delete(id));
+                    this.$emit('input', Array.from(newValue));
+                    this.checkedRight = [];
+                }
+            }
+        });
+    });
+</script>
+
+<style>
+    .el-transfer {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+    }
+
+    .el-transfer-panel {
+        border: 1px solid #ebeef5;
+        border-radius: 4px;
+        background-color: #fff;
+        width: 280px;
+        height: 450px;
+        display: flex;
+        flex-direction: column;
+        box-sizing: border-box;
+        position: relative;
+    }
+
+    .el-transfer-panel__header {
+        height: 40px;
+        line-height: 40px;
+        background: #f5f7fa;
+        margin: 0;
+        padding: 0 15px;
+        border-bottom: 1px solid #ebeef5;
+        box-sizing: border-box;
+        color: #303133;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+
+    .el-transfer-panel__header .el-checkbox {
+        display: flex;
+        align-items: center;
+        height: 40px;
+    }
+
+    .el-transfer-panel__header .el-checkbox__label {
+        font-size: 14px;
+        color: #303133;
+        font-weight: 400;
+    }
+
+    .vt-count {
+        color: #909399;
+        font-size: 12px;
+        font-weight: 400;
+    }
+
+    .el-transfer-panel__body {
+        padding: 10px;
+        flex: 1;
+        overflow: hidden;
+        display: flex;
+        flex-direction: column;
+    }
+
+    .el-transfer-panel__filter {
+        margin-bottom: 10px;
+        width: 100%;
+    }
+
+    .el-transfer-panel__list {
+        flex: 1;
+        overflow-x: hidden;
+        overflow-y: auto;
+        margin: 0;
+        padding: 0;
+        list-style: none;
+    }
+
+    .vt-item-row {
+        height: 30px;
+        line-height: 30px;
+        padding: 0 15px;
+        display: flex;
+        align-items: center;
+        cursor: pointer;
+        transition: background-color .2s;
+    }
+
+    .vt-item-row:hover {
+        background-color: #f5f7fa;
+    }
+
+    .el-transfer__buttons {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        padding: 0 20px;
+        gap: 10px;
+    }
+
+    .el-transfer__button {
+        margin: 0 !important;
+    }
+</style>
