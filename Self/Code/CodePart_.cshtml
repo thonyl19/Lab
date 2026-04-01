@@ -1,0 +1,40 @@
+﻿<script>
+    $(() => {
+        let { v_model} = Vue.prototype.$UT.Mixins;
+        var tpl = {
+            _包材選項: `
+                    <div class="form-horizontal gt-form">
+                        <gt-form-col label="出貨包材號">
+                            <vue-selectize-dynquery  ></vue-selectize-dynquery>
+                        </gt-form-col>
+                        <gt-form-col label="等級">
+                            <el-row :gutter="2">
+                                <el-col :sm="12" :xs="12">
+                                    <vue-selectize ></vue-selectize>
+                                </el-col>
+                                <el-col :sm="12" :xs="12">
+                                    <el-button type="primary" plain size="medium"   icon="el-icon-plus"> </el-button>
+                                    <el-button type="warning" plain size="medium"  icon="el-icon-refresh-right"> </el-button>
+                                </el-col>
+                            </el-row>
+                        </gt-form-col>
+                    </div>
+            `,
+        }
+        var _fn = {
+            _包材選項() {
+                return _fn._new(tpl._包材選項, {});
+            },
+            _new(template,ops) {
+                return {
+                    mixins: [v_model(),ops],
+                    template,
+                }
+            }
+        };
+        //Vue.component('cp-posi-map', _fn.PosiMap())
+        Vue.component('cp-包材選項', _fn._包材選項);
+ 
+
+    });
+</script>

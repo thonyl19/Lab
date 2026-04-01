@@ -1,0 +1,251 @@
+﻿@*MES_Htm_EDC*@
+@{
+  var action = ViewContext.RouteData.Values["action"].ToString();
+	var controller = ViewContext.RouteData.Values["controller"].ToString().ToUpper();
+	GTI_Test GTest = new GTI_Test(Html, HttpContext.Current.IsDebuggingEnabled, ViewContext.HttpContext.Request);
+	ViewBag.Title = Genesis.Common.PageBaseInfo.getCurrentResource(action.ToString()).RESOURCE_NAME;
+	bool sidepage = ViewContext.HttpContext.Request["sidepage"] == "T";
+	if (sidepage){
+    <h3>
+        @ViewBag.Title
+    </h3>
+  } else {
+    Layout = "~/Views/Shared/_LayoutSingle.cshtml";
+    @eBundle.QRender_CSS();
+    @eBundle.QRender_JS();
+  }
+}
+@Html.Partial("~/Areas/MES/Views/Shared/_edcGrid.cshtml")
+@eBundle.QRender_CSS()
+@eBundle.QRender_JS()
+@Html.AntiForgeryToken()
+<script>
+$(() => {
+  var _data = @Html.Raw(ViewData["result"]??"{}");
+	let { options_src, form = {ENABLE_FLAG:'F'} ,edcData=[]} = _data;
+  let { EdcGrp = [], EdcVer = [], InspType, INSP_KEY } = options_src || {};
+  new Vue({
+		el: '#app',
+		data() {
+      		return {
+				tab:{
+          			active:'工程參數',
+				},
+				form:{},
+						readonly: false,
+				is_change: false,
+				edcData,
+			    ddl_EdcGrp: {
+			        old: null,
+			        val: '',
+			        ops: {
+			            labelField: 'EDC_NAME',
+			            valueField: 'EDC_SID',
+			            tagField: 'EDC_NO',
+			            searchField: ['EDC_NO', 'EDC_NAME', 'EDC_NO'],
+			        },
+			        src: []
+			    },
+			    ddl_EDC_Ver: {
+			        old: null,
+			        val: '',
+			        ops: {
+			            labelField: 'VERSION',
+			            valueField: 'EDC_VER_SID',
+			            searchField: ['VERSION', 'EDC_VER_SID'],
+			        },
+			        src: []
+			    },
+			    i18n: {
+			        基本資訊: '基本資訊',
+			        msg_ChgEDC: '變更將造成原本的 EDC 資料遺失,請確認是否變更?'
+			    }, 
+			}
+		},
+		computed: {
+			c_enable: {
+		        get() {
+		            let { ENABLE_FLAG } = this.form;
+		            if (ENABLE_FLAG == null) this.$set(this.form, 'ENABLE_FLAG', 'F');
+		            return this.form.ENABLE_FLAG == 'T';
+		        },
+		        set(val) {
+		            this.form.ENABLE_FLAG = val ? 'T' : 'F';
+		        }
+		    },
+		    isEdcDataEmpty() {
+		        return this.edcData.length == 0;
+		    }, 
+    	},
+        watch: {
+			'ddl_EdcGrp.val'(_new, _old) {
+		        var _self = this;
+		        var isResetEvent = _self.chk_ResetEvent(_self.ddl_EdcGrp, _new);
+		        if (isResetEvent) return;
+		        if (_self.isEdcDataEmpty) {
+		            _self.query_EdcVer(_new);
+		        } else {
+		            this.confirm_ChgEdc(0, _old, () => {
+		                _self.query_EdcVer(_new);
+		            })
+		        }
+		    },
+		    'ddl_EDC_Ver.val'(_new, _old) {
+		        var _self = this;
+		        var isResetEvent = _self.chk_ResetEvent(_self.ddl_EDC_Ver, _new);
+		        if (isResetEvent) return;
+		        if (_self.isEdcDataEmpty) {
+		            _self.GetEDC_Info(_new);
+		        } else {
+		            this.confirm_ChgEdc(1, _old, () => {
+		                _self.GetEDC_Info(_new);
+		            })
+		        }
+		    }, 
+        },
+		methods: {
+			query_EdcGrp(keyword, fn_cb = null) {
+		        var _self = this;
+		        if (keyword == "") return;
+		        var arg = { keyword };
+		        var url = _self.$URL.chg_Path('QMS/IPQC/SearchEDC', arg);
+		        if (url == null) return;
+		        var _ajax = {
+		            url,
+		            type: 'get',
+		            success(data) {
+		                if (data == null) return;
+		                let { Data = [] } = data;
+		                if (Data == null || Data.length == 0) {
+		                    _self.$Alert.msg_NoData();
+		                } else {
+		                    _self.ddl_EdcGrp.src = Data;
+		                    if (fn_cb != null) {
+		                        fn_cb(Data);
+		                    }
+		                }
+		            }
+		        };
+		        $.submitForm(_ajax);
+		    },
+		    bind_ddl_EDC_Ver(Vers) {
+		        if (Vers != null) {
+		            var _def = _.find(Vers, { "DEFAULT_FLAG": "T" });
+		            this.ddl_EDC_Ver.src = Vers;
+		            if (_def != null) {
+		                this.ddl_EDC_Ver.val = _def.EDC_VER_SID;
+		            }
+		        }
+		    },
+		    query_EdcVer(EDC_SID, fn_cb = null) {
+		        var _self = this;
+		        if (EDC_SID == "") return;
+		        var arg = { EDC_SID };
+		        var url = _self.$URL.chg_Path('QMS/IPQC/GetEDCVerByEDC_SID', arg);
+		        if (url == null) return;
+		        var _ajax = {
+		            url,
+		            type: 'get',
+		            success(data) {
+		                if (data == null) return;
+		                let { Data = [] } = data;
+		                if (Data == null || Data.length == 0) {
+		                    _self.ddl_EDC_Ver.src = [];
+		                    _self.$Alert.msg_NoData();
+		                } else {
+		                    _self.bind_ddl_EDC_Ver(Data);
+		                    if (fn_cb != null) {
+		                        fn_cb(Data);
+		                    }
+		                }
+		            }
+		        };
+		        $.submitForm(_ajax);
+		    },
+		    GetEDC_Info(EDC_VER_SID, fn_cb = null) {
+		        var _self = this;
+		        if (EDC_VER_SID == "") return;
+		        var arg = { EDC_VER_SID };
+		        var url = _self.$URL.chg_Path('QMS/IPQC/GetEDC_Info', arg);
+		        if (url == null) return;
+		        this.EDC_VER = EDC_VER_SID;
+		        var _ajax = {
+		            url,
+		            type: 'get',
+		            success(data) {
+		                if (data == null) return;
+		                let { Data = [] } = data;
+		                if (Data.length == 0) {
+		                    _self.$Alert.msg_NoData();
+		                } else {
+		                    _self.edcData = Data;
+		                    if (fn_cb != null) {
+		                        fn_cb(Data);
+		                    }
+		                }
+		            }
+		        };
+		        $.submitForm(_ajax);
+		    },
+		    chk_ResetEvent(ddl_obj, _new) {
+		        var isNoDataAndToSpace = this.isEdcDataEmpty && _new == "";
+		        var isResetToOld = ddl_obj.old == _new;
+		        return isNoDataAndToSpace || isResetToOld;
+		    },
+		    confirm_ChgEdc(target = 0, old_val, cb_fn = () => { }) {
+		        var _self = this;
+		        var _arg = _self.$Alert.genConfirm();
+		        this.$confirm(_self.i18n.msg_ChgEDC, '提示', _arg).then((val) => {
+		            _self.isNewEdc = true;
+		            _self.edcData = [];
+		            if (target == 0) {
+		                _self.ddl_EdcGrp.old
+		                    = _self.ddl_EDC_Ver.old
+		                    = null;
+		                _self.ddl_EDC_Ver.val = "";
+		                _self.ddl_EDC_Ver.src = [];
+		            }
+		            cb_fn();
+		        }).catch(() => {
+		            switch (target) {
+		                case 0:
+		                    _self.ddl_EdcGrp.old
+		                        = _self.ddl_EdcGrp.val
+		                        = old_val;
+		                    break;
+		                case 1:
+		                    _self.ddl_EDC_Ver.old
+		                        = _self.ddl_EDC_Ver.val
+		                        = old_val;
+		                    break;
+		            }
+		        })
+		    }, 
+		}
+	}) 
+});
+</script>
+<div id="app" v-cloak>
+	<el-tabs type="border-card" v-model.trim="tab.active">
+		<el-tab-pane label="工程參數" name="工程參數">
+			<gt-form-col label="@Face.EDCNO_EDC">
+				<vue-selectize-dynquery v-model="ddl_EdcGrp.val"
+										render_sty="GTIMES"
+										:options="ddl_EdcGrp.src"
+										:selectize_ops="ddl_EdcGrp.ops"
+										:icon_search_click="()=>{query_EdcGrp('%')}"
+										:fn_query="query_EdcGrp"
+										:disabled="c_enable"
+										:auto_drowdown="true" />
+			</gt-form-col>
+			<gt-form-col label="@Face.Version">
+				<vue-selectize v-model="ddl_EDC_Ver.val"
+							   :selectize_ops="ddl_EDC_Ver.ops"
+							   :options="ddl_EDC_Ver.src"
+							   :disabled="c_enable"
+							   render_sty="GTIMES_VER" />
+			</gt-form-col>
+			<gt-edc-grid v-model="edcData" :show_spc="false" />
+		</el-tab-pane>
+	</el-tabs>
+</div>

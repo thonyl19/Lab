@@ -49,3 +49,4 @@
 ## 5. 關聯參考
 - 使用元件: `virtual-list` (第三方)
 - 使用元件: `el-checkbox`, `el-button` (Element UI)
+- eBundle ,必須有相應的配置

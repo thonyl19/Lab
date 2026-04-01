@@ -1,0 +1,25 @@
+﻿@using System.Dynamic
+@{
+	dynamic data = new ExpandoObject();
+    GTI_Test GTest = new GTI_Test(Html, ViewContext.HttpContext);
+}
+@eBundle.QRender_CSS()
+@eBundle.QRender_JS()
+
+<div id="app">
+	{{msg}}
+</div>
+
+
+<script>
+	$(() => {
+		new Vue({
+			el: '#app',
+			data() {
+				return {
+					msg: "baseTpl"
+				}
+			}
+		})
+	});
+</script>

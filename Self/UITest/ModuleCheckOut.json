@@ -1,0 +1,128 @@
+﻿{
+  "Note": "測試 ModuleCheckOut 做自動進下一站的動作",
+  "undefined": "",
+  "__RequestVerificationToken": "9iN0pRvoolb6-dbcXyCrHvUZz10033XbGr17dBQ3-zaq1R5J8euhUuw7FcYvQMwHnsXf_VuIiCC689EWwUH7hoEmWRFVWtY1rsl5Lm0TwdU1",
+  "user_list": [
+    {
+      "RefKey": null,
+      "SID": "GTI23031709212592745",
+      "No": "8220958",
+      "Value": "GTI23031709212592745",
+      "Display": "盧姿潔",
+      "StatusSid": null,
+      "Status": null,
+      "FromNum": 0,
+      "INum": 0,
+      "Attr01": "8220958",
+      "Attr02": null,
+      "Attr03": null,
+      "$order": 1
+    }
+  ],
+  "LotModifyData.Note": [],
+  "scrapList": [],
+  "UserShift": {
+    "RefKey": null,
+    "SID": "GTI23031709211892700",
+    "No": "Morning Shift",
+    "Value": null,
+    "Display": "MS",
+    "StatusSid": null,
+    "Status": null,
+    "FromNum": 0,
+    "INum": 0,
+    "Attr01": "08:00~20:00",
+    "Attr02": null,
+    "Attr03": null,
+    "$order": 1
+  },
+  "Lot": "WM3-N5V001-000110",
+  "ExtenParam": {
+    "NextStationEQP": [
+      {
+        "RefKey": null,
+        "SID": "GTI23032415085398159",
+        "No": "COB01",
+        "Value": "COB01",
+        "Display": "COB01Inline",
+        "StatusSid": null,
+        "Status": null,
+        "FromNum": 0,
+        "INum": 0,
+        "Attr01": null,
+        "Attr02": null,
+        "Attr03": null,
+        "$order": 1
+      }
+    ],
+    "BB_Tesing": {
+      "SID": "88E8CE2F-AF76-468A-8F94-D5859DB97197",
+      "OPERATION": "FOL-VMI-B1",
+      "PROJECT": "-",
+      "CREATE_DATE": "2023-08-03T11:47:02.367",
+      "MODULE_ID": "WM3-N5V001-000110",
+      "STATE": "Pass",
+      "ACTION_LINK_SID": null,
+      "SN": "WM3-N5V001-000110"
+    }
+  },
+  "Setting": {
+    "CheckInSet": {
+      "IsShowEdcView": false,
+      "IsCollectEDC": false,
+      "IsUseCopeAllEDC": false
+    },
+    "CheckOutSet": {
+      "IsShowSplit": false,
+      "SplitCfg": {
+        "SplitMode": 0,
+        "CodeRule": "SplitLot",
+        "ParentLotCheckOut": true,
+        "title": null,
+        "enable": false,
+        "required": false
+      },
+      "SplitType": "Out",
+      "IsPrintLabel": false,
+      "IsLotSplitQTY": false,
+      "IsLotSplitQTYCheckList": [],
+      "IsSplitBIN": false,
+      "IsPackage": false,
+      "IsPackage_cfg": {
+        "title": null,
+        "enable": false,
+        "required": false,
+        "CodeRule": null
+      },
+      "IsReWork": false,
+      "LotFinlishTransfromMLot": false,
+      "IsReWork_cfg": {
+        "title": null,
+        "enable": false,
+        "required": false,
+        "CodeRule": null
+      },
+      "IsGoodQTY": false,
+      "IsGoodUseType": "GoodAndScrap",
+      "IsGrade": false,
+      "IsGradePack": false,
+      "IsWaferLogEDC": false,
+      "IsIngotLogEDC": false,
+      "IsIngotLogEDCTarget": "AssemblyMaterials",
+      "IsUseCopeAllEDC": false
+    },
+    "AnySet": {
+      "IsMultiLotSpitEqps": false,
+      "IsOperationWorkingTimeSummery": true,
+      "IsWarehousingOp": false,
+      "UseWareEncodeSetting": "Default",
+      "IsOperationWoBin": false,
+      "IsOperationWoPlate": false,
+      "FinishedReturnERP": false,
+      "UseWMS": false,
+      "APICfg": {}
+    }
+  },
+  "CheckTime": "2023-08-03 10:48:03",
+  "isTest": "T"
+}

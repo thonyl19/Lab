@@ -1,0 +1,719 @@
+﻿@{
+    ViewBag.Title = "Data";
+    Layout = "~/Views/Shared/_LayoutSingle.cshtml";
+    /*
+    問題案例:
+    在這個個案中,它的問題就 是 EDC 的頁面會無法顯示, 一直排查到最後發現 ,
+    它的問題點是因為 寫法的問題 => 沒有把 Vue 的 code 寫在  $(()=>{}) 程序內,
+    雖然 它當前的寫法 , 在 Layout 設置註解掉時 , 其實是可以正常顯示的 ,
+    但其實 , 在 _LayoutSingle 中 , js 相關的載入方式是有所不同的 ,
+    所以 , 當程序改按照 $(()=>{})  方式改寫後 , 問題即可排除 
+
+
+    */
+}
+@eBundle.QRender_CSS()
+@eBundle.QRender_JS()
+@Html.Partial("~/Areas/MES/Views/Shared/_edc.cshtml")
+
+@Html.AntiForgeryToken()
+<div id="app_master" v-cloak>
+    <gt-toolbar :e_exec="e_exec" :e_clear="toolbar_clear"></gt-toolbar>
+    <div class="container-fluid">
+        <div class="panel b">
+            <div class="panel-body">
+                <div class="form-horizontal gt-form">
+                    <gt-form-col label="設備代碼" prompt_sty="has-req">
+                        <el-input placeholder="@RES.BLL.Message.PleaseScanTheBarcodeOrUseKeywords"
+                                  v-model="eqp_no"
+                                  @@change="eqp_text_change"
+                                  @@blur="eqp_text_change" />
+                    </gt-form-col>
+
+                    <gt-form-col label="檢驗單" prompt_sty="has-req">
+                        <vue-selectize v-model="insp.val"
+                                       :options="insp.ops"
+                                       render_sty="GTIMES" />
+                    </gt-form-col>
+                    <gt-form-col label="最後檢驗日期">
+                        <el-row>
+                            <el-col :span="16">
+                                <div class="form-control" ref="latest_insp_date" readonly></div>
+                            </el-col>
+                            <el-col :span="1">&nbsp;</el-col>
+                            <el-col :span="7">
+                                <div class="form-control" ref="latest_insp_result" readonly></div>
+                            </el-col>
+                        </el-row>
+                    </gt-form-col>
+                    <gt-form-col label="最後合格日期">
+                        <div class="form-control" ref="latest_valid_date" readonly></div>
+                    </gt-form-col>
+                </div>
+            </div>
+        </div>
+        {{edc_data}}
+        <edc-input v-model="edc_data"
+                   :cfg.sync="cfg"></edc-input>
+        <el-tabs type="border-card" v-model="active_name">
+            <el-tab-pane label="基本資訊" name="first" :disabled="false">
+                <info-comp :eqp_info="eqp_info"
+                           :eqp_type="eqp_type"
+                           :insp_result="insp_result"></info-comp>
+            </el-tab-pane>
+            <el-tab-pane label="檢驗項目" name="second" :disabled="false">
+
+            </el-tab-pane>
+            <el-tab-pane label="附件上傳" name="third" :disabled="false">
+                <div class="form-horizontal gt-form">
+                    <el-upload class="upload"
+                               :http-request="handle_http_request"
+                               :auto-upload="true"
+                               :on-preview="handle_preview"
+                               :on-remove="handle_remove"
+                               :multiple="false"
+                               :file-list="file.file_list">
+
+                        <el-button size="small" type="primary" icon="el-icon-upload2">上傳檔案</el-button>
+                    </el-upload>
+                </div>
+            </el-tab-pane>
+        </el-tabs>
+    </div>
+</div>
+
+<script type="text/x-template" id="info-block">
+    <div>
+        <div class="form-horizontal gt-form">
+            <div class="col-xs-6 col-sm-6">
+                <div class="row">
+                    <gt-form-col label="設備" col_sty="col-xs-12 col-sm-12">
+                        <div class="form-control" readonly>
+                            <span class="label label-primary" ref="eqp_no">{{eqp_info.EQP_NO}}</span>
+                            <span ref="eqp_name">{{eqp_info.EQP_NAME}}</span>
+                        </div>
+                    </gt-form-col>
+                </div>
+                <div class="row">
+                    <gt-form-col label="設備狀態" col_sty="col-xs-12 col-sm-12">
+                        <div class="form-control" readonly>
+                            <span ref="eqp_status">{{eqp_info.STATE_NO}}</span>
+                        </div>
+                    </gt-form-col>
+                </div>
+                <div class="row">
+                    <gt-form-col label="判定結果" col_sty="col-xs-12 col-sm-12">
+                        <div class="form-control" readonly>
+                            <span ref="insp_result"></span>
+                        </div>
+                    </gt-form-col>
+                </div>
+            </div>
+            <div class="col-xs-6 col-sm-6">
+                <div class="row">
+                    <gt-form-col label="設備類別" col_sty="col-xs-12 col-sm-12">
+                        <div class="form-control" readonly>
+                            <span class="label label-primary" ref="eqp_type_no">{{eqp_type.TYPE_NO}}</span>
+                            <span ref="eqp_type">{{eqp_type.TYPE_NAME}}</span>
+                        </div>
+                    </gt-form-col>
+                </div>
+                <div class="row">
+                    <gt-form-col label="備註" col_sty="col-xs-12 col-sm-12">
+                        <el-input type="textarea"
+                                  v-model="eqp_info.DESCRIPTION"
+                                  :rows="4"
+                                  :disabled="true">
+                        </el-input>
+                    </gt-form-col>
+                </div>
+            </div>
+        </div>
+    </div>
+</script>
+
+
+
+<script>
+
+    Vue.component('info-comp', {
+        template: '#info-block',
+        props: {
+            eqp_info: {
+                type: Object,
+                default: {}
+            },
+            eqp_type: {
+                type: Object,
+                default: {}
+            },
+            insp_result: {
+                type: String,
+                default: ''
+            }
+        },
+        data() {
+            return {
+
+            }
+        },
+        mounted() {
+        },
+        methods: {
+        },
+        computed: {
+        },
+        watch: {
+            insp_result: {
+                deep: true,
+                handler(val) {
+
+                    switch (val) {
+                        case 'T':
+                            this.$refs.insp_result.innerText = '合格';
+                            break;
+                        case 'F':
+                            this.$refs.insp_result.innerText = '不合格';
+                            break;
+                        default:
+                            this.$refs.insp_result.innerText = '';
+                            break;
+                    }
+                }
+            }
+        }
+    });
+
+    const vm = new Vue({
+        data() {
+            return {
+                active_name: 'first',
+                eqp_no: '',
+                eqp_info: {},
+                eqp_type: {},
+                eqp_ipqc_latest: {},
+                insp: {
+                    val: '',
+                    ops: []
+                },
+                cfg: {           //檢驗項目相關參數
+                    title: '',
+                    fixedTip: 1
+                },
+                edc_data: [
+                    {
+                        "EdcVerSid": "GTI19040815103300013",
+                        "EdcParameterSid": "GTI19040815002800001",
+                        "Display": "TestBool",
+                        "DataType": "B",
+                        "mustInput": "T",
+                        "InputCount": 3,
+                        "ItemName": "TestBool",
+                        "ItemNo": "Test001",
+                        "DispayPointName": "A,B,C",
+                        "DispayPointNameList": [
+                            "Aaaaa",
+                            "Bbbbbb",
+                            "Ccccc"
+                        ],
+                        "QCItemSID": "GTI19040815002800001",
+                        "UCL": 0,
+                        "USL": 0,
+                        "TL": "F",
+                        "LCL": 0,
+                        "LSL": 0,
+                        "require": false,
+                        "DataTypeDisplay": "布林",
+                        "InputValueList": [
+                            {
+                                "Aaaaa": ""
+                            },
+                            {
+                                "Bbbbbb": "Y"
+                            },
+                            {
+                                "Ccccc": "N"
+                            }
+                        ]
+                    },
+                    {
+                        "EdcVerSid": "GTI19040815103300013",
+                        "EdcParameterSid": "GTI19040815015300007",
+                        "Display": "string",
+                        "DataType": "S",
+                        "mustInput": "T",
+                        "InputCount": 1,
+                        "ItemName": "string",
+                        "ItemNo": "test003",
+                        "DispayPointName": "A",
+                        "DispayPointNameList": [
+                            "Aaaaa"
+                        ],
+                        "QCItemSID": "GTI19040815015300007",
+                        "UCL": 0,
+                        "USL": 0,
+                        "TL": "T",
+                        "LCL": 0,
+                        "LSL": -10,
+                        "require": false,
+                        "DataTypeDisplay": "字串",
+                        "InputValueList": [
+                            {
+                                "Aaaaa": ""
+                            }
+                        ]
+                    },
+                    {
+                        "EdcVerSid": "GTI19040815103300013",
+                        "EdcParameterSid": "GTI19040815013900006",
+                        "Display": "Display",
+                        "DataType": "N",
+                        "MustInput": "T",
+                        "InputCount": 1,
+                        "ItemName": "數值,負數值測試",
+                        "ItemNo": "Test002",
+                        "DispayPointName": "A",
+                        "DispayPointNameList": [
+                            "Aaaaaa", "Bbbbb"
+                        ],
+                        "QCItemSID": "GTI19040815013900006",
+                        "UCL": 100,
+                        "USL": 150,
+                        "TL": "50",
+                        "LCL": -10,
+                        "LSL": -10,
+                        "require": true,
+                        "DataTypeDisplay": "數值,負數值測試",
+                        "InputValueList": [
+                            {
+                                "Aaaaa": ""
+                            }
+                        ]
+                    },
+                    {
+                        "EdcVerSid": "GTI19040815103300013",
+                        "EdcParameterSid": "GTI19040815013900006",
+                        "Display": "Display",
+                        "DataType": "N",
+                        "MustInput": "T",
+                        "InputCount": 1,
+                        "ItemName": "單邊null",
+                        "ItemNo": "Test002",
+                        "DispayPointName": "A",
+                        "DispayPointNameList": [
+                            "Aaaaaa", "Bbbbb"
+                        ],
+                        "QCItemSID": "GTI19040815013900006",
+                        "UCL": 100,
+                        "USL": 150,
+                        "TL": "50",
+                        "LCL": null,
+                        "LSL": null,
+                        "require": true,
+                        "DataTypeDisplay": "下限null",
+                        "InputValueList": [
+                            {
+                                "Aaaaa": ""
+                            }
+                        ]
+                    },
+                    {
+                        "EdcVerSid": "GTI19040815103300013",
+                        "EdcParameterSid": "GTI19040815013900006",
+                        "Display": "Display",
+                        "DataType": "N",
+                        "MustInput": "T",
+                        "InputCount": 1,
+                        "ItemName": "單邊null",
+                        "ItemNo": "Test002",
+                        "DispayPointName": "A",
+                        "DispayPointNameList": [
+                            "Aaaaaa", "Bbbbb"
+                        ],
+                        "QCItemSID": "GTI19040815013900006",
+                        "UCL": null,
+                        "USL": null,
+                        "TL": "50",
+                        "LCL": 100,
+                        "LSL": 150,
+                        "require": true,
+                        "DataTypeDisplay": "上限null",
+                        "InputValueList": [
+                            {
+                                "Aaaaa": ""
+                            }
+                        ]
+                    },
+                    {
+                        "EdcVerSid": "GTI19040815103300013z",
+                        "EdcParameterSid": "GTI19040815013900006",
+                        "Display": "Display",
+                        "DataType": "D",
+                        "MustInput": "T",
+                        "InputCount": 1,
+                        "ItemName": "治具參數",
+                        "ItemNo": "Test002",
+                        "DispayPointName": "A",
+                        "DispayPointNameList": [
+                            "Aaaaaa", "Bbbbb"
+                        ],
+                        "QCItemSID": "GTI19040815013900006",
+                        "UCL": 100,
+                        "USL": 150,
+                        "TL": "50",
+                        "LCL": -10,
+                        "LSL": -10,
+                        "require": true,
+                        "DataTypeDisplay": "治具參數",
+                        "InputValueList": [
+                            {
+                                "Aaaaa": ""
+                            }
+                        ]
+                    }
+                ],  //檢驗項目資料來源
+                file: {
+                    file_list: [],
+                    max_file_size: 31457280,
+                    init: true,
+                },
+                eqp_text_changed: false,
+                insp_result: '',
+            };
+        },
+        mounted() {
+            this.$nextTick(() => {
+
+            });
+
+        },
+        methods: {
+            eqp_text_change() {
+                if (!this.eqp_text_changed) {
+                    this.query_eqp(this.eqp_no);
+                }
+            },
+            query_eqp(eqp_no) {
+
+                if (eqp_no === '') {
+                    return;
+                }
+
+                this.eqp_text_changed = true;
+
+                let _this = this;
+
+                $.submitForm({
+                    url: '@Url.Action("GetEqpInspInfoBnEqpNo")',
+                    param: { eqpNo: eqp_no },
+                    type: 'get',
+                    async: true,
+                    success: function (res) {
+
+                        let { Data, Message, Success = false } = res;
+
+                        if (Success) {
+                            _this.eqp_info = Data.equipment;
+                            _this.eqp_type = Data.equipment_type;
+                            _this.insp.ops = Data.eqp_insp_select_models;
+                            _this.insp.val = '';
+                        }
+                        else {
+                            _this.$Alert.Warning(Message)
+                        }
+
+                        _this.eqp_text_changed = false;
+                    }
+                });
+            },
+            query_eqp_ipqc_latest(eqp_sid, insp_sid) {
+
+                let _this = this;
+
+                $.submitForm({
+                    url: '@Url.Action("GetEqpIpqcLatest")',
+                    param: { eqpSid: eqp_sid, eqpInspSid: insp_sid, },
+                    type: 'get',
+                    async: true,
+                    success: function (res) {
+
+                        let { Data, Message, Success = false } = res;
+
+                        if (Success) {
+                            _this.eqp_ipqc_latest = Data;
+                        }
+                        else {
+                            _this.$Alert.Warning(Message)
+                        }
+                    }
+                });
+            },
+            query_edc(qc_no) {
+
+                let _this = this;
+
+                $.submitForm({
+                    url: '@Url.Action("GetEDC_Data")',
+                    param: { QC_NO: qc_no },
+                    type: 'get',
+                    async: true,
+                    success: function (res) {
+
+                        let { Data, Message, Success = false } = res;
+
+                        if (Success) {
+                            _this.edc_data = Data;
+                        }
+                        else {
+                            _this.$Alert.Warning(Message)
+                        }
+                    }
+                });
+            },
+            handle_http_request(val) {
+
+                let file_list = JSON.parse(JSON.stringify(this.file.file_list));
+
+                if (val.file.size > this.file.max_file_size) {
+
+                    this.file.file_list = file_list;
+                    this.$Alert.Warning(`檔案大小不超過 ${this.file_size} Mb`);
+
+                    return;
+                }
+
+                let form_data = new FormData();
+                form_data.append("file", val.file);
+
+                let param = form_data;
+
+                let _this = this;
+
+                $.submitForm({
+                    url: '@Url.Action("UploadFile")',
+                    param: param,
+                    type: 'post',
+                    processData: false,
+                    contentType: false,
+                    success: function (res) {
+
+                        let { Data, Message, Success = false } = res;
+
+                        if (Success) {
+                            _this.file.file_list = Data;
+                        }
+                        else {
+                            _this.$Alert.Warning(Message);
+                        }
+                    }
+                });
+            },
+            handle_remove(file, file_list) {
+
+                let _this = this;
+
+                $.submitForm({
+                    url: '@Url.Action("RemoveFile")',
+                    param: { 'sid': file.sid },
+                    type: 'post',
+                    success: function (res) {
+
+                        let { Data, Message, Success = false } = res;
+
+                        if (Success) {
+                            _this.file.file_list = Data;
+                        }
+                        else {
+                            _this.$Alert.Warning(Message);
+                        }
+                    }
+                });
+            },
+            handle_preview(file) {
+                //下載檔案
+                let link = document.createElement("a");
+                link.download = file.name;
+                link.href = file.url;
+                link.click();
+            },
+            toolbar_exec() {
+
+                let insp_selected = this.insp.ops.find(i => i.No === this.insp.val);
+
+                let param = {
+                    EqpIpqc: {
+                        EQP_SID: this.eqp_info.EQP_SID,
+                        EQP_NO: this.eqp_info.EQP_NO,
+                        EQP_INSP_SID: insp_selected.SID,
+                        INSP_RESULT: this.insp_result
+                    },
+                    EdcModels: this.edc_data
+                };
+
+                let _param = JSON.stringify(param);
+                let _this = this;
+
+                $.submitForm({
+                    url: '@Url.Action("AddEqpIpqc")',
+                    type: 'post',
+                    param: _param,
+                    dataType: "json",
+                    contentType: "application/json;charset=utf-8",
+                    async: false,
+                    success: function (res) {
+                        let { Data, Message, Success = false } = res;
+
+                        if (Success) {
+                            _this.toolbar_clear();
+                            _this.$Alert.Success('儲存成功');
+                        }
+                        else {
+                            _this.$Alert.Warning(Message)
+                        }
+                    }
+                });
+            },
+            toolbar_clear() {
+                this.eqp_no = '';
+                this.eqp_info = {};
+                this.eqp_type = {};
+                this.eqp_ipqc_latest = {};
+                this.insp = {
+                    val: '',
+                    ops: []
+                };
+                this.eqp_text_changed = false;
+                this.edc_data = [];
+                this.insp_result = '';
+
+                $.submitForm({
+                    url: '@Url.Action("RemoveAllTempFile")',
+                    type: 'post',
+                    async: false,
+                    success: function (res) {
+
+                        let { Data, Message, Success = false } = res;
+
+                        if (Success) {
+                            _this.file.file_list = Data;
+                        }
+                        else {
+                            _this.$Alert.Warning(Message)
+                        }
+                    }
+                });
+
+            },
+        },
+        computed: {
+            file_size() {
+                return this.file.max_file_size / (1024 * 1024);
+            },
+            e_exec() {
+                return {
+                    visable: true,
+                    enable: this.exec_button_enabled,
+                    fn: this.toolbar_exec
+                }
+            },
+            exec_button_enabled() {
+
+                if (this.edc_data.length === 0) {
+                    return false;
+                }
+
+                for (const item of this.edc_data) {
+
+                    if (item.mustInput === 'T') {
+                        let con = 0;
+                        for (const value of item.InputValueList) {
+                            if (value[(con + 1).toString()] === '') {
+                                return false;
+                            }
+                            con++;
+                        }
+                    }
+                }
+
+                return true;
+            }
+        },
+        watch: {
+            'insp.val': {
+                //deep: true,
+                handler(val) {
+                    let insp_sid = this.insp.ops.find(i => i.No === val).SID;
+                    let eqp_sid = this.eqp_info.EQP_SID;
+
+                    this.query_edc(val);
+                    this.query_eqp_ipqc_latest(eqp_sid, insp_sid);
+                }
+            },
+            'edc_data': {
+                deep: true,
+                handler(val) {
+
+                    setTimeout(() => {
+
+                        for (const item of val) {
+
+                            if (item.isPass === undefined) {
+                                this.insp_result = 'T';
+                                continue;
+                            }
+
+                            this.insp_result = item.isPass ? 'T' : 'F';
+
+                            if (!item.isPass) {
+                                break;
+                            }
+                        }
+
+                    }, 300);
+                }
+            },
+            'eqp_ipqc_latest': {
+                deep: true,
+                handler(val) {
+
+                    this.$refs.latest_insp_date.innerText = '';
+                    this.$refs.latest_insp_result.innerText = '';
+                    this.$refs.latest_valid_date.innerText = '';
+
+                    if (val === undefined) {
+                        return;
+                    }
+
+                    if (val.LATEST_INSP_DATE !== undefined &&
+                        val.LATEST_INSP_DATE !== null &&
+                        val.LATEST_INSP_DATE !== '') {
+
+                        this.$refs.latest_insp_date.innerText = moment(val.LATEST_INSP_DATE).format('YYYY-MM-DD');
+                    }
+
+                    if (val.LATEST_INSP_RESULT === 'T') {
+                        this.$refs.latest_insp_result.innerText = '合格';
+                    }
+                    else if (val.LATEST_INSP_RESULT === 'F') {
+                        this.$refs.latest_insp_result.innerText = '不合格';
+                    }
+
+                    if (val.LATEST_INSP_VALID_DATE !== undefined &&
+                        val.LATEST_INSP_VALID_DATE !== null &&
+                        val.LATEST_INSP_VALID_DATE !== '') {
+
+                        this.$refs.latest_valid_date.innerText = moment(val.LATEST_INSP_VALID_DATE).format('YYYY-MM-DD');
+                    }
+                }
+            }
+        }
+    });
+
+    $(() => {
+        vm.$mount('#app_master');
+    });
+</script>
+
+
+
+

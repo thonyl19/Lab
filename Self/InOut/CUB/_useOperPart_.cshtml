@@ -2,11 +2,10 @@
     $(() => {
         var _tpl = {
             dvUseOperPartScope: `
-    <div class="panel cp-usemtlot" tabindex='-1' v-cloak>
+    <div class="panel cp-usemtlot" tabindex='-1' v-cloak v-show="c_UserTrace.check.sts11==false">
         <div class="panel-heading b panel-header-radius gti-wip-title">
             <h3 class="panel-title">@RES.BLL.Face.OperPartInfo</h3>
         </div>
-        {{c_UserTrace}}
         <div class="panel-body">
             <gt-err-tag v-model="c_return" :sid="errSid"></gt-err-tag>
 
@@ -39,7 +38,7 @@
         }
         var _fn =()=>{
             return {
-                mixins: [Vue.prototype.$UT.Mixins.v_rootEl(),@Html.Raw(GTI.Vue.Mixins_RunCode)],
+                mixins: [Vue.prototype.$UT.Mixins.v_rootEl()],
                 template: _tpl.dvUseOperPartScope,
                 data() {
                     var _self = this;
@@ -56,10 +55,15 @@
                                 fn(){
                                     if (_self.tempList.length != 0) return ;
                                     var _fn = (data)=>{
-                                        debugger;
                                         for (var mlot of data) {
                                             let { TARGET_CUST_ONLYKEY } = mlot;
-                                            _self.tempList = _self.tempList.concat(data);
+                                            var isHasKey = _.some(_self.tempList, { TARGET_CUST_ONLYKEY });
+                                            if (isHasKey) {
+                                                console.log({ '料批重覆': mlot });
+                                            } else {
+                                                _self.tempList.push(mlot);
+                                            }
+                                            //_self.tempList = _self.tempList.concat(data);
                                         }
                                         _self.c_return = _self.tempList;
                                     };
@@ -79,12 +83,13 @@
                     '$store.state.globalvar.Select_User': function (n) {
                         let _self = this;
                         if (n != '' && n != null) {
+                            var param = { t: Date.now() };
                             $.submitForm({
                                 url: $.getBaseUrl() + `/cub/use_oper_part/lot/${_self.set_model.CurrentLot.LOT}/route_ver_oper_sid/${_self.set_model.CurrentLot.ROUTE_VER_OPER_SID}/user_no/${n}`,
+                                param,
                                 type: "get",
                                 success: function (data) {
                                     if (data.Success) {
-                                        debugger;
                                         let { tempList = [], pickingList = [] } = data.Data;
                                         // 載入清單
                                         if (_self.tempList.length == 0) _self.tempList = tempList;
@@ -106,6 +111,7 @@
                     c_UserTrace(){
                         var userTrace = _.get(this.$store, 'state.globalvar.UserTrace', null);
                         var check = {
+                            sts11: userTrace.sts == 11,
                             before_enter : userTrace.sts == 21,
                             after_enter : userTrace.sts == 31,
                         }
@@ -114,12 +120,19 @@
                     c_before_enter(){
                         return this.c_UserTrace.check.before_enter;
                     },
-                    c_RunCode(){
+                    c_RunCode() {
                         var r = this.RunCode.val; 
                         let {userTrace,check} = this.c_UserTrace;
-                        console.log({userTrace,check});
-                        if (userTrace.sts == 21){
+                        console.log({ userTrace, check });
+                        if (userTrace.sts == 11 && r == 21) {
+                            console.log("未上崗直接離站!");
+                            this.tempList.splice(0, this.tempList.length);
+                        }
+
+                        //if (userTrace.sts == 21) {
+                        if (check.before_enter) {
                             $('.cp-usemtlot').parent().show();
+                            r = '21'
                         }
                         if (check.after_enter){
                             r = '31';
@@ -133,6 +146,7 @@
                         return num;
                     },
                     c_curPartTypeCount() {
+                        //同料不同批 視為同一個料
                         return [...new Set(this.tempList.map(x => x.PARTNO))].length;
                     },
                     c_required() {
@@ -158,8 +172,11 @@
                         var _self = this;
                         var KEY = _.get(this.c_UserTrace,'userTrace.KEY',null);
                         var url = $.getBaseUrl() + `/cub/ConsumedMateriaCatch/KEY/${KEY}`;
+                        var param = { t: Date.now() };
+
                         var _ajax = {
                             url,
+                            param,
                             type:'get',
                             automessage: false,
                             success(res) {
@@ -195,7 +212,6 @@
                     },
 
                     checkBarcode() {
-                        debugger
                         let _self = this;
 
                         if (_self.barcode == '') {
@@ -227,8 +243,18 @@
                             return;
                         }
 
-                        if (_self.tempList.some(x => x.CONSUM_TARGET == mlot && x.TARGET_CUST_ONLYKEY == sn && x.PARTNO == pickingItem.PART_NO)) {
-                            _self.SetErrGroup(_self.errSid, `此條碼已存在清單！`);
+                        /*
+                        Anthony-20250922)
+                        因為 後站程序物料批處理LotConsumeMlot(~\Library\BLL\ZZ\CUB\OperTask\ParallelCheckOut.CUB.cs) ,
+                        直接把 CONSUM_TARGET == "3" 寫死了, 但考慮到既有舊資料的相容性 ,
+                        所以只能將判斷寫在前端
+                        */
+                        var _chk_條碼已存在清單 = _self.tempList.some(x =>
+                            (x.CONSUM_TARGET == mlot || x.CONSUM_TARGET == "3")
+                            && x.TARGET_CUST_ONLYKEY == sn
+                            && x.PARTNO == pickingItem.PART_NO);
+                        if (_chk_條碼已存在清單) {
+                            _self.$Alert.Err(`此條碼已存在清單！`);
                             _self.barcode = '';
                             return;
                         }

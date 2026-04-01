@@ -1,0 +1,331 @@
+﻿@{
+    ViewBag.Title = @Genesis.Common.PageBaseInfo.getCurrentResource("DataImport").RESOURCE_NAME;
+    bool isSingleModel = (bool)ViewData["SingleModel"];
+    if (isSingleModel) Layout = "~/Views/Shared/_LayoutSingle.cshtml";
+}
+<h3>
+	@ViewBag.Title
+</h3>
+@Html.AntiForgeryToken()
+@eBundle.QRender_CSS()
+@eBundle.QRender_JS()
+<div id="app" v-cloak>
+    <gt-toolbar :e_import="e_import">
+        <a href="~/Import_File/GTiMES_REASON.xlsx">
+            <el-button type="primary" size="mini" round icon="fa fa-file-excel-o"> 範本</el-button>
+        </a> 
+        <el-button type="primary" size="mini" round icon="fa fa-file-text"> 匯出錯誤明細</el-button>
+    </gt-toolbar>
+    <div Area-Main class="panel b">
+        <gt-searchcd active_names="1" class="form-horizontal gt-form">
+            <gt-form-col label="上傳檔案" :col_sty="col_sty" :layout_mode="layout_mode">
+                <el-upload class="upload" :multiple="false"
+                           ref="upload"
+                           :on-remove="handleRemove"
+                           :on-change="handleChange"
+                           :file-list="fileList"
+                           :http-request="PostData"
+                           :auto-upload="true">
+                    <el-button slot="trigger" size="small" type="primary">選取文件</el-button>
+                </el-upload>
+            </gt-form-col>
+            <gt-form-col label="上傳資料" :col_sty="col_sty" :layout_mode="layout_mode">
+                <el-radio-group v-model="form.SheetName">
+                    <el-radio v-for="(label,key) in SheetNames" :label="label" :key="key">{{key}}</el-radio>
+                </el-radio-group>
+            </gt-form-col>
+            <gt-form-col label="匯入方式" :col_sty="col_sty" :layout_mode="layout_mode">
+                <el-radio-group v-model="form.ImportType">
+                    <el-radio label="T">{{i18n.全新匯入}}</el-radio>
+                    <el-radio label="F">{{i18n.接續}}</el-radio>
+                    <el-radio label="All">{{i18n.差異匯入}}</el-radio>
+                </el-radio-group>
+            </gt-form-col>
+            <gt-form-col :label="i18n.檔案讀取起始資料列" class="read-range"
+                         :col_sty="col_sty"
+                         :layout_mode="layout_mode">
+                <el-input></el-input> ～ <el-input></el-input>
+            </gt-form-col>
+        </gt-searchcd>
+        <el-tabs v-model="activeName" type="border-card">
+            <el-tab-pane v-for="(table,label) in Xls" :label="label" :name="label">
+                <el-table style="width: 100%" :data="table">
+                    <el-table-column v-for="(prop) in parse_col(table)"
+                                     :key="prop"
+                                     :prop="prop"
+                                     :label="prop">
+                    </el-table-column>
+                </el-table>
+            </el-tab-pane>
+            <el-tab-pane label="Log" name="Log">
+                <el-table :data="tableData"
+                          style="width: 100%">
+                    <el-table-column prop="date"
+                                     label="日期"
+                                     width="180">
+                    </el-table-column>
+                    <el-table-column prop="name"
+                                     label="姓名"
+                                     width="180">
+                    </el-table-column>
+                    <el-table-column prop="address"
+                                     label="地址">
+                    </el-table-column>
+                </el-table>
+            </el-tab-pane>
+        </el-tabs>
+
+    </div>
+</div>
+
+<script>
+    $(function () {
+        var items = [
+            {
+                "ENCODE_FORMAT_ITEM_SID": "GTI20121016001054609",
+                "ENCODE_FORMAT_SID": "GTI20102115385063472",
+                "ITEM_SEQ": 0.0,
+                "ITEM_TYPE": "FIX",
+                "ITEM_VALUE_LENGTH": 3.0,
+                "ITEM_VALUE": "ST-",
+                "SERIAL_CHARS": null,
+                "TABLE_NAME": null,
+                "COLUMN_NAME": null,
+                "COLUMN_VALUE_START": null,
+                "SERIAL_START_VALUE": null,
+                "CUSTOM_ENTRY_FUNCTION": null,
+                "RESET_ON_CHANGED": "T",
+                "CREATE_USER": "ting",
+                "CREATE_DATE": "2020-12-10 16:00:10",
+                "UPDATE_USER": "ting",
+                "UPDATE_DATE": "2020-12-10 16:00:10"
+            },
+            {
+                "ENCODE_FORMAT_ITEM_SID": "GTI20121016001054610",
+                "ENCODE_FORMAT_SID": "GTI20102115385063472",
+                "ITEM_SEQ": 1.0,
+                "ITEM_TYPE": "INPUT",
+                "ITEM_VALUE_LENGTH": 2.0,
+                "ITEM_VALUE": null,
+                "SERIAL_CHARS": null,
+                "TABLE_NAME": null,
+                "COLUMN_NAME": null,
+                "COLUMN_VALUE_START": null,
+                "SERIAL_START_VALUE": null,
+                "CUSTOM_ENTRY_FUNCTION": null,
+                "RESET_ON_CHANGED": "T",
+                "CREATE_USER": "ting",
+                "CREATE_DATE": "2020-12-10 16:00:10",
+                "UPDATE_USER": "ting",
+                "UPDATE_DATE": "2020-12-10 16:00:10"
+            },
+            {
+                "ENCODE_FORMAT_ITEM_SID": "GTI20121016001054611",
+                "ENCODE_FORMAT_SID": "GTI20102115385063472",
+                "ITEM_SEQ": 2.0,
+                "ITEM_TYPE": "YEAR",
+                "ITEM_VALUE_LENGTH": 2.0,
+                "ITEM_VALUE": null,
+                "SERIAL_CHARS": null,
+                "TABLE_NAME": null,
+                "COLUMN_NAME": null,
+                "COLUMN_VALUE_START": null,
+                "SERIAL_START_VALUE": null,
+                "CUSTOM_ENTRY_FUNCTION": null,
+                "RESET_ON_CHANGED": "T",
+                "CREATE_USER": "ting",
+                "CREATE_DATE": "2020-12-10 16:00:10",
+                "UPDATE_USER": "ting",
+                "UPDATE_DATE": "2020-12-10 16:00:10"
+            },
+            {
+                "ENCODE_FORMAT_ITEM_SID": "GTI20121016001054612",
+                "ENCODE_FORMAT_SID": "GTI20102115385063472",
+                "ITEM_SEQ": 3.0,
+                "ITEM_TYPE": "COLUMN",
+                "ITEM_VALUE_LENGTH": 2.0,
+                "ITEM_VALUE": null,
+                "SERIAL_CHARS": null,
+                "TABLE_NAME": null,
+                "COLUMN_NAME": null,
+                "COLUMN_VALUE_START": null,
+                "SERIAL_START_VALUE": null,
+                "CUSTOM_ENTRY_FUNCTION": null,
+                "RESET_ON_CHANGED": "T",
+                "CREATE_USER": "ting",
+                "CREATE_DATE": "2020-12-10 16:00:10",
+                "UPDATE_USER": "ting",
+                "UPDATE_DATE": "2020-12-10 16:00:10"
+            },
+            {
+                "ENCODE_FORMAT_ITEM_SID": "GTI20121016001054612",
+                "ENCODE_FORMAT_SID": "GTI20102115385063472",
+                "ITEM_SEQ": 3.0,
+                "ITEM_TYPE": "SERIAL",
+                "ITEM_VALUE_LENGTH": 2.0,
+                "ITEM_VALUE": null,
+                "SERIAL_CHARS": null,
+                "TABLE_NAME": null,
+                "COLUMN_NAME": null,
+                "COLUMN_VALUE_START": null,
+                "SERIAL_START_VALUE": null,
+                "CUSTOM_ENTRY_FUNCTION": null,
+                "RESET_ON_CHANGED": "T",
+                "CREATE_USER": "ting",
+                "CREATE_DATE": "2020-12-10 16:00:10",
+                "UPDATE_USER": "ting",
+                "UPDATE_DATE": "2020-12-10 16:00:10"
+            },
+            {
+                "ENCODE_FORMAT_ITEM_SID": "GTI20121016001054613",
+                "ENCODE_FORMAT_SID": "GTI20102115385063472",
+                "ITEM_SEQ": 4.0,
+                "ITEM_TYPE": "CUSTOM",
+                "ITEM_VALUE_LENGTH": 3.0,
+                "ITEM_VALUE": null,
+                "SERIAL_CHARS": null,
+                "TABLE_NAME": null,
+                "COLUMN_NAME": null,
+                "COLUMN_VALUE_START": null,
+                "SERIAL_START_VALUE": null,
+                "CUSTOM_ENTRY_FUNCTION": null,
+                "RESET_ON_CHANGED": "F",
+                "CREATE_USER": "ting",
+                "CREATE_DATE": "2020-12-10 16:00:10",
+                "UPDATE_USER": "ting",
+                "UPDATE_DATE": "2020-12-10 16:00:10"
+            }
+        ]
+        new Vue({
+            el: '#app',
+            data() {
+                return {
+                    activeName: 'Log',
+                    tableData: [{
+                        date: '2016-05-02',
+                        name: '王小虎',
+                        address: '上海市普陀区金沙江路 1518 弄'
+                    }, {
+                        date: '2016-05-04',
+                        name: '王小虎',
+                        address: '上海市普陀区金沙江路 1517 弄'
+                    }, {
+                        date: '2016-05-01',
+                        name: '王小虎',
+                        address: '上海市普陀区金沙江路 1519 弄'
+                    }, {
+                        date: '2016-05-03',
+                        name: '王小虎',
+                        address: '上海市普陀区金沙江路 1516 弄'
+                    }],
+                    col_sty: "col-lg-12 col-xs-12",
+                    layout_mode: ['col-lg-3 col-sm-3', 'col-lg-9 col-sm-9 col-xs-12'],
+                    SheetNames: {
+                        原因碼分類: 1,
+                        原因碼類別: 2,
+                        原因碼: 3,
+                        原因碼群組: 4
+                    },
+                    form: {},
+                    fileList://[],
+                        [{ "status": "ready", "name": "GTiMES_REASON.xlsx", "size": 17867, "percentage": 0, "uid": 1616038200234, "raw": { "uid": 1616038200234 } }],
+                    i18n: {
+                        '檔案讀取起始資料列': '檔案讀取起始資料列',
+                        '全新匯入': '全新匯入(刪除舊資料)',
+                        '接續': '接續',
+                        '差異匯入': '差異匯入',
+                    },
+                    Xls:{ "標準產能": [{ "PART_NO": "test", "PART_NAME": "test", "OPER_NO": "2000-1", "OPER_NAME": "氣洗", "STD": "660", "DESCRIPTION": "2020-12-16" }, { "PART_NO": "", "PART_NAME": "", "OPER_NO": "", "OPER_NAME": "", "STD": "", "DESCRIPTION": "" }] }
+                };
+            },
+            methods: {
+                parse_col(data) {
+                    
+                    let [row] = data;
+                    if (row == null) return {};
+                    return Object.keys(row);
+                },
+                handleChange(file, fileList) {
+                    this.fileList = fileList.slice(-1);
+                },
+                handleRemove(file, fileList) {
+                    
+                    this.fileList = fileList;
+                },
+                submitUpload() {
+                    this.$refs.upload.submit();
+                },
+
+                e_import() {
+
+                },
+                PostData(param) {
+                    
+                    //this.$refs.upload.submit();
+
+                    let fd = new FormData();
+                    fd.append("file", param.file);
+                    fd.append("FileName", param.file.name);
+                    fd.append("SheetName", this.form.SheetName);
+                    var param = fd;
+
+                    //var url = `http://localhost/GTIMES_2019/SYSAdmin/FileUpload/ImportXls`;
+                    //var url = `http://localhost:59394/GenesisNewMes/SYSAdmin/FileUpload/ImportXls`;
+                    var url = "@Url.Action("ImportXls", "SYSAdmin/FileUpload")";
+                    var url = "@Url.Action("ImportXls")";
+
+                    var _ajax = {
+                        url,
+                        type: 'post',
+                        dataType: "json",
+                        processData: false,
+                        contentType: false,
+                        param,
+                        success: this.ajax_success
+                    };
+                    $.submitForm(_ajax);
+                },
+                ajax_success(res) {
+                    
+                    let { Success, Message = "", Data } = res;
+                    console.log(Data);
+                    if (Success) {
+                        this.fileList[0].uid = Data.saveAsFileName;
+                        this.Xls = JSON.parse(Data.Xls);
+                        //location.replace(location.href);
+                    } else {
+                        //TODO:Message 不應為空值
+                        this.$Alert.Err(Message);
+                    }
+                },
+            }
+        })
+    })
+</script>
+
+<style>
+    .upload input[type=file] {
+		display:none !important;
+    }
+
+    .read-range .el-input {
+        width:17rem;
+    }
+
+    ul.el-upload-list {
+        display: inline-block;
+    }
+    .el-upload-list__item {
+        margin-top: 0px !important;
+        line-height: 1;
+    }
+
+    .el-upload-list__item {
+        font-size: 16px !important;
+        line-height: 1;
+    }
+    .el-upload-list__item .el-icon-close {
+        top: 1px !important;
+    }
+
+</style>

@@ -1,0 +1,57 @@
+﻿@{
+    bool isSingleModel = (bool)ViewData["SingleModel"];
+
+    if (isSingleModel)
+    {
+        Layout = "~/Views/Shared/_LayoutSingle.cshtml";
+    }
+}
+@eBundle.QRender_CSS()
+@eBundle.QRender_JS()
+@Scripts.Render("~/bundles/parsley")
+<div id="app">
+	<div class="panel b">
+		<div class="panel-body form-horizontal gt-form">
+			<h3>gt-input-number</h3>
+			<gt-input-number label="gt-form 模式"></gt-input-number>
+			<gt-form-col label="非 gt-form 模式">
+				<gt-input-number root_tag="div"></gt-input-number>
+			</gt-form-col>
+
+			<h3>gt-input-bool</h3>
+			<pre>
+			case21:{{case21}}
+			case22:{{case22}}</pre>
+			<gt-input-bool label="簡易模式" v-model="case21">
+			</gt-input-bool>
+			<gt-input-bool label="自定義值" v-model="case22"
+						   :i18n="i18n_t"
+						   :return_val="['off','on']">
+			</gt-input-bool>
+		</div>
+	</div>
+
+
+
+</div>
+
+
+<script>
+	$(() => {
+		new Vue({
+			el: '#app',
+			data() {
+				return {
+					case21: '',
+					case22: '',
+					i18n_t: {
+						Yes: '開啟',
+						No: '關閉',
+					}
+				}
+			},
+
+
+		})
+	});
+</script>

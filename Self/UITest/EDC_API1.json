@@ -1,0 +1,35 @@
+[
+  {
+    "EdcVerSid": "GTI22092622022691698",
+    "EdcParameterSid": "GTI22092622022691691",
+    "InputValueList": [
+      {
+        "1": "9111"
+      },
+      {
+        "2": "9112"
+      }
+    ]
+  },
+  {
+    "EdcVerSid": "GTI22092622022691698",
+    "EdcParameterSid": "GTI22092622022691692",
+    "InputValueList": [
+      {
+        "1": "T"
+      },
+      {
+        "2": "T"
+      }
+    ]
+  },
+  {
+    "EdcVerSid": "GTI22092622022691698",
+    "EdcParameterSid": "GTI22092622022691696",
+    "InputValueList": [
+      {
+        "1": "AAA"
+      }
+    ]
+  }
+]

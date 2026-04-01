@@ -1,0 +1,436 @@
+﻿@{
+    ViewBag.Title = @Genesis.Common.PageBaseInfo.getCurrentResource("baseTpl").RESOURCE_NAME;
+    bool isSingleModel = (bool)ViewData["SingleModel"];
+    if (isSingleModel) Layout = "~/Views/Shared/_LayoutSingle.cshtml";
+}
+<h3>
+    @ViewBag.Title
+</h3>
+@Html.AntiForgeryToken()
+@eBundle.QRender_CSS()
+@eBundle.QRender_JS()
+<div id="app">
+    <el-switch v-model="EditMode"
+               active-color="#13ce66"
+               inactive-color="#ff4949"
+               active-text="FullEdit"
+               inactive-text="OneEdit">
+    </el-switch>
+    <div>{{edit_row}}</div>
+    <el-table empty-text=" " style="width: 100%" ref="input_grid"
+              :row-class-name="RowStyle"
+              highlight-current-row
+              @@current-change="HandleCurrentChange"
+              :data="items">
+        <el-table-column label="操作" min-width="120">
+            <template slot="header" slot-scope="scope">
+                <el-button size="small" class="s-VIEW"
+                           type="primary"
+                           icon="el-icon-plus"
+                           @@click="Add()"></el-button>
+                {{i18n.操作}}
+            </template>
+            <template slot-scope="scope">
+                <el-button size="small" circle class="s-VIEW"
+                           type="success"
+                           icon="el-icon-edit"
+                           @@click="Edit(scope.$index, scope.row)"></el-button>
+                <el-button size="small" circle class="s-VIEW"
+                           type="danger"
+                           icon="el-icon-delete"
+                           @@click="DelRow(scope.$index, scope.row)"></el-button>
+                <el-button size="small" circle class="s-NORMAL"
+                           type="success"
+                           icon="el-icon-check"
+                           @@click="Confirm(scope.$index, scope.row)"></el-button>
+                <el-button size="small" circle class="s-NORMAL"
+                           type="danger"
+                           icon="el-icon-refresh-right"
+                           @@click="Cancel(scope.$index, scope.row)"></el-button>
+            </template>
+        </el-table-column>
+
+        <el-table-column min-width="115" prop="ITEM_SEQ" :label="i18n.順序號">
+
+            <template slot-scope="scope">
+                <div class="s-VIEW">{{scope.row.ITEM_SEQ}}</div>
+                <el-input class="s-NORMAL" type=text v-model="bind_row(scope.row).ITEM_SEQ" size="small" />
+            </template>
+        </el-table-column>
+        <el-table-column min-width="115" prop="ITEM_TYPE"
+                         :label="i18n.類別">
+            <template slot-scope="scope">
+                <div class="s-VIEW">{{scope.row.ITEM_TYPE}}</div>
+                <el-select class="s-NORMAL" v-model="bind_row(scope.row).ITEM_TYPE" size="small">
+                    <el-option v-for="item in list"
+                               :key="item"
+                               :label="item"
+                               :value="item">
+                    </el-option>
+                </el-select>
+            </template>
+        </el-table-column>
+        <el-table-column min-width="115" prop="ITEM_VALUE_LENGTH"
+                         :label="i18n.長度">
+            <template slot-scope="scope">
+                <div class="s-VIEW">{{scope.row.ITEM_VALUE_LENGTH}}</div>
+                <el-input class="s-NORMAL" type=text
+                          v-model="bind_row(scope.row).ITEM_VALUE_LENGTH" size="small" />
+            </template>
+        </el-table-column>
+        <el-table-column min-width="115" prop="ITEM_VALUE"
+                         :label="i18n.值">
+            <template slot-scope="scope">
+                <div class="s-VIEW">{{scope.row.ITEM_VALUE}}</div>
+                <el-input class="s-FIX s-INPUT" type=text
+                          v-model="bind_row(scope.row).ITEM_VALUE" size="small" />
+            </template>
+
+        </el-table-column>
+        <el-table-column min-width="115" prop="SERIAL_CHARS"
+                         :label="i18n.可用字元列表">
+            <template slot-scope="scope">
+                <div class="s-VIEW">{{scope.row.SERIAL_CHARS}}</div>
+                <el-input class="s-FIX s-TIME s-COLUMN s-SERIAL s-CUSTOM" type=text
+                          v-model="bind_row(scope.row).SERIAL_CHARS" size="small" />
+            </template>
+        </el-table-column>
+        <el-table-column min-width="115" prop="TABLE_NAME"
+                         :label="i18n.表名">
+            <template slot-scope="scope">
+                <div class="s-VIEW">{{scope.row.TABLE_NAME}}</div>
+                <el-input class="s-COLUMN" type=text v-model="bind_row(scope.row).TABLE_NAME" size="small" />
+            </template>
+        </el-table-column>
+        <el-table-column min-width="115" prop="COLUMN_NAME"
+                         :label="i18n.列名">
+            <template slot-scope="scope">
+                <div class="s-VIEW">{{scope.row.COLUMN_NAME}}</div>
+                <el-input class="s-COLUMN" type=text v-model="bind_row(scope.row).COLUMN_NAME" size="small" />
+            </template>
+        </el-table-column>
+
+        <el-table-column min-width="115" prop="COLUMN_VALUE_START"
+                         :label="i18n.列起始值">
+            <template slot-scope="scope">
+                <div class="s-VIEW">{{scope.row.COLUMN_VALUE_START}}</div>
+                <el-input class="s-COLUMN" type=text v-model="bind_row(scope.row).COLUMN_VALUE_START" size="small" />
+            </template>
+        </el-table-column>
+
+        <el-table-column min-width="115" prop="SERIAL_START_VALUE"
+                         :label="i18n.序號起始值">
+            <template slot-scope="scope">
+                <div class="s-VIEW">{{scope.row.SERIAL_START_VALUE}}</div>
+                <el-input class="s-SERIAL" type=text v-model="bind_row(scope.row).SERIAL_START_VALUE" size="small" />
+            </template>
+        </el-table-column>
+
+        <el-table-column min-width="115" prop="CUSTOM_ENTRY_FUNCTION"
+                         :label="i18n.入口函數">
+            <template slot-scope="scope">
+                <div class="s-VIEW">{{scope.row.CUSTOM_ENTRY_FUNCTION}}</div>
+                <el-input class="s-CUSTOM" type=text v-model="bind_row(scope.row).CUSTOM_ENTRY_FUNCTION" size="small" />
+            </template>
+        </el-table-column>
+        <el-table-column min-width="115" prop="RESET_ON_CHANGED"
+                         :label="i18n.是否重置">
+            <template slot-scope="scope">
+                <div class="s-VIEW">{{$UT.parse_Boolean(scope.row.RESET_ON_CHANGED)}}</div>
+                <el-select class="s-NORMAL" v-model="bind_row(scope.row).RESET_ON_CHANGED" size="small">
+                    <el-option label="是" value="T"> </el-option>
+                    <el-option label="否" value="F"> </el-option>
+                </el-select>
+            </template>
+        </el-table-column>
+    </el-table>
+    {{items}}
+</div>
+
+<script>
+    $(function () {
+        var items = [
+            {
+                "ENCODE_FORMAT_ITEM_SID": "GTI20121016001054609",
+                "ENCODE_FORMAT_SID": "GTI20102115385063472",
+                "ITEM_SEQ": 0.0,
+                "ITEM_TYPE": "FIX",
+                "ITEM_VALUE_LENGTH": 3.0,
+                "ITEM_VALUE": "ST-",
+                "SERIAL_CHARS": null,
+                "TABLE_NAME": null,
+                "COLUMN_NAME": null,
+                "COLUMN_VALUE_START": null,
+                "SERIAL_START_VALUE": null,
+                "CUSTOM_ENTRY_FUNCTION": null,
+                "RESET_ON_CHANGED": "T",
+                "CREATE_USER": "ting",
+                "CREATE_DATE": "2020-12-10 16:00:10",
+                "UPDATE_USER": "ting",
+                "UPDATE_DATE": "2020-12-10 16:00:10"
+            },
+            {
+                "ENCODE_FORMAT_ITEM_SID": "GTI20121016001054610",
+                "ENCODE_FORMAT_SID": "GTI20102115385063472",
+                "ITEM_SEQ": 1.0,
+                "ITEM_TYPE": "INPUT",
+                "ITEM_VALUE_LENGTH": 2.0,
+                "ITEM_VALUE": null,
+                "SERIAL_CHARS": null,
+                "TABLE_NAME": null,
+                "COLUMN_NAME": null,
+                "COLUMN_VALUE_START": null,
+                "SERIAL_START_VALUE": null,
+                "CUSTOM_ENTRY_FUNCTION": null,
+                "RESET_ON_CHANGED": "T",
+                "CREATE_USER": "ting",
+                "CREATE_DATE": "2020-12-10 16:00:10",
+                "UPDATE_USER": "ting",
+                "UPDATE_DATE": "2020-12-10 16:00:10"
+            },
+            {
+                "ENCODE_FORMAT_ITEM_SID": "GTI20121016001054611",
+                "ENCODE_FORMAT_SID": "GTI20102115385063472",
+                "ITEM_SEQ": 2.0,
+                "ITEM_TYPE": "YEAR",
+                "ITEM_VALUE_LENGTH": 2.0,
+                "ITEM_VALUE": null,
+                "SERIAL_CHARS": null,
+                "TABLE_NAME": null,
+                "COLUMN_NAME": null,
+                "COLUMN_VALUE_START": null,
+                "SERIAL_START_VALUE": null,
+                "CUSTOM_ENTRY_FUNCTION": null,
+                "RESET_ON_CHANGED": "T",
+                "CREATE_USER": "ting",
+                "CREATE_DATE": "2020-12-10 16:00:10",
+                "UPDATE_USER": "ting",
+                "UPDATE_DATE": "2020-12-10 16:00:10"
+            },
+            {
+                "ENCODE_FORMAT_ITEM_SID": "GTI20121016001054612",
+                "ENCODE_FORMAT_SID": "GTI20102115385063472",
+                "ITEM_SEQ": 3.0,
+                "ITEM_TYPE": "COLUMN",
+                "ITEM_VALUE_LENGTH": 2.0,
+                "ITEM_VALUE": null,
+                "SERIAL_CHARS": null,
+                "TABLE_NAME": null,
+                "COLUMN_NAME": null,
+                "COLUMN_VALUE_START": null,
+                "SERIAL_START_VALUE": null,
+                "CUSTOM_ENTRY_FUNCTION": null,
+                "RESET_ON_CHANGED": "T",
+                "CREATE_USER": "ting",
+                "CREATE_DATE": "2020-12-10 16:00:10",
+                "UPDATE_USER": "ting",
+                "UPDATE_DATE": "2020-12-10 16:00:10"
+            },
+            {
+                "ENCODE_FORMAT_ITEM_SID": "GTI20121016001054612",
+                "ENCODE_FORMAT_SID": "GTI20102115385063472",
+                "ITEM_SEQ": 3.0,
+                "ITEM_TYPE": "SERIAL",
+                "ITEM_VALUE_LENGTH": 2.0,
+                "ITEM_VALUE": null,
+                "SERIAL_CHARS": null,
+                "TABLE_NAME": null,
+                "COLUMN_NAME": null,
+                "COLUMN_VALUE_START": null,
+                "SERIAL_START_VALUE": null,
+                "CUSTOM_ENTRY_FUNCTION": null,
+                "RESET_ON_CHANGED": "T",
+                "CREATE_USER": "ting",
+                "CREATE_DATE": "2020-12-10 16:00:10",
+                "UPDATE_USER": "ting",
+                "UPDATE_DATE": "2020-12-10 16:00:10"
+            },
+            {
+                "ENCODE_FORMAT_ITEM_SID": "GTI20121016001054613",
+                "ENCODE_FORMAT_SID": "GTI20102115385063472",
+                "ITEM_SEQ": 4.0,
+                "ITEM_TYPE": "CUSTOM",
+                "ITEM_VALUE_LENGTH": 3.0,
+                "ITEM_VALUE": null,
+                "SERIAL_CHARS": null,
+                "TABLE_NAME": null,
+                "COLUMN_NAME": null,
+                "COLUMN_VALUE_START": null,
+                "SERIAL_START_VALUE": null,
+                "CUSTOM_ENTRY_FUNCTION": null,
+                "RESET_ON_CHANGED": "F",
+                "CREATE_USER": "ting",
+                "CREATE_DATE": "2020-12-10 16:00:10",
+                "UPDATE_USER": "ting",
+                "UPDATE_DATE": "2020-12-10 16:00:10"
+            }
+        ]
+        new Vue({
+            el: '#app',
+            data() {
+                return {
+                    EditMode:false,
+                    currentRow: null,
+                    list: ["FIX", "INPUT", "YEAR", "MONTH", "DAY", "QUARTER", "WEEK", "COLUMN", "SERIAL", "CUSTOM"],
+                    fileds: [
+                        'ITEM_SEQ', 'ITEM_TYPE', 'ITEM_VALUE_LENGTH'
+                        , 'ITEM_VALUE', 'SERIAL_CHARS', 'TABLE_NAME'
+                        , 'COLUMN_NAME', 'COLUMN_VALUE_START', 'SERIAL_START_VALUE'
+                        , 'CUSTOM_ENTRY_FUNCTION'
+                    ],
+                    items,
+                    edit_row: {},
+                    confirm_arg: {
+                        showClose: false,
+                        closeOnClickModal: false,
+                        closeOnPressEscape: false,
+                        dangerouslyUseHTMLString: true,
+                        confirmButtonText: `@RES.BLL.Face.FunctionBarConfirmButton`,
+                        cancelButtonText: `@RES.BLL.Face.FunctionBarCancelButton`,
+                        type: 'info'
+                    },
+                    //TODO-i18n:
+                    i18n: {
+                        順序號: "@RES.BLL.Face.ITEM_SEQ",
+                        類別: "@RES.BLL.Face.ITEM_TYPE",
+                        操作: "@RES.BLL.Face.Operate",
+                        長度: "@RES.BLL.Face.ITEM_VALUE_LENGTH",
+                        值: "@RES.BLL.Face.ITEM_VALUE",
+                        可用字元列表: "@RES.BLL.Face.SERIAL_CHARS",
+                        表名: "@RES.BLL.Face.TABLE_NAME",
+                        列名: "@RES.BLL.Face.COLUMN_NAME",
+                        列起始值: "@RES.BLL.Face.COLUMN_VALUE_START",
+                        序號起始值: "@RES.BLL.Face.SERIAL_START_VALUE",
+                        入口函數: "@RES.BLL.Face.CUSTOM_ENTRY_FUNCTION",
+                        是否重置: "@RES.BLL.Face.RESET_ON_CHANGED",
+                        cancel_confirm: '請確認是否放棄當前的修改?',
+                        del_confirm: '請確認是刪除這筆資料?'
+                        
+                    }
+                }
+            },
+            watch: {
+                currentRow() {
+                    if (this.currentRow == null) {
+                        window.removeEventListener("keyup", this.OnEscapeKeyUp);
+                    } else {
+                        window.addEventListener("keyup", this.OnEscapeKeyUp);
+                    }
+                }
+            },
+            methods: {
+                bind_row(row) {
+                    return this.EditMode ? row : this.edit_row;;
+                },
+                OnEscapeKeyUp(event) {
+                    if (event.which === 27) {
+                        this.Cancel();
+                    }
+                },
+                HandleCurrentChange(val) {
+                    //this.currentRow = val;
+                },
+
+                //顯示樣式處理，有數字的表示不顯示，順序號:0、可用字元列表:4、入口函數:9
+                RowStyle(item) {
+                    let { row } = item;
+                    var isEditRow = (row === this.currentRow) || this.EditMode;
+                    if (isEditRow) {
+                        var _row = this.EditMode ? row : this.edit_row;
+                        let { ITEM_TYPE = "INPUT" } = _row
+                            
+                        switch (ITEM_TYPE) {
+                            case "FIX":
+                                this.SetNull(_row, 5, 6, 7, 8, 9);
+                                break;
+                            case "INPUT":
+                                this.SetNull(_row, 4, 5, 6, 7, 8, 9);
+                                break;
+                            case "COLUMN":
+                                this.SetNull(_row, 3, 8, 9);
+                                break;
+                            case "SERIAL":
+                                this.SetNull(_row, 3, 5, 6, 7, 9);
+                                break;
+                            case "CUSTOM":
+                                this.SetNull(_row, 3, 5, 6, 7, 8);
+                                break;
+                            default:
+                                ITEM_TYPE = "TIME";
+                                this.SetNull(_row, 3, 5, 6, 7, 8, 9);
+                                break;
+                        }
+                        return `gt-sty s${ITEM_TYPE}`;
+                    }
+                    return "";
+                },
+                SetNull(target, ...Idx) {
+                    var _self = this;
+                    _.each(Idx, (i) => {
+                        var key = _self.fileds[i];
+                        target[key] = null;
+                    })
+                },
+
+                Add() {
+                    var _obj = _.maxBy(this.items, (el) => { return el.ITEM_SEQ })
+                        || { ITEM_SEQ: 0 };
+                    var ITEM_SEQ = _obj.ITEM_SEQ + 1;
+                    var _new = { ITEM_SEQ, ITEM_TYPE: 'INPUT', RESET_ON_CHANGED: 'T' };
+                    this.SetNull(_new, 2, 3, 4, 5, 6, 7, 8, 9);
+                    this.items.push(_new);
+                },
+                Edit(idx, row) {
+                    this.currentRow = row;
+                    this.edit_row = Object.assign({}, row);
+                },
+                Confirm(idx, row) {
+                    var _tar = this.items[idx];
+                    _.each(this.edit_row, (el, key) => {
+                        _tar[key] = el;
+                    })
+                    this.edit_row = {};
+                    this.currentRow = null;
+                },
+                Cancel() {
+                    var _self = this;
+                    _self.$confirm(_self.i18n.cancel_confirm, '提示', _self.confirm_arg).then(() => {
+                        _self.currentRow = null;
+                    });
+                },
+                DelRow(idx, row) {
+                    var _self = this;
+                    _self.$confirm(_self.i18n.del_confirm, '提示', _self.confirm_arg).then(() => {
+                        _self.items.splice(idx, 1);
+                    });
+                },
+            }
+        })
+    })
+</script>
+
+<style>
+    .gt-sty .s-VIEW,
+    .s-NORMAL,
+    .s-FIX,
+    .s-INPUT,
+    .s-TIME,
+    .s-COLUMN,
+    .s-SERIAL,
+    .s-CUSTOM {
+        display: none;
+    }
+
+    .gt-sty .s-NORMAL {
+        display: inline-block;
+    }
+
+    .gt-sty.sFIX .s-FIX,
+    .gt-sty.sINPUT .s-INPUT,
+    .gt-sty.sTIME .s-TIME,
+    .gt-sty.sCOLUMN .s-COLUMN,
+    .gt-sty.sSERIAL .s-SERIAL,
+    .gt-sty.sCUSTOM .s-CUSTOM {
+        display: block;
+    }
+</style>
