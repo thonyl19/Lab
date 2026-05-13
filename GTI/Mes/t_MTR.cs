@@ -5,6 +5,7 @@ using Genesis.Gtimes.Transaction.WIP;
 using Genesis.Gtimes.WIP;
 using Genesis.Library.BLL.MES.WRP;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
+using System.Linq;
 using UnitTestProject.TestUT;
 using static Genesis.Gtimes.Transaction.MTR.MTRTransaction;
 using _Frame = Genesis.Library.Frame.Code.Web.TableQuery;
@@ -15,7 +16,7 @@ namespace UnitTestProject
     [TestClass]
 	public class t_MTR : _testBase
 	{
-		static class _log
+		public static class _log
 		{
 			/// <summary>
 			/// splitBIN 前端傳入的資料範例 
@@ -43,12 +44,12 @@ namespace UnitTestProject
 
 		[TestMethod]
 		public void t_LotConsumptionTxn()
-=> _DBTest((Txn) => {
-	var CurrentLot = Txn.GetLotInfo("3B0000-231213-01", isQueryByLotNO: true);
-	var mLot = Txn.GetMLotInfo("2001-15409-1-1B01");
-	var consumpMLot = new LotUtility.LotConsumptionMlotQuantity(mLot, (decimal)50, 0, 0);
-	//Txn.DoTransaction(new WIPTransaction.LotConsumptionTxn(CurrentLot, consumpMLot));
-}, true);
+		=> _DBTest((Txn) => {
+			var CurrentLot = Txn.GetLotInfo("3B0000-231213-01", isQueryByLotNO: true);
+			var mLot = Txn.GetMLotInfo("2001-15409-1-1B01");
+			var consumpMLot = new LotUtility.LotConsumptionMlotQuantity(mLot, (decimal)50, 0, 0);
+			//Txn.DoTransaction(new WIPTransaction.LotConsumptionTxn(CurrentLot, consumpMLot));
+		}, true);
 
 
 		/// <summary>

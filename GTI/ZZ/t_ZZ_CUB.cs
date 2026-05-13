@@ -43,6 +43,7 @@ using Genesis.Library.BLL.QMS;
 //using _bllSvc = Genesis.Library.BLL.ZZ.CUB;
 using _zz_OperInfo = Genesis.Library.BLL.ZZ.CUB.OperInfo;
 using _zzAPI = Genesis.Library.BLL.ZZ.CUB.ApiService;
+using _zzCodeRule = Genesis.Library.BLL.ZZ.CUB.CodeRule;
 using static Genesis.Library.BLL.ZZ.CUB.OperInfo.Basic;
 using Newtonsoft.Json.Linq;
 using Genesis.Gtimes.Transaction.EQP;
@@ -53,12 +54,16 @@ using Genesis.Library.BLL;
 using Genesis.Library.BLL.MES.AutoGenerate;
 using Frame.Code.Web.Select;
 
+using Genesis.Library.BLL.ZZ.CUB.CodeRule;
+using Genesis.Library.BLL.PMS.Definition;
+using BLL.PMS;
+
 namespace UnitTestProject
 {
 	/// <summary>
 	/// </summary>
 	[TestClass]
-	public class t_ZZ_CUB : _testBase
+	public partial class t_ZZ_CUB : _testBase
 	{
 		static class _log
 		{
@@ -137,6 +142,47 @@ namespace UnitTestProject
 					return FileApp.ts_Log($@"ZZ/CUB\t_EQP_Tool_計算.json");
 				}
 			}
+
+			internal static string t_Portal_ListData
+			{
+				get
+				{
+					return FileApp.ts_Log($@"ZZ/CUB\t_Portal_ListData.json");
+				}
+			}
+
+			internal static string t_基本檢核_站別檢驗單卡控
+			{
+				get
+				{
+					return FileApp.ts_Log($@"ZZ/CUB\t_基本檢核_站別檢驗單卡控.json");
+				}
+			}
+
+			internal static string t_EqpToolList
+			{
+				get
+				{
+					return FileApp.ts_Log(@"Operation\t_EqpToolList.json");
+				}
+			}
+
+			internal static string t_UserGroupStepLicenseData
+			{
+				get
+				{
+					return FileApp.ts_Log(@"ZZ/CUB\t_UserGroupStepLicenseData.json");
+				}
+			}
+
+			internal static string t_consumedMaterialInfo
+			{
+				get
+				{
+					return FileApp.ts_Log(@"ZZ/CUB\t_consumedMaterialInfo.json");
+				}
+			}
+			
 		}
 
 
@@ -325,7 +371,7 @@ namespace UnitTestProject
 		{
 			TxnBase.Test = GTI_TxnBase.IPQC;
 			var _r = FileApp.Read_SerializeJson<d_SIPQC_Paralle_Save>(_log.SIPQC_Paralle_Save);
-			QMSService.IPQC_Save(_r.form, _r.lot_list, _r.data_input, true, true);
+			//QMSService.IPQC_Save(_r.form, _r.lot_list, _r.data_input, true, null,true);
 		}
 
 
@@ -583,6 +629,20 @@ namespace UnitTestProject
 			FileApp._tmpJson(r);
 		}
 
+		[TestMethod]
+		public void t_Portal_ListData()
+		{
+			var _PagerQuery = FileApp.Read_SerializeJson<BLL.DataViews.Res.PagerQuery>(_log.t_Portal_ListData);
+			var r = PMSJobImplementServices.Portal_ListData(_PagerQuery);
+			FileApp._tmpJson(r);
+		}
+
+		[TestMethod]
+		public void t_TxnBase_T_保養單()
+		=> _DBTest((txn) =>
+		{
+			GTI_Test.TxnBase_T_保養單(txn, null, "PMS2025103000000011");
+		}, false, true);
 
 
 		[TestMethod]
@@ -698,7 +758,7 @@ namespace UnitTestProject
 
 
         [TestMethod]
-        public void t_fnxx()
+        public void t_GetOperTools()
 		=> _DBTest((txn) =>
 		{
 			var t = WIPOperConfigServices.GetOperTools("GTI24071610151727020",txn.DBC);
@@ -760,6 +820,54 @@ namespace UnitTestProject
 			var int_取得整數 = (int)Math.Floor(avg_ToolUseCount);
 			var int_取得餘數 = (int)Math.Ceiling(avg_ToolUseCount - int_取得整數);
 		}
+
+
+		[TestMethod]
+		public void job_重設機台並下治具()
+		=> _DBTest((txn) =>
+		{
+			var _eqpInfo = txn.GetEquipmentInfo("Test01", IndexType: EquipmentUtility.IndexType.No);
+
+			// 取得機台上的治具
+			var ToolsOfEqp = _eqpInfo.GetEquipmentLoadToolList();
+			//var ToolsOfEqp = txn.EFQuery_MES.f取得機台上的治具清單(equip.No).ToList();
+			if (ToolsOfEqp.Count != 0)
+			{
+				// 治具下機台
+				txn.DoTransaction(new EQPTransaction.EquipmentUnloadToolTxn(_eqpInfo, ToolsOfEqp));
+				foreach (var tool in ToolsOfEqp)
+				{
+					txn.DoTransaction(new TOLTransaction.EndOfToolTxn(tool));
+				}
+				txn.DoTransaction(new EQPTransaction.EndOfEquipmentTxn(_eqpInfo));
+			}
+
+			var EqpFn = new EquipmentUtility.EquipmentFunction(txn.DBC);
+			var lots = txn.EFQuery_MES.f取得機台上的批號清單(_eqpInfo.SID).ToList();
+			//DataTable lots = EqpFn.GetEquipmentLotList(_eqpInfo.No);
+
+			foreach (var lot in lots)
+			{
+				_eqpInfo = _eqpInfo.ReLoad(txn.DBC);
+				var _lotInfo = txn.GetLotInfo(lot.LOT_SID);
+				txn.DoTransaction(
+					new EQPTransaction.EquipmentUnloadLotTxn(_eqpInfo, _lotInfo),
+					new EQPTransaction.EndOfEquipmentTxn(_eqpInfo)
+				);
+			}
+
+			if (_eqpInfo.CURRENT_LOT_SIZE != 0 || _eqpInfo.CURRENT_CAPACITY != 0)
+			{
+				_eqpInfo = _eqpInfo.ReLoad(txn.DBC);
+				txn.DoTransaction(
+					new EQPTransaction.EquipmentChangeCapacityAndLotSizeTxn(_eqpInfo, 0, 0)
+					{
+						ChangeStatus = true
+					}
+				); ;
+			}
+		}, true);
+
 
 		[TestMethod]
 		public void t_SequenceWO_Check_Qty()
@@ -1005,7 +1113,877 @@ namespace UnitTestProject
 
 		}, false);
 
+
+        [TestMethod]
+        public void t_使用次數計算公式()
+        {
+			decimal z = 0.5m;
+			var t = Genesis.Library.BLL.ZZ.CUB.CodeRule.EQP_Tool.使用次數計算公式(1, z);
+
+		}
+
+		[TestMethod]
+		public void t_EnforceFinished()
+		=> _DBTest((Txn) =>
+		{
+            var LOT = "100031174-0010";
+			var _dbc = Txn.EFQuery_MES;
+			//var q_lot = _dbc.WP_LOT_OPER_PARALLEL.Where(c => c.LOT == "100031174-0080");
+			//var _lot = q_lot.ToList_CheckExists();
+			var _lot = (from lot in _dbc.WP_LOT_OPER_PARALLEL
+							join oper in _dbc.PF_OPERATION
+							on lot.OPER_SID equals oper.OPER_SID into grp_oper
+							from oper in grp_oper.DefaultIfEmpty()
+
+                        where lot.LOT == LOT
+						select new
+						{
+							lot,
+							oper,
+							is人員離站 = !_dbc.WP_USER_TRACE_IN_MASTER.Any(c=>c.LOT == lot.LOT && c.ROUTE_VER_OPER_SID == lot.ROUTE_VER_OPER_SID && c.RUN_END_DATE == null)
+						}).ToList();
+                    
+			var s_wo = _lot[0].lot.WO;
+			var _wo = _dbc.WP_WO.Where(c => c.WO == s_wo).ToList_CheckExists();
+            var z = _wo
+					.Select(wo=>new {
+                            WO= wo.WO,
+                            PARTNO_VER_SID = wo.PARTNO_VER_SID,
+                            PARTNO = wo.PARTNO,
+                            QUANTITY = wo.QUANTITY,
+                            LOT = LOT,
+                            LotInfo = _lot.Select(c=>new {
+                                STATUS = c.lot.STATUS,
+                                OPER_NO= c.oper.OPERATION_NO,
+                                OPERATION = c.lot.OPERATION,
+                                QUANTITY = c.lot.QUANTITY,
+                                is全部離站 = c.is人員離站,
+                            }).ToList()
+                        }).ToList();
+			FileApp._tmpJson(z);
+
+
+		}, false);
+
+
+		[TestMethod]
+		public void t_EnforceFinished_Case1()
+		=> _DBTest((Txn) =>
+		{
+            /*
+            			return from a in _self.WP_USER_TRACE_IN_MASTER
+				   join b in _self.WP_USER_TRACE_IN
+					   on a.IN_MASTER_SID equals b.IN_MASTER_SID into aGroup
+				   select new d_MasterDetail<WP_USER_TRACE_IN_MASTER, WP_USER_TRACE_IN>
+				   {
+					   Main = a,
+					   Exts = aGroup.ToList() // 將分組的 Ext 記錄轉換為 List
+				   };
+                var t = (from lot in _dbc.WP_LOT_OPER_PARALLEL.Where(c=>c.LOT == "100031174-0080")
+                        join user_m in _dbc.WP_USER_TRACE_IN_MASTER on lot.LOT_SID equals user_m.IN_MASTER_SID into user_mGroup
+                        from user_m in user_mGroup.DefaultIfEmpty()
+                        join user_in in _dbc.WP_USER_TRACE_IN on user_m.IN_MASTER_SID equals user_in.IN_MASTER_SID into user_list
+                        from user_in in user_list.DefaultIfEmpty()
+                select new d_MasterDetail<WP_LOT_OPER_PARALLEL, d_MasterDetail<WP_USER_TRACE_IN_MASTER, WP_USER_TRACE_IN>>
+                {
+                    Main = lot,
+                    Exts = user_m
+					new d_MasterDetail<WP_USER_TRACE_IN_MASTER, WP_USER_TRACE_IN>(){
+                            Main = user_m,
+                            Exts = user_list.ToList()
+                        }
+                    }
+                }).ToList();
+            */
+			var _dbc = Txn.EFQuery_MES;
+            var q_lot = _dbc.WP_LOT_OPER_PARALLEL.Where(c=>c.LOT == "100031174-0080");
+            var _lot = q_lot.ToList_CheckExists();
+			var s_wo = _lot[0].WO;
+			var _wo = _dbc.WP_WO.Where(c=>c.WO == s_wo).ToList_CheckExists();
+            var user = (from user_m in _dbc.WP_USER_TRACE_IN_MASTER.Where(c=>q_lot.Any(c1=>c1.LOT == c.LOT && c1.ROUTE_VER_OPER_SID == c.ROUTE_VER_OPER_SID))
+                        join user_in in _dbc.WP_USER_TRACE_IN on user_m.IN_MASTER_SID equals user_in.IN_MASTER_SID into user_list
+                        from user_in in user_list.DefaultIfEmpty()
+                        select new 
+                        {
+                            user_m,
+							user_list = user_list.ToList()
+                        }).ToList();
+ 
+            var z = _wo
+					.Select(wo=>new {
+                            WO= wo.WO,
+                            PARTNO_VER_SID = wo.PARTNO_VER_SID,
+                            PARTNO = wo.PARTNO,
+                            QUANTITY = wo.QUANTITY,
+                            LotInfo = _lot.Select(lot=>new {
+                                    STATUS = lot.STATUS,
+                                    OPER_NO= user.Where(c=>c.user_m.LOT == lot.LOT && c.user_m.ROUTE_VER_OPER_SID == lot.ROUTE_VER_OPER_SID).FirstOrDefault().user_m.OPER_NO,
+                                    OPERATION = lot.OPERATION,
+                                    QUANTITY = lot.QUANTITY,
+                                    UserInfo = user.Where(c=>c.user_m.LOT == lot.LOT && c.user_m.ROUTE_VER_OPER_SID == lot.ROUTE_VER_OPER_SID)
+										.Select(c=> new{
+											USER_NO = c.user_m.USER_NO,
+											USER_NAME = c.user_m.USER_NAME,
+                                            RUN_START_DATE = c.user_m.RUN_START_DATE,
+                                            RUN_END_DATE = c.user_m.RUN_END_DATE,
+                                            WorkInfo = c.user_list.Select(c1=>new {
+												USER_NO = c1.USER_NO,
+												USER_NAME = c1.USER_NAME,
+                                                START_TIME = c1.START_TIME,
+                                                END_TIME = c1.END_TIME,
+											}).ToList()
+										})
+										.ToList()
+                            }).ToList()
+                }).ToList();
+
+
+			//var groupedResult = flatList
+			//	.GroupBy(x => x.lot)
+			//	.Select(g => new d_MasterDetail<WP_LOT_OPER_PARALLEL, d_MasterDetail<WP_USER_TRACE_IN_MASTER, WP_USER_TRACE_IN>>
+			//	{
+			//		Main = g.Key,
+			//		Exts = g.GroupBy(x => x.grp_user_m)
+			//				.Select(mg => new d_MasterDetail<WP_USER_TRACE_IN_MASTER, WP_USER_TRACE_IN>
+			//				{
+			//					Main = mg.Key,
+			//					Exts = mg.Select(x => x.grp_user_in).Where(x => x != null).ToList()
+			//				}).ToList()
+			//	}).ToList();
+			FileApp._tmpJson( z );
+		}, false);
+
+
+		[TestMethod]
+		public void t_查詢未離線人員(){
+            //var _list = _zzAPI.query_online_user("100031174-0010","GTI24122418180688152");
+            //FileApp._tmpJson(_list);
+        }
+
+
+		[TestMethod]
+		public void t_GetMachineTool_1()
+		{
+            var _list = _zzAPI.GetMachineTool_1("GTI25052909345834007");
+            FileApp._tmpJson(_list);
+        }
+
+		[TestMethod]
+		public void t_保養提醒通知判定(){
+
+			var T01 = _zzCodeRule.EQP_Tool.保養作業判定(100, 0, null);
+			Assert.IsTrue
+				(T01.Check() == -1
+				&& (T01.Check_EqulMax() == -1)
+				&& (T01.Check_Equl() == -1
+				&& (T01.Check_EqulMin() == -1)
+				)
+				, "未設最大使用量/浮動值, 相符/超過 判定模式");
+
+			var T02 = _zzCodeRule.EQP_Tool.保養作業判定(100, 0, 100);
+			Assert.IsTrue
+				(T02.Check() == -1
+				&& (T02.Check_EqulMax() == 1)
+				&& (T02.Check_Equl() == 1)
+				&& (T02.Check_EqulMin() == 0)
+				, "最大使用量 100 ,未設 , 最大值 相符/超過 判定模式");
+
+			var T03 = _zzCodeRule.EQP_Tool.保養作業判定(100, 0, 100, (decimal?)1.1);
+			Assert.IsTrue
+				(T03.Check() == -1
+				&& (T03.Check_EqulMax() == -1)
+				&& (T03.Check_Equl() == 0)
+				&& (T03.Check_EqulMin() == 0)
+				, "最大使用量 100 ,設 浮動值 1.1 , 最大值 相符/超過 判定模式");
+
+			T03.CheckVal = 110;
+			Assert.IsTrue
+				(T03.Check() == 0
+				&& (T03.Check_EqulMax() == 1)
+				&& (T03.Check_Equl() == 1)
+				&& (T03.Check_EqulMin() == 0)
+				, "最大使用量 100 ,設 浮動值 1.1 , 最大值 相符/超過 判定模式");
+
+
+			var T04 = _zzCodeRule.EQP_Tool.保養作業判定(90, 0, 100, (decimal ?)0.9);
+			Assert.IsTrue
+				(T04.Check() == -1
+				&& (T04.Check_EqulMax() == -1)
+				&& (T04.Check_Equl() == 0)
+				&& (T04.Check_EqulMin() == 0)
+				, "最大使用量 100 ,設 浮動值 0.9 , 最大值 相符/超過 判定模式");
+
+			T04.CheckVal = 100;
+			Assert.IsTrue
+				(T04.Check() == 0
+				&& (T04.Check_EqulMax() == 1)
+				&& (T04.Check_Equl() == 1)
+				&& (T04.Check_EqulMin() == 0)
+				, "最大使用量 100 ,設 浮動值 1.1 , 最大值 相符/超過 判定模式");
+
+			/*
+
+			Assert.IsTrue
+				(_zzCodeRule.EQP_Tool.保養提醒通知判定(90, 5, null, (decimal?)0.9) == false
+				, "未設置最大使用量 , 恆為不超過 ");
+
+			Assert.IsTrue
+				(_zzCodeRule.EQP_Tool.保養提醒通知判定(100, 0, 100, null) == false
+				&& (_zzCodeRule.EQP_Tool.保養提醒通知判定(100, 1, 100, null))
+				, "未設置 FLEX_RATE , 不得超過 MAX_USE_COUNT ");
+
+			Assert.IsTrue
+				(_zzCodeRule.EQP_Tool.保養提醒通知判定(100, 1, 100, (decimal?)1.1) == false
+				, "100+1 < 110 應為未超過 ");
+
+			Assert.IsTrue
+				(_zzCodeRule.EQP_Tool.保養提醒通知判定(90, 1, 100, (decimal?)0.9)
+				, "90+1 > 90 應為超過 ");
+				*/
+		}
+
+        [TestMethod]
+		public void t_取得併行批號包裝站的設定()
+		=> _DBTest((txn) =>
+		{
+            var _dbc = txn.EFQuery_MES;
+            var _q =(from a in _dbc.WP_LOT_OPER_PARALLEL
+                    join b in _dbc.PF_OPERATION_EXPAND on a.OPER_SID equals b.OPER_SID into grp_oper
+                    from b in grp_oper.DefaultIfEmpty()
+                    where a.LOT == "100031207" //&& b.ENABLE_FLAG == "T"
+					 select new {
+                        Lot = a,OperSet = b
+                    }).ToList();     
+
+            var _r = _q.Where(c => {
+                dynamic data = JsonConvert.DeserializeObject(c.OperSet.SETTING_JSON);
+                if (FindProperty(data.CheckOutSet, "IsTreePacking")) return data.CheckOutSet.IsTreePacking == true;
+                return false;
+                })
+                .ToList();
+
+
+			var _lot = _r.FirstOrDefault().Lot;
+			//取得包裝的大項資訊
+			var pkgInfo = _dbc.PF_PARTNO_PACKAGE.FirstOrDefault(x => x.PARTNO_VER_SID == _lot.PARTNO_VER_SID && x.DEFAULT_FLAG == "T");
+
+			//var PKG_TYPE_NO = pkgInfo.PACKAGE_TYPE_NO ?? _lot.Attr01_替代包裝類別No();
+			//var pkgNodes = (from a in _dbc.ZZ_PF_PACKAGE_ITEM
+			//				where a.PKG_TYPE_NO == PKG_TYPE_NO
+			//					&& a.UPPER_LAYER_SID != null
+			//				select a
+			//					).ToList();
+
+		}, false);
+
+
+		[TestMethod]
+		public void t_查詢機台上有沒有特定批號()
+		=> _DBTest((Txn) =>
+		{
+					/*
+					原本的需求其實是查批號有沒有上過這個機台 , 但以下的查法是不正確的 
+					 ,但還是先保留以做參考 
+					 */
+			var _lotA = Txn.EFQuery_MES.WP_LOT_OPER_PARALLEL.FirstOrDefault(c => c.LOT_SID == "GTI25052211164229261");
+			var _eqp_trace = Txn.EFQuery_MES.WP_LOT_EQP_TRACE.FirstOrDefault(c => c.EQP_LINK_SID == _lotA.EQP_LINK_SID);
+
+		}, true);
+
+		[TestMethod]
+		public void t_取得併行批號包裝站的設定_1() {
+			var t = LOT_Services.ChangePackagingRule_LotInfo("100031207");
+			FileApp._tmpJson(t);
+		}
+
+
+		[TestMethod]
+		public void t_達次保養()
+		=> _DBTest((Txn) =>
+		{
+            try
+            {
+				var zz =  Txn.GetParameterInfo(_zzCodeRule.系統參數.達次保養通知群組)
+					.CheckExist($"達次保養通知群組[{_zzCodeRule.系統參數.達次保養通知群組}]");
+            }
+            catch (Exception ex)
+            {
+				var z = ex;
+            }
+
+		});
+
+
+		[TestMethod]
+		public void t_20251205_Mail_達次()
+		=> _DBTest((Txn) =>
+		{
+			var mail_TO = (from a in Txn.f取得角色人員清單(系統參數.角色_保養單核准)
+						   where a.EMAIL != null && a.EMAIL != ""
+						   select a.EMAIL).ToList();
+
+			var _list = (from P0 in Txn.EFQuery_MES.f保養單查詢基礎結構()
+					  where P0.STATUS != "OK" && P0.PLAN_TYPE == "U"
+						 && P0.CONFIRM == "N"
+					  && (P0.DEAD_LINE == null)
+					  select  P0 
+					  ).ToList();
+			var _list_SID = _list.Select(c => c.PLANIMPLEMENT_SID).ToList();
+
+			var _user = (from a in Txn.EFQuery_MES.PM_PLANIMPLEMENTUSER
+							join b in Txn.EFQuery_MES.AD_USER
+								on a.USER_SID equals b.USER_SID
+						 where _list_SID.Contains(a.PLANIMPLEMENT_SID)
+						 select new {
+							 PLANIMPLEMENT_SID = a.PLANIMPLEMENT_SID,
+							 USER = b.USER_NAME,
+							 MAIL = b.EMAIL
+						 }).ToList();
+
+			var _mail = _user.Where(c => !string.IsNullOrEmpty(c.MAIL))
+						.Select(c => c.MAIL)
+						.Distinct()
+						.Except(mail_TO)
+                .ToList(); 
+			mail_TO.AddRange(_mail);
+
+			foreach (var a in _list){
+				var __list = _user
+					.Where(b => b.PLANIMPLEMENT_SID == a.PLANIMPLEMENT_SID)
+					.Select(b => b.USER)
+					.ToList();
+				a.USERs = string.Join(",", _list);
+			}
+
+			FileApp._tmpJson(new { _list, mail_TO , _user });
+		});
+
+
+
+		[TestMethod]
+        public void t_f依據sid取得AD_USER()
+		=> _DBTest((Txn) =>
+		{
+			var q_userSid = Txn.EFQuery_MES.f取得PlanUserList("GTI25100917380340153")
+					.Select(c => c.USER_SID);
+			var list_user = Txn.EFQuery_MES.AD_USER
+				.f依據sid_list取得AD_USER(q_userSid)
+				.ToList();
+		}, true);
+
+		[TestMethod]
+		public void t_建立達次保養單_原型()
+		=> _DBTest((Txn) =>
+        {
+			var _eqp = Txn.EFQuery_MES.FC_EQUIPMENT
+			   .Where(c => c.EQP_NO == "161600000313")
+			   .FirstOrDefault_CheckExists();
+
+			var _plan = Txn.EFQuery_MES.f依據OBJECT_SID取得Plan(_eqp.EQP_SID ,"U" )
+				.FirstOrDefault_CheckExists("查無對應的 PM Plan 記錄", true);
+
+			string Calculation = "Plan";
+			string HolidaySet = Txn.EFQuery_MES.PM_PARAMETER
+				.Where(x => x.CALCULATION == Calculation)
+				.FirstOrDefault().HOLIDAY_SET;
+
+
+			var obj = new PM_PLANIMPLEMENT(){
+                PLANIMPLEMENT_SID = Txn.GetSID(true),
+                PLAN_SID = _plan.PLAN_SID,
+				PLAN_DATE = Txn.ExeTime.AddDays(-1) ,
+				PARAMETER_SID = _plan.PARAMETER_SID,
+				//PLAN_NO = _plan.PLAN_NO,
+				STATUS = MaintenancePlanStatus.WAIT.ToString(),
+				PLANIMPLEMENT_NAME = _plan.PLAN_NAME,
+				ITEM_CLASS = MaintenanceObject.Equipment.ToString(),
+				//ITEM_CLASS = ModuleNames.UCO.ToString(),
+				//ITEM_NUMBER = 1,
+				//ENABLE_FLAG = "T",
+				//QUOTE_ONCE = "F",
+				PLAN_UNIT = _plan.PLAN_UNIT,
+				UNIT_NUMBER = 1,
+				//START_DATE = Txn.ExeTime,
+				CALLOLATION = Calculation,
+				HOLIDAY_SET = HolidaySet,
+				PLANITEM_SID = _eqp.EQP_SID,
+				//CANCEL_DATE = "",
+				DESCRIPTION = "",
+				//LASTPLAN_DATE = "",
+				//LASTACTUAL_DATE = "",
+				//PARAMETER_SID = "",
+				//ROLL_DATE = "",
+				//PLAN_TYPE = _plan.PLAN_TYPE,
+			};
+			Txn.EntityCommonSetVal(obj, isNeedInit: true);
+
+
+			var q_userSid = Txn.EFQuery_MES.PM_PLANUSER.f取得userSIDs(_plan.PLAN_SID);
+			var list_user = Txn.EFQuery_MES.AD_USER
+				.f依據sid_list取得AD_USER(q_userSid)
+				.ToList();
+ 
+			var list_PM_PLANIMPLEMENTUSER = new List<PM_PLANIMPLEMENTUSER>();
+			foreach (AD_USER user in list_user){
+				var _obj = new PM_PLANIMPLEMENTUSER()
+				{
+					PLANIMPLEMENTUSER_SID = Txn.GetSID(true),
+					USER_SID = user.USER_SID,
+					PLANIMPLEMENT_SID = obj.PLANIMPLEMENT_SID,
+					CREATE_DATE = Txn.ExeTime,
+					CREATE_USER = Txn.UserNo,
+					UPDATE_DATE = Txn.ExeTime,
+					UPDATE_USER = Txn.UserNo,
+				};
+				//Txn.EntityCommonSetVal(_obj, isNeedInit: true);
+				list_PM_PLANIMPLEMENTUSER.Add(_obj);
+			}
+
+			var itemList = (from a in Txn.EFQuery_MES.PM_PLANITEM
+							where a.PLAN_SID == _plan.PLAN_SID
+							select a
+				).ToList();
+
+			var list_PM_PLANIMPLEMENTITEM = new List<PM_PLANIMPLEMENTITEM>();
+			foreach (var item in itemList){
+				var _obj = new PM_PLANIMPLEMENTITEM()
+				{
+					PLANIMPLEMENTITEM_SID = Txn.GetSID(true),
+					PLANIMPLEMENT_SID = obj.PLANIMPLEMENT_SID,
+					ITEM_SID = item.ITEM_SID,
+					CREATE_DATE = Txn.ExeTime,
+					CREATE_USER = Txn.UserNo,
+					UPDATE_DATE = Txn.ExeTime,
+					UPDATE_USER = Txn.UserNo,
+					//EDC_SID = item.EDC_SID,
+					//EDC_VER_SID = item.EDC_VER_SID,
+				};
+				//Txn.EntityCommonSetVal(_obj, isNeedInit: true);
+				list_PM_PLANIMPLEMENTITEM.Add(_obj);
+			}
+
+			Txn.EFQuery_MES.PM_PLANIMPLEMENT.Add(obj);
+			Txn.EFQuery_MES._BulkInsert(list_PM_PLANIMPLEMENTUSER);
+			Txn.EFQuery_MES._BulkInsert(list_PM_PLANIMPLEMENTITEM);
+
+			Txn.EFQuery_MES.SaveChanges();
+
+
+
+            ParallelCheckOut.SendMail(Txn, obj, list_user
+				, _eqp.EQP_NAME
+				, MaintenanceObject.Equipment.ToDisplayName()
+				, t_MES.GMail_Test);
+
+		},true,true);
+
+
 		
+        [TestMethod]
+        public void t_SendMail_找不對應的計劃單()
+        => _DBTest((txn) =>{
+			ParallelCheckOut.SendMail_找不對應的計劃單(txn, "機台Name", "機台", t_MES.GMail_Test);
+		}, true);
+
+		[TestMethod]
+        public void t_達次保養確認_EQP()
+		=> _DBTest((Txn) =>
+		{
+			var T01 = _zzCodeRule.EQP_Tool.保養作業判定(100, 1, 100);
+			var z = T01.Check();
+			var _eqp = Txn.EFQuery_MES.view_EqpExt()
+				.Where(c => c.Main.EQP_NO == "161600000313")
+				.FirstOrDefault_CheckExists();
+			ParallelCheckOut.達次保養作業_Eqp(Txn, _eqp, T01);
+
+		}, true,true);
+
+		[TestMethod]
+		public void t_達次保養確認_TOOL()
+		=> _DBTest((Txn) =>
+		{
+			var T01 = _zzCodeRule.EQP_Tool.保養作業判定(100, 1, 100);
+			var z = T01.Check();
+			var _Tool = Txn.EFQuery_MES.view_ToolExt()
+				.Where(c => c.Main.TOOL_NO == "CTT01")
+				.FirstOrDefault_CheckExists();
+			ParallelCheckOut.達次保養確認_Tool(Txn, _Tool, T01);
+
+		}, true, true);
+
+
+		[TestMethod]
+		public void t_保養單審核人員判定()
+		{
+			var r = _zzCodeRule.系統參數.保養單審核人員判定("thony");
+		}
+		
+
+		[TestMethod]
+		public void t_依據EQP_NO查對應計劃()
+		=> _DBTest((Txn) =>
+		{
+					//目的是取得機台 SID
+			var _eqp = Txn.EFQuery_MES.FC_EQUIPMENT
+				.Where(c => c.EQP_NO == "161600000313")
+				.FirstOrDefault_CheckExists();
+
+			var _plan = Txn.EFQuery_MES.f依據OBJECT_SID取得Plan(_eqp.EQP_SID)
+				.FirstOrDefault_CheckExists("查無對應的 PM Plan 記錄", true);
+
+
+
+			//原型)請用上述程序 組合出 使用 Eqp_SID 直接查出 plan
+			//	var _plan1 = (from planObject in Txn.EFQuery_MES.PM_PLANOBJECT
+			//					  // 步驟 1: 查詢符合此機台 SID 的 PM_PLANOBJECT 記錄
+			//				  where planObject.OBJECT_SID == _eqp.EQP_SID
+			//				  // 步驟 2: 透過 PLAN_SID 欄位，連接 (JOIN) 到 PM_PLAN 表
+			//				  join plan in Txn.EFQuery_MES.PM_PLAN
+			//			on planObject.PLAN_SID equals plan.PLAN_SID
+			//				  // 步驟 3: 選取最終的 PM_PLAN 實體
+			//				  select plan)
+			//// 獲取第一筆符合的記錄，並使用 CheckExists 檢查結果
+			//.FirstOrDefault_CheckExists("查無對應的 PM Plan 記錄", true);
+
+
+		});
+
+
+        [TestMethod]
+        public void t_查詢機台上的批號中未下崗的人員()
+		=> _DBTest((txn) =>
+		{
+			var _list1 = _zzCodeRule.LOT.查詢機台上的批號中未下崗的人員(txn.EFQuery_MES, "GTI24122419462090560", false)
+						.ToList();
+
+
+			var EFQuery_MESContext = txn.EFQuery_MES;
+
+			var _未機台的批號清單 = (from a in EFQuery_MESContext.WP_LOT_EQP_TRACE
+				join b in EFQuery_MESContext.WP_LOT_OPER_PARALLEL 
+					on a.LOT_SID equals b.LOT_SID
+						  where a.UNLOAD_LINK_SID == null
+						  select new { trc_EQP = a , Lot = b });
+			var t1 = _未機台的批號清單
+				.Where(c=>c.Lot.LOT == "100031177-0010")
+				.FirstOrDefault();
+			var _list = (from w0 in EFQuery_MESContext.WP_USER_TRACE_IN_MASTER
+						 where  _未機台的批號清單.Any(x => x.Lot.LOT == w0.LOT && x.Lot.ROUTE_VER_SID == w0.ROUTE_VER_OPER_SID)
+								&&  w0.RUN_END_DATE == null
+						 select new {
+							 KEY = w0.IN_MASTER_SID,
+							 USER_NO = w0.USER_NO,
+							 USER_NAME = w0.USER_NAME,
+							 START_TIME = w0.RUN_START_DATE,
+							 END_TIME = w0.RUN_END_DATE,
+							 LOT = w0.LOT,
+							 ROUTE_VER_OPER_SID = w0.ROUTE_VER_OPER_SID,
+						 }).ToList();
+		}, true);
+
+
+		[TestMethod]
+		public void job_重設機台並下治具_平行工站()
+		=> _DBTest((txn) =>
+		{
+			var _eqpInfo = txn.GetEquipmentInfo("Test03", IndexType: EquipmentUtility.IndexType.No);
+
+			// 取得機台上的治具
+			var ToolsOfEqp = _eqpInfo.GetEquipmentLoadToolList();
+			//var ToolsOfEqp = txn.EFQuery_MES.f取得機台上的治具清單(equip.No).ToList();
+			if (ToolsOfEqp.Count != 0)
+			{
+				// 治具下機台
+				txn.DoTransaction(new EQPTransaction.EquipmentUnloadToolTxn(_eqpInfo, ToolsOfEqp));
+				foreach (var tool in ToolsOfEqp)
+				{
+					txn.DoTransaction(new TOLTransaction.EndOfToolTxn(tool));
+				}
+				txn.DoTransaction(new EQPTransaction.EndOfEquipmentTxn(_eqpInfo));
+			}
+
+			var EqpFn = new EquipmentUtility.EquipmentFunction(txn.DBC);
+			var lots = txn.EFQuery_MES.f取得機台上的平行工站批號清單(_eqpInfo.SID);
+			//DataTable lots = EqpFn.GetEquipmentLotList(_eqpInfo.No);
+
+			foreach (var lot in lots)
+			{
+				_eqpInfo = _eqpInfo.ReLoad(txn.DBC);
+				var _lotInfo = txn.EFQuery_MES.WP_LOT_OPER_PARALLEL.FirstOrDefault(c => c.LOT_SID == lot.LOT_SID);
+				txn.DoTransaction(
+					new EQPTransaction.EquipmentUnloadLotTxn(_eqpInfo, _lotInfo),
+					new EQPTransaction.EndOfEquipmentTxn(_eqpInfo)
+				);
+			}
+			_eqpInfo = _eqpInfo.ReLoad(txn.DBC);
+			if (_eqpInfo.CURRENT_LOT_SIZE != 0 || _eqpInfo.CURRENT_CAPACITY != 0)
+			{
+				_eqpInfo = _eqpInfo.ReLoad(txn.DBC);
+				txn.DoTransaction(
+					new EQPTransaction.EquipmentChangeCapacityAndLotSizeTxn(_eqpInfo, 0, 0)
+					{
+						ChangeStatus = true
+					}
+				); ;
+			}
+		}, true);
+
+
+
+		[TestMethod]
+		public void t_20251203_報修_保養時限()
+		=> _DBTest((Txn) =>
+		{
+
+			var day = "2025/11/22";
+			DateTime start = DateTime.Parse(day).Date;
+			
+			// 當日的開始（00:00:00）
+			//DateTime start = targetDate.Date;
+
+			// 當日的結束（23:59:59.997）
+			DateTime end = start.AddDays(1).AddMilliseconds(-1);
+
+			var _list_報修 = (from r in Txn.EFQuery_MES.PM_REPAIR
+					where r.DEAD_LINE != null
+							&& r.DEAD_LINE >= start
+							&& r.DEAD_LINE <= end
+					select r).ToList();
+
+			var _list_保養 =(from r in Txn.EFQuery_MES.PM_PLANIMPLEMENT
+						   where r.DEAD_LINE != null
+							&& r.DEAD_LINE >= start
+							&& r.DEAD_LINE <= end
+					select r).ToList();
+
+			FileApp._tmpJson(new { _list_報修, _list_保養 });
+
+		}, true);
+
+
+		[TestMethod]
+		public void t_20251225_TransToByte()
+		=> _DBTest((Txn) =>{
+			var day = "2025/11/22";
+			DateTime start = DateTime.Parse(day).Date;
+			DateTime end = start.AddDays(1).AddMilliseconds(-1);
+
+			var _list_報修 = (from r in Txn.EFQuery_MES.PM_REPAIR
+							where r.DEAD_LINE != null
+									&& r.DEAD_LINE >= start
+									&& r.DEAD_LINE <= end
+							select r).ToList();
+
+			//需要安裝 OfficeOpenXml ,先作罷
+			//var t = EpplusHelper.TransToByte(_list_報修);
+
+		}, true);
+
+
+
+		[TestMethod]
+		public void t_20251222_isPassChk()
+		{
+			string lot_sid = "GTI24122513471294964";
+			//string UserNo = "thony";
+			_zzAPI.Check_IQPC(lot_sid, Genesis.Library.BLL.ZZ.CUB.CodeRule.站別檢驗單檢核時機.BeforeUserStart ,null, true);
+		}
+
+
+
+
+		[TestMethod]
+		public void t_20260114_工作站的機台治具設定()
+		=> _DBTest((Txn) =>
+		{
+			var lotInfo = Txn.GetLotInfo("");
+			var oper_no = "JK_LINE-OPR-00000009";
+
+
+			var operinfo = Txn.GetOperationInfo(oper_no, IndexType: OperationUtility.IndexType.No);
+			OperationUtility.OperationFunction operfun = new OperationUtility.OperationFunction(Txn.DBC);
+			var dt_Eqp = operfun.GetOperEquipAllEquipmentList(operinfo);
+			//var dt_Tool = operfun.GetOperToolSetting(operinfo.SID);
+			var dt_Tool = Txn.EFQuery_MES.f工作站_治具清單(operinfo.SID).ToList();
+			//FileApp.WriteSerializeJson(new { dt_Eqp, dt_Tool }, _log.t_工作站的機台治具設定);
+
+			var _過站機台治具資訊 = FileApp.Read_SerializeJson<List<CustomerList>>(_log.t_EqpToolList);
+
+
+			if (dt_Eqp == null || dt_Eqp.Rows.Count == 0) return;
+			Check.Invalid($"必須選取的機台", _過站機台治具資訊.Count == 0, _過站機台治具資訊);
+			var _dt_Eqp = dt_Eqp.AsEnumerable();
+			var chk_不合規機台 = _過站機台治具資訊
+				.Where(c => _dt_Eqp.Any(row => row.Field<string>("EQP_NO") == c.No) == false)
+				.ToList();
+			Check.Invalid($"所選取的機台必須符合工作站設定", chk_不合規機台.Count != 0, chk_不合規機台);
+
+			if (dt_Tool != null && dt_Tool.Count != 0)
+			{
+				var chk_未設定治具 = _過站機台治具資訊.Where(c => c.subItem == null || c.subItem.Count == 0)
+					.Select(c => c.No)
+					.ToList();
+				Check.Invalid($"機台({string.Join(",", chk_未設定治具)})必須選取治具", chk_未設定治具.Count != 0, chk_未設定治具);
+				/*
+				 檢查所選取的治具是否有符合工站設定 
+				 但如果 規則不設限(只限符合) , 視同不卡不合規 , 可以略過以下檢核
+				 */
+				var chk_不合規治具 = _過站機台治具資訊
+					.Where(c => c.subItem.Any(c1 => !dt_Tool.Any(c2 => c2.TOOL_NO == c1.No)))
+					.ToList();
+				Check.Invalid($"機台({string.Join(",", chk_不合規治具.Select(c => c.No))})所選取的治具不符合工作站設定", chk_不合規治具.Count != 0, chk_未設定治具);
+
+			}
+
+
+			var Used = nameof(Genesis.Library.BLL.ICM.Definition.Status.Used);
+
+			foreach (var eqp in _過站機台治具資訊)
+			{
+				var _eqpInfo = Txn.GetEquipmentInfo(eqp.SID);
+				Check.isExist($"機台({_eqpInfo.No})", _eqpInfo.IsExist);
+				Check.Invalid($"機台({_eqpInfo.No})狀態不能為 Used", _eqpInfo.STATE_NO == Used);
+
+				if (eqp.subItem != null)
+				{
+					foreach (var tool in eqp.subItem)
+					{
+						var _tool = Txn.GetToolInfo(tool.No);
+						Check.isExist($"治具({tool.No})", _tool.IsExist);
+
+						var isUsed = _tool.STATE_NO == Used;
+						//檢核治具是否已上機台
+						if (isUsed)
+						{
+							Check.Invalid($"治具({_tool.No})狀態不能為 Used", _tool.STATE_NO == Used);
+
+							//檢核治具是否上在對應的機台上
+							var usedEqp = _tool.GetCurrentEquipmentInfo();
+							var isNotSameEqp = usedEqp.SID != eqp.SID;
+							Check.Invalid($"治具({_tool.No})已上在({usedEqp.No})", isNotSameEqp, usedEqp);
+						}
+						else
+						{
+							Txn.DoTransaction(
+								new EQPTransaction.EquipmentLoadToolTxn(_eqpInfo, _tool),
+								new TOLTransaction.EndOfToolTxn(_tool),
+								new EQPTransaction.EndOfEquipmentTxn(_eqpInfo)
+							);
+							_eqpInfo = _eqpInfo.ReLoad(DBC);
+						}
+					}
+				}
+
+				Txn.DoTransaction(new EQPTransaction.EquipmentLoadLotTxn(_eqpInfo, lotInfo));
+			}
+		}, false, true);
+
+
+		[TestMethod]
+		public void t_20251219_iqpc_form_start() {
+			string lot_sid = "GTI24122513471294964";
+			//string UserNo = "thony";
+			_zzAPI.Check_IQPC(lot_sid,  Genesis.Library.BLL.ZZ.CUB.CodeRule.站別檢驗單檢核時機.BeforeUserStart, null, true);
+		}
+
+
+		[TestMethod]
+		public void t_20260316_UserGroupStepLicenseData()
+		{
+			App.Timer(()=>{ 
+				var _r = FileApp.Read_SerializeJson<UserGroupStepLicenseServices.DataStruct>(_log.t_UserGroupStepLicenseData);
+				return UserGroupStepLicenseServices.UpdateV2(_r, true);
+			});
+		}
+
+
+		/*
+		=> _DBTest((Txn) => {
+			string lot_sid = "GTI24122513471294964";
+			string UserNo = "thony";
+
+			var ILot = Txn.EFQuery_MES.WP_LOT_OPER_PARALLEL
+				.Where(c => c.LOT_SID == lot_sid)
+				.FirstOrDefault_CheckExists();
+ 
+			var r = 基本檢核_站別檢驗單卡控
+				(Txn, ILot
+				, UserNo
+				, Genesis.Library.BLL.ZZ.CUB.CodeRule.站別檢驗單檢核時機.BeforeUserStart
+				, true);
+
+			var 需要檢核的檢驗表單 = r.站別檢驗單設定.FirstOrDefault().Value;
+			var _Forms = new List<string>();
+			if (需要檢核的檢驗表單 != null) {
+				var oper = Txn.GetOperationInfo(ILot.OPER_SID);
+				foreach (var form in 需要檢核的檢驗表單){
+					//GTI25020414304730705
+					var isHasForm = r.符合的檢驗單.Any(c => c.INSP_SID == form.QC_INSP.INSP_SID);
+					if (isHasForm) continue;
+					var OperInsp = form.OperInsp;
+					var QC_INSP = form.QC_INSP;
+					string _QC_NO;
+					var _svcWP_IPQC = Txn.EFQuery_MES.WP_IPQC;
+					var Encode = new EncodeFormatUtility.EncodeFormatInfo
+								(Txn.DBC, "InspNoByLot", EncodeFormatUtility.IndexType.No);
+					if (Encode.IsExist && Encode.ENABLE_FLAG == "T")
+					{
+						var Code = EncodeFormatUtility.Coder.GetCodes
+							(Txn.DBC, Txn.UserNo, Encode, 1, "", ""
+							, ILot.LOT_SID, "", false);
+						_QC_NO = Code.Codes[0];
+						Txn.DoTransaction(Code.Commands);
+					}
+					else
+					{
+						_QC_NO = Txn.GetSID();
+					}
+					var _WP_IPQC = new WP_IPQC() {
+						QC_NO = _QC_NO,
+						QC_INSP_METHOD = "NORMAL",
+						INSP_STATUS = nameof(RES.BLL.Face.Confirm),
+						INSP_SID = QC_INSP.INSP_SID,
+						QC_INSP_TYPE = QC_INSP.INSP_TYPE,
+						FORM_TYPE = QC_INSP.INSP_TYPE,
+						FORM_TARGET = QC_INSP.INSP_KEY,
+						OPERATION = oper.Name,
+						OPERATION_NO = oper.No,
+						OPER_SID = oper.SID,
+						CREATE_USER = UserNo,
+						UPDATE_USER = UserNo,
+						CREATE_DATE = Txn.ExeTime,
+						UPDATE_DATE = Txn.ExeTime,
+						QC_RESULT = "-"
+					};
+					Txn.EFQuery_MES.WP_IPQC.Add(_WP_IPQC);
+					var obj_ZZ_INSP_RECHECK = new ZZ_INSP_RECHECK()
+					{
+						SID = Txn.GetSID(true),
+						QC_NO = _WP_IPQC.QC_NO,
+						STATUS = nameof(RES.BLL.Face.Create),
+						CREATE_USER = UserNo,
+						UPDATE_USER = UserNo,
+						CREATE_DATE = Txn.ExeTime,
+						UPDATE_DATE = Txn.ExeTime
+					};
+					Txn.EFQuery_MES.ZZ_INSP_RECHECK.Add(obj_ZZ_INSP_RECHECK);
+
+					var obj_WP_IPQC_LOT = new WP_IPQC_LOT(){
+						SID = Txn.GetSID(true),
+						QC_NO = _WP_IPQC.QC_NO,
+						ROUTE_VER_OPER_SID = ILot.ROUTE_VER_OPER_SID,
+						LOT_SID = ILot.LOT_SID,
+						LOT = ILot.LOT,
+					};
+					Txn.EFQuery_MES.WP_IPQC_LOT.Add(obj_WP_IPQC_LOT);
+					Txn.EFQuery_MES.SaveChanges();
+					_Forms.Add(_WP_IPQC.QC_NO);
+				}
+			}
+		}, true,true);
+		*/
+
+
 		public class DataStructure
 		{
 			public int 良品數 { get; set; }

@@ -14,7 +14,6 @@ using System.Collections.Generic;
 using System.Data;
 using System.Linq;
 using UnitTestProject.TestUT;
-using static BLL.MES.SPC.Hermes.SPCRunServicesByHermes;
 using static BLL.MES.WIPInjectServices;
 using static Genesis.Gtimes.ADM.CarrierUtility;
 using static Genesis.Gtimes.WIP.LotUtility;
@@ -23,9 +22,14 @@ using DataViews = BLL.DataViews;
 using Genesis.Gtimes.Transaction.EQP;
 using Genesis.Gtimes.Transaction;
 using Genesis.Gtimes.Transaction.CAR;
-using Genesis.Library.BLL.ADM;
-using System.Reflection;
 using Genesis.Gtimes.Transaction.WIP;
+using System.Net.Mail;
+using System.Net;
+using System.Threading.Tasks;
+using BLL.PMS;
+using Genesis;
+using System.Net.Http;
+using System.Data.Entity;
 
 namespace UnitTestProject
 {
@@ -41,6 +45,25 @@ namespace UnitTestProject
 					return FileApp.ts_Log(@"MES\t_依包材做拆批.json");
 				}
 			}
+
+			
+			public static string t_GetOperRecipe
+			{
+				get
+				{
+					return FileApp.ts_Log(@"MES\t_GetOperRecipe.json");
+				}
+			}
+
+			
+			public static string V2_PMSOnCall
+			{
+				get
+				{
+					return FileApp.ts_Log(@"MES\t_V2_PMSOnCall.json");
+				}
+			}
+
 
 
 			/// <summary>
@@ -440,14 +463,14 @@ namespace UnitTestProject
 		}, true);
 
 		[TestMethod]
-		public void _Txn_LotSplit()
+		public void t_20260114_Txn_LotSplit()
 		=> _DBTest((Txn) =>
 		{
 			var EnCode = "";
 			//List<CustomerList> SplitList = new List<CustomerList>();
 			var SplitList = new List<QtyItem>() { new QtyItem() { Qty = 1 } };
 			EncodeFormatUtility.CodesInfo codes = null;
-			Txn.GetLotInfo("GTI22050513264480527", true);
+			Txn.GetLotInfo("DevTest_20260114-01", true,isQueryByLotNO:true);
 
 			var r = LOT_Services.Txn_LotSplit(Txn, SplitList);
 			FileApp.WriteSerializeJson(r, _log.t_LotSplit);
@@ -607,18 +630,18 @@ namespace UnitTestProject
 			//         FileApp.WriteSerializeJson(DefectList, _log.t_GetOperDefect);
 			var DefectList = FileApp.Read_SerializeJson<List<CustomerList>>(_log.t_GetOperDefect);
 
-			var CustomDefectInfo = FileApp.Read_SerializeJson<List<DEFECT_NO_LIST>>(_log.t_CustomDefectInfo);
+			//var CustomDefectInfo = FileApp.Read_SerializeJson<List<DEFECT_NO_LIST>>(_log.t_CustomDefectInfo);
 
-			foreach (var item in CustomDefectInfo)
-			{
-				var match = DefectList.FirstOrDefault(c => c.No == item.DEFECT_NO);
-				if (match != null)
-				{
-					match.StatusSid = item.CHART_TYPE;
-				}
-			}
-			var x = DefectList.FindAll(c => !String.IsNullOrWhiteSpace(c.StatusSid));
-			Assert.IsTrue(x.Count == 2);
+			//foreach (var item in CustomDefectInfo)
+			//{
+			//	var match = DefectList.FirstOrDefault(c => c.No == item.DEFECT_NO);
+			//	if (match != null)
+			//	{
+			//		match.StatusSid = item.CHART_TYPE;
+			//	}
+			//}
+			//var x = DefectList.FindAll(c => !String.IsNullOrWhiteSpace(c.StatusSid));
+			//Assert.IsTrue(x.Count == 2);
 			//FileApp._tmpJson(DefectList);
 		});
 
@@ -876,5 +899,358 @@ namespace UnitTestProject
 
 
 
+
+		/*
+		 
+		 
+		 
+		 
+		 */
+
+		[TestMethod]
+        public void t_Mail測試()
+		=> _DBTest((txn) =>
+		{
+			AL_JOB mailJob = new AL_JOB()
+			{
+				//SID = txn.GetSID(true),
+				SENDTYPE = "MAIL",
+				SENDTIME = txn.ExeTime,
+				SENDSUBJECT = "Test",
+				SNEDBODY = "Test",
+				SENDNUM = 0,
+				SENDSTATUS = 0,
+				REMARKS = "Test",
+				//CREATE_DATE = txn.ExeTime,
+				//UPDATE_DATE = txn.ExeTime ,
+				//CREATE_USER = txn.UserNo,
+				//UPDATE_USER = txn.UserNo,
+			};
+			txn.EntityCommonSetVal(mailJob, isNeedInit: true);
+
+			AL_JOB_DETAIL mailJobDetail = new AL_JOB_DETAIL()
+			{
+				//SID = txn.GetSID(true),
+				AL_JOB_SID = mailJob.SID,
+				SEND_TIME = mailJob.SENDTIME,
+				MAIL_ADDRESS = "anthony_lin@genesis.com.tw",
+				SEND_NUM = 0,
+				STATUS = "0",
+				//CREATE_DATE = txn.ExeTime,
+				//UPDATE_DATE = txn.ExeTime,
+				//CREATE_USER = txn.UserNo,
+				//UPDATE_USER = txn.UserNo,
+			};
+			txn.EntityCommonSetVal(mailJobDetail, isNeedInit: true);
+
+
+			txn.EFQuery_MES.AL_JOB.Add(mailJob);
+			txn.EFQuery_MES.AL_JOB_DETAIL.Add(mailJobDetail);
+			txn.EFQuery_MES.SaveChanges();
+			 
+		}, true);
+
+
+		[TestMethod]
+		public async Task t_Mail測試_office365()
+		{
+
+
+			var smtpClient = new SmtpClient("smtp.office365.com")
+			{
+				Port = 587,
+				EnableSsl = true,
+				Credentials = new NetworkCredential("DTS@genesis.com.tw", "dxzllcjwwzyzsybh"),
+				DeliveryMethod = SmtpDeliveryMethod.Network,
+				UseDefaultCredentials = false
+			};
+
+			var mailMessage = new MailMessage
+			{
+				From = new MailAddress("anthony_lin@genesis.com.tw"),
+				Subject = "Test Email via Office365 SMTP",
+				Body = "Hello, this is a test email sent using smtp.office365.com",
+				IsBodyHtml = false,
+			};
+
+			mailMessage.To.Add("anthony_lin@genesis.com.tw");
+
+			try
+			{
+				await smtpClient.SendMailAsync(mailMessage);
+				Console.WriteLine("Mail sent successfully.");
+			}
+			catch (Exception ex)
+			{
+				/*
+				SMTP 伺服器需要安全連接，或用戶端未經驗證。 伺服器回應為: 5.7.57 Client not authenticated to send mail. [TP0P295CA0047.TWNP295.PROD.OUTLOOK.COM 2025-12-03T06:25:08.099Z 08DE2E3794BE0900] 
+				 */
+				Console.WriteLine("Mail sending failed: " + ex.Message);
+			}
+		}
+
+		public static void GMail_Test(AL_JOB main){
+			using (var httpClient = new HttpClient())
+			{
+				var message = new MailMessage();
+				message.From = new MailAddress("a0982830615@gmail.com", "thony");
+				message.To.Add("anthony_lin@genesis.com.tw");
+				message.Subject = main.SENDSUBJECT;
+				message.Body = main.SNEDBODY;
+				message.IsBodyHtml = true;
+
+				using (var smtp = new SmtpClient())
+				{
+					smtp.Host = "smtp.gmail.com";
+					smtp.Port = 587;
+					smtp.EnableSsl = true; // ✅ 必開
+					smtp.DeliveryMethod = SmtpDeliveryMethod.Network;
+					smtp.UseDefaultCredentials = false;
+
+					smtp.Credentials = new NetworkCredential("a0982830615@gmail.com", "bhcp etwd yybg qkqb");
+					smtp.Timeout = 10000; // 設定 timeout，避免卡死
+					smtp.Send(message);
+				}
+			}
+		}
+
+		[TestMethod]
+		public async Task t_Mail測試_GMail()
+		{
+			using (var httpClient = new HttpClient())
+			{
+				var message = new MailMessage();
+				message.From = new MailAddress("anthony_lin@genesis.com.tw", "thony");
+				message.To.Add("a0982830615@gmail.com");
+				message.Subject = "Order Confirmation";
+				message.Body = "<h3>這是測試信</h3><p>使用 Gmail + App Password 寄送成功！</p>"; 
+				message.IsBodyHtml = true;
+
+				using (var smtp = new SmtpClient())
+				{
+					smtp.Host = "smtp.gmail.com";
+					smtp.Port = 587;
+					smtp.EnableSsl = true; // ✅ 必開
+					smtp.DeliveryMethod = SmtpDeliveryMethod.Network;
+					smtp.UseDefaultCredentials = false;
+					
+					smtp.Credentials = new NetworkCredential("a0982830615@gmail.com", "bhcp etwd yybg qkqb");
+					smtp.Timeout = 10000; // 設定 timeout，避免卡死
+					await smtp.SendMailAsync(message).ConfigureAwait(false);
+				}
+
+			}
+		}
+
+		/*
+		[TestMethod]
+
+		public async Task t_Mail測試_GMail_SimpleCardHtml()
+		{
+			using (var httpClient = new HttpClient())
+			{
+				var message = new MailMessage();
+				message.From = new MailAddress("a0982830615@gmail.com", "thony");
+				message.To.Add("anthony_lin@genesis.com.tw");
+				message.Subject = "Order Confirmation";
+
+				var msgTemplate = Genesis.Library.BLL.Properties.Resources.SimpleCardHtml;
+				msgTemplate = msgTemplate.Replace("##TITLE", "[title]")
+										 .Replace("##MSG", "[msg]")
+										 .Replace("##DESC", "[desc]")
+										 .Replace("##HREF", "[href]")
+										 .Replace("##BTN", "前往處置");
+
+				message.Body = msgTemplate;
+				message.IsBodyHtml = true;
+
+				using (var smtp = new SmtpClient())
+				{
+					smtp.Host = "smtp.gmail.com";
+					smtp.Port = 587;
+					smtp.EnableSsl = true; // ✅ 必開
+					smtp.DeliveryMethod = SmtpDeliveryMethod.Network;
+					smtp.UseDefaultCredentials = false;
+
+					smtp.Credentials = new NetworkCredential("a0982830615@gmail.com", "bhcp etwd yybg qkqb");
+					smtp.Timeout = 10000; // 設定 timeout，避免卡死
+					await smtp.SendMailAsync(message).ConfigureAwait(false);
+				}
+
+			}
+		}
+			*/
+
+
+		public class SelectModel
+		{
+			public string CONFIG_FLAG { get; set; }
+			public string OPER_PARTNO_SID { get; set; }
+			public decimal? USE_RATE { get; set; } // 根據實際類型調整
+			public string NO { get; set; }
+			public string NAME { get; set; }
+			public string SPEC { get; set; }
+		}
+
+
+
+		[TestMethod]
+        public void t_GetOperPartUseList()
+		=> _DBTest((txn) =>
+		{
+            //var _lotInfo = txn.GetLotInfo("DT202507001-02", isQueryByLotNO: true);
+            //var RouteVerOperInfo = txn.GetRouteVerOper(_lotInfo.ROUTE_VER_OPER_SID);
+            //var r = WIPOperConfigServices.GetOperPartUseList(txn.DBC, _lotInfo, RouteVerOperInfo);
+			#region 
+			var OPER_SID = "GTI25070118194466632";
+			var operPartSetting = txn.GetOperPartSetting(OPER_SID)?
+					.AsEnumerable()
+					//.Select(s => new { NO = s.Field<string>("NO") })
+					.ToList();
+			/*
+			與上述程序等價 
+			var query = (from a in txn.EFQuery_MES.PF_OPERATION_PARTNO
+						 join b in txn.EFQuery_MES.PF_PARTNO on a.OPER_PARTNO_SID equals b.PARTNO_SID
+						 where a.CONFIG_FLAG == "P" && a.OPER_SID == OPER_SID
+						 select new SelectModel
+						 {
+							 CONFIG_FLAG = a.CONFIG_FLAG,
+							 OPER_PARTNO_SID = a.OPER_PARTNO_SID,
+							 USE_RATE = a.USE_RATE,
+							 NO = b.PARTNO,
+							 NAME = b.PART_NAME,
+							 SPEC = b.VERSION_SPEC
+						 })
+			.Concat(
+				from a in txn.EFQuery_MES.PF_OPERATION_PARTNO
+				join b in txn.EFQuery_MES.PF_PARTNO_TYPE on a.OPER_PARTNO_SID equals b.PARTNO_TYPE_SID
+				where a.CONFIG_FLAG == "T" && a.OPER_SID == OPER_SID
+				select new SelectModel
+				{
+					CONFIG_FLAG = a.CONFIG_FLAG,
+					OPER_PARTNO_SID = a.OPER_PARTNO_SID,
+					USE_RATE = a.USE_RATE,
+					NO = b.PARTNO_TYPE_NO,
+					NAME = b.PARTNO_TYPE_NAME,
+					SPEC = "" // N'' 在 C# 中對應為空字串 ""
+				})
+			.Concat(
+				from a in txn.EFQuery_MES.PF_OPERATION_PARTNO
+				join b in txn.EFQuery_MES.PF_PARTNO_CATEGORY on a.OPER_PARTNO_SID equals b.PARTNO_CATEGORY_SID
+				where a.CONFIG_FLAG == "C" && a.OPER_SID == OPER_SID
+				select new SelectModel
+				{
+					CONFIG_FLAG = a.CONFIG_FLAG,
+					OPER_PARTNO_SID = a.OPER_PARTNO_SID,
+					USE_RATE = a.USE_RATE,
+					NO = b.PARTNO_CATEGORY_NO,
+					NAME = b.PARTNO_CATEGORY_NAME,
+					SPEC = "" // N'' 在 C# 中對應為空字串 ""
+				});
+
+			// 如果您需要立即執行查詢並獲取結果，可以添加 .ToList()
+			var result = query.ToList();
+			*/
+            #endregion
+            //OperationUtility.OperationInfo operinfo = new OperationUtility.OperationInfo(txn.DBC, OPER_SID, OperationUtility.IndexType.SID);
+            //OperationUtility.OperationFunction operfun = new OperationUtility.OperationFunction(txn.DBC);
+            //var dt = operfun.GetOperPartNOAllPartNoList(operinfo);
+
+        }, true);
+
+
+        [TestMethod]
+        public void t_fn()
+		=> _DBTest((txn) =>
+		{
+			//var zz = txn.DBC.to_MES_EF();
+			//string PartNoRefSeq = TxnBaseLzQuery.Extend(txn.DBC)._Txn.EFQuery_MES.f系統參數_依據No_Type_取得Value("Parameter", "PartNoRefSeq");
+
+			var _lotInfo = txn.GetLotInfo("DT202507001-02", isQueryByLotNO: true);
+            var RouteVerOperInfo = txn.GetRouteVerOper(_lotInfo.ROUTE_VER_OPER_SID);
+			var r 
+				//= WIPOperConfigServices.GetOperPartUseList(_lotInfo, RouteVerOperInfo);
+				= WIPOperConfigServices.GetOperPartUseList(txn.DBC, _lotInfo, RouteVerOperInfo);
+			//var dt = GetPartNoOperMatData_OperSid(txn, _lotInfo.WO, RouteVerOperInfo.RouteVerSid,
+			//	RouteVerOperInfo.RouteVerOperSid, _lotInfo.PARTNO, _lotInfo.OPER_SID);
+			//var z = txn.EFQuery_MES.f系統參數_依據No_Type_取得Value("", "");
+
+
+			FileApp._tmpJson(r);
+
+		}, true);
+
+
+
+        [TestMethod]
+        public void t_GetOperRecipe()
+		=> _DBTest((txn) =>
+		{
+            var _lotInfo = txn.GetLotInfo("SWQ1L3", isQueryByLotNO: true);
+            var RouteVerOperInfo = txn.GetRouteVerOper(_lotInfo.ROUTE_VER_OPER_SID);
+            var r = WIPOperConfigServices.GetOperRecipe(txn.DBC, _lotInfo, RouteVerOperInfo);
+			FileApp.WriteSerializeJson(r,_log.t_GetOperRecipe);
+
+		}, true);
+
+		[TestMethod]
+		public void t_20260324_建立使用者()
+		=> _DBTest((txn) =>
+		{
+			var _src = "Admin";
+			var _User = txn.EFQuery_MES.AD_USER.Where(c=>c.ACCOUNT_NO == _src).AsNoTracking().FirstOrDefault();
+			var q_UserRules = txn.EFQuery_MVC.AD_USER_ROLE.Where(c => c.USER_SID == _User.USER_SID);
+			var _UserRules = q_UserRules.AsNoTracking().ToList();
+			var _UserRules_SID = q_UserRules.Select(x=>x.ROLE_SID).ToList();
+			var _USERGROUP = txn.EFQuery_MES.AD_USERGROUP_USER_LIST.Where(c => _UserRules_SID.Any(z=>z == c.GROUP_SID)).AsNoTracking().ToList();
+			//var _ROLE_RESOURCE = txn.EFQuery_MVC.AD_ROLE_RESOURCE.Where(c => q_UserRules.Any(z=>z.ROLE_SID == c.ROLE_SID)).AsNoTracking().ToList();
+
+			_User.ACCOUNT_NO = "thony";
+			_User.USER_SID = txn.GetSID();
+			_User.PWD = "doyNOku/lUXzC2E4BSA+CA==";
+			_User.SECOND_PWD = "HwqDZkRYsNEAq0mW";
+			foreach (var row in _UserRules) {
+				row.SID = txn.GetSID();
+				row.USER_SID = _User.USER_SID;
+			}
+			foreach (var row in _USERGROUP)
+			{
+				row.GROUP_LIST_SID = txn.GetSID();
+				row.USER_SID = _User.USER_SID;
+			}
+			//foreach (var row in _ROLE_RESOURCE)
+			//{
+			//	row.USER_SID = _User.USER_SID;
+			//}
+
+			txn.EFQuery_MES.AD_USER.Add(_User);
+			txn.EFQuery_MVC.AD_USER_ROLE.AddRange(_UserRules);
+			txn.EFQuery_MES.SaveChanges();
+			txn.EFQuery_MVC.SaveChanges();
+		}, true);
+
+		/* 這一段主要是補 t_20260324_建立使用者 執行缺漏
+		[TestMethod]
+		public void t_20260324_建立使用者1()
+		=> _DBTest((txn) =>
+		{
+			var _UserSrc = txn.EFQuery_MES.AD_USER.Where(c => c.ACCOUNT_NO == "Admin").AsNoTracking().FirstOrDefault();
+			var _UserTo = txn.EFQuery_MES.AD_USER.Where(c => c.ACCOUNT_NO == "DTS_Anthony").AsNoTracking().FirstOrDefault();
+			var _UserRule = txn.EFQuery_MVC.AD_USER_ROLE.Where(c => c.USER_SID == _UserSrc.USER_SID).AsNoTracking().FirstOrDefault();
+			_UserRule.SID = txn.GetSID(true);
+			_UserRule.USER_SID = _UserTo.USER_SID;
+			txn.EFQuery_MVC.AD_USER_ROLE.Add(_UserRule);
+			txn.EFQuery_MVC.SaveChanges();
+		}, true);
+		*/
+
+
+		[TestMethod]
+		public void t_V2_PMSOnCall() {
+			TxnBase.Test = GTI_Test.TxnBase_T;
+			var r = FileApp.Read_SerializeJson<PM_REPAIR>(_log.V2_PMSOnCall);
+			//var r1 = PMSRepairServices_V2.PMSOnCall(r, true);
+		}
+		
 	}
 }

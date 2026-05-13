@@ -1,0 +1,9 @@
+.*/**/*.*
+.*/*
+*/**/*~*.*
+*/**/~*.*
+*/**/*.*~*
+Genesis_MVC/MSW/**/*.*
+Genesis_MVC/Areas/Example/Views/Self/**/*.*
+Genesis_MVC/mockServiceWorker.js
+*_Dev.sln

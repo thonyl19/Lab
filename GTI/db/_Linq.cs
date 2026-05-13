@@ -106,6 +106,35 @@ namespace UnitTestProject
 			}
 		}
 
+		/*  20260204-TCI)暫移
+        [TestMethod]
+        public void _20260119_GroupBy_To_ToDictionary()
+		=> _DBTest((Txn) =>
+		{
+			var q0 = (from a in Txn.EFQuery_MES.FC_EDC_TARGET
+					  //where (data._Base.NO != null && a.EDC_NO == data._Base.NO)
+						 // || (data._Base.SID != null && a.EDC_SID == data._Base.SID)
+						 // || (data._Base.NAME != null && a.EDC_NAME == data._Base.NAME)
+					  select a
+					);
+			var q1 = (from a in Txn.EFQuery_MES.FC_TARGET
+					  where a.FROM_RULE_SID != null
+						  && q0.Any(c => a.FROM_RULE_SID == c.EDC_TARGET_SID)
+					  select new
+					  {
+						  a.FROM_RULE_SID,
+						  a.TARGET_OBJECT,
+						  a.TARGET_SID,
+						  a.TARGET_NO,
+						  a.TARGET_NAME
+					  }).ToList();
+
+			var q2 = q1.GroupBy(p => p.FROM_RULE_SID)
+				.Where(g => g.Key != null)
+				.ToDictionary(p => p.Key, p => p);
+						//.t_Process()
+		}, true);
+		*/
 	}
 }
  

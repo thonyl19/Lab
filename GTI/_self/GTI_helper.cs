@@ -54,6 +54,9 @@ namespace UnitTestProject.TestUT
             // 将 JSON 写入文件
             //File.WriteAllText(GTI_Test.g_path.t_Process, json);
         }
+
+
+
     }
     public class GTI_helper
 	{
@@ -108,7 +111,5 @@ namespace UnitTestProject.TestUT
             return r;
         }
     }
- 
- 
 
 }

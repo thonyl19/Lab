@@ -6,6 +6,7 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 using System.Linq;
 using UnitTestProject.TestUT;
 using static BLL.MES.WIPInjectServices;
+using static Genesis.Gtimes.Transaction.WIP.WIPTransaction;
 
 namespace UnitTestProject
 {
@@ -62,7 +63,7 @@ namespace UnitTestProject
             var lot = tx.GetLotInfo("GTI22031515091645302");
 			 
 			// 很奇怪, 使用 LotChangeAttributeTxn  會出現跟 WIPTransaction 發生衝突的問題 ,只能先註解掉 
-			//var _txn = new LotChangeAttributeTxn(lot, "ATTRIBUTE_35", lot.ATTRIBUTE_35, "A");
+			var _txn = new LotChangeAttributeTxn(lot, "ATTRIBUTE_35", lot.ATTRIBUTE_35, "A");
 			//tx.DoTransaction(_txn);
 			//lot.ReLoad();
 			return tx.result;

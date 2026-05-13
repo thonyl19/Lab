@@ -35,16 +35,12 @@ using static BLL.MES.WIPInjectServices;
 using static BLL.MES.WIPServices;
 using mdl = MDL.MES;
 using vDbCtx = MDL.MESContext;
-using _mdl_mvc = MDL.GenesisMVC.Tables;
-using MDL;
-using static BLL.MES.TableQueryService;
-using Genesis.Gtimes.Transaction.WIP;
 using System.Threading.Tasks;
 
 namespace UnitTestProject
 {
-	//TODO-BK
-	[TestClass]
+    //TODO-BK
+    [TestClass]
 	public partial class t_DB : _testBase
 	{
 
@@ -2289,10 +2285,22 @@ delete AD_SHIFT where SHIFT_SID = @SHIFT_SID
 			//	var EQP = Txn.GetEquipmentInfo(row["EQP_SID"].ToString());
 
 			//}
-
+			//var logs = Txn.EFQuery_MES.AD_AREA
+			//	.Where(x => EF.Property<string>(x, "UserName") == "alice")
+			//	.ToList();
 
 		}, true);
 
+
+
+        [TestMethod]
+        public void t_QueryPagerList()
+		=> _DBTest((txn) =>
+		{
+			//var PQuery = FileApp.Read_SerializeJson<PagerQuery>(t_ZZ._log.t_PagerQuery);
+            //var zz = txn.EFQuery_MES.PF_ROUTE_VER_OPER
+            //        .QueryPagerList(PQuery);
+        }, true);
 
 		/// <summary>
 		/// 經實測 , 這個方法無法 ,並無法真正的遞迴取出所有資料

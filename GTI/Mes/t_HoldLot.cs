@@ -7,6 +7,7 @@ using Genesis.Gtimes.WIP;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using System.Configuration;
 using System.Dynamic;
+using System.Linq;
 using System.Web.Mvc;
 using UnitTestProject.TestUT;
 
@@ -100,7 +101,7 @@ namespace UnitTestProject
 	//}
 
 	[TestClass]
-	public class t_HoldLot
+	public class t_HoldLot: _testBase
 	{
 		DBController _dbc;
 
@@ -131,18 +132,21 @@ namespace UnitTestProject
 
 		[TestMethod]
 		public void t_GetFromHoldLotController_1()
-		{
-			string LotNo = "201-20121129-34";
+        => _DBTest((txn) =>
+        {
+			var _lot = txn.EFQuery_MES.WP_LOT.FirstOrDefault();
 
-			var LotInfo = new LotUtility.LotInfo(this.DBC, LotNo, LotUtility.IndexType.NO);
+			var LotInfo = txn.GetLotInfo(_lot.LOT_SID);
 
-			var _r = LotInfo.TransTo<MDL.MES.WP_LOT>();
+			//var t1 =App.Timer(() => {
+			//	//return LotInfo.TransTo_V1<MDL.MES.WP_LOT>();
+			//});
 
+			var t2 =  App.Timer(() => {
+				return LotInfo.TransTo<MDL.MES.WP_LOT>();
+			});
 
-			new FileApp().Write(_r.ToJson(), FileApp.ts_Log(@"HoldLot\TransTo_t.json"));
-
-		}
-
+		}, true);
 
 
 		[TestMethod]

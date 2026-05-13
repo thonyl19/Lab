@@ -121,7 +121,7 @@ namespace UnitTestProject
 
 
         [TestMethod]
-		public void t_GetOperEquipment()
+		public void t_GetOperEquipment_取得工作站設定的機台()
 		=> _DBTest((txn) =>
 		{
 			//TxnBase.Test = Genesis.GTI_Test.TxnBase_T;

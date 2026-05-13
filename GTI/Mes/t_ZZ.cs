@@ -25,7 +25,7 @@ namespace UnitTestProject
 	[TestClass]
 	public class t_ZZ : _testBase
 	{
-		static class _log
+		public static class _log
 		{
 			internal static string t_GetRunCardHistoryByLot
 			{
@@ -65,7 +65,7 @@ namespace UnitTestProject
 				}
 			}
 
-			internal static string t_PagerQuery
+			public static string t_PagerQuery
 			{
 				get
 				{

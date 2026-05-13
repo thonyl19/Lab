@@ -1,10 +1,14 @@
-﻿using BLL.MES;
+﻿using BLL.InterFace;
+using BLL.MES;
 using BLL.MES.DataViews;
 using Frame.Code.Web.Select;
 using Genesis.Areas.MES.Controllers;
 using Genesis.Gtimes.ADM;
+using Genesis.Gtimes.Transaction.EQP;
+using Genesis.Gtimes.Transaction.TOL;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using System.Collections.Generic;
+using System.Data;
 using System.Linq;
 using System.Web.Mvc;
 using UnitTestProject.TestUT;
@@ -15,7 +19,7 @@ namespace UnitTestProject
 
 
 	[TestClass]
-	public class t_OperationController : _testBase
+	public class t_Operation : _testBase
 	{
 		static class _log
 		{
@@ -29,6 +33,17 @@ namespace UnitTestProject
 					return FileApp.ts_Log(@"WIP\t_splitBIN.json");
 				}
 			}
+
+			internal static string t_工作站的機台治具設定
+			{
+				get
+				{
+					return FileApp.ts_Log(@"Operation\t_工作站的機台治具設定.json");
+				}
+			}
+
+
+			
 		}
 
 
@@ -257,6 +272,7 @@ namespace UnitTestProject
 		}, true);
 
 
+
 		[TestMethod]
 		public void t_ZZ_ReWorkOperList()
 		{
@@ -325,6 +341,35 @@ namespace UnitTestProject
 			var dt1 = Fn_Tool.GetPartNoOperToolData_OperSid(_lotInfo.WO, _lotInfo.ROUTE_VER_SID, _lotInfo.ROUTE_VER_OPER_SID
 				, _lotInfo.PARTNO, _lotInfo.OPER_SID);
 
+
+			//另一種取法 
+			var operinfo = Txn.GetOperationInfo(_lotInfo.OPER_SID);
+			var operfun = new OperationUtility.OperationFunction(Txn.DBC);
+			var operRule_Eqp = operfun.GetOperEquipAllEquipmentList(operinfo);
+
+
+
+		}, true);
+
+		[TestMethod]
+		public void _取得工站所有流程()
+		=> _DBTest(Txn => {
+
+			//var oper = Txn.GetOperationInfo("C01-0020", OperationUtility.IndexType.No);
+			var _lotInfo = Txn.GetLotInfo("TWO-240725A-04", isQueryByLotNO: true);
+			var Fn_Eqp = new EquipmentUtility.EquipmentFunction(Txn.DBC);
+			var dt = Fn_Eqp.GetPartNoOperEquipmentData_OperSid(_lotInfo.WO, _lotInfo.ROUTE_VER_SID, _lotInfo.ROUTE_VER_OPER_SID
+				, _lotInfo.PARTNO, _lotInfo.OPER_SID);
+
+			var Fn_Tool = new ToolUtility.ToolFunction(Txn.DBC);
+			var dt1 = Fn_Tool.GetPartNoOperToolData_OperSid(_lotInfo.WO, _lotInfo.ROUTE_VER_SID, _lotInfo.ROUTE_VER_OPER_SID
+				, _lotInfo.PARTNO, _lotInfo.OPER_SID);
+
+
+			//另一種取法 
+			var operinfo = Txn.GetOperationInfo(_lotInfo.OPER_SID);
+			var operfun = new OperationUtility.OperationFunction(Txn.DBC);
+			var operRule_Eqp = operfun.GetOperEquipAllEquipmentList(operinfo);
 		}, true);
 
 

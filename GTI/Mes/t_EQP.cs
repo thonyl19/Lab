@@ -9,15 +9,16 @@ using Frame.Code.Web.Select;
 using System.Collections.Generic;
 using System.Data;
 using Genesis.Library.BLL.FC;
+using Genesis.Gtimes.Transaction.TOL;
 
 namespace UnitTestProject
 {
-	[TestClass]
-	public class t_EQP : _testBase
-	{
-		static class _log
+    [TestClass]
+    public class t_EQP : _testBase
+    {
+        static class _log
         {
-			internal static string t_GetOperEquipAllEquipmentList
+            internal static string t_GetOperEquipAllEquipmentList
             {
                 get
                 {
@@ -31,7 +32,9 @@ namespace UnitTestProject
                     return FileApp.ts_Log(@"EQP\t_GetOperToolSetting.json");
                 }
             }
-            
+
+
+
             internal static string t_過站設備
             {
                 get
@@ -55,13 +58,13 @@ namespace UnitTestProject
         /// 取得工站設定的設備
         /// </summary>
         [TestMethod]
-		public void t_GetOperEquipAllEquipmentList()
+        public void t_GetOperEquipAllEquipmentList()
         => _DBTest((txn) =>
         {
             //var oper = txn.EFQuery_MES.PF_OPERATION_EQUIPMENT.FirstOrDefault();
 
             var operinfo = new OperationUtility.OperationInfo
-                ( txn.DBC
+                (txn.DBC
                 , "C01-0020"
                 , OperationUtility.IndexType.No);
             OperationUtility.OperationFunction operfun = new OperationUtility.OperationFunction(txn.DBC);
@@ -73,16 +76,16 @@ namespace UnitTestProject
         /// <summary>
         /// 取得工站設定的治具
         /// </summary>
-       [TestMethod]
+        [TestMethod]
         public void t_GetOperToolSetting()
-        => _DBTest((txn) =>
-        {
+         => _DBTest((txn) =>
+         {
             //var oper = txn.EFQuery_MES.PF_OPERATION_EQUIPMENT.FirstOrDefault();
             var operinfo = new OperationUtility.OperationInfo(txn.DBC, "B121-019BA4-139_1000-0040", OperationUtility.IndexType.No);
-            OperationUtility.OperationFunction operfun = new OperationUtility.OperationFunction(txn.DBC);
-            var dt = operfun.GetOperToolSetting(operinfo.SID);
-            FileApp.WriteSerializeJson(dt, _log.t_GetOperToolSetting);
-        }, false);
+             OperationUtility.OperationFunction operfun = new OperationUtility.OperationFunction(txn.DBC);
+             var dt = operfun.GetOperToolSetting(operinfo.SID);
+             FileApp.WriteSerializeJson(dt, _log.t_GetOperToolSetting);
+         }, false);
 
         /*
          			EquipmentUtility.EquipmentFunction uf = new EquipmentUtility.EquipmentFunction(dbc);
@@ -91,26 +94,37 @@ namespace UnitTestProject
          
          */
 
+        /*
+         
+         
+         */
         [TestMethod]
-		public void t_下機台()
+        public void t_下機台()
         => _DBTest((txn) =>
         {
-            var lotInfo = txn.GetLotInfo("24I049-UG-CD802",isQueryByLotNO:true);
-            var equip = txn.GetEquipmentInfo("store_clear_002",IndexType:EquipmentUtility.IndexType.No);
+            var lotInfo = txn.GetLotInfo("24I049-UG-CD802", isQueryByLotNO: true);
+            var equip = txn.GetEquipmentInfo("store_clear_002", IndexType: EquipmentUtility.IndexType.No);
             EQPTransaction.EquipmentUnloadLotTxn unloadLot = new EQPTransaction.EquipmentUnloadLotTxn(equip, lotInfo);
             txn.DoTransaction(unloadLot);
 
             EQPTransaction.EndOfEquipmentTxn endEquip = new EQPTransaction.EndOfEquipmentTxn(equip);
             txn.DoTransaction(endEquip);
-        }, true,true);
+        }, true, true);
+
+
+        //改移到 t_CUB
+        public void job_重設機台並下治具_平行工站(){}
+
 
         [TestMethod]
-        public void t_檢核過站時的機台治具是否符合工作站的設定()
+        public void t_檢核過站時的機台是否符合工作站的設定()
         => _DBTest((txn) =>
         {
             var _過站設備 = FileApp.Read_SerializeJson<List<CustomerList>>(_log.t_過站設備);
             var oper_no = "B121-019BA4-139_1000-0040";
-            var operinfo = new OperationUtility.OperationInfo(txn.DBC, oper_no, OperationUtility.IndexType.No);
+            var operinfo 
+                //= new OperationUtility.OperationInfo(txn.DBC, oper_no, OperationUtility.IndexType.No);
+                = txn.GetOperationInfo(oper_no,IndexType:OperationUtility.IndexType.No);
             OperationUtility.OperationFunction operfun = new OperationUtility.OperationFunction(txn.DBC);
             var dt_Eqp = operfun.GetOperEquipAllEquipmentList(operinfo);
             if (dt_Eqp != null && dt_Eqp.Rows.Count > 0) {
@@ -119,6 +133,11 @@ namespace UnitTestProject
             }
 
         }, false, true);
+
+
+
+
+
 
 
         [TestMethod]
@@ -137,6 +156,26 @@ namespace UnitTestProject
             //var lot = GTI_helper.getLotInfo(txn);
             //var zz = txn.EFQuery_MES.f治具清單("CTT01",排除已被使用:false).ToList();
         }, true);
+
+
+        [TestMethod]
+        public void t_GetEquipmentLotList()
+        => _DBTest((Txn) =>
+        {
+            var EqpFn = new EquipmentUtility.EquipmentFunction(Txn.DBC);
+            var EqpInfo = Txn.GetEquipmentInfo("CWH1-K004-0000002-01", IndexType:EquipmentUtility.IndexType.No);
+            var lots = EqpFn.GetEquipmentLotList(EqpInfo.No);
+        }, true);
+
+
+
+        [TestMethod]
+        public void _20260115_批號取得進站後綁定的機台()
+        => _DBTest((Txn) =>{
+            var _lotInfo = Txn.GetLotInfo("JK_GENERAL_TEST-08", isQueryByLotNO: true);
+            var eqps = _lotInfo.GetLotProductionEquipmentInfoList();
+        }, true);
+
         
     }
 

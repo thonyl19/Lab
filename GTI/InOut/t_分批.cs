@@ -15,6 +15,7 @@ using static BLL.MES.WIPInjectServices;
 using static Genesis.Gtimes.WIP.LotUtility;
 using _Func = Genesis.Library.BLL.MES.OperTask.Func;
 using _check = BLL.InterFace.Check;
+using System.Linq;
 
 namespace UnitTestProject
 {

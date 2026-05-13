@@ -6,6 +6,7 @@ using Genesis;
 using Genesis.Gtimes.ADM;
 using Genesis.Gtimes.Common;
 using Genesis.Gtimes.WIP;
+using Genesis.Library.BLL.Helper;
 using MDL.MES;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Newtonsoft.Json;
@@ -26,7 +27,7 @@ using static Genesis.Library.BLL.Label.LabelBaseService;
 
 namespace UnitTestProject.TestUT
 {
-    [TestClass]
+	[TestClass]
 	public class UnitTest_ : _testBase
 	{
 		public string _path = @"C:\Code\GTIMES_2015\UnitTestProject\Log\";
@@ -181,9 +182,9 @@ namespace UnitTestProject.TestUT
 				new QtyItem(){ Qty = 100},
 				new QtyItem(){ Qty = 101}
 			};
-			var z = QtyItem.Check(_list, 200,null,null,false);
+			var z = QtyItem.Check(_list, 200, null, null, false);
 			_list.Add(new QtyItem() { Qty = -1 });
-			var z1 = QtyItem.Check(_list, null,null, null, false);
+			var z1 = QtyItem.Check(_list, null, null, null, false);
 		}
 
 		[TestMethod]
@@ -191,7 +192,8 @@ namespace UnitTestProject.TestUT
 		{
 			var s = "Lot";
 			var s1 = Enum.Parse(typeof(BarCodeSrc), s);
-			switch (s1) {
+			switch (s1)
+			{
 				case BarCodeSrc.Lot:
 					break;
 			}
@@ -210,13 +212,13 @@ namespace UnitTestProject.TestUT
 				_t = int.TryParse("", out x);
 				_t = int.TryParse("1", out x);
 			}
-			
+
 		}
 
 		[TestMethod]
 		public void t_6()
 		{
-			decimal x ;
+			decimal x;
 			bool _t = true;
 			_t = decimal.TryParse(null, out x);
 			_t = decimal.TryParse("A", out x);
@@ -257,7 +259,7 @@ namespace UnitTestProject.TestUT
 			var GTiMES_loginkey = "EGAk1l624BeDmFrEoTuG6GXUwnCbdfouiIGjpZaZxjRpC89ybH2iVIYA2cYhIWIrFm2kdfXoKEst3khRYca/qy6OVixxO042kRftIki+eE41pQTHZlnTUKphMk4ML6FimX6KMMywpYay86Sy3fo6Qa6Wj98VLEiDzx1BoeShQPXnSv51gKqkiEDLvJZDrJXWpcd1AUBjQtR0FWKl1TVnmrMex5YBPJECX1zlkdeFFdrtuF61e3imvwJVdj3wBRBOA222w8+DKhGxb2mRNEMcQi3dN4f9i0OFGHk+nv5p8fDf+GmgkTaYFUceKpY7VdCqoxxs8BUNr/+afCrEmxmuBaDpwf2ewQszIDFrbIq6Cn3tHucG82nB5Rwl3ZwugCBDoe1Q5LkiG9oiKvEu7EhRP1vCeph1XUAiYkHquTr2S6FfWjSUzl8I6Bifzwxi6q9i2pETJQ+k4hbWLmZkhLk3vgDZ3xiWUBVgrcbYyUna4PanQI6Ei243u0FYsWA9ofY+v4yc5SdcNRfqwVeVqIXDsD3JwpPg8jhHlTZ9UX9r7m4jxMjVt2f8g882iqqcd1XQktyrV3jl+l9cY3tCNKsHyDPyNl92lIhMtB4DOYeNZx4=";
 			var GTiMES_saltkey = "DYWPNt7Co";
 			var User = Encrypter.DecryptAES(GTiMES_loginkey, GTiMES_saltkey).ToObject<CurrentLoginUserModel>();
-			
+
 		}
 
 		[TestMethod]
@@ -265,18 +267,18 @@ namespace UnitTestProject.TestUT
 		{
 			var A = "oyx/67HMQms51wSVODquTg==";
 			var B = "K1XyUcfDObcmqVob";
-			var T = Encrypter.DecryptAES(A,B);
+			var T = Encrypter.DecryptAES(A, B);
 			//
 			//var T = pwd.EncryptAES(A, B);
 
 		}
 
- 
 
-        [TestMethod]
-        public void t_GTiMES_saltkey2()
-        => _DBTest(Txn =>
-        {
+
+		[TestMethod]
+		public void t_GTiMES_saltkey2()
+		=> _DBTest(Txn =>
+		{
 			//var T = Encrypter.DecryptAES(userEntity.PWD, userEntity.SECOND_PWD);
 			//
 			//Genesis.Mes.Library.Security.Password pwd = new Genesis.Mes.Library.Security.Password();
@@ -285,7 +287,7 @@ namespace UnitTestProject.TestUT
 
 
 
-        [TestMethod]
+		[TestMethod]
 		public void t_x()
 		{
 			var UItest = "RollCheckIn_Case1";
@@ -304,20 +306,21 @@ namespace UnitTestProject.TestUT
 		}
 
 
-        [TestMethod]
-        public void t_fn111()
-        {
+		[TestMethod]
+		public void t_fn111()
+		{
 			var chk_NewVer = typeof(WP_IPQC_LOT).GetProperty("LOT") != null;
 		}
 
-        [TestMethod]
-        public void t_fn()
-        {
+		[TestMethod]
+		public void t_fn()
+		{
 			int t = 1;
 			//Genesis.Library.BLL.ZZ.CUB.CodeRule.站別檢驗單檢核時機? z = t.ts_NullEnum<Genesis.Library.BLL.ZZ.CUB.CodeRule.站別檢驗單檢核時機>();
 
 			//Genesis.Library.BLL.ZZ.CUB.CodeRule.站別檢驗單檢核時機 z1 = t.ts_Enum<Genesis.Library.BLL.ZZ.CUB.CodeRule.站別檢驗單檢核時機>();
-			var a = new PF_PARTNO() {
+			var a = new PF_PARTNO()
+			{
 				//ATTRIBUTE_36 = 10
 			};
 			var b = new PF_PARTNO()
@@ -377,11 +380,14 @@ namespace UnitTestProject.TestUT
 
 
 
-		public decimal? t_6__(string val) {
+		public decimal? t_6__(string val)
+		{
 			decimal r;
-			if (string.IsNullOrWhiteSpace(val) == false) { 
-				if (decimal.TryParse(val, out r)){
-					return  decimal.Round(r, 1);
+			if (string.IsNullOrWhiteSpace(val) == false)
+			{
+				if (decimal.TryParse(val, out r))
+				{
+					return decimal.Round(r, 1);
 				}
 			}
 			return null;
@@ -397,8 +403,469 @@ namespace UnitTestProject.TestUT
 			Console.WriteLine("Sub function executed after delay");
 		}
 
+
+
+		[TestMethod]
+		public void t_20251225_col_sel()
+		=> _DBTest((txn) =>
+		{
+			var _list = (from a in txn.EFQuery_MES.FC_EQUIPMENT
+						 where a.STATE_NO == "Run"
+						 select a)
+				.ToList();
+
+			//只有 Head 基礎模式
+			var m_Head = new col_sel<FC_EQUIPMENT>("保養單類別");
+			object _o = "保養單類別";
+			var m_Head_obj = col_sel<FC_EQUIPMENT>.n(_o);
+
+			//直接傳入 Dictionary
+			var _dc = new Dictionary<string, string>() {
+				{"D", "預防保養單" },
+				{"U", "達次保養單" }
+			};
+			var m_Dec = col_sel<FC_EQUIPMENT>.n(_dc);
+
+			//直接傳入 Dictionary
+			Func<FC_EQUIPMENT, object> _Fn = (c)=>{ return c.UPDATE_DATE; };
+			var m_Fn = col_sel<FC_EQUIPMENT>.n(_Fn);
+			var t = m_Fn.DynFunc(_list.FirstOrDefault());
+
+			//Header + Map
+			var m_Header_Map = col_sel<FC_EQUIPMENT>.n(
+				"保養單類別",
+				("D", "預防保養單"),
+				("U", "達次保養單")
+			);
+
+			//只有 params Map
+			var m_Map = new col_sel<FC_EQUIPMENT>(
+				("D", "預防保養單"),
+				("U", "達次保養單")
+			);
+
+
+			//Header + Fun
+			var colConfirm = col_sel<FC_EQUIPMENT>.n(
+				"審核狀態",
+				row => row.UPDATE_DATE.ToString("yyyyMMdd")
+			);
+
+		}, true);
+
+		[TestMethod]
+		public void t_20251225_ColParse()
+		=> _DBTest((txn) =>
+		{
+			var _list = (from a in txn.EFQuery_MES.FC_EQUIPMENT
+						 where a.STATE_NO == "Run"
+						 select a)
+				.ToList();
+
+			var _ent = _list.FirstOrDefault();
+
+			//foreach (var row in _list) {
+			//	//var _t = m_Head.GetValue<string>(row);
+			//	var _t1 = m_Head.GetValue(row);
+			//};
+
+			//只有 基礎模式,只處理欄位 及 欄位抬頭
+			var m_Col = ColParse<FC_EQUIPMENT>.n("UPDATE_DATE");
+			var m_Col_Head = ColParse<FC_EQUIPMENT>.n("UPDATE_DATE","欄位名稱");
+
+
+
+			//ValueMap
+			var m_ValueMap = ColParse<FC_EQUIPMENT>.n
+				("UPDATE_DATE",
+					"欄位名稱", //彈性增加
+				("D", "預防保養單"),
+                ("U", "達次保養單"));
+
+            //Dictionary
+            var _dc = new Dictionary<string, string>() {
+                {"D", "預防保養單" },
+                {"U", "達次保養單" }
+            };
+            var m_Dec = ColParse<FC_EQUIPMENT>.n
+				("UPDATE_DATE"
+					,"欄位名稱" //彈性增加
+				, _dc);
+
+			//直接傳入 DynFunc 
+			//Func<FC_EQUIPMENT, object> _Fn = (c) => { return c.UPDATE_DATE; };
+			//var m_Fn = ColParse<FC_EQUIPMENT>.n((c)=>c.UPDATE_DATE);
+			var m_Fn = ColParse<FC_EQUIPMENT>.n((c)=>c.UPDATE_DATE.ToString("yyyyMMdd"));
+			var t = m_Fn.GetValue(_ent);
+
+			var _dyn = new{
+				UPDATE_DATE = DateTime.Now
+			};
+
+
+			/*
+			 這一段的寫法 ,目的是為了 省略 ColParse<FC_EQUIPMENT>.n  重覆的字段 
+			 */
+			var _src = new FC_EQUIPMENT();
+            var m_Fn_t1 = _src.nColParse(c => c.UPDATE_DATE.ToString("yyyyMMdd"));
+			var t01 = m_Fn_t1.GetValue(_ent);
+			/* 無法實現, 因為底層的物件型別不同 
+            var t02 = m_Fn_t1.GetValue(_dyn);
+			*/
+
+			/*
+			 動態物件 , 只能使用 columnName , 而且能兼容於 Entity
+
+			但像以下語法 ,經確認是無法執行的 
+			 */
+			var m_Fn_t2 = ColParse<dynamic>.n("UPDATE_DATE");
+			var t21 = m_Fn_t2.GetValue(_dyn);
+			var t22 = m_Fn_t2.GetValue(_ent);
+
+			var m_Fn_t3 = _dyn.nColParse("UPDATE_DATE");
+			var t31 = m_Fn_t3.GetValue(_dyn);
+			/*
+			var t32 = m_Fn_t3.GetValue(_ent);
+
+			以上這段不可行 , 主要的原因是 ColParse 在初始化是,就需要先決定要,動態要處理的 物件是什麼型別,
+				目前的模式--決定後,就無法更改
+			之所以會採用這樣模式 , 最根本的原因就是 
+				匿名型別 (dynamic / Dapper / object) 
+				具名型別 (EF entity / T) 
+				上述兩種是完全不同的型別跟處理模式
+			為了讓兩者能使用同一個方法執行, 在 ColParse 底層中 , 是使用 IRowAccessor 來做執行模式的切分,
+				也因此,無法接受動態變更
+			*/
+		});
+
+	}
+
+	public static partial class AD_ext
+	{
+
+		public static ColParse<T> nColParse<T>(this T _self, string columnName)
+		=>ColParse<T>.n(columnName);
+
+		public static ColParse<T> nColParse<T>(this T _self, Func<T, object> DynFunc)
+		=> ColParse<T>.n(DynFunc);
 	}
 
 
+	public class col_sel<T>
+	{
+		/// <summary>
+		/// Excel 欄位抬頭
+		/// </summary>
+		public string Header { get; set; }
+
+		/// <summary>
+		/// 欄位值轉換表
+		/// </summary>
+		public Dictionary<string, string> ValueMap { get; set; }
+
+		/// <summary>
+		/// 動態函數，可處理 row 單位，返回最終輸出值
+		/// </summary>
+		public Func<T, object> DynFunc { get; set; }
+
+
+		public col_sel(params (string key, string value)[] mappings)
+		{
+			if (mappings != null && mappings.Length > 0)
+				ValueMap = mappings.ToDictionary(t => t.key, t => t.value);
+		}
+
+
+		public col_sel(string header, Func<T, object> dynFunc = null)
+		{
+			Header = header;
+			DynFunc = dynFunc;
+		}
+
+		/// <summary>
+		/// 取得欄位對應的最終輸出值
+		/// </summary>
+		/// <param name="row">目前 row</param>
+		/// <param name="originalValue">原欄位值</param>
+		/// <returns>轉換後值</returns>
+		public object GetValue(T row, object originalValue)
+		{
+			object value = originalValue;
+
+			// 先用 ValueMap 轉換（如果存在對應）
+			if (value != null && ValueMap != null && ValueMap.TryGetValue(value.ToString(), out string mapped))
+				value = mapped;
+
+			// 再用 DynFunc 進一步處理（如果設定）
+			if (DynFunc != null)
+				value = DynFunc(row);
+
+			return value;
+		}
+
+		public static col_sel<T> n(object sel)
+		{
+			if (sel is string header)
+				return new col_sel<T>(header);
+			if (sel is col_sel<T> cs)
+				return cs;
+
+			var r = new col_sel<T>(string.Empty);
+			if (sel is Dictionary<string, string> dc) {
+				r.ValueMap = dc;
+			}else if (sel is Func<T, object> fn){
+				r.DynFunc = fn;
+			}
+			return r;
+		}
+		/// <summary>
+		/// 建構子：Header + ValueMap + DynFunc
+		/// </summary>
+		/// <param name="header">欄位抬頭</param>
+		/// <param name="dynFunc">動態函數</param>
+		/// <param name="mappings">key-value 對應表</param>
+		public static col_sel<T> n(string header, Func<T, object> dynFunc, params (string key, string value)[] mappings)
+		{
+			var r = new col_sel<T>(header, dynFunc);
+			if (mappings != null && mappings.Length > 0)
+				r.ValueMap = mappings.ToDictionary(t => t.key, t => t.value);
+			return r;
+		}
+
+		public static col_sel<T> n(string header, params (string key, string value)[] mappings)
+		=> col_sel<T>.n(header, null, mappings);
+
+		public static col_sel<T> n(string header, Dictionary<string, string> valueMap)
+		{
+			var r = new col_sel<T>(header);
+			r.ValueMap = valueMap;
+			return r;
+		}
+	}
+
+	public class ColParse_<T>
+	{
+		/// <summary>
+		/// 匯出用欄位抬頭
+		/// </summary>
+		public string Header { get; set; }
+
+		/// <summary>
+		/// dynamic / DB 欄位名稱
+		/// </summary>
+		public string ColumnName { get; }
+
+		/// <summary>
+		/// 欄位值轉換表（ValueMap）
+		/// </summary>
+		public Dictionary<string, string> ValueMap { get; set; }
+
+		/// <summary>
+		/// 動態計算函數（最高優先權）
+		/// </summary>
+		public Func<T, object> DynFunc { get; set; }
+
+		#region Constructor
+
+		public ColParse_(string columnName, string header = null)
+		{
+			if (string.IsNullOrWhiteSpace(columnName))
+				throw new ArgumentException(nameof(columnName));
+
+			ColumnName = columnName;
+			Header = header ?? columnName;
+		}
+
+		#endregion
+
+		#region 核心 API
+
+		/// <summary>
+		/// 由 row 取得「最終輸出值」
+		/// </summary>
+		public object GetValue(T row)
+		{
+			if (row == null) return null;
+
+			// 最高優先權
+			if (DynFunc != null)return DynFunc(row);
+			
+			// 先取原始欄位值（一定來自 row）
+			object value = GetOriginalValue(row);
+
+			// ValueMap 轉換
+			if (value != null && ValueMap != null &&
+				ValueMap.TryGetValue(value.ToString(), out var mapped)){
+				value = mapped;
+			}
+			return value;
+		}
+
+		#endregion
+
+		#region 內部取值邏輯（dynamic / Dapper / Expando）
+
+		private object GetOriginalValue(T row)
+		{
+			// ExpandoObject / Dapper dynamic
+			if (row is IDictionary<string, object> dict)
+			{
+				if (dict.TryGetValue(ColumnName, out var val))
+					return Normalize(val);
+
+				// 容錯：忽略大小寫
+				foreach (var kv in dict)
+				{
+					if (string.Equals(kv.Key, ColumnName, StringComparison.OrdinalIgnoreCase))
+						return Normalize(kv.Value);
+				}
+
+				return null;
+			}
+
+			// Reflection fallback（保險）
+			var prop = row.GetType().GetProperty(
+				ColumnName,
+				BindingFlags.Public | BindingFlags.Instance | BindingFlags.IgnoreCase);
+
+			return prop != null ? Normalize(prop.GetValue(row)) : null;
+		}
+
+		private object Normalize(object value)
+			=> value == DBNull.Value ? null : value;
+
+		#endregion
+
+		#region Factory / DSL（承襲 col_sel 的使用感）
+
+		public static ColParse<T> n(object sel)
+		{
+			if (sel is string col)
+				return new ColParse<T>(col);
+
+			if (sel is ColParse<T> cp)
+				return cp;
+
+			throw new InvalidOperationException("Unsupported selector type");
+		}
+
+		public static ColParse<T> n(
+			string columnName,
+			string header,
+			Func<T, object> dynFunc,
+			params (string key, string value)[] mappings)
+		{
+			var r = new ColParse<T>(columnName, header)
+			{
+				DynFunc = dynFunc
+			};
+
+			if (mappings != null && mappings.Length > 0)
+				r.ValueMap = mappings.ToDictionary(t => t.key, t => t.value);
+
+			return r;
+		}
+
+		public static ColParse<T> n(
+			string columnName,
+			params (string key, string value)[] mappings)
+			=> n(columnName, string.Empty, null, mappings);
+
+		public static ColParse<T> n(
+			string columnName,
+			string header,
+			params (string key, string value)[] mappings)
+			=> n(columnName, header, null, mappings);
+
+		public static ColParse<T> n(
+			string columnName,
+			string header,
+			Dictionary<string, string> valueMap)
+		{
+			var r = new ColParse<T>(columnName, header)
+			{
+				ValueMap = valueMap
+			};
+			return r;
+		}
+
+		public static ColParse<T> n(
+			string columnName,
+			Dictionary<string, string> valueMap)
+			=> n(columnName, columnName, valueMap);
+
+		/// <summary>
+		/// 如果直接定義 DynFunc, 就不需要再 columnName , ValueMap ,直接寫在 DynFunc 即可
+		/// </summary>
+		/// <param name="DynFunc"></param>
+		/// <returns></returns>
+		public static ColParse<T> n(Func<T, object> DynFunc)
+		=> n("-", string.Empty, DynFunc);
+
+		#endregion
+	}
+
+
+	public class ColParse_01<T>
+	{
+		private readonly string _columnName;
+
+		public ColParse_01(string columnName) {
+			_columnName = columnName;
+		}
+
+		/// <summary>
+		/// 取得 dynamic row 中指定欄位的值
+		/// </summary>
+		public object GetValue(dynamic row)
+		{
+			if (row == null) return null;
+
+			// 1️⃣ ExpandoObject / Dapper dynamic
+			if (row is IDictionary<string, object> dict)
+			{
+				if (dict.TryGetValue(_columnName, out var val))
+					return NormalizeDbValue(val);
+
+				// 容錯：忽略大小寫
+				foreach (var kv in dict)
+				{
+					if (string.Equals(kv.Key, _columnName, StringComparison.OrdinalIgnoreCase))
+						return NormalizeDbValue(kv.Value);
+				}
+
+				return null;
+			}
+
+			// 2️⃣ fallback：Reflection（保險機制）
+			var prop = row.GetType().GetProperty(
+				_columnName,
+				BindingFlags.Public | BindingFlags.Instance | BindingFlags.IgnoreCase
+			);
+
+			if (prop != null)
+				return NormalizeDbValue(prop.GetValue(row));
+
+			return null;
+		}
+
+		/// <summary>
+		/// 泛型版本：直接轉型回傳
+		/// </summary>
+		public TResult GetValue<TResult>(dynamic row)
+		{
+			var val = GetValue(row);
+
+			if (val == null)
+				return default;
+
+			return (TResult)Convert.ChangeType(val, typeof(TResult));
+		}
+
+		private object NormalizeDbValue(object value)
+		{
+			return value == DBNull.Value ? null : value;
+		}
+	}
 
 }

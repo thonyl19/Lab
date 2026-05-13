@@ -28,8 +28,9 @@ namespace UnitTestProject.TestUT
 			var result = fn();
 			sw.Stop();
 			TimeSpan ts2 = sw.Elapsed;
+			var Cost = $"Stopwatch總共花費{ts2.TotalSeconds.ToString()} sec.";
 			//Console.WriteLine($"Stopwatch總共花費{ts2.TotalMilliseconds}ms.");
-			return new { result , Cost = $"Stopwatch總共花費{ts2.TotalSeconds.ToString()} sec." };
+			return new { result , Cost };
 		}
 	}
 
@@ -202,9 +203,9 @@ namespace UnitTestProject.TestUT
 			return false;
 		}
 
-		public static bool WriteSerializeJson(object ao_obj, string as_FullFileName, JsonSerializerSettings json_options = null)
+		public static bool WriteSerializeJson(object ao_obj, string as_FullFileName, JsonSerializerSettings json_options = null, bool isMult = true)
 		{
-			return new FileApp().Write_SerializeJson(ao_obj, as_FullFileName, json_options);
+			return new FileApp().Write_SerializeJson(ao_obj, as_FullFileName, json_options, isMult);
 		}
 
 		public bool Write_SerializeJson(object ao_obj, string as_FullFileName, JsonSerializerSettings json_options = null, bool isMult = true)
@@ -212,7 +213,7 @@ namespace UnitTestProject.TestUT
 			json_options = json_options ?? FileApp.json_options;
 			try
 			{
-				as_FullFileName = rule_WriteFile(as_FullFileName);
+				as_FullFileName = isMult ? rule_WriteFile(as_FullFileName): as_FullFileName;
 				string _json = JsonConvert.SerializeObject(ao_obj, json_options);
 				this.Write(_json, as_FullFileName);
 				return true;
@@ -257,7 +258,7 @@ namespace UnitTestProject.TestUT
 		}
 
 
-		public static T Read_SerializeJson<T>(string as_FullFileName, JsonSerializerSettings json_options = null, bool isMult = true)
+		public static T Read_SerializeJson<T>(string as_FullFileName, JsonSerializerSettings json_options = null ,bool isHack = true)
 		{
 			return new FileApp().Read_SerializeJson<T>(as_FullFileName, json_options);
 		}
@@ -427,7 +428,8 @@ namespace UnitTestProject.TestUT
 		{
 			try
 			{
-				as_PathFile = rule_WriteFile(as_PathFile);
+				//改由來源層控制
+				//as_PathFile = rule_WriteFile(as_PathFile);
 				StreamWriter SW = new StreamWriter
 					(as_PathFile
 					, this.IsAppend

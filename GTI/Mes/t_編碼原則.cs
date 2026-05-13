@@ -9,6 +9,7 @@ using System;
 using System.Collections.Generic;
 using System.Configuration;
 using System.Data;
+using System.Linq;
 using UnitTestProject.TestUT;
 using static BLL.MES.LOT_Services;
 //using Genesis.Gtimes.ADM.EncodeFormatUtility;
