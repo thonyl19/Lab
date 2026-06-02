@@ -1,0 +1,23 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<connectionStrings>
+  <!--智慧版連線字串-->
+    <add name="sql.mes" connectionString="Data Source=10.96.1.52;Initial Catalog=CUB_UAT2_GTIMES5;Persist Security Info=True;User ID=GTIMES;Password=GTIMES;MultipleActiveResultSets=True" providerName="System.Data.SqlClient" />
+    <add name="sql.spc" connectionString="Data Source=10.96.1.52;Initial Catalog=CUB_UAT2_SPC5;Persist Security Info=True;User ID=GTIMES;Password=GTIMES;MultipleActiveResultSets=True" providerName="System.Data.SqlClient" />
+    <add name="sql.res" connectionString="Data Source=10.96.1.52;Initial Catalog=CUB_UAT2_RESOURCE5;Persist Security Info=True;User ID=GTIMES;Password=GTIMES;MultipleActiveResultSets=True" providerName="System.Data.SqlClient" />
+
+  <!--<add name="sql.mes" connectionString="Data Source=10.96.1.51;Initial Catalog=CUB_GTIMES5;Persist Security Info=True;User ID=GTIMES;Password=GTIMES;MultipleActiveResultSets=True" providerName="System.Data.SqlClient" />
+  <add name="sql.spc" connectionString="Data Source=10.96.1.51;Initial Catalog=CUB_SPC5;Persist Security Info=True;User ID=GTIMES;Password=GTIMES;MultipleActiveResultSets=True" providerName="System.Data.SqlClient" />
+  <add name="sql.res" connectionString="Data Source=10.96.1.51;Initial Catalog=CUB_RESOURCE5;Persist Security Info=True;User ID=GTIMES;Password=GTIMES;MultipleActiveResultSets=True" providerName="System.Data.SqlClient" />-->
+  
+  
+  <!--<add name="sql.mes" connectionString="Data Source=10.96.0.217;Initial Catalog=SS_GTIMES5;Persist Security Info=True;User ID=GTIMES;Password=GTIMES;MultipleActiveResultSets=True" providerName="System.Data.SqlClient" />
+    <add name="sql.spc" connectionString="Data Source=10.96.0.217;Initial Catalog=SS_SPC;Persist Security Info=True;User ID=GTIMES;Password=GTIMES;MultipleActiveResultSets=True" providerName="System.Data.SqlClient" />
+CUB_0116_GTIMES5   
+CUB_UAT2_GTIMES5
+    -->
+  <!--Portal 連線字串-->
+  <add name="oracle.mes" connectionString="Data Source= (DESCRIPTION = (ADDRESS = (PROTOCOL = TCP)(HOST = 10.96.0.10)(PORT = 1521)) (CONNECT_DATA = (SID = orcl)));User ID=GTIMES;Password=GTIMES;" providerName="Oracle.ManagedDataAccess.Client" />
+  <add name="OracleDbContext" providerName="Oracle.ManagedDataAccess.Client" connectionString="User Id=oracle_user;Password=oracle_user_password;Data Source=oracle" />
+
+
+</connectionStrings>

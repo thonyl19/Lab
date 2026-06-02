@@ -440,7 +440,7 @@ namespace Genesis
         }
 
         
-        public static void TxnBase_T_OperTask_人員上崗(ITxnBase Txn, string ActionName, string Link_SID)
+        public static void TxnBase_T_上崗(ITxnBase Txn, string ActionName, string Link_SID)
         { 
             var AD_CATCH_DATA = (from a in Txn.EFQuery_MES.AD_CATCH_DATA
                                     where  a.UPDATE_DATE == Txn.ExeTime

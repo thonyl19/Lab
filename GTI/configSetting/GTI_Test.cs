@@ -272,7 +272,7 @@ namespace Genesis
             return null;
         }
 
-
+        //bk
         public static void t_Process(ITxnBase txn, string key)
         {
             var WP_LOT_HIST = txn.EFQuery_MES.WP_LOT_HIST.IQueryable_ACTION_LINK_SID(key);
@@ -311,6 +311,7 @@ namespace Genesis
                 EQP = trc_EQP(txn, key),
                 TOOL = trc_TOOL(txn, key),
                 EDC = trc_EDC(txn, key),
+                ZAC = trc_ZAC(txn, key),
                 //CHECKLIST = trc_CHECKLIST(txn,key)
                 //UserTraceIn = trc_UserTraceIn(txn,key)
             };

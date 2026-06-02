@@ -1,4 +1,4 @@
-﻿using BLL.InterFace;
+using BLL.InterFace;
 using BLL.MES;
 using BLL.MES.DataViews;
 using Frame.Code;
@@ -36,7 +36,7 @@ namespace UnitTestProject
 	/// <summary>
     /// </summary>
     [TestClass]
-	public partial class t_ZZ_ZAC : _testBase
+	public class t_ZZ_ZAC : _testBase
 	{
 		static class _log
 		{

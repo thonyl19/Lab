@@ -80,8 +80,35 @@ namespace UnitTestProject
 
 				}
 			}
-			
 
+
+			public static string t_OperationPartUseList
+			{
+				get
+				{
+					return FileApp.ts_Log(@"Route\t_OperationPartUseList.json");
+
+				}
+			}
+
+            public static string t_GetRouteVerOperPartNoInfo
+			{
+				get
+				{
+					return FileApp.ts_Log(@"Route\t_GetRouteVerOperPartNoInfo.json");
+
+				}
+			}
+
+            
+public static string t_GetRouteVerOperPartNoList
+			{
+				get
+				{
+					return FileApp.ts_Log(@"Route\t_GetRouteVerOperPartNoList.json");
+
+				}
+			}
 		}
 
 		/// <summary>

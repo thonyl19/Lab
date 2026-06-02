@@ -10,7 +10,7 @@ namespace UnitTestProject
     /// 賽諾世
     /// </summary>
     [TestClass]
-	public class t_ZAC : _testBase
+	public partial class t_ZAC : _testBase
 	{
 		static class _log
 		{

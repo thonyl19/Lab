@@ -71,8 +71,22 @@ namespace UnitTestProject
 				}
 			}
 
+			internal static string t_料號流程工作站_耗用物料
+			{
+				get
+				{
+					return FileApp.ts_Log(@"DB\t_料號流程工作站_耗用物料.json");
+				}
+			}
 
 
+			internal static string t_料號流程工作站_耗用物料_過站使用
+			{
+				get
+				{
+					return FileApp.ts_Log(@"DB\t_料號流程工作站_耗用物料_過站使用.json");
+				}
+			}
 
 		}
 
@@ -1391,10 +1405,9 @@ SELECT 	LOT.ROUTE_VER_SID,
 		[TestMethod]
 		public void t_取得料號流程工作站_耗用物料()
 		{
-			var keyword = "K1210400281                             ";
-			string PARTNO_SID = "00106D3C-36CD-42B6-AD16-A104A12FA30D";
-			string ROUTE_VER_SID = "GTI20101609022009701";
-			string ROUTE_VER_OPER_SID = "GTI20101609130109761";
+			string PARTNO_SID = "GTI25070815300570295";
+			string ROUTE_VER_SID = "GTI26012313075963710";
+			string ROUTE_VER_OPER_SID = "GTI26012313103263724";
 			using (var dbc = this.DBC)
 			{
 				RouteUtility.PartNoRouteVerOperFunction fun = new RouteUtility.PartNoRouteVerOperFunction(this.DBC);
@@ -1402,9 +1415,29 @@ SELECT 	LOT.ROUTE_VER_SID,
 					(PARTNO_SID
 					, ROUTE_VER_SID
 					, ROUTE_VER_OPER_SID);
-				new FileApp().Write_SerializeJson(dt, FileApp.ts_Log(@"DB\test.json"));
+				new FileApp().Write_SerializeJson(dt, _log.t_料號流程工作站_耗用物料);
 			}
 		}
+
+		[TestMethod]
+		public void t_料號流程工作站_耗用物料_過站使用()
+		{
+			string PARTNO_SID = "GTI25070815300570295";
+			string ROUTE_VER_SID = "GTI26012313075963710";
+			string ROUTE_VER_OPER_SID = "GTI26012313103263724";
+			using (var dbc = this.DBC)
+			{
+				RouteUtility.PartNoRouteVerOperFunction fun = new RouteUtility.PartNoRouteVerOperFunction(this.DBC);
+				DataTable dt = fun.GetRouteVerOperPartNoList
+					(PARTNO_SID
+					, ROUTE_VER_SID
+					, ROUTE_VER_OPER_SID);
+				new FileApp().Write_SerializeJson(dt, _log.t_料號流程工作站_耗用物料_過站使用);
+			}
+		}
+
+
+		
 
 		[TestMethod]
 		public void t_取得料號流程工作站_x1()
