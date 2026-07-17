@@ -1,57 +1,58 @@
+﻿using Accord.Math;
 using BLL.Base;
-using BLL.MES;
-using Frame.Code;
-using Newtonsoft.Json;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Web;
-using System.Web.Mvc;
-using System.Web.Mvc.Html;
-using System.Configuration;
-using System.IO;
-using System.Diagnostics;
-using System.Data.Entity;
-using System.Linq.Expressions;
-using System.Data.SqlClient;
-using static BLL.MES.WIPInjectServices;
-using MDL.MES;
-using System.Reflection;
-using MDL;
-using static Genesis.Gtimes.WIP.LotUtility;
-using System.Dynamic;
-using static BLL.MVC.ResourceServices;
-using Genesis.Common;
 using BLL.InterFace;
-using MDL.GenesisMVC.Tables;
-using System.Collections;
-using System.Resources;
-using vFile = System.IO.File;
-using NetHttp = System.Net.Http;
-using Newtonsoft.Json.Linq;
-using BLL.MVC;
-using System.Text.RegularExpressions;
-using System.Xml.Linq;
-using Microsoft.AspNet.SignalR;
-using System.Threading.Tasks;
-using System.Threading;
-using Genesis.Library.BLL;
-using System.Web.Http.Cors;
-using Genesis.Web.SwaggeRegister.Common;
-using Genesis.Gtimes.Common;
-using System.Web.Routing;
+using BLL.MES;
 using BLL.MES.DataViews;
+using BLL.MVC;
+using Frame.Code;
+using Genesis;
+using Genesis.Common;
+using Genesis.Gtimes.ADM;
+using Genesis.Gtimes.Common;
+using Genesis.Gtimes.Transaction.CAR;
+using Genesis.Gtimes.Transaction.WIP;
+using Genesis.Gtimes.WIP;
+using Genesis.Library.BLL;
 using Genesis.Library.BLL.MES.DataViews;
-using System.Text;
-using System.Net.Mail;
+using Genesis.Web.SwaggeRegister.Common;
+using MDL;
+using MDL.GenesisMVC.Tables;
+using MDL.MES;
+using Microsoft.AspNet.SignalR;
+using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
+using System;
+using System.Collections;
+using System.Collections.Generic;
+using System.Configuration;
+using System.Data;
+using System.Data.Entity;
+using System.Data.SqlClient;
+using System.Diagnostics;
+using System.Dynamic;
+using System.IO;
+using System.Linq;
+using System.Linq.Expressions;
 using System.Net;
 using System.Net.Http;
-using Genesis;
-using Genesis.Gtimes.WIP;
-using System.Data;
-using Genesis.Gtimes.ADM;
-using Genesis.Gtimes.Transaction.WIP;
-using Genesis.Gtimes.Transaction.CAR;
+using System.Net.Mail;
+using System.Reflection;
+using System.Resources;
+using System.Text;
+using System.Text.RegularExpressions;
+using System.Threading;
+using System.Threading.Tasks;
+using System.Web;
+using System.Web.Http.Cors;
+using System.Web.Mvc;
+using System.Web.Mvc.Html;
+using System.Web.Routing;
+using System.Xml.Linq;
+using static BLL.MES.WIPInjectServices;
+using static BLL.MVC.ResourceServices;
+using static Genesis.Gtimes.WIP.LotUtility;
+using NetHttp = System.Net.Http;
+using vFile = System.IO.File;
 
 namespace Genesis
 {
@@ -64,8 +65,6 @@ namespace Genesis
 
         IHtmlString Test(string code, int mode = 0);
     }
-
-
     public class Ext
     {
         public static IResult Add_Item(string PARAMETERGROUP_SID, List<AD_PARAMETER> list, bool isTest = false)
@@ -311,7 +310,9 @@ namespace Genesis
                 EQP = trc_EQP(txn, key),
                 TOOL = trc_TOOL(txn, key),
                 EDC = trc_EDC(txn, key),
-                ZAC = trc_ZAC(txn, key),
+                IPQC = trc_IPQC(txn, key),
+                //ZAC = trc_ZAC(txn, key),
+                MLOT  = trc_MLOT(txn, key),
                 //CHECKLIST = trc_CHECKLIST(txn,key)
                 //UserTraceIn = trc_UserTraceIn(txn,key)
             };
@@ -322,9 +323,58 @@ namespace Genesis
             File.WriteAllText(GTI_Test.g_path.t_Process, json);
         }
 
+        public static dynamic trc_IPQC(ITxnBase Txn, string key)
+        {
+            var WP_IPQC = Txn.EFQuery_MES.WP_IPQC.Where(c => c.UPDATE_DATE == Txn.ExeTime)
+                .AsNoTracking()
+                .FirstOrDefault();
+
+            if (WP_IPQC == null) return null;
+                
+            var WP_IPQC_LOT = Txn.EFQuery_MES.WP_IPQC_LOT
+                .Where(c => c.QC_NO == WP_IPQC.QC_NO)
+                .AsNoTracking()
+                .ToList();
+            var WP_IPQC_CHECKITEM = Txn.EFQuery_MES.WP_IPQC_CHECKITEM
+                .Where(c => c.ACTION_LINK_SID == WP_IPQC.QC_NO)
+                ;
+
+            var WP_IPQC_CHECKITEM_RAW =
+                (from a in Txn.EFQuery_MES.WP_IPQC_CHECKITEM_RAW
+                    .Where(c => WP_IPQC_CHECKITEM.Any(c1 => c1.WP_IPQC_CHECKITEM_SID == c.ACTION_LINK_SID))
+                 select a
+                ).AsNoTracking()
+                .ToList();
+
+            return new
+            {
+                WP_IPQC,
+                WP_IPQC_LOT,
+                WP_IPQC_CHECKITEM = WP_IPQC_CHECKITEM.AsNoTracking().ToList(),
+                WP_IPQC_CHECKITEM_RAW,
+            };
+        }
+
+        public static void TxnBase_T_MaintainForm(ITxnBase Txn, string ActionName, string Link_SID) {
+            //var _data = Txn.result.Data;
+            QC_INSP form = Txn.result.Data as QC_INSP;
+            var QC_INSP_EDC = Txn.EFQuery_MES.QC_INSP_EDC.Where(c=>c.UPDATE_DATE == Txn.ExeTime).AsNoTracking().ToList();
+            var QC_INSP_PART = Txn.EFQuery_MES.QC_INSP_PART.Where(c => c.CREATE_DATE == Txn.ExeTime).AsNoTracking().ToList();
+            var r = new{
+                form,
+                QC_INSP_EDC,
+                QC_INSP_PART
+            };
+            string json = JsonConvert.SerializeObject(r, Newtonsoft.Json.Formatting.Indented);
+
+            // 将 JSON 写入文件
+            File.WriteAllText(GTI_Test.g_path.t_Process, json);
+        }
+
         public static void TxnBase_T_IPQC(ITxnBase Txn, string ActionName, string Link_SID)
         {
-            WP_IPQC form = Txn.result.Data;
+            WP_IPQC form = Txn.result.Data ;
+            
             var WP_IPQC_LOT = Txn.EFQuery_MES.WP_IPQC_LOT
                 .Where(c => c.QC_NO == form.QC_NO)
                 .ToList();
@@ -351,6 +401,17 @@ namespace Genesis
             File.WriteAllText(GTI_Test.g_path.t_Process, json);
         }
 
+        public static void TxnBase_T_WO(ITxnBase Txn, string ActionName, string Link_SID)
+        {
+            var result = new {
+                TxnResultData = Txn.result.Data,
+                WO = Txn.EFQuery_MES.WP_WO.Where(c=> c.CREATE_DATE == Txn.ExeTime).ToList()
+            };
+            string json = JsonConvert.SerializeObject(result, Newtonsoft.Json.Formatting.Indented);
+
+            // 将 JSON 写入文件
+            File.WriteAllText(GTI_Test.g_path.t_Process, json);
+        }
         public static void TxnBase_T_EDC(ITxnBase Txn, string ActionName, string Link_SID)
         {
             var result = new {
@@ -439,6 +500,18 @@ namespace Genesis
             WP_EQP_TRACE = txn.EFQuery_MES.WP_EQP_TRACE.GetData_ACTION_LINK_SID(key)
         };
 
+ 
+        public static dynamic trc_MLOT(ITxnBase txn, string key)
+        {
+            var _MT_LOT_HIST = txn.EFQuery_MES.MT_LOT_HIST.IQueryable_ACTION_LINK_SID(key);
+
+            return new
+            {
+                MT_LOT = txn.EFQuery_MES.MT_LOT.Where(c => _MT_LOT_HIST.Any(c1 => c1.MTR_LOT_SID == c.MTR_LOT_SID)).ToList(),
+                MT_LOT_HIST = _MT_LOT_HIST.ToList(),
+                MT_MTR_LOT_CREATE = txn.EFQuery_MES.MT_MTR_LOT_CREATE.GetData_ACTION_LINK_SID(key),
+            };
+        }
 
         public static dynamic trc_EDC(ITxnBase txn, string key)
         {
@@ -596,7 +669,7 @@ namespace Genesis
                     color: rgb(255, 0, 0);
                 }}
                 {tar}.red_mark.pass {{
-                    color: inherit;
+                    color: white !important;
                 }}
                 `).appendTo('head');
 
@@ -1990,6 +2063,10 @@ namespace Genesis.Areas.SYSAdmin.Controllers
         public static IResult f_Add_ROLE(string RESOURCE_SID)
         => WIPInjectServices.TxnBase.LzDBTrans(null, Txn =>
         {
+            //Txn.PermitIndependentMvc("SyncRole 需同步 MVC AD_USER_ROLE 與 MES AD_USERGROUP，接受兩段提交");
+            //IMesDataSession _zz = (IMesDataSession)Txn;
+            //_zz.PermitIndependentMvc("SyncRole 需同步 MVC AD_USER_ROLE 與 MES AD_USERGROUP，接受兩段提交");
+
             //* 因為專案編譯的需求 先 mark 掉
             var role = Txn.EFQuery_MVC.AD_ROLE.Where(c => c.ROLE_NO == "Admin").FirstOrDefault();
             Check.Invalid("AD_ROLE 查無 Admin 帳號", role == null);

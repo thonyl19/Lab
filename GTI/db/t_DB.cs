@@ -36,6 +36,8 @@ using static BLL.MES.WIPServices;
 using mdl = MDL.MES;
 using vDbCtx = MDL.MESContext;
 using System.Threading.Tasks;
+using Genesis.Gtimes.Transaction.WIP;
+using static Genesis.Gtimes.WIP.LotUtility;
 
 namespace UnitTestProject
 {
@@ -89,6 +91,8 @@ namespace UnitTestProject
 			}
 
 		}
+
+
 
 		[TestMethod]
 		public void t_取得AppConfig中ConnectionStringSettings()
@@ -2078,9 +2082,40 @@ delete AD_SHIFT where SHIFT_SID = @SHIFT_SID
 		=> _DBTest((txn) =>
 		{
 			//todo
-			var x = new TxnACTION() { Desc = "Test" };
+			var x = new TxnACTION() { Desc = "Test" ,ReasonNo ="other"};
 			txn.SetOnce_ACTION(x).DoTransaction();
 		}, true);
+
+
+		[TestMethod]
+		public void _SetOnce_ACTION() {
+			TxnBase.LzDBTrans("Test",TxnACTION.n("ACT1","Reason1","Desc1"), Txn =>
+			{
+				var log = new Dictionary<string, Object>();
+				var list = new List<LotInfo>();
+				var lot = GTI_helper.getLotInfo();
+				list.Add(lot);
+
+				
+				Txn.DoTransaction(new WIPTransaction.HoldLotTxn(lot));
+
+				lot = lot.ReLoad(Txn.DBC);
+				list.Add(lot);
+
+				lot = lot.ReLoad(Txn.DBC);
+				//var z = txn
+				Txn.DoTransaction(new WIPTransaction.HoldLotTxn(lot));
+				list.Add(lot);
+
+
+				var hist = Txn.EFQuery_MES.WP_LOT_HIST.Where(c => c.LOT == lot.LOT).ToList();
+				log.Add("LOT", list);
+				log.Add("HIST", hist);
+				//log.t_Process();
+
+				return Txn.result;
+			},true);
+		}
 
 
 		[TestMethod]

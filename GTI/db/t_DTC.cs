@@ -80,6 +80,15 @@ namespace UnitTestProject
 			var EqpInfo = GTI_helper.getEquipmentInfo(Txn);// Txn.GetEquipmentInfo("GTI23121315360556348");
 			Txn.GtimesTxn.GetCurrentTxnBase().ReasonNo = "AAAAAA";
 			var oHold = new WIPTransaction.HoldLotTxn(_lotInfo);
+
+			/*
+			var f = Txn.GtimesTxn.GetCurrentTxnBase();
+			f.ReasonNo = "PoorIncomePart"; //紀錄來料不足
+			Txn.Txn = f;
+			txnInfo.GtimesTxn.Add(txn);
+			txnInfo.DoTransaction();
+			*/
+
 			//oHold.TransactionName
 
 			//Txn.DoTransaction(new EQPTransaction.EquipmentLoadLotTxn(EqpInfo, _lotInfo));

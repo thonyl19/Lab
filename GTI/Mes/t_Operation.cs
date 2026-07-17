@@ -306,6 +306,19 @@ namespace UnitTestProject
 			}
 
 		}
+ 
+
+		[TestMethod]
+		public void _20260624_取得所有的站點()
+		=> _DBTest((txn) =>
+		{
+			var _lotInfo = TestUT.GTI_helper.getLotInfo(txn);
+			var routeVer = _lotInfo.GetRouteVersionInfo();
+			var routeList = routeVer.GetRouteVersionOperationInfoList();
+			var currentOperIndex = routeList.FindIndex(x => x.OPER_SID == _lotInfo.OPER_SID);
+			var OperRouteList = new OperRouteInfo() { OperRouteList = routeList, CurrentOperKey = (currentOperIndex + 1).ToString() };
+			var SubRouteList = OperRouteList.OperRouteList.Where(x => x.OPER_CATEGORY == "R").ToList();
+		}, true);
 
 
 		[TestMethod]

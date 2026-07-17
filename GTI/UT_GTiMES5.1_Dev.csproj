@@ -45,6 +45,7 @@
     <Compile Include="db\t_DB_BulkExtensions.cs" />
     <Compile Include="Mes\API.cs" />
     <Compile Include="Mes\t_Lot.cs" />
+    <Compile Include="Mes\t_MES.cs" />
     <Compile Include="Mes\t_QTimer.cs" />
     <Compile Include="Mes\t_ZZ.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />

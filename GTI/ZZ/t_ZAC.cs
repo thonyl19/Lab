@@ -19,12 +19,22 @@ namespace UnitTestProject
 				get
 				{
 					
-					return FileApp.ts_Log(@"ZZ\TCI\WP_WO_MTL_BOM.json");
+					return FileApp.ts_Log(@"ZZ\ZAC\WP_WO_MTL_BOM.json");
 				}
 			}
- 
 
-		}
+            internal static string t_20260626_InspOperMaintain_ListData
+            {
+                get
+                {
+
+                    return FileApp.ts_Log(@"ZZ\ZAC\t_20260626_InspOperMaintain_ListData.json");
+                }
+            }
+
+            
+
+        }
 
 
         [TestMethod]

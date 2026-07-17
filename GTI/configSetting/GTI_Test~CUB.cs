@@ -383,6 +383,15 @@ namespace Genesis
 {
     public partial class GTI_Test
     {
+        public partial class dynCode {
+            public const string 上崗 = nameof(TxnBase_T_上崗);
+            public const string IPQC = nameof(TxnBase_T_IPQC);
+            public const string MaintainForm = nameof(TxnBase_T_MaintainForm);
+            
+        }
+
+
+
         //*/
         public static void t_Process_CUB(ITxnBase txn, string key)
         {
@@ -439,18 +448,18 @@ namespace Genesis
             File.WriteAllText(GTI_Test.g_path.t_Process, json);
         }
 
-        
+
         public static void TxnBase_T_上崗(ITxnBase Txn, string ActionName, string Link_SID)
-        { 
+        {
             var AD_CATCH_DATA = (from a in Txn.EFQuery_MES.AD_CATCH_DATA
-                                    where  a.UPDATE_DATE == Txn.ExeTime
-                            select a
+                                 where a.UPDATE_DATE == Txn.ExeTime
+                                 select a
                             )
                             .AsNoTracking()
                             .ToList();
             var ZZ_PICKING_LIST_HIST = (from a in Txn.EFQuery_MES.ZZ_PICKING_LIST_HIST
-                        where  a.CREATE_DATE == Txn.ExeTime
-                select a
+                                        where a.CREATE_DATE == Txn.ExeTime
+                                        select a
                 )
                 .AsNoTracking()
                 .ToList();
@@ -466,6 +475,7 @@ namespace Genesis
             File.WriteAllText(GTI_Test.g_path.t_Process, json);
 
         }
+         
 
         public static void TxnBase_T_PMSRepairV2(ITxnBase Txn, string ActionName, string Link_SID)
         {
