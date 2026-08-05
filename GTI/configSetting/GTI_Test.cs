@@ -311,7 +311,7 @@ namespace Genesis
                 TOOL = trc_TOOL(txn, key),
                 EDC = trc_EDC(txn, key),
                 IPQC = trc_IPQC(txn, key),
-                //ZAC = trc_ZAC(txn, key),
+                ZAC = trc_ZAC(txn, key),
                 MLOT  = trc_MLOT(txn, key),
                 //CHECKLIST = trc_CHECKLIST(txn,key)
                 //UserTraceIn = trc_UserTraceIn(txn,key)
@@ -1139,6 +1139,23 @@ namespace Genesis.Areas.Example.Controllers
     public partial class SelfController : BaseController
     {
         [AllowAnonymous]
+        public ActionResult Index(bool refresh = false)
+        {
+            return RedirectToAction(nameof(_index), new { refresh });
+        }
+        [AllowAnonymous]
+        public ActionResult _index(bool refresh = false)
+        {
+            var model = ExampleCatalogService.GetIndexModel(Server, refresh);
+            return View(model);
+        }
+
+        public ActionResult single(string name)
+        {
+            return this.test(name, true);
+        }
+
+        [AllowAnonymous]
         public ActionResult test(string name, bool SingleModel = true)
         {
             dynamic data = new ExpandoObject();
@@ -1350,6 +1367,395 @@ namespace Genesis.Areas.Example.Controllers
             return Content(code);
         }
     }
+
+
+    #region [SelfController Model]
+
+    public sealed class ExampleIndexViewModel
+    {
+        public string RootFolder { get; set; }
+        public DateTime ScannedAtUtc { get; set; }
+        public bool FromCache { get; set; }
+        public int TotalRenderablePages { get; set; }
+        public List<ExamplePageEntryViewModel> RenderablePages { get; set; } = new List<ExamplePageEntryViewModel>();
+        public List<ExampleTagFilterViewModel> TagFilters { get; set; } = new List<ExampleTagFilterViewModel>();
+        public List<ExamplePageGroupViewModel> RenderableGroups { get; set; } = new List<ExamplePageGroupViewModel>();
+        public List<ExamplePageNoteViewModel> MissingNotes { get; set; } = new List<ExamplePageNoteViewModel>();
+    }
+
+    public sealed class ExampleTagFilterViewModel
+    {
+        public string Key { get; set; }
+        public string Label { get; set; }
+        public int Count { get; set; }
+    }
+
+    public sealed class ExamplePageGroupViewModel
+    {
+        public string Folder { get; set; }
+        public List<ExamplePageEntryViewModel> Items { get; set; } = new List<ExamplePageEntryViewModel>();
+    }
+
+    public sealed class ExamplePageEntryViewModel
+    {
+        public string RelativePath { get; set; }
+        public string ViewName { get; set; }
+        public string FileName { get; set; }
+        public string Folder { get; set; }
+        public string Extension { get; set; }
+        public string Title { get; set; }
+        public string Description { get; set; }
+        public string TagKey { get; set; }
+        public string TagLabel { get; set; }
+        public string TargetAction { get; set; }
+        public string TargetName { get; set; }
+        public DateTime LastWriteTimeUtc { get; set; }
+        public string LastWriteTimeText { get; set; }
+        public bool IsRenderable { get; set; }
+        public bool HasYamlNote { get; set; }
+    }
+
+    public sealed class ExamplePageNoteViewModel
+    {
+        public string RelativePath { get; set; }
+        public string Title { get; set; }
+        public string Description { get; set; }
+    }
+
+    internal static class ExampleCatalogService
+    {
+        private const string CacheKey = "Genesis.Example.Self.Index.Catalog";
+        private static readonly object SyncRoot = new object();
+        private static readonly string[] RenderableExtensions = { ".cshtml" };
+
+        public static ExampleIndexViewModel GetIndexModel(HttpServerUtilityBase server, bool refresh)
+        {
+            var cache = HttpRuntime.Cache;
+            var cached = cache[CacheKey] as ExampleIndexViewModel;
+            if (!refresh && cached != null)
+            {
+                cached.FromCache = true;
+                return cached;
+            }
+
+            lock (SyncRoot)
+            {
+                var lockedCached = cache[CacheKey] as ExampleIndexViewModel;
+                if (!refresh && lockedCached != null)
+                {
+                    lockedCached.FromCache = true;
+                    return lockedCached;
+                }
+
+                var model = BuildModel(server);
+                cache.Insert(CacheKey, model, null, DateTime.UtcNow.AddMinutes(30), System.Web.Caching.Cache.NoSlidingExpiration);
+                return model;
+            }
+        }
+
+        private static ExampleIndexViewModel BuildModel(HttpServerUtilityBase server)
+        {
+            var rootPath = server.MapPath("~/Areas/Example/Views/Self");
+            var yamlPath = Path.Combine(rootPath, "list.yaml");
+            var notes = LoadYamlNotes(yamlPath);
+
+            var allFiles = Directory.EnumerateFiles(rootPath, "*.*", SearchOption.AllDirectories)
+                .Where(path => !IsInfrastructureFile(path))
+                .Where(IsCatalogCandidate)
+                .Select(path => BuildEntry(rootPath, path, notes))
+                .OrderBy(item => item.Folder, StringComparer.OrdinalIgnoreCase)
+                .ThenBy(item => item.FileName, StringComparer.OrdinalIgnoreCase)
+                .ToList();
+
+            var renderable = allFiles.Where(item => item.IsRenderable).ToList();
+
+            var renderablePages = BuildIndexEntries(renderable)
+                .OrderBy(item => string.Equals(item.TagLabel, "Root", StringComparison.OrdinalIgnoreCase) ? 0 : 1)
+                .ThenBy(item => item.TagLabel, StringComparer.OrdinalIgnoreCase)
+                .ThenBy(item => item.FileName, StringComparer.OrdinalIgnoreCase)
+                .ToList();
+
+            var tagFilters = renderablePages
+                .GroupBy(item => item.TagKey, StringComparer.OrdinalIgnoreCase)
+                .Select(group => new ExampleTagFilterViewModel
+                {
+                    Key = group.Key,
+                    Label = group.First().TagLabel,
+                    Count = group.Count()
+                })
+                .OrderBy(filter => string.Equals(filter.Label, "Root", StringComparison.OrdinalIgnoreCase) ? 0 : 1)
+                .ThenBy(filter => filter.Label, StringComparer.OrdinalIgnoreCase)
+                .ToList();
+
+            var renderableGroups = GroupByFolder(renderablePages);
+            var missingNotes = notes.Values
+                .Where(note => !allFiles.Any(item => string.Equals(item.RelativePath, note.RelativePath, StringComparison.OrdinalIgnoreCase)))
+                .OrderBy(note => note.RelativePath, StringComparer.OrdinalIgnoreCase)
+                .Select(note => new ExamplePageNoteViewModel
+                {
+                    RelativePath = note.RelativePath,
+                    Title = note.Title,
+                    Description = note.Description
+                })
+                .ToList();
+
+            return new ExampleIndexViewModel
+            {
+                RootFolder = rootPath,
+                ScannedAtUtc = DateTime.UtcNow,
+                FromCache = false,
+                TotalRenderablePages = renderablePages.Count,
+                RenderablePages = renderablePages,
+                TagFilters = tagFilters,
+                RenderableGroups = renderableGroups,
+                MissingNotes = missingNotes
+            };
+        }
+
+        private static List<ExamplePageEntryViewModel> BuildIndexEntries(IEnumerable<ExamplePageEntryViewModel> items)
+        {
+            var pages = items.Where(item => !IsInOutEntry(item)).ToList();
+
+            foreach (var item in items.Where(IsInOutUseOperPartEntry))
+            {
+                var parts = item.RelativePath.Split('/');
+                item.FileName = string.Join("/", parts.Skip(1));
+                item.TagLabel = "InOut";
+                item.TagKey = "inout";
+                item.TargetAction = "InOut";
+                item.TargetName = parts[1] + "/_useOperPart";
+                pages.Add(item);
+            }
+
+            return pages;
+        }
+
+        private static bool IsInOutEntry(ExamplePageEntryViewModel item)
+        {
+            return item.RelativePath.StartsWith("InOut/", StringComparison.OrdinalIgnoreCase);
+        }
+
+        private static bool IsInOutUseOperPartEntry(ExamplePageEntryViewModel item)
+        {
+            var parts = item.RelativePath.Split('/');
+            return parts.Length == 3 &&
+                string.Equals(parts[0], "InOut", StringComparison.OrdinalIgnoreCase) &&
+                string.Equals(parts[2], "_useOperPart.cshtml", StringComparison.OrdinalIgnoreCase);
+        }
+
+        private static List<ExamplePageGroupViewModel> GroupByFolder(List<ExamplePageEntryViewModel> items)
+        {
+            return items
+                .GroupBy(item => string.IsNullOrWhiteSpace(item.Folder) ? "(root)" : item.Folder)
+                .OrderBy(group => group.Key, StringComparer.OrdinalIgnoreCase)
+                .Select(group => new ExamplePageGroupViewModel
+                {
+                    Folder = group.Key,
+                    Items = group.OrderBy(item => item.FileName, StringComparer.OrdinalIgnoreCase).ToList()
+                })
+                .ToList();
+        }
+
+        private static ExamplePageEntryViewModel BuildEntry(string rootPath, string filePath, IDictionary<string, ExampleListYamlEntry> notes)
+        {
+            var relativePath = NormalizeRelativePath(GetRelativePath(rootPath, filePath));
+            var extension = Path.GetExtension(filePath).ToLowerInvariant();
+            var fileName = Path.GetFileName(filePath);
+            var folder = Path.GetDirectoryName(relativePath) ?? string.Empty;
+            var viewName = RemoveExtension(relativePath);
+            var isRenderable = string.Equals(extension, ".cshtml", StringComparison.OrdinalIgnoreCase);
+            var tagLabel = BuildTagLabel(folder);
+            ExampleListYamlEntry found;
+            var note = notes.TryGetValue(relativePath, out found) ? found : null;
+
+            return new ExamplePageEntryViewModel
+            {
+                RelativePath = relativePath,
+                ViewName = viewName,
+                FileName = fileName,
+                Folder = NormalizeFolder(folder),
+                Extension = extension,
+                Title = string.IsNullOrWhiteSpace(note?.Title) ? Path.GetFileNameWithoutExtension(fileName) : note.Title,
+                Description = note?.Description ?? string.Empty,
+                TagLabel = tagLabel,
+                TagKey = tagLabel.ToLowerInvariant(),
+                TargetAction = "test",
+                TargetName = viewName,
+                LastWriteTimeUtc = File.GetLastWriteTimeUtc(filePath),
+                LastWriteTimeText = File.GetLastWriteTime(filePath).ToString("yyyy-MM-dd HH:mm"),
+                IsRenderable = isRenderable,
+                HasYamlNote = note != null
+            };
+        }
+
+        private static string BuildTagLabel(string folder)
+        {
+            if (string.IsNullOrWhiteSpace(folder))
+            {
+                return "Root";
+            }
+
+            var segments = folder.Split(new[] { '\\', '/' }, StringSplitOptions.RemoveEmptyEntries);
+            if (segments.Length == 0)
+            {
+                return "Root";
+            }
+
+            if (segments.Length == 1)
+            {
+                return segments[0];
+            }
+
+            return string.Join("\\", segments.Take(2));
+        }
+
+        private static bool IsCatalogCandidate(string filePath)
+        {
+            var extension = Path.GetExtension(filePath).ToLowerInvariant();
+            return RenderableExtensions.Contains(extension);
+        }
+
+        private static bool IsInfrastructureFile(string filePath)
+        {
+            var fileName = Path.GetFileName(filePath);
+            if (string.Equals(fileName, "web.config", StringComparison.OrdinalIgnoreCase))
+            {
+                return true;
+            }
+
+            if (string.Equals(fileName, "list.yaml", StringComparison.OrdinalIgnoreCase) ||
+                string.Equals(fileName, "list.yml", StringComparison.OrdinalIgnoreCase))
+            {
+                return true;
+            }
+
+            if (string.Equals(fileName, "_ViewStart.cshtml", StringComparison.OrdinalIgnoreCase))
+            {
+                return true;
+            }
+
+            if (string.Equals(fileName, "_index.cshtml", StringComparison.OrdinalIgnoreCase))
+            {
+                return true;
+            }
+
+            return false;
+        }
+
+        private static IDictionary<string, ExampleListYamlEntry> LoadYamlNotes(string yamlPath)
+        {
+            var result = new Dictionary<string, ExampleListYamlEntry>(StringComparer.OrdinalIgnoreCase);
+            if (!File.Exists(yamlPath))
+            {
+                return result;
+            }
+
+            ExampleListYamlEntry current = null;
+            foreach (var rawLine in File.ReadAllLines(yamlPath, Encoding.UTF8))
+            {
+                var line = rawLine.TrimEnd();
+                if (string.IsNullOrWhiteSpace(line))
+                {
+                    continue;
+                }
+
+                var trimmed = line.TrimStart();
+                if (trimmed.StartsWith("#", StringComparison.Ordinal))
+                {
+                    continue;
+                }
+
+                if (string.Equals(trimmed, "pages:", StringComparison.OrdinalIgnoreCase))
+                {
+                    continue;
+                }
+
+                if (Regex.IsMatch(line, @"^\s{2}[^:\s].*:\s*$"))
+                {
+                    var key = NormalizeRelativePath(line.Trim().TrimEnd(':').Trim());
+                    current = new ExampleListYamlEntry { RelativePath = key };
+                    result[key] = current;
+                    continue;
+                }
+
+                if (current == null)
+                {
+                    continue;
+                }
+
+                if (Regex.IsMatch(line, @"^\s{4}[^:\s].*:\s*.*$"))
+                {
+                    var pair = line.Trim();
+                    var colonIndex = pair.IndexOf(':');
+                    if (colonIndex <= 0)
+                    {
+                        continue;
+                    }
+
+                    var key = pair.Substring(0, colonIndex).Trim();
+                    var value = pair.Substring(colonIndex + 1).Trim().Trim('"');
+                    switch (key.ToLowerInvariant())
+                    {
+                        case "title":
+                            current.Title = value;
+                            break;
+                        case "description":
+                            current.Description = value;
+                            break;
+                    }
+                }
+            }
+
+            return result;
+        }
+
+        private static string NormalizeRelativePath(string path)
+        {
+            return path.Replace('\\', '/').Trim().TrimStart('.', '/');
+        }
+
+        private static string NormalizeFolder(string folder)
+        {
+            if (string.IsNullOrWhiteSpace(folder))
+            {
+                return string.Empty;
+            }
+
+            return folder.Replace('\\', '/').Trim('/');
+        }
+
+        private static string RemoveExtension(string relativePath)
+        {
+            var extension = Path.GetExtension(relativePath);
+            if (string.IsNullOrEmpty(extension))
+            {
+                return relativePath.Replace('\\', '/');
+            }
+
+            return relativePath.Substring(0, relativePath.Length - extension.Length).Replace('\\', '/');
+        }
+
+        private static string GetRelativePath(string rootPath, string filePath)
+        {
+            var normalizedRoot = Path.GetFullPath(rootPath)
+                .TrimEnd(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar)
+                + Path.DirectorySeparatorChar;
+            var rootUri = new Uri(normalizedRoot, UriKind.Absolute);
+            var fileUri = new Uri(Path.GetFullPath(filePath), UriKind.Absolute);
+            var relativeUri = rootUri.MakeRelativeUri(fileUri);
+            var relativePath = Uri.UnescapeDataString(relativeUri.ToString());
+            return relativePath.Replace('/', Path.DirectorySeparatorChar);
+        }
+
+        private sealed class ExampleListYamlEntry
+        {
+            public string RelativePath { get; set; }
+            public string Title { get; set; }
+            public string Description { get; set; }
+        }
+    }
+    #endregion
+
     public partial class ActController : BaseController
     {
 
@@ -2063,11 +2469,12 @@ namespace Genesis.Areas.SYSAdmin.Controllers
         public static IResult f_Add_ROLE(string RESOURCE_SID)
         => WIPInjectServices.TxnBase.LzDBTrans(null, Txn =>
         {
-            //Txn.PermitIndependentMvc("SyncRole 需同步 MVC AD_USER_ROLE 與 MES AD_USERGROUP，接受兩段提交");
+            Txn.PermitIndependentMvc("SyncRole 需同步 MVC AD_USER_ROLE 與 MES AD_USERGROUP，接受兩段提交");
+
+            //* 因為專案編譯的需求 先 mark 掉
             //IMesDataSession _zz = (IMesDataSession)Txn;
             //_zz.PermitIndependentMvc("SyncRole 需同步 MVC AD_USER_ROLE 與 MES AD_USERGROUP，接受兩段提交");
 
-            //* 因為專案編譯的需求 先 mark 掉
             var role = Txn.EFQuery_MVC.AD_ROLE.Where(c => c.ROLE_NO == "Admin").FirstOrDefault();
             Check.Invalid("AD_ROLE 查無 Admin 帳號", role == null);
 
@@ -2522,6 +2929,7 @@ namespace Genesis.WebApi
                 public int 列舉有開啟的擴展_全部;
                 public int 查詢含有此站的流程;
                 public int 查詢含有此站的工單;
+                public int 查詢含Judeg的流程_工站;
             }
         }
 
